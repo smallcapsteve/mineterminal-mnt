@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Search: {{ q }} — MiningNewsTerminal{% endblock %}
+{% block content %}
+  <h2 class="page-title">
+    Search results
+    {% if q %}<span class="search-q-pill">{{ q }}</span>{% endif %}
+  </h2>
+
+  {% if not q %}
+    <p class="empty">Enter a search term in the bar at the top.</p>
+  {% elif not events %}
+    <p class="empty">No matching releases for "{{ q }}".</p>
+  {% else %}
+    <p class="muted" style="margin-bottom:1rem;">
+      {{ events|length }} match{% if events|length != 1 %}es{% endif %} for "{{ q }}".
+    </p>
+    <ul class="events">
+      {% for e in events %}
+        <li class="event">
+          <div class="event-meta">
+            {% if e["ticker"] %}<a class="ticker" href="/company/{{ e['ticker'].lower() }}">{{ e["ticker"] }}</a>{% else %}<span class="ticker">—</span>{% endif %} {% set _cn = e["ticker"] | company_name %}{% if _cn %}<a class="source" href="/company/{{ e['ticker'].lower() }}">{{ _cn }}</a>{% endif %}
+            <span class="date">{{ (e["published_at"] or e["classified_at"] or "")[:10] }}</span>
+          </div>
+          <h3><a href="/event/{{ e['event_id'] }}">{{ (e["raw_headline"] or "(no headline)") | smart_title }}</a></h3>
+          {% set cats = (e["categories"] or "") %}
+          {% if cats %}
+            <div class="event-cats">
+              {% for code, name in (cats | cat_chips) %}
+                <span class="cat-badge cat-{{ code }}">{{ name }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endblock %}

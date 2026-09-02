@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}{{ (event["raw_headline"] or "Event") | smart_title }} · {{ event["ticker"] or "" }} · MiningNewsTerminal{% endblock %}
+{% block head_extra %}
+  {% set _hl = (event["raw_headline"] or "") | smart_title %}
+  {% set _desc = meta_description or "" %}
+  {% set _url = canonical_url or "" %}
+  {% set _ticker = event["ticker"] or "" %}
+  {% set _published = (event["published_at"] or event["classified_at"] or "")[:19] %}
+  {% set _source = event["source_name"] | pretty_source %}
+  {% if _desc %}<meta name="description" content="{{ _desc }}">{% endif %}
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  {% if _url %}<link rel="canonical" href="{{ _url }}">{% endif %}
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="{{ _hl }}">
+  {% if _desc %}<meta property="og:description" content="{{ _desc }}">{% endif %}
+  {% if _url %}<meta property="og:url" content="{{ _url }}">{% endif %}
+  <meta property="og:site_name" content="MiningNewsTerminal">
+  <meta property="og:image" content="https://miningnewsterminal.com/static/mnt-logo.svg">
+  {% if _published %}<meta property="article:published_time" content="{{ _published }}">{% endif %}
+  <meta property="article:section" content="Mining News">
+  {% if _ticker %}<meta property="article:tag" content="{{ _ticker }}">{% endif %}
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="{{ _hl }}">
+  {% if _desc %}<meta name="twitter:description" content="{{ _desc }}">{% endif %}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    "headline": {{ _hl | tojson }},
+    {% if _desc %}"description": {{ _desc | tojson }},{% endif %}
+    {% if _url %}"mainEntityOfPage": {"@type": "WebPage", "@id": {{ _url | tojson }}},
+    "url": {{ _url | tojson }},{% endif %}
+    {% if _published %}"datePublished": {{ _published | tojson }},
+    "dateModified": {{ _published | tojson }},{% endif %}
+    "publisher": {
+      "@type": "Organization",
+      "name": "MiningNewsTerminal",
+      "url": "https://miningnewsterminal.com",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://miningnewsterminal.com/static/mnt-logo.svg"
+      }
+    },
+    "author": {
+      "@type": "Organization",
+      "name": {{ _source | tojson }}
+    },
+    {% if _ticker %}"about": {
+      "@type": "Corporation",
+      "tickerSymbol": {{ _ticker | tojson }}
+    },{% endif %}
+    "isAccessibleForFree": "True"
+  }
+  </script>
+{% endblock %}
+{% block content %}
+  <article class="event-detail">
+    <p class="event-meta">
+      <strong>{{ event["ticker"] or "—" }}</strong>
+      {% if is_admin %}&middot; {{ event["source_name"] | pretty_source or "" }}{% endif %}
+      &middot; <time datetime="{{ (event['published_at'] or '') }}">{{ (event["published_at"] or event["classified_at"] or "")[:19].replace("T", " ") }}</time>
+      {% if is_admin %}
+        &middot; <span class="status status-{{ event['review_status'] }}">{{ event["review_status"] }}</span>
+      {% endif %}
+    </p>
+    <h1>{{ (event["raw_headline"] or "(no headline)") | smart_title }}</h1>
+    {% set cats = (event["categories"] or "") %}
+    {% if cats %}
+      <div class="event-cats event-cats-detail">
+        {% for code, name in (cats | cat_chips) %}
+          <span class="cat-badge cat-{{ code }}">{{ name }}</span>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% if is_admin and event["source_url"] %}
+      <p><a class="sourcelink" href="{{ event['source_url'] }}" target="_blank" rel="noopener noreferrer">Original source ↗</a></p>
+    {% endif %}
+    {% if event["raw_html"] %}
+      <div class="body body-html">{{ event["raw_html"] | clean_html(event["source_url"] or "") | safe }}</div>
+    {% elif event["raw_body"] %}
+      <div class="body">{% for para in event["raw_body"].replace("\r\n","\n").split("\n") %}{% if para.strip() %}<p>{{ para }}</p>{% endif %}{% endfor %}</div>
+    {% elif event["raw_excerpt"] %}
+      <p class="excerpt">{{ event["raw_excerpt"] }}</p>
+    {% else %}
+      <p class="empty">No body captured.</p>
+    {% endif %}
+    <p class="backlink"><a href="/">← Back to feed</a></p>
+  </article>
+{% endblock %}

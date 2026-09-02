@@ -1,0 +1,3043 @@
+[
+  {
+    "ticker": "ADON.CN",
+    "company_id": "ADON",
+    "name": "Adonis Minerals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://adonisminerals.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "ADP.CN",
+    "company_id": "ADP",
+    "name": "Adelphi Metals Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.adelphimetals.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "AFF.CN",
+    "company_id": "AFF",
+    "name": "Affinity Metals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.affinity-metals.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "AGC.CN",
+    "company_id": "AGC",
+    "name": "Avanti Gold Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.avantigoldcorp.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "ALAR.CN",
+    "company_id": "ALAR",
+    "name": "Alaros Exploration Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://alarosexploration.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "ALMA.CN",
+    "company_id": "ALMA",
+    "name": "Alma Gold Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://almagoldinc.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "AMQ.CN",
+    "company_id": "AMQ",
+    "name": "Abitibi Metals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://abitibimetals.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "ANT.CN",
+    "company_id": "ANT",
+    "name": "Anteros Metals Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.anterosmetals.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "API.CN",
+    "company_id": "API",
+    "name": "Appia Rare Earths & Uranium Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://appiareu.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "APXC.CN",
+    "company_id": "APXC",
+    "name": "Apex Critical Metals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://apexcriticalmetals.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "ARGL.CN",
+    "company_id": "ARGL",
+    "name": "Argyle Resources Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://argyleresourcescorp.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "ARMY.CN",
+    "company_id": "ARMY",
+    "name": "Armory Mining Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.armorymining.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "ARQ.CN",
+    "company_id": "ARQ",
+    "name": "Argo Gold Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://argogold.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "ARS.CN",
+    "company_id": "ARS",
+    "name": "Ares Strategic Mining Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.aresstrategicmining.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "ASHL.CN",
+    "company_id": "ASHL",
+    "name": "Ashley Gold Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.ashleygold.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "ATC.CN",
+    "company_id": "ATC",
+    "name": "ATERRA Metals Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.aterrametals.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "ATHA.CN",
+    "company_id": "ATHA",
+    "name": "Athena Gold Corporation",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://athenagoldcorp.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "ATMY.CN",
+    "company_id": "ATMY",
+    "name": "Antimony Resources Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://antimonyresources.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "AUAG.CN",
+    "company_id": "AUAG",
+    "name": "Auxico Resources Canada Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.auxicoresources.com/"
+    },
+    "discovery_status": "exclude_auto",
+    "note": "excluded from rediscover; cnw produced junk 2026-04-22; re-enable only with explicit companysite/wire config"
+  },
+  {
+    "ticker": "AUCU.CN",
+    "company_id": "AUCU",
+    "name": "Inflection Resources Ltd",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://inflectionresources.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "AUEX.CN",
+    "company_id": "AUEX",
+    "name": "Advanced Gold Exploration Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://advancedgoldexploration.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "AUMC.CN",
+    "company_id": "AUMC",
+    "name": "Auric Minerals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://auricminerals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "AUOZ.CN",
+    "company_id": "AUOZ",
+    "name": "Emperor Metals Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.emperormetals.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "AWCM.CN",
+    "company_id": "AWCM",
+    "name": "Ameriwest Critical Metals Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://ameriwestcriticalmetals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "AWR.CN",
+    "company_id": "AWR",
+    "name": "Aurwest Resources Corp.",
+    "source": "globenewswire",
+    "source_params": {
+      "ticker": "AWR.CN"
+    },
+    "discovery_status": "gnw_hit_detected"
+  },
+  {
+    "ticker": "BAD.CN",
+    "company_id": "BAD",
+    "name": "Naughty Ventures Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.naughtyventures.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "BAR.CN",
+    "company_id": "BAR",
+    "name": "Barranco Gold Mining Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://barrancogold.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "BATT.CN",
+    "company_id": "BATT",
+    "name": "Dark Star Minerals Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://darkstarminerals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "BATX.CN",
+    "company_id": "BATX",
+    "name": "Battery X Metals Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.batteryxmetals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "BFG.CN",
+    "company_id": "BFG",
+    "name": "Giant Mining Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://giantminingcorp.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "BG.CN",
+    "company_id": "BG",
+    "name": "Big Gold Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://biggold.ca/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "BGLD.CN",
+    "company_id": "BGLD",
+    "name": "Boreal Gold Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://borealgold.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "BGX.CN",
+    "company_id": "BGX",
+    "name": "Black Gold Exploration Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.bgxcorp.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "BLLG.CN",
+    "company_id": "BLLG",
+    "name": "Blue Lagoon Resources Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://bluelagoonresources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "BMT.CN",
+    "company_id": "BMT",
+    "name": "Bahia Metals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.bahiametals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "BOOM.CN",
+    "company_id": "BOOM",
+    "name": "Galloper Gold Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://gallopergold.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "BRS.CN",
+    "company_id": "BRS",
+    "name": "BRS Resources Ltd.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://brsresourcesca.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "BULL.CN",
+    "company_id": "BULL",
+    "name": "Quest Critical Metals Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://questcriticalmetals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "BURY.CN",
+    "company_id": "BURY",
+    "name": "Burrell Resources Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://burrellresources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "BY.CN",
+    "company_id": "BY",
+    "name": "Beyond Minerals Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://beyondminerals.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "BYRG.CN",
+    "company_id": "BYRG",
+    "name": "Bayridge Resources Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://bayridgeresources.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "CACR.CN",
+    "company_id": "CACR",
+    "name": "The Canadian Chrome Company Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://canadachrome.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "CAMP.CN",
+    "company_id": "CAMP",
+    "name": "Canadian GoldCamps Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://canadiangoldcamps.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "CANU.CN",
+    "company_id": "CANU",
+    "name": "Canadian Uranium Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://canadianuraniumcorp.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "CAPR.CN",
+    "company_id": "CAPR",
+    "name": "Caprock Mining Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://caprockmining.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "CARM.CN",
+    "company_id": "CARM",
+    "name": "Carmanah Minerals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://carmanahcorp.ca/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "CASC.CN",
+    "company_id": "CASC",
+    "name": "Cascade Copper Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://cascadecoppercorp.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "CCC.CN",
+    "company_id": "CCC",
+    "name": "Carlyle Commodities Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://carlylecommodities.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "CCI.CN",
+    "company_id": "CCI",
+    "name": "Canadian Copper Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://canadiancopper.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "CCR.CN",
+    "company_id": "CCR",
+    "name": "Green River Gold Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://greenrivergold.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "CDN.CN",
+    "company_id": "CDN",
+    "name": "CDN Maverick Capital Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://cdnmaverick.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "CFE.CN",
+    "company_id": "CFE",
+    "name": "Cartier Silver Corporation",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://cartiersilvercorp.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "CMET.CN",
+    "company_id": "CMET",
+    "name": "Clarity Metals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.claritymetals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "CMP.CN",
+    "company_id": "CMP",
+    "name": "CMP Mining Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://thecse.com/listings/cmp-mining-inc/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "CMT.CN",
+    "company_id": "CMT",
+    "name": "Cullinan Metals Corp",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.cullinanmetals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "COMT.CN",
+    "company_id": "COMT",
+    "name": "Collective Metals Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://collectivemetalsinc.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "CQX.CN",
+    "company_id": "CQX",
+    "name": "Copper Quest Exploration Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://copper.quest"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "CRC.CN",
+    "company_id": "CRC",
+    "name": "Canter Resources Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.canterresources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "CRCL.CN",
+    "company_id": "CRCL",
+    "name": "Corcel Exploration Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://corcelexploration.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "CRIV.CN",
+    "company_id": "CRIV",
+    "name": "Carson River Ventures Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://thecse.com/listings/carson-river-ventures-corp/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "CRUZ.CN",
+    "company_id": "CRUZ",
+    "name": "Cruz Battery Metals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.cruzbatterymetals.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "CSR.CN",
+    "company_id": "CSR",
+    "name": "Copper Standard Resources Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://copperstandard.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "CUPA.CN",
+    "company_id": "CUPA",
+    "name": "Cupani Metals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://cupanimetals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "CUPR.CN",
+    "company_id": "CUPR",
+    "name": "Super Copper Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://supercopper.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "CXC.CN",
+    "company_id": "CXC",
+    "name": "CMX Gold & Silver Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://cmxgoldandsilver.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "DEMC.CN",
+    "company_id": "DEMC",
+    "name": "Discovery Energy Metals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://discoveryenergymetals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "DRC.CN",
+    "company_id": "DRC",
+    "name": "DRC Gold Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://drcgoldcorp.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "EAGL.CN",
+    "company_id": "EAGL",
+    "name": "EagleOne Metals Corporation",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://eagleonemetals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "EATH.CN",
+    "company_id": "EATH",
+    "name": "New Earth Resources Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://thecse.com/listings/new-earth-resources-corp/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "EDGM.CN",
+    "company_id": "EDGM",
+    "name": "Edgemont Gold Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://edgemontgold.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "ELEM.CN",
+    "company_id": "ELEM",
+    "name": "Element79 Gold Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.element79.gold"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "EMET.CN",
+    "company_id": "EMET",
+    "name": "Canamera Energy Metals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://canamerametals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "EMPS.CN",
+    "company_id": "EMPS",
+    "name": "EMP Metals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://empmetals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "EOM.CN",
+    "company_id": "EOM",
+    "name": "Eco Oro Minerals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://thecse.com/listings/eco-oro-minerals-corp"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "EONE.CN",
+    "company_id": "EONE",
+    "name": "Element One Hydrogen and Critical Minerals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://e1-h2.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "EPG.CN",
+    "company_id": "EPG",
+    "name": "Epic Gold Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://epicgoldcorp.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "EPR.CN",
+    "company_id": "EPR",
+    "name": "E-Power Resources Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://epowerresources.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "ERKA.CN",
+    "company_id": "ERKA",
+    "name": "Eureka Lithium Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://eurekalithiumcorp.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "ESAU.CN",
+    "company_id": "ESAU",
+    "name": "ESGold Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://esgold.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "ETR.CN",
+    "company_id": "ETR",
+    "name": "Etruscus Resources Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://etruscusresources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "EVM.CN",
+    "company_id": "EVM",
+    "name": "EV Minerals Corporation",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://evmineralscorp.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "FAT.CN",
+    "company_id": "FAT",
+    "name": "Foremost Clean Energy Ltd.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://foremostcleanenergy.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "FENX.CN",
+    "company_id": "FENX",
+    "name": "FenixOro Gold Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://fenixoro.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "FLM.CN",
+    "company_id": "FLM",
+    "name": "First Lithium Minerals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://firstlithium.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "FNAU.CN",
+    "company_id": "FNAU",
+    "name": "Four Nines Gold Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.fourninesgold.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "FNI.CN",
+    "company_id": "FNI",
+    "name": "Fathom Nickel Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://fathomnickel.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "FNX.CN",
+    "company_id": "FNX",
+    "name": "FNX Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://fnxminerals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "FOX.CN",
+    "company_id": "FOX",
+    "name": "Fox River Resources Corporation",
+    "source": "cnw",
+    "source_params": {
+      "organization_url": "https://fox-river.ca/"
+    },
+    "discovery_status": "cnw_detected",
+    "exclude_auto": true,
+    "exclude_reason": "discovery stored company website as CNW organization_url; wrong format for CNW adapter",
+    "verified_at": "2026-04-24",
+    "verified_result": "0_releases_from_list_recent"
+  },
+  {
+    "ticker": "FRG.CN",
+    "company_id": "FRG",
+    "name": "Forge Resources Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.forgeresourcescorp.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "FTEL.CN",
+    "company_id": "FTEL",
+    "name": "First Tellurium Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://firsttellurium.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "FWM.CN",
+    "company_id": "FWM",
+    "name": "Flow Metals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://flowmetals.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "GAND.CN",
+    "company_id": "GAND",
+    "name": "Gander Gold Corporation",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://gandergold.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "GC.CN",
+    "company_id": "GC",
+    "name": "Goldcana Resources Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.goldcana.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "GCC.CN",
+    "company_id": "GCC",
+    "name": "Golden Cariboo Resources Ltd.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://goldencariboo.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "GCP.CN",
+    "company_id": "GCP",
+    "name": "Golcap Resources Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://golcapresources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "GDN.CN",
+    "company_id": "GDN",
+    "name": "Golden Age Exploration Ltd.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://goldenageexploration.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "GFT.CN",
+    "company_id": "GFT",
+    "name": "Grafton Resources Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.graftonresources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "GGC.CN",
+    "company_id": "GGC",
+    "name": "Generic Gold Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://genericgold.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "GGR.CN",
+    "company_id": "GGR",
+    "name": "Golden Goose Resources Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.goldengooseresources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "GLDS.CN",
+    "company_id": "GLDS",
+    "name": "Golden Spike Resources Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.goldenspikeresources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "GLM.CN",
+    "company_id": "GLM",
+    "name": "Golden Lake Exploration Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.goldenlakex.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "GMC.CN",
+    "company_id": "GMC",
+    "name": "Germanium Mining Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://germaniummining.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "GMR.CN",
+    "company_id": "GMR",
+    "name": "Gelum Resources Ltd.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://gelumresources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "GOCO.CN",
+    "company_id": "GOCO",
+    "name": "Go Metals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://gometals.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "GOH.CN",
+    "company_id": "GOH",
+    "name": "GoldHaven Resources Corp.",
+    "source": "globenewswire",
+    "source_params": {},
+    "discovery_status": "no_website",
+    "exclude_auto": true,
+    "exclude_reason": "GNW org search returns no results; not on GlobeNewswire",
+    "verified_at": "2026-04-24",
+    "verified_result": "0_releases_from_list_recent"
+  },
+  {
+    "ticker": "GOR.CN",
+    "company_id": "GOR",
+    "name": "Goldrea Resources Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://goldrea.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "GPO.CN",
+    "company_id": "GPO",
+    "name": "Gold Port Corporation",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.goldportcorporation.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "GRAY.CN",
+    "company_id": "GRAY",
+    "name": "Graycliff Exploration Limited",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://graycliffexploration.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "GRBM.CN",
+    "company_id": "GRBM",
+    "name": "Green Bridge Metals Corporation",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://greenbridgemetals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "GRCM.CN",
+    "company_id": "GRCM",
+    "name": "Geologica Resource Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://geologicaresource.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "GRUV.CN",
+    "company_id": "GRUV",
+    "name": "Protium Clean Energy Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://protium.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "GSRI.CN",
+    "company_id": "GSRI",
+    "name": "Golden Shield Resources Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://goldenshield.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "GSTR.CN",
+    "company_id": "GSTR",
+    "name": "Glenstar Minerals Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://glenstar.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "GTCH.CN",
+    "company_id": "GTCH",
+    "name": "Getchell Gold Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.getchellgold.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "GURN.CN",
+    "company_id": "GURN",
+    "name": "Global Uranium Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.globaluranium.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "GXLD.CN",
+    "company_id": "GXLD",
+    "name": "Hi-View Resources Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://hiviewresources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "GXP.CN",
+    "company_id": "GXP",
+    "name": "Greenridge Exploration Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://greenridge-exploration.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "HAMR.CN",
+    "company_id": "HAMR",
+    "name": "Silver Hammer Mining Corp",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://silverhammermining.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "HERC.CN",
+    "company_id": "HERC",
+    "name": "Hercules Resources Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://herculesresourcescorp.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "HHE.CN",
+    "company_id": "HHE",
+    "name": "First Atlas Resources Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.qmetalscorp.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "HLND.CN",
+    "company_id": "HLND",
+    "name": "Highland Critical Minerals Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 254258
+    },
+    "discovery_status": "no_website",
+    "exclude_auto": true,
+    "exclude_reason": "newsfile company_id 254258 is a dead profile (0 release links)",
+    "verified_at": "2026-04-24",
+    "verified_result": "0_releases_from_list_recent"
+  },
+  {
+    "ticker": "HM.CN",
+    "company_id": "HM",
+    "name": "HM Exploration Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://hmexploration.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "HML.CN",
+    "company_id": "HML",
+    "name": "Heritage Mining Ltd.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://heritagemining.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "HRK.CN",
+    "company_id": "HRK",
+    "name": "Highrock Resources Ltd.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://highrockresources.ltd/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "HTRC.CN",
+    "company_id": "HTRC",
+    "name": "High Tide Resources Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://hightideresources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "HUNT.CN",
+    "company_id": "HUNT",
+    "name": "Gold Hunter Resources Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://goldhunterresources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "HWG.CN",
+    "company_id": "HWG",
+    "name": "Headwater Gold Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://headwatergold.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "HZ.CN",
+    "company_id": "HZ",
+    "name": "Hertz Energy Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://hertz-energy.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "INTG.CN",
+    "company_id": "INTG",
+    "name": "Integral Metals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.integralmetals.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "IRV.CN",
+    "company_id": "IRV",
+    "name": "Irving Resources Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://irvresources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "ISP.CN",
+    "company_id": "ISP",
+    "name": "Inspiration Mining Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.inspiration.energy"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "KBX.CN",
+    "company_id": "KBX",
+    "name": "Kobrea Exploration Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 291715
+    },
+    "discovery_status": "no_website",
+    "exclude_auto": true,
+    "exclude_reason": "newsfile company_id 291715 is a dead profile (0 release links)",
+    "verified_at": "2026-04-24",
+    "verified_result": "0_releases_from_list_recent"
+  },
+  {
+    "ticker": "KENY.CN",
+    "company_id": "KENY",
+    "name": "Makenita Resources Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.makenitaresources.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "KOG.CN",
+    "company_id": "KOG",
+    "name": "KO Gold Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://kogoldnz.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "KUYA.CN",
+    "company_id": "KUYA",
+    "name": "Kuya Silver Corporation",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://kuyasilver.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "KVM.CN",
+    "company_id": "KVM",
+    "name": "Kingsview Minerals Ltd.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://kingsviewminerals.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "LAI.CN",
+    "company_id": "LAI",
+    "name": "La Imperial Resources Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.laimperialresources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "LCR.CN",
+    "company_id": "LCR",
+    "name": "Lancaster Resources Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://lancaster-resources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "LECR.CN",
+    "company_id": "LECR",
+    "name": "Leocor Mining Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://leocormining.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "LEO.CN",
+    "company_id": "LEO",
+    "name": "Lion Copper and Gold Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.lioncg.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "LEXT.CN",
+    "company_id": "LEXT",
+    "name": "Lexston Mining Corporation",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://lexston.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "LFLR.CN",
+    "company_id": "LFLR",
+    "name": "LaFleur Minerals Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://lafleurminerals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "LFNT.CN",
+    "company_id": "LFNT",
+    "name": "LFNT Resources Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://lfnt.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "LGHT.CN",
+    "company_id": "LGHT",
+    "name": "Lighthouse Gold Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.lighthousegold.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "LIBR.CN",
+    "company_id": "LIBR",
+    "name": "Libra Energy Materials Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://libraenergymaterials.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "LION.CN",
+    "company_id": "LION",
+    "name": "Global Li-Ion Graphite Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://globalli-iongraphite.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "LIVE.CN",
+    "company_id": "LIVE",
+    "name": "Live Energy Minerals Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 128829
+    },
+    "discovery_status": "no_website",
+    "exclude_auto": true,
+    "exclude_reason": "newsfile company_id 128829 dead profile",
+    "verified_at": "2026-04-24",
+    "verified_result": "0_releases_from_list_recent"
+  },
+  {
+    "ticker": "LTHM.CN",
+    "company_id": "LTHM",
+    "name": "Champion Electric Metals Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.champem.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "M.CN",
+    "company_id": "M",
+    "name": "Myriad Uranium Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://myriaduranium.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "MANN.CN",
+    "company_id": "MANN",
+    "name": "Manning Ventures Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://manning-ventures.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "MAXM.CN",
+    "company_id": "MAXM",
+    "name": "Maxus Mining Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://maxusmining.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "MAXX.CN",
+    "company_id": "MAXX",
+    "name": "Max Power Mining Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.maxpowermining.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "MCL.CN",
+    "company_id": "MCL",
+    "name": "McLaren Resources Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.mclarenresources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "MEC.CN",
+    "company_id": "MEC",
+    "name": "Mustang Energy Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.mustangenergy.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "MEDA.CN",
+    "company_id": "MEDA",
+    "name": "Medaro Mining Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://medaromining.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "MEGA.CN",
+    "company_id": "MEGA",
+    "name": "MegaWatt Lithium and Battery Metals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://megawattmetals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "MEO.CN",
+    "company_id": "MEO",
+    "name": "Cameo Resources Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://cameoresourcesinc.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "MERC.CN",
+    "company_id": "MERC",
+    "name": "Mercado Minerals Ltd.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.mercadominerals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "MILI.CN",
+    "company_id": "MILI",
+    "name": "Military Metals Corp.",
+    "source": "globenewswire",
+    "source_params": {},
+    "discovery_status": "no_website",
+    "exclude_auto": true,
+    "exclude_reason": "GNW ticker=MILI matches wrong company (MiLi electronics brand); NOT Military Metals Corp",
+    "verified_at": "2026-04-24",
+    "verified_result": "0_releases_from_list_recent"
+  },
+  {
+    "ticker": "MIRL.CN",
+    "company_id": "MIRL",
+    "name": "Minera IRL Limited",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://minera-irl.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "MLKM.CN",
+    "company_id": "MLKM",
+    "name": "Mayo Lake Minerals Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.mayolakeminerals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "MLM.CN",
+    "company_id": "MLM",
+    "name": "McFarlane Lake Mining Limited",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://mcfarlanelakemining.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "MM.CN",
+    "company_id": "MM",
+    "name": "Maximus Metals Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://thecse.com/listings/maximus-metals-inc/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "MMET.CN",
+    "company_id": "MMET",
+    "name": "Miata Metals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://miatametals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "MNG.CN",
+    "company_id": "MNG",
+    "name": "Mongoose Mining Ltd.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://mongoosemining.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "MOC.CN",
+    "company_id": "MOC",
+    "name": "Mosaic Minerals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://mosaicminerals.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "MOLT.CN",
+    "company_id": "MOLT",
+    "name": "Molten Metals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://moltenmetalscorp.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "MONI.CN",
+    "company_id": "MONI",
+    "name": "Global Tactical Metals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://globaltacticalmetals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "MSM.CN",
+    "company_id": "MSM",
+    "name": "Metalsource Mining Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.metalsourcemining.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "MTTA.CN",
+    "company_id": "MTTA",
+    "name": "Meta Critical Minerals Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.metacriticalminerals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "MY.CN",
+    "company_id": "MY",
+    "name": "Montego Resources Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.montegoresources.ca/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "NATB.CN",
+    "company_id": "NATB",
+    "name": "NatBridge Resources Ltd.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.natbridgeresources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "NATO.CN",
+    "company_id": "NATO",
+    "name": "North Atlantic Titanium Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.natitanium.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "NBRK.CN",
+    "company_id": "NBRK",
+    "name": "New Break Resources Ltd.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.newbreakresources.ca/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "NEWD.CN",
+    "company_id": "NEWD",
+    "name": "Newfoundland Discovery Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://newfoundlanddiscovery.ca/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "NEXU.CN",
+    "company_id": "NEXU",
+    "name": "Nexus Uranium Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://nexusuranium.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "NEXX.CN",
+    "company_id": "NEXX",
+    "name": "Nexcel Metals Corp.",
+    "source": "globenewswire",
+    "source_params": {
+      "ticker": "NEXX.CN"
+    },
+    "discovery_status": "gnw_hit_detected",
+    "exclude_auto": true,
+    "exclude_reason": "GNW org search returns no results; not on GlobeNewswire",
+    "verified_at": "2026-04-24",
+    "verified_result": "0_releases_from_list_recent"
+  },
+  {
+    "ticker": "NICO.CN",
+    "company_id": "NICO",
+    "name": "Class 1 Nickel and Technologies Limited",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://class1nickel.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "NINE.CN",
+    "company_id": "NINE",
+    "name": "Nine Mile Metals Ltd.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://ninemilemetals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "NIOB.CN",
+    "company_id": "NIOB",
+    "name": "North American Niobium and Critical Minerals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://northamericanniobium.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "NIX.CN",
+    "company_id": "NIX",
+    "name": "NorthX Nickel Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://northxnickel.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "NLR.CN",
+    "company_id": "NLR",
+    "name": "Northern Lights Resources Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://northernlightsresources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "NOM.CN",
+    "company_id": "NOM",
+    "name": "Norsemont Mining Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://norsemont.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "NOP.CN",
+    "company_id": "NOP",
+    "name": "Nevada Organic Phosphate Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.nevadaphosphate.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "NRED.CN",
+    "company_id": "NRED",
+    "name": "NovaRed Mining Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 293132
+    },
+    "discovery_status": "no_website",
+    "exclude_auto": true,
+    "exclude_reason": "newsfile company_id 293132 dead profile",
+    "verified_at": "2026-04-24",
+    "verified_result": "0_releases_from_list_recent"
+  },
+  {
+    "ticker": "NSG.CN",
+    "company_id": "NSG",
+    "name": "Northstar Gold Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://northstargoldcorp.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "NSJ.CN",
+    "company_id": "NSJ",
+    "name": "NSJ Gold Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.nsjgoldcorp.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "NT.CN",
+    "company_id": "NT",
+    "name": "Newterra Resources Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.newterraresources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "NUKV.CN",
+    "company_id": "NUKV",
+    "name": "Nuclear Vision Limited",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://nuclearvisionltd.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "NVPC.CN",
+    "company_id": "NVPC",
+    "name": "Nova Pacific Metals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.novapacificmetals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "NVR.CN",
+    "company_id": "NVR",
+    "name": "North Valley Resources Ltd.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.northvalleyresources.ca/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "NWI.CN",
+    "company_id": "NWI",
+    "name": "Nuinsco Resources Limited",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.nuinsco.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "NXU.CN",
+    "company_id": "NXU",
+    "name": "Nexco Resources Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.nexcoresources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "OMGA.CN",
+    "company_id": "OMGA",
+    "name": "Omega Pacific Resources Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 288143
+    },
+    "discovery_status": "no_website",
+    "exclude_auto": true,
+    "exclude_reason": "newsfile company_id 288143 dead profile",
+    "verified_at": "2026-04-24",
+    "verified_result": "0_releases_from_list_recent"
+  },
+  {
+    "ticker": "OROG.CN",
+    "company_id": "OROG",
+    "name": "Gold Orogen Resources Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://lode-gold.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "OWLI.CN",
+    "company_id": "OWLI",
+    "name": "One World Lithium Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://oneworldlithium.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "PATH.CN",
+    "company_id": "PATH",
+    "name": "Newpath Resources Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://newpathresources.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "PAU.CN",
+    "company_id": "PAU",
+    "name": "Provenance Gold Corp",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.provenancegold.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "PGA.CN",
+    "company_id": "PGA",
+    "name": "Pegmatite One Lithium and Gold Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://pegmatiteone.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "PGOL.CN",
+    "company_id": "PGOL",
+    "name": "Patriot Gold Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.patriotgoldcorp.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "PGR.CN",
+    "company_id": "PGR",
+    "name": "Planet Green Metals Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://planetgreenmetals.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "PHOS.CN",
+    "company_id": "PHOS",
+    "name": "First Phosphate Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://firstphosphate.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "PLLR.CN",
+    "company_id": "PLLR",
+    "name": "Forty Pillars Mining Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.fortypillars.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "PLTO.CN",
+    "company_id": "PLTO",
+    "name": "Pluto Ventures Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://plutoventures.ca/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "PMAX.CN",
+    "company_id": "PMAX",
+    "name": "Powermax Minerals Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://powermaxminerals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "PMC.CN",
+    "company_id": "PMC",
+    "name": "Peloton Minerals Corporation",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://pelotonminerals.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "PNGC.CN",
+    "company_id": "PNGC",
+    "name": "Loyalist Exploration Limited",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://loyalistexploration.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "PNRG.CN",
+    "company_id": "PNRG",
+    "name": "Pan American Energy Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://panam-energy.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "POWR.CN",
+    "company_id": "POWR",
+    "name": "POWR Lithium Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://powrlithium.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "PRCG.CN",
+    "company_id": "PRCG",
+    "name": "Precore Gold Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://precoregold.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "PRIZ.CN",
+    "company_id": "PRIZ",
+    "name": "Prismo Metals Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://prismometals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "PRNC.CN",
+    "company_id": "PRNC",
+    "name": "Prince Silver Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://princesilvercorp.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "PRR.CN",
+    "company_id": "PRR",
+    "name": "Prospect Ridge Resources Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://prospectridgeresources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "PSE.CN",
+    "company_id": "PSE",
+    "name": "Pasinex Resources Limited",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://pasinex.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "PSIL.CN",
+    "company_id": "PSIL",
+    "name": "Pacifica Silver Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://pacificasilver.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "PURR.CN",
+    "company_id": "PURR",
+    "name": "Panther Minerals Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://pantherminerals.ca/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "QB.CN",
+    "company_id": "QB",
+    "name": "Quarterback Resources Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://quarterbackresources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "QIM.CN",
+    "company_id": "QIM",
+    "name": "Quimbaya Gold Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.quimbayagold.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "QIMC.CN",
+    "company_id": "QIMC",
+    "name": "Quebec Innovative Materials Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://qimaterials.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "QQQ.CN",
+    "company_id": "QQQ",
+    "name": "Questcorp Mining Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://questcorpmining.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "QREE.CN",
+    "company_id": "QREE",
+    "name": "Quebec Rare Earth Elements Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://qree.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "RAIN.CN",
+    "company_id": "RAIN",
+    "name": "Rain City Resources Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.raincityresources.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "RECE.CN",
+    "company_id": "RECE",
+    "name": "Resource Centrix Holdings Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.recentrix.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "REDC.CN",
+    "company_id": "REDC",
+    "name": "Red Canyon Resources Ltd.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.redcanyonresources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "RFLX.CN",
+    "company_id": "RFLX",
+    "name": "Reflex Advanced Materials Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://reflexmaterials.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "RFR.CN",
+    "company_id": "RFR",
+    "name": "Renforth Resources Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://renforthresources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "RGLD.CN",
+    "company_id": "RGLD",
+    "name": "Red Lake Gold Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.redlakegold.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "RGN.CN",
+    "company_id": "RGN",
+    "name": "Rush Gold Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://rushgoldcorp.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "RGR.CN",
+    "company_id": "RGR",
+    "name": "Rio Grande Resources Ltd.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://riogranderesources.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "RISE.CN",
+    "company_id": "RISE",
+    "name": "Rise Gold Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.risegoldcorp.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "RKL.CN",
+    "company_id": "RKL",
+    "name": "Rockland Resources Ltd.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.rocklandresources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "RMES.CN",
+    "company_id": "RMES",
+    "name": "Red Metal Resources Ltd.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.redmetalresources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "ROAD.CN",
+    "company_id": "ROAD",
+    "name": "Mineral Road Discovery Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://mineralroad.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "RSG.CN",
+    "company_id": "RSG",
+    "name": "Rocky Shore Gold Ltd.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.rockyshoregold.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "RSH.CN",
+    "company_id": "RSH",
+    "name": "Rush Rare Metals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.rushraremetals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "RUU.CN",
+    "company_id": "RUU",
+    "name": "Refined Energy Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://refinedenergy.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "RVR.CN",
+    "company_id": "RVR",
+    "name": "Rift Valley Resources Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.riftvalleyresources.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "RXM.CN",
+    "company_id": "RXM",
+    "name": "Rockex Mining Corporation",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "http://rockexmining.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "SANU.CN",
+    "company_id": "SANU",
+    "name": "Sanu Gold Corp",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://sanugoldcorp.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "SASQ.CN",
+    "company_id": "SASQ",
+    "name": "Sasquatch Resources Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://sasquatchresources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "SASY.CN",
+    "company_id": "SASY",
+    "name": "Sassy Gold Corp",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://sassygold.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "SCM.CN",
+    "company_id": "SCM",
+    "name": "Steadright Critical Minerals Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://steadright.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "SCU.CN",
+    "company_id": "SCU",
+    "name": "Sankamap Metals Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://sankamap.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "SCV.CN",
+    "company_id": "SCV",
+    "name": "Scotch Creek Ventures Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.scotch-creek.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "SEAG.X.CN",
+    "company_id": "SEAG.X",
+    "name": "Seahawk Ventures Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://seahawkgoldcorp.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "SEAS.CN",
+    "company_id": "SEAS",
+    "name": "Deep Sea Minerals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://deepseamineralscorp.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "SEEM.CN",
+    "company_id": "SEEM",
+    "name": "Serra Energy Metals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://serrametals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "SGRO.CN",
+    "company_id": "SGRO",
+    "name": "Sierra Grande Minerals Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://sierragrande.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "SI.CN",
+    "company_id": "SI",
+    "name": "Silicon Metals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://siliconmetalscorp.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "SK.CN",
+    "company_id": "SK",
+    "name": "Rottenstone Gold Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.rottenstonegold.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "SLA.CN",
+    "company_id": "SLA",
+    "name": "Silver Acadia Exploration Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://silveracadia.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "SLV.CN",
+    "company_id": "SLV",
+    "name": "Silver Dollar Resources Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.silverdollarresources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "SLZ.CN",
+    "company_id": "SLZ",
+    "name": "Slave Lake Zinc Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://zinccorp.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "SPRK.CN",
+    "company_id": "SPRK",
+    "name": "Spark Energy Minerals Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.sparkminerals.co"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "SRAN.CN",
+    "company_id": "SRAN",
+    "name": "Sranan Gold Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.sranangold.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "SRS.CN",
+    "company_id": "SRS",
+    "name": "Sorrento Resources Ltd.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://sorrentoresources.ca/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "STAR.CN",
+    "company_id": "STAR",
+    "name": "Starmet Ventures Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://starmetventures.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "STCU.CN",
+    "company_id": "STCU",
+    "name": "Star Copper Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://starcopper.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "STGX.CN",
+    "company_id": "STGX",
+    "name": "StrategX Elements Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.strategxcorp.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "STK.CN",
+    "company_id": "STK",
+    "name": "Silverstock Metals Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://silverstockmetals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "STMN.CN",
+    "company_id": "STMN",
+    "name": "UraniumX Discovery Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.uraniumx.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "STNG.CN",
+    "company_id": "STNG",
+    "name": "Stinger Resources Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://stingerresources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "SUR.CN",
+    "company_id": "SUR",
+    "name": "Surface Metals Inc.",
+    "source": "cnw",
+    "source_params": {
+      "organization_url": "https://surfacemetals.com/news/"
+    },
+    "discovery_status": "no_website",
+    "exclude_auto": true,
+    "exclude_reason": "discovery stored company website as CNW organization_url; wrong format",
+    "verified_at": "2026-04-24",
+    "verified_result": "0_releases_from_list_recent"
+  },
+  {
+    "ticker": "SUU.CN",
+    "company_id": "SUU",
+    "name": "Strathmore Plus Uranium Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://strathmoreplus.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "SX.CN",
+    "company_id": "SX",
+    "name": "St-Georges Eco-Mining Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://stgeorgesecomining.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "TAI.CN",
+    "company_id": "TAI",
+    "name": "Talmora Diamond Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "http://www.talmoradiamond.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "TANA.CN",
+    "company_id": "TANA",
+    "name": "Tana Resources Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://tanaresources.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "TAUR.CN",
+    "company_id": "TAUR",
+    "name": "Taurus Gold Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://taurusgold.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "TCEC.CN",
+    "company_id": "TCEC",
+    "name": "Terra Clean Energy Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.tcec.energy"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "TERA.CN",
+    "company_id": "TERA",
+    "name": "Terra Balcanica Resources Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://terrabresources.com/en/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "TEX.CN",
+    "company_id": "TEX",
+    "name": "Targa Exploration Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://targaexploration.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "TGII.CN",
+    "company_id": "TGII",
+    "name": "Trojan Gold Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://trojangold.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "TGLD.CN",
+    "company_id": "TGLD",
+    "name": "Torrent Gold Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://torrentgoldinc.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "TICO.CN",
+    "company_id": "TICO",
+    "name": "Talent Infinity Resource Developments Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.csetico.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "TMAS.CN",
+    "company_id": "TMAS",
+    "name": "Temas Resources Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://temasresources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "TMIN.CN",
+    "company_id": "TMIN",
+    "name": "Teako Minerals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://teakominerals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "TN.CN",
+    "company_id": "TN",
+    "name": "Tartisan Nickel Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://tartisannickel.com/en/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "TOC.CN",
+    "company_id": "TOC",
+    "name": "Tocvan Ventures Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://tocvan.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "TONE.CN",
+    "company_id": "TONE",
+    "name": "Triple One Metals Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://thecse.com/listings/triple-one-metals-inc/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "TRG.CN",
+    "company_id": "TRG",
+    "name": "Tarachi Gold Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.tarachigold.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "TTX.CN",
+    "company_id": "TTX",
+    "name": "Tantalex Lithium Resources Corporation",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://tantalexlithium.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "UBQ.CN",
+    "company_id": "UBQ",
+    "name": "Ubique Minerals Limited",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.ubiqueminerals.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "UCM.CN",
+    "company_id": "UCM",
+    "name": "United Critical Minerals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://thecse.com/listings/united-critical-minerals-corp/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "UE.CN",
+    "company_id": "UE",
+    "name": "Urano Energy Corp.",
+    "source": "cnw",
+    "source_params": {
+      "organization_url": "https://uranoenergy.com/news/"
+    },
+    "discovery_status": "no_website",
+    "exclude_auto": true,
+    "exclude_reason": "discovery stored company website as CNW organization_url; wrong format",
+    "verified_at": "2026-04-24",
+    "verified_result": "0_releases_from_list_recent"
+  },
+  {
+    "ticker": "UG.CN",
+    "company_id": "UG",
+    "name": "Upside Gold Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://upsidegoldcorp.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "ULTH.CN",
+    "company_id": "ULTH",
+    "name": "United Lithium Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://unitedlithium.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "USCM.CN",
+    "company_id": "USCM",
+    "name": "US Critical Metals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://uscmcorp.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "UX.CN",
+    "company_id": "UX",
+    "name": "Puranium Energy Ltd.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://puraniumenergy.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "VBN.CN",
+    "company_id": "VBN",
+    "name": "Pedro Resources Ltd.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.pedroresources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "VRTX.CN",
+    "company_id": "VRTX",
+    "name": "Vortex Energy Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://vortexenergycorp.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "WDGY.CN",
+    "company_id": "WDGY",
+    "name": "Wedgemount Resources Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://wedgemountresources.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "WEST.CN",
+    "company_id": "WEST",
+    "name": "West Mining Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.westminingcorp.ca"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "WG.CN",
+    "company_id": "WG",
+    "name": "Westward Gold Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://westwardgold.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "WISE.CN",
+    "company_id": "WISE",
+    "name": "Earthwise Minerals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://earthwiseminerals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "WMC.CN",
+    "company_id": "WMC",
+    "name": "Westmount Minerals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://westmountminerals.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "WUC.CN",
+    "company_id": "WUC",
+    "name": "Western Uranium & Vanadium Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.western-uranium.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "XRI.CN",
+    "company_id": "XRI",
+    "name": "Xcite Uranium Inc.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://xciteuranium.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "YMC.CN",
+    "company_id": "YMC",
+    "name": "Yukon Metals Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://yukonmetals.com/"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "ZEUS.CN",
+    "company_id": "ZEUS",
+    "name": "Zeus North America Mining Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://www.zeusminingcorp.com"
+    },
+    "discovery_status": "no_wire_found"
+  },
+  {
+    "ticker": "ZIGY.CN",
+    "company_id": "ZIGY",
+    "name": "Stardust Metal Corp.",
+    "source": "selfhosted",
+    "source_params": {
+      "website": "https://stardustmetal.com"
+    },
+    "discovery_status": "no_wire_found"
+  }
+]

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Drill Results — MiningNewsTerminal{% endblock %}
+{% block content %}
+  <h2 class="page-title">Drill Results</h2>
+
+  <section class="filters fin-filters">
+    <form method="get" action="/drills">
+      <label for="ticker">Company:</label>
+      <select name="ticker" id="ticker" onchange="this.form.submit()">
+        <option value="">All companies</option>
+        {% for t in tickers %}
+          <option value="{{ t }}" {% if t == selected_ticker %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="days">Window:</label>
+      <select name="days" id="days" onchange="this.form.submit()">
+        {% for d, label in [(7, 'Last 7 days'), (30, 'Last 30 days'), (90, 'Last 90 days'), (365, 'Last year'), (3650, 'All time')] %}
+          <option value="{{ d }}" {% if d == days %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      {% if selected_ticker or days != 90 %}
+        <a class="cat-clear" href="/drills">Reset</a>
+      {% endif %}
+      <span class="muted">{{ rows|length }} shown · {{ total }} total</span>
+    </form>
+  </section>
+
+  {% if not rows %}
+    <p class="empty">No drill results in this window.</p>
+  {% else %}
+    <table class="fin-table">
+      <thead>
+        <tr>
+          <th>Ticker</th>
+          <th>Company</th>
+          <th>Date</th>
+          <th>Project</th>
+          <th>Top Intercept</th>
+          <th>Hole</th>
+          <th>Release</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr>
+            <td class="fin-ticker">{{ r["ticker"] }}</td>
+            <td>{{ r["company_name"] }}</td>
+            <td class="fin-date">{{ (r["published_at"] or "")[:10] }}</td>
+            <td>{{ r["project"] or "—" }}</td>
+            <td class="drill-intercept"><strong>{{ r["top_summary"] or "—" }}</strong></td>
+            <td class="fin-kind">{{ r["top_hole_id"] or "—" }}</td>
+            <td>
+              {% if r["url"] %}<a href="{{ r['url'] }}">View ↗</a>{% else %}—{% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+{% endblock %}

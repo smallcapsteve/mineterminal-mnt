@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Resource Estimates — MiningNewsTerminal{% endblock %}
+{% block content %}
+  <h2 class="page-title">Resource Estimates</h2>
+
+  <section class="filters fin-filters">
+    <form method="get" action="/resources">
+      <label for="ticker">Company:</label>
+      <select name="ticker" id="ticker" onchange="this.form.submit()">
+        <option value="">All companies</option>
+        {% for t in tickers %}
+          <option value="{{ t }}" {% if t == selected_ticker %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="days">Window:</label>
+      <select name="days" id="days" onchange="this.form.submit()">
+        {% for d, label in [(90, 'Last 90 days'), (180, 'Last 6 months'), (365, 'Last year'), (730, 'Last 2 years'), (3650, 'All time')] %}
+          <option value="{{ d }}" {% if d == days %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      {% if selected_ticker or days != 365 %}
+        <a class="cat-clear" href="/resources">Reset</a>
+      {% endif %}
+      <span class="muted">{{ rows|length }} shown · {{ total }} total</span>
+    </form>
+  </section>
+
+  {% if not rows %}
+    <p class="empty">No resource estimates in this window.</p>
+  {% else %}
+    <table class="fin-table">
+      <thead>
+        <tr>
+          <th>Ticker</th>
+          <th>Company</th>
+          <th>Date</th>
+          <th>Type</th>
+          <th>Project</th>
+          <th>Resource Estimate</th>
+          <th>Release</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr>
+            <td class="fin-ticker">{{ r["ticker"] }}</td>
+            <td>{{ r["company_name"] }}</td>
+            <td class="fin-date">{{ (r["published_at"] or "")[:10] }}</td>
+            <td><span class="mre-type-badge mre-type-{{ (r["mre_type"] or "updated")|lower }}">{{ r["mre_type"] or "—" }}</span></td>
+            <td>{{ r["project"] or "—" }}</td>
+            <td class="resource-summary">
+              {% if r["categories_json"] %}
+                {% set cats = r["categories_json"] | from_json %}
+                {% for c in cats %}
+                  <div class="res-cat-block">
+                    <div class="res-cat-name">{{ c.category }}</div>
+                    <div class="res-cat-stat">{{ c.stat }}</div>
+                  </div>
+                {% endfor %}
+              {% else %}
+                <strong>{{ r["summary"] or "—" }}</strong>
+              {% endif %}
+            </td>
+            <td>
+              {% if r["url"] %}<a href="{{ r['url'] }}">View ↗</a>{% else %}—{% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+{% endblock %}

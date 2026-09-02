@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mnt/schemas/events.schema.json",
+  "title": "MiningNewsTracker Event Envelope",
+  "type": "object",
+  "required": [
+    "event_id", "event_type", "source_url", "source_name",
+    "published_at", "classified_at", "classifier_model",
+    "classifier_confidence", "review_status",
+    "raw_headline", "raw_excerpt", "payload"
+  ],
+  "properties": {
+    "event_id":             { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "event_type":           { "type": "string", "enum": ["news_item","drill_result","resource_estimate","econ_study","financing","mgmt_change","paid_promotion","production_update"] },
+    "ticker":               { "type": ["string","null"] },
+    "company_id":           { "type": ["string","null"] },
+    "property_id":          { "type": ["string","null"] },
+    "source_url":           { "type": "string", "format": "uri" },
+    "source_name":          { "type": "string" },
+    "published_at":         { "type": "string", "format": "date-time" },
+    "classified_at":        { "type": "string", "format": "date-time" },
+    "classifier_model":     { "type": "string" },
+    "classifier_confidence":{ "type": "number", "minimum": 0, "maximum": 1 },
+    "review_status":        { "type": "string", "enum": ["auto_approved","pending_review","approved","rejected"] },
+    "raw_headline":         { "type": "string" },
+    "raw_excerpt":          { "type": "string" },
+    "payload":              { "type": "object" }
+  }
+}

@@ -1,0 +1,3805 @@
+[
+  {
+    "ticker": "AA",
+    "name": "Avventura Resources Ltd",
+    "website": "",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_website"
+  },
+  {
+    "ticker": "ACDX",
+    "name": "American Copper Development Corp",
+    "website": "",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_website"
+  },
+  {
+    "ticker": "ACRE",
+    "name": "American Critical Elements Inc",
+    "website": "",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_website"
+  },
+  {
+    "ticker": "ADDY",
+    "name": "Adelayde Exploration Inc",
+    "website": "",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_website"
+  },
+  {
+    "ticker": "ADON",
+    "name": "Adonis Minerals Corp.",
+    "website": "https://adonisminerals.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "ADP",
+    "name": "Adelphi Metals Inc.",
+    "website": "https://www.adelphimetals.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.adelphimetals.com/news",
+    "evidence": [
+      "https://www.adelphimetals.com/news",
+      "https://jrx.media"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "AFF",
+    "name": "Affinity Metals Corp.",
+    "website": "https://www.affinity-metals.com/",
+    "press_source": "sedar",
+    "wire_company_id": null,
+    "press_url": "https://www.affinity-metals.com/news",
+    "evidence": [
+      "https://www.affinity-metals.com/news",
+      "https://www.affinity-metals.com/press-releases/02-23-2026"
+    ],
+    "note": "hits={'sedar': 2}"
+  },
+  {
+    "ticker": "AFX",
+    "name": "Arctic Fox Lithium Corp.",
+    "website": "",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_website"
+  },
+  {
+    "ticker": "AGC",
+    "name": "Avanti Gold Corp.",
+    "website": "https://www.avantigoldcorp.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.avantigoldcorp.com/news",
+    "evidence": [
+      "https://www.avantigoldcorp.com/news"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "ALAR",
+    "name": "Alaros Exploration Inc.",
+    "website": "https://alarosexploration.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "ALMA",
+    "name": "Alma Gold Inc.",
+    "website": "https://almagoldinc.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "AMQ",
+    "name": "Abitibi Metals Corp.",
+    "website": "https://abitibimetals.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "ANT",
+    "name": "Anteros Metals Inc.",
+    "website": "https://www.anterosmetals.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "API",
+    "name": "Appia Rare Earths & Uranium Corp.",
+    "website": "https://appiareu.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "APXC",
+    "name": "Apex Critical Metals Corp.",
+    "website": "https://apexcriticalmetals.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "ARGL",
+    "name": "Argyle Resources Corp.",
+    "website": "https://argyleresourcescorp.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://argyleresourcescorp.com/news/news-alerts-signup/",
+    "evidence": [
+      "https://argyleresourcescorp.com/news/news-alerts-signup/",
+      "https://argyleresourcescorp.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "ARMY",
+    "name": "Armory Mining Corp.",
+    "website": "https://www.armorymining.com/",
+    "press_source": "sedar",
+    "wire_company_id": null,
+    "press_url": "https://www.armorymining.com/news",
+    "evidence": [
+      "https://www.armorymining.com/news",
+      "https://www.sedarplus.ca/csa-party/records/profile.html?id=59c1d12d1ca0c39a41bbfc67dbdb708b"
+    ],
+    "note": "hits={'sedar': 3}"
+  },
+  {
+    "ticker": "ARQ",
+    "name": "Argo Gold Inc.",
+    "website": "https://argogold.com",
+    "press_source": "sedar",
+    "wire_company_id": null,
+    "press_url": "https://argogold.com/investors/investor-relations/",
+    "evidence": [
+      "https://argogold.com/investors/investor-relations/",
+      "https://argogold.com/news/"
+    ],
+    "note": "hits={'sedar': 3}"
+  },
+  {
+    "ticker": "ARS",
+    "name": "Ares Strategic Mining Inc.",
+    "website": "https://www.aresstrategicmining.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "ASHL",
+    "name": "Ashley Gold Corp.",
+    "website": "https://www.ashleygold.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.ashleygold.com/blogs/news",
+    "evidence": [
+      "https://www.ashleygold.com/blogs/news"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "ATC",
+    "name": "ATERRA Metals Inc.",
+    "website": "https://www.aterrametals.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.aterrametals.com/news/",
+    "evidence": [
+      "https://www.aterrametals.com/news/",
+      "https://www.aterrametals.com/news/index.php?content_id=110"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "ATHA",
+    "name": "Athena Gold Corporation",
+    "website": "https://athenagoldcorp.com/",
+    "press_source": "sedar",
+    "wire_company_id": null,
+    "press_url": "https://www.sedarplus.ca/csa-party/records/profile.html?id=d2b46a7568c844dff18706024879bcd1",
+    "evidence": [
+      "https://www.sedarplus.ca/csa-party/records/profile.html?id=d2b46a7568c844dff18706024879bcd1",
+      "https://athenagoldcorp.com/media/"
+    ],
+    "note": "hits={'sedar': 6}"
+  },
+  {
+    "ticker": "ATMY",
+    "name": "Antimony Resources Corp.",
+    "website": "https://antimonyresources.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "AUAG",
+    "name": "Auxico Resources Canada Inc.",
+    "website": "https://www.auxicoresources.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [
+      "https://www.auxicoresources.com/newsreleases",
+      "https://www.auxicoresources.com"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "AUCU",
+    "name": "Inflection Resources Ltd",
+    "website": "https://inflectionresources.com/",
+    "press_source": "newsfile",
+    "wire_company_id": null,
+    "press_url": "https://inflectionresources.com/news-releases/",
+    "evidence": [
+      "https://inflectionresources.com/news-releases/",
+      "https://newsroom.newsfilecorp.com/lists/6933/341"
+    ],
+    "note": "hits={'newsfile': 3}"
+  },
+  {
+    "ticker": "AUEX",
+    "name": "Advanced Gold Exploration Inc.",
+    "website": "https://advancedgoldexploration.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://advancedgoldexploration.com/news",
+    "evidence": [
+      "https://advancedgoldexploration.com/news"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "AUMC",
+    "name": "Auric Minerals Corp.",
+    "website": "https://auricminerals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://auricminerals.com/news",
+    "evidence": [
+      "https://auricminerals.com/news"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "AUOZ",
+    "name": "Emperor Metals Inc.",
+    "website": "https://www.emperormetals.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.emperormetals.com/investors/media/",
+    "evidence": [
+      "https://www.emperormetals.com/investors/media/",
+      "https://www.emperormetals.com/news/news-releases/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "AVE",
+    "name": "Aventis Energy",
+    "website": "",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_website"
+  },
+  {
+    "ticker": "AWCM",
+    "name": "Ameriwest Critical Metals Inc.",
+    "website": "https://ameriwestcriticalmetals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://ameriwestcriticalmetals.com/news/news-alerts/",
+    "evidence": [
+      "https://ameriwestcriticalmetals.com/news/news-alerts/",
+      "https://ameriwestcriticalmetals.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "AWR",
+    "name": "Aurwest Resources Corp.",
+    "website": "https://aurwestresources.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.thenewswire.com/press-releases/1BglFb7Q6-aurwest-resources-announces-execution-of-definitive-agreement-on-weaver-lake-gold-project.html",
+    "evidence": [
+      "https://www.thenewswire.com/press-releases/1BglFb7Q6-aurwest-resources-announces-execution-of-definitive-agreement-on-weaver-lake-gold-project.html",
+      "https://www.thenewswire.com/press-releases/1Bb4FMvP8-aurwest-announces-additions-to-its-board-of-directors.html"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "BAD",
+    "name": "Naughty Ventures Corp.",
+    "website": "https://www.naughtyventures.com/",
+    "press_source": "sedar",
+    "wire_company_id": null,
+    "press_url": "https://www.naughtyventures.com/news",
+    "evidence": [
+      "https://www.naughtyventures.com/news",
+      "https://www.sedarplus.ca/csa-party/records/profile.html?id=b1264f41486c94b9a413b43e80b21a35"
+    ],
+    "note": "hits={'sedar': 5}"
+  },
+  {
+    "ticker": "BAR",
+    "name": "Barranco Gold Mining Corp.",
+    "website": "https://barrancogold.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://barrancogold.com/press-release/",
+    "evidence": [
+      "https://barrancogold.com/press-release/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "BATT",
+    "name": "Dark Star Minerals Inc.",
+    "website": "https://darkstarminerals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "BATX",
+    "name": "Battery X Metals Inc.",
+    "website": "https://www.batteryxmetals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.batteryxmetals.com/news",
+    "evidence": [
+      "https://www.batteryxmetals.com/news"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "BEAU",
+    "name": "Beaumont Exploration Corp.",
+    "website": "",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_website"
+  },
+  {
+    "ticker": "BFG",
+    "name": "Giant Mining Corp.",
+    "website": "https://giantminingcorp.com",
+    "press_source": "sedar",
+    "wire_company_id": null,
+    "press_url": "https://giantminingcorp.com/investors/investor-overview/",
+    "evidence": [
+      "https://giantminingcorp.com/investors/investor-overview/",
+      "https://giantminingcorp.com/investors/investor-resources/"
+    ],
+    "note": "hits={'sedar': 1}"
+  },
+  {
+    "ticker": "BG",
+    "name": "Big Gold Inc.",
+    "website": "https://biggold.ca/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://biggold.ca/news/",
+    "evidence": [
+      "https://biggold.ca/news/",
+      "https://biggold.ca/media/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "BGLD",
+    "name": "Boreal Gold Inc.",
+    "website": "https://borealgold.ca",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [
+      "https://borealgold.ca/blog/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "BGX",
+    "name": "Black Gold Exploration Corp.",
+    "website": "https://www.bgxcorp.com",
+    "press_source": "sedar",
+    "wire_company_id": null,
+    "press_url": "https://www.bgxcorp.com/investor-centre",
+    "evidence": [
+      "https://www.bgxcorp.com/investor-centre",
+      "https://www.bgxcorp.com/news"
+    ],
+    "note": "hits={'sedar': 5}"
+  },
+  {
+    "ticker": "BLLG",
+    "name": "Blue Lagoon Resources Inc.",
+    "website": "https://bluelagoonresources.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "BMT",
+    "name": "Bahia Metals Corp.",
+    "website": "https://www.bahiametals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "BOOM",
+    "name": "Galloper Gold Corp.",
+    "website": "https://gallopergold.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://gallopergold.com/news/",
+    "evidence": [
+      "https://gallopergold.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "BRAZ",
+    "name": "Canary Gold Corp.",
+    "website": "",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_website"
+  },
+  {
+    "ticker": "BRS",
+    "name": "BRS Resources Ltd.",
+    "website": "https://brsresourcesca.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://brsresourcesca.com/news/",
+    "evidence": [
+      "https://brsresourcesca.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "BULL",
+    "name": "Quest Critical Metals Inc.",
+    "website": "https://questcriticalmetals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "BURY",
+    "name": "Burrell Resources Inc.",
+    "website": "https://burrellresources.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://burrellresources.com/news",
+    "evidence": [
+      "https://burrellresources.com/news"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "BY",
+    "name": "Beyond Minerals Inc.",
+    "website": "https://beyondminerals.ca",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://beyondminerals.ca/category/news-releases",
+    "evidence": [
+      "https://beyondminerals.ca/category/news-releases"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "BYRG",
+    "name": "Bayridge Resources Corp.",
+    "website": "https://bayridgeresources.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://bayridgeresources.com/news/",
+    "evidence": [
+      "https://bayridgeresources.com/news/",
+      "https://globalonemedia.com/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "C",
+    "name": "Commodore Metals Corp.",
+    "website": "",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_website"
+  },
+  {
+    "ticker": "CACR",
+    "name": "The Canadian Chrome Company Inc.",
+    "website": "https://canadachrome.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://canadachrome.com/category/news/",
+    "evidence": [
+      "https://canadachrome.com/kwg-resources-articles/",
+      "https://canadachrome.com/category/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "CAMP",
+    "name": "Canadian GoldCamps Corp.",
+    "website": "https://canadiangoldcamps.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "CANU",
+    "name": "Canadian Uranium Corp.",
+    "website": "https://canadianuraniumcorp.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "CAPR",
+    "name": "Caprock Mining Corp.",
+    "website": "https://caprockmining.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://caprockmining.com/investor-deck/",
+    "evidence": [
+      "https://caprockmining.com/investor-deck/",
+      "https://caprockmining.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "CARM",
+    "name": "Carmanah Minerals Corp.",
+    "website": "https://carmanahcorp.ca/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://carmanahcorp.ca/news-releases/",
+    "evidence": [
+      "https://carmanahcorp.ca/news-releases/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "CASC",
+    "name": "Cascade Copper Corp.",
+    "website": "https://cascadecoppercorp.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "CAT",
+    "name": "CAT Strategic Metals Corporation",
+    "website": "",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_website"
+  },
+  {
+    "ticker": "CCC",
+    "name": "Carlyle Commodities Corp.",
+    "website": "https://carlylecommodities.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://carlylecommodities.com/news-releases/",
+    "evidence": [
+      "https://carlylecommodities.com/news-releases/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "CCI",
+    "name": "Canadian Copper Inc.",
+    "website": "https://canadiancopper.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "CCR",
+    "name": "Green River Gold Corp.",
+    "website": "https://greenrivergold.com",
+    "press_source": "stockhouse",
+    "wire_company_id": null,
+    "press_url": "https://greenrivergold.com/media/",
+    "evidence": [
+      "https://greenrivergold.com/media/",
+      "https://greenrivergold.com/news/"
+    ],
+    "note": "hits={'stockhouse': 13}"
+  },
+  {
+    "ticker": "CDN",
+    "name": "CDN Maverick Capital Corp.",
+    "website": "https://cdnmaverick.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "CFE",
+    "name": "Cartier Silver Corporation",
+    "website": "https://cartiersilvercorp.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://cartiersilvercorp.com/investors/investor-centre/",
+    "evidence": [
+      "https://cartiersilvercorp.com/investors/investor-centre/",
+      "https://cartiersilvercorp.com/investors/media/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "CMET",
+    "name": "Clarity Metals Corp.",
+    "website": "https://www.claritymetals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.claritymetals.com/news",
+    "evidence": [
+      "https://www.claritymetals.com/news",
+      "https://www.claritymetals.com/news-releases"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "CMP",
+    "name": "CMP Mining Inc.",
+    "website": "https://thecse.com/listings/cmp-mining-inc/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "CMT",
+    "name": "Cullinan Metals Corp",
+    "website": "https://www.cullinanmetals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "COMT",
+    "name": "Collective Metals Inc.",
+    "website": "https://collectivemetalsinc.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://collectivemetalsinc.com/news/",
+    "evidence": [
+      "https://collectivemetalsinc.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "CQX",
+    "name": "Copper Quest Exploration Inc.",
+    "website": "https://copper.quest",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://copper.quest/news/",
+    "evidence": [
+      "https://copper.quest/news/",
+      "https://copper.quest/investors/#presentationsandmedia"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "CRC",
+    "name": "Canter Resources Corp.",
+    "website": "https://www.canterresources.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.canterresources.com/news/2026",
+    "evidence": [
+      "https://www.canterresources.com/news/2026",
+      "https://www.canterresources.com/news/2025"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "CRCL",
+    "name": "Corcel Exploration Inc.",
+    "website": "https://corcelexploration.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://corcelexploration.com/investors/media/",
+    "evidence": [
+      "https://corcelexploration.com/investors/media/",
+      "https://corcelexploration.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "CRIV",
+    "name": "Carson River Ventures Corp.",
+    "website": "https://thecse.com/listings/carson-river-ventures-corp/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "CRUZ",
+    "name": "Cruz Battery Metals Corp.",
+    "website": "https://www.cruzbatterymetals.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.cruzbatterymetals.com/news/",
+    "evidence": [
+      "https://www.cruzbatterymetals.com/news/",
+      "https://www.cruzbatterymetals.com/category/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "CSQ",
+    "name": "Canamex Gold Corp.",
+    "website": "",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_website"
+  },
+  {
+    "ticker": "CSR",
+    "name": "Copper Standard Resources Inc.",
+    "website": "https://copperstandard.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://copperstandard.com/investor-center/",
+    "evidence": [
+      "https://copperstandard.com/investor-center/",
+      "https://copperstandard.com/investor-presentation/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "CUPA",
+    "name": "Cupani Metals Corp.",
+    "website": "https://cupanimetals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://cupanimetals.com/news/",
+    "evidence": [
+      "https://cupanimetals.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "CUPR",
+    "name": "Super Copper Corp.",
+    "website": "https://supercopper.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://supercopper.com/news/",
+    "evidence": [
+      "https://supercopper.com/news/",
+      "https://supercopper.com/super-copper-announces-investor-relations-agreement/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "CXC",
+    "name": "CMX Gold & Silver Corp.",
+    "website": "https://cmxgoldandsilver.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://cmxgoldandsilver.com/investors/news-releases/",
+    "evidence": [
+      "https://cmxgoldandsilver.com/investors/news-releases/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "DEMC",
+    "name": "Discovery Energy Metals Corp.",
+    "website": "https://discoveryenergymetals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://discoveryenergymetals.com/news-alerts/",
+    "evidence": [
+      "https://discoveryenergymetals.com/news-alerts/",
+      "https://discoveryenergymetals.com/category/corporate-news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "DRC",
+    "name": "DRC Gold Corp.",
+    "website": "https://drcgoldcorp.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://drcgoldcorp.com/investor-centre/",
+    "evidence": [
+      "https://drcgoldcorp.com/investor-centre/",
+      "https://drcgoldcorp.com/investor-centre/agm-materials/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "EAGL",
+    "name": "EagleOne Metals Corporation",
+    "website": "https://eagleonemetals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "EATH",
+    "name": "New Earth Resources Corp.",
+    "website": "https://thecse.com/listings/new-earth-resources-corp/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "EDGM",
+    "name": "Edgemont Gold Corp.",
+    "website": "https://edgemontgold.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "EGFV",
+    "name": "Evolution Global Frontier Ventures Corp.",
+    "website": "",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_website"
+  },
+  {
+    "ticker": "ELEM",
+    "name": "Element79 Gold Corp.",
+    "website": "https://www.element79.gold",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.element79.gold/news",
+    "evidence": [
+      "https://www.element79.gold/news"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "EMET",
+    "name": "Canamera Energy Metals Corp.",
+    "website": "https://canamerametals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://canamerametals.com/news/",
+    "evidence": [
+      "https://canamerametals.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "EMPS",
+    "name": "EMP Metals Corp.",
+    "website": "https://empmetals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://empmetals.com/news-releases/",
+    "evidence": [
+      "https://empmetals.com/news-releases/",
+      "https://empmetals.com/investors/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "EOM",
+    "name": "Eco Oro Minerals Corp.",
+    "website": "https://thecse.com/listings/eco-oro-minerals-corp",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "EONE",
+    "name": "Element One Hydrogen and Critical Minerals Corp.",
+    "website": "https://e1-h2.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "EPG",
+    "name": "Epic Gold Corp.",
+    "website": "https://epicgoldcorp.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "EPR",
+    "name": "E-Power Resources Inc.",
+    "website": "https://epowerresources.ca",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://epowerresources.ca/category/epower-news/",
+    "evidence": [
+      "https://epowerresources.ca/category/epower-news/",
+      "https://epowerresources.ca/category/electric-news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "ERKA",
+    "name": "Eureka Lithium Corp.",
+    "website": "https://eurekalithiumcorp.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://eurekalithiumcorp.com/media/",
+    "evidence": [
+      "https://eurekalithiumcorp.com/media/",
+      "https://eurekalithiumcorp.com/pressreleases/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "ESAU",
+    "name": "ESGold Corp.",
+    "website": "https://esgold.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://esgold.com/news/",
+    "evidence": [
+      "https://esgold.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "ETR",
+    "name": "Etruscus Resources Corp.",
+    "website": "https://etruscusresources.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://etruscusresources.com/news-releases/",
+    "evidence": [
+      "https://etruscusresources.com/news-releases/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "EVM",
+    "name": "EV Minerals Corporation",
+    "website": "https://evmineralscorp.ca",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://evmineralscorp.ca/news",
+    "evidence": [
+      "https://evmineralscorp.ca/news",
+      "https://evmineralscorp.ca/media"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "FAT",
+    "name": "Foremost Clean Energy Ltd.",
+    "website": "https://foremostcleanenergy.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://foremostcleanenergy.com/news/2026.html",
+    "evidence": [
+      "https://foremostcleanenergy.com/news/2026.html",
+      "https://foremostcleanenergy.com/news/2025.html"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "FENX",
+    "name": "FenixOro Gold Corp.",
+    "website": "https://fenixoro.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://fenixoro.com/press-release",
+    "evidence": [
+      "https://fenixoro.com/press-release"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "FLM",
+    "name": "First Lithium Minerals Corp.",
+    "website": "https://firstlithium.ca",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://firstlithium.ca/news/",
+    "evidence": [
+      "https://firstlithium.ca/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "FNAU",
+    "name": "Four Nines Gold Inc.",
+    "website": "https://www.fourninesgold.ca",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [
+      "https://www.fourninesgold.ca/archive"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "FNI",
+    "name": "Fathom Nickel Inc.",
+    "website": "https://fathomnickel.com",
+    "press_source": "sedar",
+    "wire_company_id": null,
+    "press_url": "https://www.sedarplus.ca/",
+    "evidence": [
+      "https://www.sedarplus.ca/"
+    ],
+    "note": "hits={'sedar': 2}"
+  },
+  {
+    "ticker": "FNX",
+    "name": "FNX Inc.",
+    "website": "https://fnxminerals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [
+      "https://fnxminerals.com/category/2025/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "FOX",
+    "name": "Fox River Resources Corporation",
+    "website": "https://fox-river.ca/",
+    "press_source": "sedar",
+    "wire_company_id": null,
+    "press_url": "https://fox-river.ca/press-releases/",
+    "evidence": [
+      "https://fox-river.ca/press-releases/",
+      "https://www.sedarplus.ca/csa-party/records/profile.html?id=5fbb4816c984f5a02b475d05ebc5b3dc"
+    ],
+    "note": "hits={'sedar': 6}"
+  },
+  {
+    "ticker": "FRG",
+    "name": "Forge Resources Corp.",
+    "website": "https://www.forgeresourcescorp.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.forgeresourcescorp.com/media-interviews",
+    "evidence": [
+      "https://www.forgeresourcescorp.com/media-interviews",
+      "https://www.forgeresourcescorp.com/news"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "FTEL",
+    "name": "First Tellurium Corp.",
+    "website": "https://firsttellurium.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://firsttellurium.com/news/",
+    "evidence": [
+      "https://firsttellurium.com/news/",
+      "https://firsttellurium.com/news-2026/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "FUTR",
+    "name": "Gold'n Futures Mineral Corp.",
+    "website": "",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_website"
+  },
+  {
+    "ticker": "FWM",
+    "name": "Flow Metals Corp.",
+    "website": "https://flowmetals.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "GAND",
+    "name": "Gander Gold Corporation",
+    "website": "https://gandergold.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://gandergold.com/news/",
+    "evidence": [
+      "https://gandergold.com/news/",
+      "https://gandergold.com/media/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "GC",
+    "name": "Goldcana Resources Inc.",
+    "website": "https://www.goldcana.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "GCC",
+    "name": "Golden Cariboo Resources Ltd.",
+    "website": "https://goldencariboo.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://goldencariboo.com/news/",
+    "evidence": [
+      "https://goldencariboo.com/news/",
+      "https://goldencariboo.com/media/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "GCP",
+    "name": "Golcap Resources Corp.",
+    "website": "https://golcapresources.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "GDN",
+    "name": "Golden Age Exploration Ltd.",
+    "website": "https://goldenageexploration.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://goldenageexploration.com/news/",
+    "evidence": [
+      "https://goldenageexploration.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "GFT",
+    "name": "Grafton Resources Inc.",
+    "website": "https://www.graftonresources.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [
+      "https://www.graftonresources.com/new-dropdown-3",
+      "https://www.graftonresources.com/group-events"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "GGC",
+    "name": "Generic Gold Corp.",
+    "website": "https://genericgold.ca",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://genericgold.ca/media-gallery/",
+    "evidence": [
+      "https://genericgold.ca/media-gallery/",
+      "https://genericgold.ca/press-releases/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "GGLD",
+    "name": "General Copper Gold Corp.",
+    "website": "",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_website"
+  },
+  {
+    "ticker": "GGR",
+    "name": "Golden Goose Resources Corp.",
+    "website": "https://www.goldengooseresources.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "GLDS",
+    "name": "Golden Spike Resources Corp.",
+    "website": "https://www.goldenspikeresources.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [
+      "https://www.goldenspikeresources.com/latest",
+      "https://www.goldenspikeresources.com/archive"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "GLM",
+    "name": "Golden Lake Exploration Inc.",
+    "website": "https://www.goldenlakex.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://jrx.media",
+    "evidence": [
+      "https://www.goldenlakex.com/archive",
+      "https://jrx.media"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "GMC",
+    "name": "Germanium Mining Corp.",
+    "website": "https://germaniummining.com",
+    "press_source": "sedar",
+    "wire_company_id": null,
+    "press_url": "https://germaniummining.com/investor-information/",
+    "evidence": [
+      "https://germaniummining.com/investor-information/",
+      "https://germaniummining.com/news/"
+    ],
+    "note": "hits={'sedar': 1}"
+  },
+  {
+    "ticker": "GMR",
+    "name": "Gelum Resources Ltd.",
+    "website": "https://gelumresources.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://gelumresources.com/news-releases/",
+    "evidence": [
+      "https://gelumresources.com/news-releases/",
+      "https://gelumresources.com/news-releases/2026/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "GOCO",
+    "name": "Go Metals Corp.",
+    "website": "https://gometals.ca",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "GOH",
+    "name": "GoldHaven Resources Corp.",
+    "website": "https://goldhavenresources.com",
+    "press_source": "globenewswire",
+    "wire_company_id": null,
+    "press_url": "https://goldhavenresources.com/news",
+    "evidence": [
+      "https://goldhavenresources.com/news",
+      "https://goldhavenresources.com/news/goldhaven-launches-district-scale-airborne-survey-at-magno-to-support-2026-drilling"
+    ],
+    "note": "hits={'globenewswire': 6}"
+  },
+  {
+    "ticker": "GOR",
+    "name": "Goldrea Resources Corp.",
+    "website": "https://goldrea.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "GPO",
+    "name": "Gold Port Corporation",
+    "website": "https://www.goldportcorporation.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.goldportcorporation.com/news/",
+    "evidence": [
+      "https://www.goldportcorporation.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "GRAY",
+    "name": "Graycliff Exploration Limited",
+    "website": "https://graycliffexploration.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://graycliffexploration.com/news/",
+    "evidence": [
+      "https://graycliffexploration.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "GRBM",
+    "name": "Green Bridge Metals Corporation",
+    "website": "https://greenbridgemetals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "GRCM",
+    "name": "Geologica Resource Corp.",
+    "website": "https://geologicaresource.com",
+    "press_source": "sedar",
+    "wire_company_id": null,
+    "press_url": "https://geologicaresource.com/investor-information/",
+    "evidence": [
+      "https://geologicaresource.com/investor-information/",
+      "https://geologicaresource.com/news/"
+    ],
+    "note": "hits={'sedar': 1}"
+  },
+  {
+    "ticker": "GRHK",
+    "name": "Greenhawk Resources Inc.",
+    "website": "",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_website"
+  },
+  {
+    "ticker": "GRUV",
+    "name": "Protium Clean Energy Corp.",
+    "website": "https://protium.ca",
+    "press_source": "sedar",
+    "wire_company_id": null,
+    "press_url": "https://protium.ca/news/",
+    "evidence": [
+      "https://protium.ca/news/",
+      "https://protium.ca/investor-information/"
+    ],
+    "note": "hits={'sedar': 1}"
+  },
+  {
+    "ticker": "GSRI",
+    "name": "Golden Shield Resources Inc.",
+    "website": "https://goldenshield.ca",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "GSTR",
+    "name": "Glenstar Minerals Inc.",
+    "website": "https://glenstar.ca",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "GTCH",
+    "name": "Getchell Gold Corp.",
+    "website": "https://www.getchellgold.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.getchellgold.com/news/",
+    "evidence": [
+      "https://www.getchellgold.com/news/",
+      "https://www.getchellgold.com/investor-information-and-stock-price-with-presentations-and-videos/overview/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "GURN",
+    "name": "Global Uranium Corp.",
+    "website": "https://www.globaluranium.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.globaluranium.com/news/",
+    "evidence": [
+      "https://www.globaluranium.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "GXLD",
+    "name": "Hi-View Resources Inc.",
+    "website": "https://hiviewresources.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://hiviewgold.com/news/",
+    "evidence": [
+      "https://hiviewgold.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "GXP",
+    "name": "Greenridge Exploration Inc.",
+    "website": "https://greenridge-exploration.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://greenridge-exploration.com/news/",
+    "evidence": [
+      "https://greenridge-exploration.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "HAMR",
+    "name": "Silver Hammer Mining Corp",
+    "website": "https://silverhammermining.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://silverhammermining.com/investors/media/",
+    "evidence": [
+      "https://silverhammermining.com/investors/media/",
+      "https://silverhammermining.com/news-releases/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "HERC",
+    "name": "Hercules Resources Corp.",
+    "website": "https://herculesresourcescorp.com",
+    "press_source": "sedar",
+    "wire_company_id": null,
+    "press_url": "https://herculesresourcescorp.com/investors",
+    "evidence": [
+      "https://herculesresourcescorp.com/investors"
+    ],
+    "note": "hits={'sedar': 1}"
+  },
+  {
+    "ticker": "HHE",
+    "name": "First Atlas Resources Corp.",
+    "website": "https://www.qmetalscorp.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "HLND",
+    "name": "Highland Critical Minerals Corp.",
+    "website": "https://highlandcritical.com",
+    "press_source": "newsfile",
+    "wire_company_id": "254258",
+    "press_url": "https://highlandcritical.com/in-the-media-1",
+    "evidence": [
+      "https://highlandcritical.com/in-the-media-1",
+      "https://highlandcritical.com/press-release",
+      "newsfile_id_on_sub:254258"
+    ],
+    "note": "hits={'accesswire': 1, 'newsfile': 1}"
+  },
+  {
+    "ticker": "HM",
+    "name": "HM Exploration Corp.",
+    "website": "https://hmexploration.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://hmexploration.com/news/",
+    "evidence": [
+      "https://hmexploration.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "HML",
+    "name": "Heritage Mining Ltd.",
+    "website": "https://heritagemining.ca",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://heritagemining.ca/investor/stock-info/",
+    "evidence": [
+      "https://heritagemining.ca/investor/stock-info/",
+      "https://heritagemining.ca/investor/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "HRK",
+    "name": "Highrock Resources Ltd.",
+    "website": "https://highrockresources.ltd/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://highrockresources.ltd/news/",
+    "evidence": [
+      "https://highrockresources.ltd/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "HTRC",
+    "name": "High Tide Resources Corp.",
+    "website": "https://hightideresources.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "HUNT",
+    "name": "Gold Hunter Resources Inc.",
+    "website": "https://goldhunterresources.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "HWG",
+    "name": "Headwater Gold Inc.",
+    "website": "https://headwatergold.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://headwatergold.com/news/",
+    "evidence": [
+      "https://headwatergold.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "HZ",
+    "name": "Hertz Energy Inc.",
+    "website": "https://hertz-energy.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://hertz-energy.com/news/",
+    "evidence": [
+      "https://hertz-energy.com/news/",
+      "https://hertz-energy.com/media/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "INTG",
+    "name": "Integral Metals Corp.",
+    "website": "https://www.integralmetals.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.integralmetals.com/news/",
+    "evidence": [
+      "https://www.integralmetals.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "IRV",
+    "name": "Irving Resources Inc.",
+    "website": "https://irvresources.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://irvresources.com/news/",
+    "evidence": [
+      "https://irvresources.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "ISP",
+    "name": "Inspiration Mining Corp.",
+    "website": "https://www.inspiration.energy",
+    "press_source": "sedar",
+    "wire_company_id": null,
+    "press_url": "https://www.inspiration.energy/latest",
+    "evidence": [
+      "https://www.inspiration.energy/latest",
+      "https://www.inspiration.energy/archive"
+    ],
+    "note": "hits={'sedar': 4}"
+  },
+  {
+    "ticker": "KBX",
+    "name": "Kobrea Exploration Corp.",
+    "website": "https://www.kobreaexploration.com",
+    "press_source": "newsfile",
+    "wire_company_id": "291715",
+    "press_url": "https://www.kobreaexploration.com/blog/",
+    "evidence": [
+      "https://www.kobreaexploration.com/blog/",
+      "newsfile_id_on_sub:291715"
+    ],
+    "note": "hits={'newsfile': 15}"
+  },
+  {
+    "ticker": "KENY",
+    "name": "Makenita Resources Inc.",
+    "website": "https://www.makenitaresources.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.makenitaresources.com/news/",
+    "evidence": [
+      "https://www.makenitaresources.com/news/",
+      "https://www.makenitaresources.com/news/makenita-joins-canadian-association-of-defence-and-security-industries-cadsi/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "KOG",
+    "name": "KO Gold Inc.",
+    "website": "https://kogoldnz.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://kogoldnz.com/news/",
+    "evidence": [
+      "https://kogoldnz.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "KUYA",
+    "name": "Kuya Silver Corporation",
+    "website": "https://kuyasilver.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://kuyasilver.com/news/news-2026",
+    "evidence": [
+      "https://kuyasilver.com/news/news-2026",
+      "https://kuyasilver.com/news/news-2025"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "KVM",
+    "name": "Kingsview Minerals Ltd.",
+    "website": "https://kingsviewminerals.ca",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://kingsviewminerals.ca/news",
+    "evidence": [
+      "https://kingsviewminerals.ca/news"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "LAI",
+    "name": "La Imperial Resources Inc.",
+    "website": "https://www.laimperialresources.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "LCR",
+    "name": "Lancaster Resources Inc.",
+    "website": "https://lancaster-resources.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "LECR",
+    "name": "Leocor Mining Inc.",
+    "website": "https://leocormining.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://leocormining.com/news/",
+    "evidence": [
+      "https://leocormining.com/news/",
+      "https://leocormining.com/news/news-alerts/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "LEO",
+    "name": "Lion Copper and Gold Corp.",
+    "website": "https://www.lioncg.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://lioncg.com/news/",
+    "evidence": [
+      "https://lioncg.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "LEXT",
+    "name": "Lexston Mining Corporation",
+    "website": "https://lexston.ca",
+    "press_source": "sedar",
+    "wire_company_id": null,
+    "press_url": "https://www.sedarplus.ca/csa-party/records/profile.html?id=3abd94de791a65d6d82e83a4594b1fdb",
+    "evidence": [
+      "https://www.sedarplus.ca/csa-party/records/profile.html?id=3abd94de791a65d6d82e83a4594b1fdb",
+      "https://lexston.ca/news/"
+    ],
+    "note": "hits={'sedar': 5}"
+  },
+  {
+    "ticker": "LFLR",
+    "name": "LaFleur Minerals Inc.",
+    "website": "https://lafleurminerals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://lafleurminerals.com/news-releases/",
+    "evidence": [
+      "https://lafleurminerals.com/news-releases/",
+      "https://lafleurminerals.com/valdor/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "LFNT",
+    "name": "LFNT Resources Corp.",
+    "website": "https://lfnt.ca",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.stockwatch.com/News/Item/Z-C!LFNT-3790836/C/LFNT",
+    "evidence": [
+      "https://www.stockwatch.com/News/Item/Z-C!LFNT-3790836/C/LFNT"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "LGHT",
+    "name": "Lighthouse Gold Inc.",
+    "website": "https://www.lighthousegold.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "LIBR",
+    "name": "Libra Energy Materials Inc.",
+    "website": "https://libraenergymaterials.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://libraenergymaterials.com/press-releases/",
+    "evidence": [
+      "https://libraenergymaterials.com/press-releases/",
+      "https://libraenergymaterials.com/media/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "LION",
+    "name": "Global Li-Ion Graphite Corp.",
+    "website": "https://globalli-iongraphite.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://globalli-iongraphite.com/news-releases/",
+    "evidence": [
+      "https://globalli-iongraphite.com/news-releases/",
+      "https://globalli-iongraphite.com/news-releases/global-li-ion-enters-exclusive-mou-to-purchase-100-in-the-montepuez-graphite-project/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "LIVE",
+    "name": "Live Energy Minerals Corp.",
+    "website": "https://www.liveenergyminerals.com",
+    "press_source": "newsfile",
+    "wire_company_id": "128829",
+    "press_url": "https://www.liveenergyminerals.com/investors",
+    "evidence": [
+      "https://www.liveenergyminerals.com/investors",
+      "newsfile_id_on_sub:128829"
+    ],
+    "note": "hits={'newsfile': 1}"
+  },
+  {
+    "ticker": "LTHM",
+    "name": "Champion Electric Metals Inc.",
+    "website": "https://www.champem.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.champem.com/investor-resources",
+    "evidence": [
+      "https://www.champem.com/investor-resources",
+      "https://www.champem.com/news"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "M",
+    "name": "Myriad Uranium Corp.",
+    "website": "https://myriaduranium.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://myriaduranium.com/investor-presentation-copper-mountain-uranium-project-wyoming-usa/",
+    "evidence": [
+      "https://myriaduranium.com/investor-presentation-copper-mountain-uranium-project-wyoming-usa/",
+      "https://myriaduranium.com/media/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "MANN",
+    "name": "Manning Ventures Inc.",
+    "website": "https://manning-ventures.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://manning-ventures.com/news/",
+    "evidence": [
+      "https://manning-ventures.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "MAXM",
+    "name": "Maxus Mining Inc.",
+    "website": "https://maxusmining.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://maxusmining.com/news/",
+    "evidence": [
+      "https://maxusmining.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "MAXX",
+    "name": "Max Power Mining Corp.",
+    "website": "https://www.maxpowermining.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.maxpowermining.com/media/",
+    "evidence": [
+      "https://www.maxpowermining.com/media/",
+      "https://www.maxpowermining.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "MBL",
+    "name": "Mabel Ventures Inc.",
+    "website": "",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_website"
+  },
+  {
+    "ticker": "MCL",
+    "name": "McLaren Resources Inc.",
+    "website": "https://www.mclarenresources.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.mclarenresources.com/news",
+    "evidence": [
+      "https://www.mclarenresources.com/news"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "MEC",
+    "name": "Mustang Energy Corp.",
+    "website": "https://www.mustangenergy.ca",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "MEDA",
+    "name": "Medaro Mining Corp.",
+    "website": "https://medaromining.com/",
+    "press_source": "sedar",
+    "wire_company_id": null,
+    "press_url": "https://medaromining.com/news/news-alerts",
+    "evidence": [
+      "https://medaromining.com/news/news-alerts",
+      "https://medaromining.com/investors/"
+    ],
+    "note": "hits={'sedar': 2}"
+  },
+  {
+    "ticker": "MEGA",
+    "name": "MegaWatt Lithium and Battery Metals Corp.",
+    "website": "https://megawattmetals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://megawattmetals.com/news/",
+    "evidence": [
+      "https://megawattmetals.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "MEO",
+    "name": "Cameo Resources Inc.",
+    "website": "https://cameoresourcesinc.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://cameoresourcesinc.com/media/",
+    "evidence": [
+      "https://cameoresourcesinc.com/contact-2/",
+      "https://cameoresourcesinc.com/media/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "MERC",
+    "name": "Mercado Minerals Ltd.",
+    "website": "https://www.mercadominerals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "MILI",
+    "name": "Military Metals Corp.",
+    "website": "https://www.militarymetalscorp.com/",
+    "press_source": "globenewswire",
+    "wire_company_id": null,
+    "press_url": "https://www.militarymetalscorp.com/news/",
+    "evidence": [
+      "https://www.militarymetalscorp.com/news/"
+    ],
+    "note": "hits={'globenewswire': 2}"
+  },
+  {
+    "ticker": "MIRL",
+    "name": "Minera IRL Limited",
+    "website": "https://minera-irl.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://minera-irl.com/news/",
+    "evidence": [
+      "https://minera-irl.com/investors/events/",
+      "https://minera-irl.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "MLKM",
+    "name": "Mayo Lake Minerals Inc.",
+    "website": "https://www.mayolakeminerals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.mayolakeminerals.com/investor.html",
+    "evidence": [
+      "https://www.mayolakeminerals.com/investor.html",
+      "https://www.mayolakeminerals.com/news.html"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "MLM",
+    "name": "McFarlane Lake Mining Limited",
+    "website": "https://mcfarlanelakemining.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://mcfarlanelakemining.com/investor-center/",
+    "evidence": [
+      "https://mcfarlanelakemining.com/investor-center/",
+      "https://mcfarlanelakemining.com/investor-presentation/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "MM",
+    "name": "Maximus Metals Inc.",
+    "website": "https://thecse.com/listings/maximus-metals-inc/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "MMET",
+    "name": "Miata Metals Corp.",
+    "website": "https://miatametals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "MNG",
+    "name": "Mongoose Mining Ltd.",
+    "website": "https://mongoosemining.com",
+    "press_source": "sedar",
+    "wire_company_id": null,
+    "press_url": "https://mongoosemining.com/category/press-releases/",
+    "evidence": [
+      "https://mongoosemining.com/category/press-releases/"
+    ],
+    "note": "hits={'sedar': 3}"
+  },
+  {
+    "ticker": "MOC",
+    "name": "Mosaic Minerals Corp.",
+    "website": "https://mosaicminerals.ca",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://mosaicminerals.ca/news-releases/",
+    "evidence": [
+      "https://mosaicminerals.ca/news-releases/",
+      "https://mosaicminerals.ca/category/news-releases/2025/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "MOLT",
+    "name": "Molten Metals Corp.",
+    "website": "https://moltenmetalscorp.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "MONI",
+    "name": "Global Tactical Metals Corp.",
+    "website": "https://globaltacticalmetals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://globaltacticalmetals.com/news/",
+    "evidence": [
+      "https://globaltacticalmetals.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "MSM",
+    "name": "Metalsource Mining Inc.",
+    "website": "https://www.metalsourcemining.com",
+    "press_source": "newsfile",
+    "wire_company_id": null,
+    "press_url": "https://www.metalsourcemining.com/20260413-metalsource-mining-intersects-48-04-g-t-aueq-over-12-62m-including-210-72-g-t-aueq-over-2-74m-extends-mineralization-down-dip-195m-continues-to-expand-gold-silver-and-base-metal-mineralization",
+    "evidence": [
+      "https://www.metalsourcemining.com/20260413-metalsource-mining-intersects-48-04-g-t-aueq-over-12-62m-including-210-72-g-t-aueq-over-2-74m-extends-mineralization-down-dip-195m-continues-to-expand-gold-silver-and-base-metal-mineralization",
+      "https://www.metalsourcemining.com/news"
+    ],
+    "note": "hits={'newsfile': 36, 'sedar': 7}"
+  },
+  {
+    "ticker": "MTTA",
+    "name": "Meta Critical Minerals Inc.",
+    "website": "https://www.metacriticalminerals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.metacriticalminerals.com/news",
+    "evidence": [
+      "https://www.metacriticalminerals.com/news",
+      "https://www.metacriticalminerals.com/investors"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "MY",
+    "name": "Montego Resources Inc.",
+    "website": "https://www.montegoresources.ca/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [
+      "https://www.montegoresources.ca/blog-classic/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "NATB",
+    "name": "NatBridge Resources Ltd.",
+    "website": "https://www.natbridgeresources.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.natbridgeresources.com/news/",
+    "evidence": [
+      "https://www.natbridgeresources.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "NATO",
+    "name": "North Atlantic Titanium Corp.",
+    "website": "https://www.natitanium.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://natitanium.com/news/",
+    "evidence": [
+      "https://natitanium.com/news/",
+      "https://natitanium.com/presentation/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "NBRK",
+    "name": "New Break Resources Ltd.",
+    "website": "https://www.newbreakresources.ca/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.newbreakresources.ca/investors/media-interviews/",
+    "evidence": [
+      "https://www.newbreakresources.ca/investors/media-interviews/",
+      "https://www.newbreakresources.ca/projects/moray-project/media/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "NEWD",
+    "name": "Newfoundland Discovery Corp.",
+    "website": "https://newfoundlanddiscovery.ca/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://newfoundlanddiscovery.ca/news/",
+    "evidence": [
+      "https://newfoundlanddiscovery.ca/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "NEXU",
+    "name": "Nexus Uranium Corp.",
+    "website": "https://nexusuranium.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://nexusuranium.com/news/",
+    "evidence": [
+      "https://nexusuranium.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "NEXX",
+    "name": "Nexcel Metals Corp.",
+    "website": "https://nexcelmetals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://nexcelmetals.com/news",
+    "evidence": [
+      "https://nexcelmetals.com/news"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "NICO",
+    "name": "Class 1 Nickel and Technologies Limited",
+    "website": "https://class1nickel.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://class1nickel.com/news-releases/",
+    "evidence": [
+      "https://class1nickel.com/news-releases/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "NINE",
+    "name": "Nine Mile Metals Ltd.",
+    "website": "https://ninemilemetals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://ninemilemetals.com/media/",
+    "evidence": [
+      "https://ninemilemetals.com/media/",
+      "https://ninemilemetals.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "NIOB",
+    "name": "North American Niobium and Critical Minerals Corp.",
+    "website": "https://northamericanniobium.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://northamericanniobium.com/news/",
+    "evidence": [
+      "https://northamericanniobium.com/news/",
+      "https://northamericanniobium.com/media/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "NIX",
+    "name": "NorthX Nickel Corp.",
+    "website": "https://northxnickel.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "NLR",
+    "name": "Northern Lights Resources Corp.",
+    "website": "https://northernlightsresources.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://northernlightsresources.com/news/",
+    "evidence": [
+      "https://northernlightsresources.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "NOM",
+    "name": "Norsemont Mining Inc.",
+    "website": "https://norsemont.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://norsemont.com/media/",
+    "evidence": [
+      "https://norsemont.com/media/",
+      "https://norsemont.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "NOP",
+    "name": "Nevada Organic Phosphate Inc.",
+    "website": "https://www.nevadaphosphate.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.nevadaphosphate.com/news/",
+    "evidence": [
+      "https://www.nevadaphosphate.com/news/",
+      "https://www.nevadaphosphate.com/2026/04/07/nevada-organic-phosphate-announces-engagement-of-strategic-media-public-relations-llc/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "NRED",
+    "name": "NovaRed Mining Inc.",
+    "website": "https://novaredmining.com",
+    "press_source": "newsfile",
+    "wire_company_id": "293132",
+    "press_url": "https://novaredmining.com/news/novared-mining-inc.-integrates-artificial-intelligence-into-mineral-exploration-strategy-with-provisional-patent-filing",
+    "evidence": [
+      "https://novaredmining.com/news/novared-mining-inc.-integrates-artificial-intelligence-into-mineral-exploration-strategy-with-provisional-patent-filing",
+      "newsfile_id_on_sub:293132",
+      "https://novaredmining.com/news/novared-advances-drill-targeting-at-wilmac-with-acquisition-of-historical-geophysical-and-geochemical-data"
+    ],
+    "note": "hits={'newsfile': 8}"
+  },
+  {
+    "ticker": "NSG",
+    "name": "Northstar Gold Corp.",
+    "website": "https://northstargoldcorp.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "NSJ",
+    "name": "NSJ Gold Corp.",
+    "website": "https://www.nsjgoldcorp.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "NT",
+    "name": "Newterra Resources Inc.",
+    "website": "https://www.newterraresources.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.newterraresources.com/press-releases/newterra-resources-enters-into-option-agreement-to-acquire-willans-gold-property-located-in-the-red-lake-mining-camp-of-ontario",
+    "evidence": [
+      "https://www.newterraresources.com/press-releases/newterra-resources-enters-into-option-agreement-to-acquire-willans-gold-property-located-in-the-red-lake-mining-camp-of-ontario",
+      "https://www.newterraresources.com/news"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "NUKV",
+    "name": "Nuclear Vision Limited",
+    "website": "https://nuclearvisionltd.com",
+    "press_source": "sedar",
+    "wire_company_id": null,
+    "press_url": "https://www.sedarplus.ca/csa-party/records/profile.html?id=4f96f2ff15f3d3429359b1d05da2d102",
+    "evidence": [
+      "https://www.sedarplus.ca/csa-party/records/profile.html?id=4f96f2ff15f3d3429359b1d05da2d102",
+      "https://nuclearvisionltd.com/news"
+    ],
+    "note": "hits={'sedar': 3}"
+  },
+  {
+    "ticker": "NVPC",
+    "name": "Nova Pacific Metals Corp.",
+    "website": "https://www.novapacificmetals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.otcmarkets.com/stock/NVPCF/news",
+    "evidence": [
+      "https://www.otcmarkets.com/stock/NVPCF/news"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "NVR",
+    "name": "North Valley Resources Ltd.",
+    "website": "https://www.northvalleyresources.ca/",
+    "press_source": "newsfile",
+    "wire_company_id": null,
+    "press_url": "https://www.northvalleyresources.ca/news",
+    "evidence": [
+      "https://www.northvalleyresources.ca/news"
+    ],
+    "note": "hits={'newsfile': 4}"
+  },
+  {
+    "ticker": "NWI",
+    "name": "Nuinsco Resources Limited",
+    "website": "https://www.nuinsco.ca",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.nuinsco.ca/news/",
+    "evidence": [
+      "https://www.nuinsco.ca/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "NXU",
+    "name": "Nexco Resources Inc.",
+    "website": "https://www.nexcoresources.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "OMGA",
+    "name": "Omega Pacific Resources Inc.",
+    "website": "https://omegapacific.ca",
+    "press_source": "newsfile",
+    "wire_company_id": "288143",
+    "press_url": "https://omegapacific.ca/news/",
+    "evidence": [
+      "https://omegapacific.ca/news/",
+      "newsfile_id_on_sub:288143"
+    ],
+    "note": "hits={'newsfile': 8, 'accesswire': 3}"
+  },
+  {
+    "ticker": "OROG",
+    "name": "Gold Orogen Resources Corp.",
+    "website": "https://lode-gold.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "OWLI",
+    "name": "One World Lithium Inc.",
+    "website": "https://oneworldlithium.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://oneworldlithium.com/news/",
+    "evidence": [
+      "https://oneworldlithium.com/news/",
+      "https://oneworldlithium.com/media/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "PATH",
+    "name": "Newpath Resources Inc.",
+    "website": "https://newpathresources.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://newpathresources.com/news/",
+    "evidence": [
+      "https://newpathresources.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "PAU",
+    "name": "Provenance Gold Corp",
+    "website": "https://www.provenancegold.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [
+      "https://www.provenancegold.com/latest",
+      "https://www.provenancegold.com/archive"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "PGA",
+    "name": "Pegmatite One Lithium and Gold Corp.",
+    "website": "https://pegmatiteone.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "PGOL",
+    "name": "Patriot Gold Corp.",
+    "website": "https://www.patriotgoldcorp.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.patriotgoldcorp.com/news.php",
+    "evidence": [
+      "https://www.patriotgoldcorp.com/news.php",
+      "https://www.patriotgoldcorp.com/news.php?id=121&title=Patriot-Gold-Provides-Shareholder-Update"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "PGR",
+    "name": "Planet Green Metals Inc.",
+    "website": "https://planetgreenmetals.ca",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://planetgreenmetals.ca/media/",
+    "evidence": [
+      "https://planetgreenmetals.ca/media/",
+      "https://planetgreenmetals.ca/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "PHOS",
+    "name": "First Phosphate Corp.",
+    "website": "https://firstphosphate.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://firstphosphate.com/news",
+    "evidence": [
+      "https://firstphosphate.com/news",
+      "https://firstphosphate.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "PLLR",
+    "name": "Forty Pillars Mining Corp.",
+    "website": "https://www.fortypillars.ca",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "PLTO",
+    "name": "Pluto Ventures Inc.",
+    "website": "https://plutoventures.ca/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://plutoventures.ca/news",
+    "evidence": [
+      "https://plutoventures.ca/news"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "PMAX",
+    "name": "Powermax Minerals Inc.",
+    "website": "https://powermaxminerals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://powermaxminerals.com/news/",
+    "evidence": [
+      "https://powermaxminerals.com/news/",
+      "https://powermaxminerals.com/powermax-video/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "PMC",
+    "name": "Peloton Minerals Corporation",
+    "website": "https://pelotonminerals.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://pelotonminerals.com/news/",
+    "evidence": [
+      "https://pelotonminerals.com/news/",
+      "https://pelotonminerals.com/events/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "PNGC",
+    "name": "Loyalist Exploration Limited",
+    "website": "https://loyalistexploration.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://loyalistexploration.com/page/press-release",
+    "evidence": [
+      "https://loyalistexploration.com/page/press-release"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "PNRG",
+    "name": "Pan American Energy Corp.",
+    "website": "https://panam-energy.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://panam-energy.com/news/news-alerts",
+    "evidence": [
+      "https://panam-energy.com/news/news-alerts",
+      "https://panam-energy.com/category/corporate-news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "POWR",
+    "name": "POWR Lithium Corp.",
+    "website": "https://powrlithium.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://powrlithium.com/news/",
+    "evidence": [
+      "https://powrlithium.com/news/",
+      "https://powrlithium.com/news-alerts/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "PRCG",
+    "name": "Precore Gold Corp.",
+    "website": "https://precoregold.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://precoregold.com/investors/media/",
+    "evidence": [
+      "https://precoregold.com/investors/media/",
+      "https://precoregold.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "PRIZ",
+    "name": "Prismo Metals Inc.",
+    "website": "https://prismometals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://prismometals.com/news-release/",
+    "evidence": [
+      "https://prismometals.com/news-release/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "PRNC",
+    "name": "Prince Silver Corp.",
+    "website": "https://princesilvercorp.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://princesilvercorp.com/investors/media/",
+    "evidence": [
+      "https://princesilvercorp.com/investors/media/",
+      "https://princesilvercorp.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "PRR",
+    "name": "Prospect Ridge Resources Corp.",
+    "website": "https://prospectridgeresources.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "PSE",
+    "name": "Pasinex Resources Limited",
+    "website": "https://pasinex.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://pasinex.com/investors/press-releases/",
+    "evidence": [
+      "https://pasinex.com/investors/press-releases/",
+      "https://pasinex.com/media/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "PSIL",
+    "name": "Pacifica Silver Corp.",
+    "website": "https://pacificasilver.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://pacificasilver.com/index.php/investors#section-Media",
+    "evidence": [
+      "https://pacificasilver.com/index.php/investors#section-Media",
+      "https://pacificasilver.com/index.php/news/2026-news"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "PURR",
+    "name": "Panther Minerals Inc.",
+    "website": "https://pantherminerals.ca/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://pantherminerals.ca/news/",
+    "evidence": [
+      "https://pantherminerals.ca/news/",
+      "http://pantherminerals.ca/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "QB",
+    "name": "Quarterback Resources Inc.",
+    "website": "https://quarterbackresources.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://thecse.com/listings/quarterback-resources-inc/news-releases/",
+    "evidence": [
+      "https://thecse.com/listings/quarterback-resources-inc/news-releases/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "QBAT",
+    "name": "Quantum Battery Metals Corp.",
+    "website": "",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_website"
+  },
+  {
+    "ticker": "QIM",
+    "name": "Quimbaya Gold Inc.",
+    "website": "https://www.quimbayagold.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://quimbayagold.com/news/",
+    "evidence": [
+      "https://quimbayagold.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "QIMC",
+    "name": "Quebec Innovative Materials Corp.",
+    "website": "https://qimaterials.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://qimaterials.com/press-releases/",
+    "evidence": [
+      "https://qimaterials.com/press-releases/",
+      "https://qimaterials.com/industry-news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "QQQ",
+    "name": "Questcorp Mining Inc.",
+    "website": "https://questcorpmining.ca",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://questcorpmining.ca/news/",
+    "evidence": [
+      "https://questcorpmining.ca/news/",
+      "https://questcorpmining.ca/media/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "QREE",
+    "name": "Quebec Rare Earth Elements Corp.",
+    "website": "https://qree.ca",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://qree.ca/news/",
+    "evidence": [
+      "https://qree.ca/news/",
+      "https://qree.ca/news/quebec-rare-earth-elements-announces-2024-exploration-program/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "RAIN",
+    "name": "Rain City Resources Inc.",
+    "website": "https://www.raincityresources.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "RECE",
+    "name": "Resource Centrix Holdings Inc.",
+    "website": "https://www.recentrix.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "REDC",
+    "name": "Red Canyon Resources Ltd.",
+    "website": "https://www.redcanyonresources.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.redcanyonresources.com/news",
+    "evidence": [
+      "https://www.redcanyonresources.com/news"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "RFLX",
+    "name": "Reflex Advanced Materials Corp.",
+    "website": "https://reflexmaterials.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://reflexmaterials.com/category/corporate-news/",
+    "evidence": [
+      "https://reflexmaterials.com/category/corporate-news/",
+      "https://reflexmaterials.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "RFR",
+    "name": "Renforth Resources Inc.",
+    "website": "https://renforthresources.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [
+      "https://renforthresources.com/blog/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "RGLD",
+    "name": "Red Lake Gold Inc.",
+    "website": "https://www.redlakegold.ca",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [
+      "https://www.redlakegold.ca/latest",
+      "https://www.redlakegold.ca/archive"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "RGN",
+    "name": "Rush Gold Corp.",
+    "website": "https://rushgoldcorp.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://rushgoldcorp.com/news/",
+    "evidence": [
+      "https://rushgoldcorp.com/news/",
+      "https://rushgoldcorp.com/media/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "RGR",
+    "name": "Rio Grande Resources Ltd.",
+    "website": "https://riogranderesources.ca",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://riogranderesources.ca/news-releases",
+    "evidence": [
+      "https://riogranderesources.ca/news-releases",
+      "https://riogranderesources.ca/news-releases/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "RISE",
+    "name": "Rise Gold Corp.",
+    "website": "https://www.risegoldcorp.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [
+      "https://www.risegoldcorp.com/news_items"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "RKL",
+    "name": "Rockland Resources Ltd.",
+    "website": "https://www.rocklandresources.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.rocklandresources.com/news",
+    "evidence": [
+      "https://www.rocklandresources.com/news",
+      "https://jrx.media"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "RMES",
+    "name": "Red Metal Resources Ltd.",
+    "website": "https://www.redmetalresources.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.redmetalresources.com/news/",
+    "evidence": [
+      "https://www.redmetalresources.com/news/",
+      "https://www.redmetalresources.com/news/red-metal-initiates-ip-survey-on-its-carrizal--copper-gold-cobalt-project"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "ROAD",
+    "name": "Mineral Road Discovery Inc.",
+    "website": "https://mineralroad.ca",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "RSG",
+    "name": "Rocky Shore Gold Ltd.",
+    "website": "https://www.rockyshoregold.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "RSH",
+    "name": "Rush Rare Metals Corp.",
+    "website": "https://www.rushraremetals.com",
+    "press_source": "stockhouse",
+    "wire_company_id": null,
+    "press_url": "https://www.rushraremetals.com/media/",
+    "evidence": [
+      "https://www.rushraremetals.com/media/"
+    ],
+    "note": "hits={'stockhouse': 1}"
+  },
+  {
+    "ticker": "RUU",
+    "name": "Refined Energy Corp.",
+    "website": "https://refinedenergy.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://refinedenergy.com/news/",
+    "evidence": [
+      "https://refinedenergy.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "RVR",
+    "name": "Rift Valley Resources Corp.",
+    "website": "https://www.riftvalleyresources.ca",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "RXM",
+    "name": "Rockex Mining Corporation",
+    "website": "http://rockexmining.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "http://rockexmining.com/s/Media.asp.html",
+    "evidence": [
+      "http://rockexmining.com/s/Media.asp.html",
+      "http://rockexmining.com/s/NewsReleases.asp%3FReportID=755189&_Type=News-Releases&_Title=Rockex-Mining-Definitive-Agreement-With-Diversified-Innovative-Marketing-En....html"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "SANU",
+    "name": "Sanu Gold Corp",
+    "website": "https://sanugoldcorp.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://sanugoldcorp.com/media/",
+    "evidence": [
+      "https://sanugoldcorp.com/media/",
+      "https://sanugoldcorp.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "SASQ",
+    "name": "Sasquatch Resources Corp.",
+    "website": "https://sasquatchresources.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://sasquatchresources.com/media/",
+    "evidence": [
+      "https://sasquatchresources.com/media/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "SASY",
+    "name": "Sassy Gold Corp",
+    "website": "https://sassygold.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "SCM",
+    "name": "Steadright Critical Minerals Inc.",
+    "website": "https://steadright.ca",
+    "press_source": "sedar",
+    "wire_company_id": null,
+    "press_url": "https://steadright.ca/investor-information/",
+    "evidence": [
+      "https://steadright.ca/investor-information/",
+      "https://steadright.ca/news/"
+    ],
+    "note": "hits={'sedar': 1}"
+  },
+  {
+    "ticker": "SCU",
+    "name": "Sankamap Metals Inc.",
+    "website": "https://sankamap.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://sankamap.com/news/",
+    "evidence": [
+      "https://sankamap.com/news/",
+      "https://sankamap.com/investors/media/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "SCV",
+    "name": "Scotch Creek Ventures Inc.",
+    "website": "https://www.scotch-creek.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.scotch-creek.com/news/",
+    "evidence": [
+      "https://www.scotch-creek.com/investors/",
+      "https://www.scotch-creek.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "SEAG.X",
+    "name": "Seahawk Ventures Inc.",
+    "website": "https://seahawkgoldcorp.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://seahawkgoldcorp.com/seahawk-recent-news/",
+    "evidence": [
+      "https://seahawkgoldcorp.com/seahawk-recent-news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "SEAS",
+    "name": "Deep Sea Minerals Corp.",
+    "website": "https://deepseamineralscorp.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://deepseamineralscorp.com/investors/#news-releases",
+    "evidence": [
+      "https://deepseamineralscorp.com/investors/#news-releases",
+      "https://deepseamineralscorp.com/media/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "SEEM",
+    "name": "Serra Energy Metals Corp.",
+    "website": "https://serrametals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "SGRO",
+    "name": "Sierra Grande Minerals Inc.",
+    "website": "https://sierragrande.ca",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://sierragrande.ca/index.php/news/sierra-grande-reports-high-grade-sampling-results-at-b-c-springs-stakes-additional-claims-2",
+    "evidence": [
+      "https://sierragrande.ca/index.php/news/sierra-grande-reports-high-grade-sampling-results-at-b-c-springs-stakes-additional-claims-2",
+      "https://sierragrande.ca/index.php/news/sgro-pr-silveria-option-mod-march-27-2023"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "SHOW",
+    "name": "Showcase Minerals Inc.",
+    "website": "",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_website"
+  },
+  {
+    "ticker": "SI",
+    "name": "Silicon Metals Corp.",
+    "website": "https://siliconmetalscorp.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "SK",
+    "name": "Rottenstone Gold Inc.",
+    "website": "https://www.rottenstonegold.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [
+      "https://www.rottenstonegold.com/archive"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "SL",
+    "name": "Super Lithium Corp.",
+    "website": "",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_website"
+  },
+  {
+    "ticker": "SLA",
+    "name": "Silver Acadia Exploration Inc.",
+    "website": "https://silveracadia.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://silveracadia.com/news/",
+    "evidence": [
+      "https://silveracadia.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "SLO",
+    "name": "Starlo Ventures Ltd.",
+    "website": "",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_website"
+  },
+  {
+    "ticker": "SLV",
+    "name": "Silver Dollar Resources Inc.",
+    "website": "https://www.silverdollarresources.com",
+    "press_source": "newsfile",
+    "wire_company_id": null,
+    "press_url": "https://silverdollarresources.com/index.php/news/363-silver-dollar-samples-up-to-4-311-g-t-ageq-at-its-100-owned-la-joya-silver-project",
+    "evidence": [
+      "https://silverdollarresources.com/index.php/news/363-silver-dollar-samples-up-to-4-311-g-t-ageq-at-its-100-owned-la-joya-silver-project"
+    ],
+    "note": "hits={'newsfile': 5}"
+  },
+  {
+    "ticker": "SLZ",
+    "name": "Slave Lake Zinc Corp.",
+    "website": "https://zinccorp.ca",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://zinccorp.ca/news/",
+    "evidence": [
+      "https://zinccorp.ca/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "SPOD",
+    "name": "Spod Lithium Corp.",
+    "website": "",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_website"
+  },
+  {
+    "ticker": "SPRK",
+    "name": "Spark Energy Minerals Inc.",
+    "website": "https://www.sparkminerals.co",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.sparkminerals.co/news",
+    "evidence": [
+      "https://www.sparkminerals.co/news",
+      "https://www.sparkminerals.co/news-2025/spark-reports-broad-rare-earth-and-gallium-mineralization-across-five-maiden-drill-holes"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "SRAN",
+    "name": "Sranan Gold Corp.",
+    "website": "https://www.sranangold.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://sranangold.com/news/",
+    "evidence": [
+      "https://sranangold.com/news/",
+      "https://sranangold.com/media/video-gallery/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "SRS",
+    "name": "Sorrento Resources Ltd.",
+    "website": "https://sorrentoresources.ca/",
+    "press_source": "sedar",
+    "wire_company_id": null,
+    "press_url": "https://sorrentoresources.ca/news",
+    "evidence": [
+      "https://sorrentoresources.ca/news",
+      "https://www.sedarplus.ca/csa-party/records/profile.html?id=241bd19f756c2d1ed0e42db2bff19c7f"
+    ],
+    "note": "hits={'sedar': 5}"
+  },
+  {
+    "ticker": "STAR",
+    "name": "Starmet Ventures Inc.",
+    "website": "https://starmetventures.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://starmetventures.com/news-and-media/",
+    "evidence": [
+      "https://starmetventures.com/news-and-media/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "STCU",
+    "name": "Star Copper Corp.",
+    "website": "https://starcopper.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://starcopper.com/news/news-alerts/",
+    "evidence": [
+      "https://starcopper.com/news/news-alerts/",
+      "https://starcopper.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "STGX",
+    "name": "StrategX Elements Corp.",
+    "website": "https://www.strategxcorp.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.strategxcorp.com/ir-media",
+    "evidence": [
+      "https://www.strategxcorp.com/ir-media",
+      "https://www.strategxcorp.com/news"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "STK",
+    "name": "Silverstock Metals Inc.",
+    "website": "https://silverstockmetals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "STMN",
+    "name": "UraniumX Discovery Corp.",
+    "website": "https://www.uraniumx.ca",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://uraniumx.ca/investors/news/",
+    "evidence": [
+      "https://uraniumx.ca/investors/",
+      "https://uraniumx.ca/investors/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "STNG",
+    "name": "Stinger Resources Inc.",
+    "website": "https://stingerresources.com",
+    "press_source": "sedar",
+    "wire_company_id": null,
+    "press_url": "https://stingerresources.com/news-2/",
+    "evidence": [
+      "https://stingerresources.com/news-2/",
+      "https://stingerresources.com/investor-center/"
+    ],
+    "note": "hits={'sedar': 2}"
+  },
+  {
+    "ticker": "SUR",
+    "name": "Surface Metals Inc.",
+    "website": "https://surfacemetals.com",
+    "press_source": "cnw",
+    "wire_company_id": null,
+    "press_url": "https://surfacemetals.com/news/",
+    "evidence": [
+      "https://surfacemetals.com/news/",
+      "https://surfacemetals.com/in-the-press-2/"
+    ],
+    "note": "hits={'globenewswire': 3, 'cnw': 6}"
+  },
+  {
+    "ticker": "SUU",
+    "name": "Strathmore Plus Uranium Corp.",
+    "website": "https://strathmoreplus.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "SX",
+    "name": "St-Georges Eco-Mining Corp.",
+    "website": "https://stgeorgesecomining.com",
+    "press_source": "sedar",
+    "wire_company_id": null,
+    "press_url": "https://stgeorgesecomining.com/news/",
+    "evidence": [
+      "https://stgeorgesecomining.com/news/",
+      "https://stgeorgesecomining.com/investor/"
+    ],
+    "note": "hits={'sedar': 1}"
+  },
+  {
+    "ticker": "TAI",
+    "name": "Talmora Diamond Inc.",
+    "website": "http://www.talmoradiamond.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "TANA",
+    "name": "Tana Resources Corp.",
+    "website": "https://tanaresources.ca",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "TAUR",
+    "name": "Taurus Gold Corp.",
+    "website": "https://taurusgold.ca",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "TCEC",
+    "name": "Terra Clean Energy Corp.",
+    "website": "https://www.tcec.energy",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.tcec.energy/news",
+    "evidence": [
+      "https://www.tcec.energy/news",
+      "https://jrx.media"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "TERA",
+    "name": "Terra Balcanica Resources Corp.",
+    "website": "https://terrabresources.com/en/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "TEX",
+    "name": "Targa Exploration Corp.",
+    "website": "https://targaexploration.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "TGII",
+    "name": "Trojan Gold Inc.",
+    "website": "https://trojangold.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://trojangold.com/news/",
+    "evidence": [
+      "https://trojangold.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "TGLD",
+    "name": "Torrent Gold Inc.",
+    "website": "https://torrentgoldinc.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "TICO",
+    "name": "Talent Infinity Resource Developments Inc.",
+    "website": "https://www.csetico.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://csetico.com/news/",
+    "evidence": [
+      "https://csetico.com/news/",
+      "https://www.csetico.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "TMAS",
+    "name": "Temas Resources Corp.",
+    "website": "https://temasresources.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "TMIN",
+    "name": "Teako Minerals Corp.",
+    "website": "https://teakominerals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://teakominerals.com/social-media/",
+    "evidence": [
+      "https://teakominerals.com/social-media/",
+      "https://teakominerals.com/newsroom/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "TN",
+    "name": "Tartisan Nickel Corp.",
+    "website": "https://tartisannickel.com/en/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://tartisannickel.com/en/#latest-news",
+    "evidence": [
+      "https://tartisannickel.com/en/#latest-news",
+      "https://tartisannickel.com/en/contact/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "TOC",
+    "name": "Tocvan Ventures Corp.",
+    "website": "https://tocvan.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://tocvan.com/news/",
+    "evidence": [
+      "https://tocvan.com/news/",
+      "https://tocvan.com/news/tocvan-mobilizes-heavy-equipment-at-gran-pilar-to-accelerate-trenching-and-mine-works/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "TONE",
+    "name": "Triple One Metals Inc.",
+    "website": "https://thecse.com/listings/triple-one-metals-inc/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "TRG",
+    "name": "Tarachi Gold Corp.",
+    "website": "https://www.tarachigold.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "TTX",
+    "name": "Tantalex Lithium Resources Corporation",
+    "website": "https://tantalexlithium.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://tantalexlithium.com/press-releases/",
+    "evidence": [
+      "https://tantalexlithium.com/press-releases/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "UBQ",
+    "name": "Ubique Minerals Limited",
+    "website": "https://www.ubiqueminerals.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "UCM",
+    "name": "United Critical Minerals Corp.",
+    "website": "https://thecse.com/listings/united-critical-minerals-corp/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "UE",
+    "name": "Urano Energy Corp.",
+    "website": "https://uranoenergy.com",
+    "press_source": "cnw",
+    "wire_company_id": null,
+    "press_url": "https://uranoenergy.com/news/",
+    "evidence": [
+      "https://uranoenergy.com/news/",
+      "https://uranoenergy.com/news/aero-energy-urano-energy-and-pegasus-resources-announce-closing-of-10-5-million-subscription-receipt-private-placement/"
+    ],
+    "note": "hits={'newsfile': 2, 'cnw': 7, 'sedar': 6}"
+  },
+  {
+    "ticker": "UG",
+    "name": "Upside Gold Corp.",
+    "website": "https://upsidegoldcorp.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://upsidegoldcorp.com/investors/#media",
+    "evidence": [
+      "https://upsidegoldcorp.com/investors/#media",
+      "https://upsidegoldcorp.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "ULTH",
+    "name": "United Lithium Corp.",
+    "website": "https://unitedlithium.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://unitedlithium.com/news-2025/",
+    "evidence": [
+      "https://unitedlithium.com/news-2025/",
+      "https://unitedlithium.com/news-2026/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "USCM",
+    "name": "US Critical Metals Corp.",
+    "website": "https://uscmcorp.com/",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "UX",
+    "name": "Puranium Energy Ltd.",
+    "website": "https://puraniumenergy.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [
+      "https://puraniumenergy.com/ir/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "VBN",
+    "name": "Pedro Resources Ltd.",
+    "website": "https://www.pedroresources.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "VRTX",
+    "name": "Vortex Energy Corp.",
+    "website": "https://vortexenergycorp.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://vortexenergycorp.com/news/",
+    "evidence": [
+      "https://vortexenergycorp.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "WBGD",
+    "name": "Waraba Gold Limited",
+    "website": "",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "no_website"
+  },
+  {
+    "ticker": "WDGY",
+    "name": "Wedgemount Resources Corp.",
+    "website": "https://wedgemountresources.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://wedgemountresources.com/news/",
+    "evidence": [
+      "https://wedgemountresources.com/news/",
+      "https://wedgemountresources.com/german-news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "WEST",
+    "name": "West Mining Corp.",
+    "website": "https://www.westminingcorp.ca",
+    "press_source": "sedar",
+    "wire_company_id": null,
+    "press_url": "https://www.sedarplus.ca/csa-party/records/profile.html?id=c25c9b064fc1d7b418eb1392419adf05",
+    "evidence": [
+      "https://www.sedarplus.ca/csa-party/records/profile.html?id=c25c9b064fc1d7b418eb1392419adf05",
+      "https://www.westminingcorp.ca/news"
+    ],
+    "note": "hits={'sedar': 3}"
+  },
+  {
+    "ticker": "WG",
+    "name": "Westward Gold Inc.",
+    "website": "https://westwardgold.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [],
+    "note": "root_fetch_failed"
+  },
+  {
+    "ticker": "WISE",
+    "name": "Earthwise Minerals Corp.",
+    "website": "https://earthwiseminerals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": null,
+    "evidence": [
+      "https://earthwiseminerals.com/investordeck/",
+      "https://earthwiseminerals.com/fact-sheet/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "WMC",
+    "name": "Westmount Minerals Corp.",
+    "website": "https://westmountminerals.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://westmountminerals.com/news/2023",
+    "evidence": [
+      "https://westmountminerals.com/news/2023",
+      "https://westmountminerals.com/news/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "WUC",
+    "name": "Western Uranium & Vanadium Corp.",
+    "website": "https://www.western-uranium.com",
+    "press_source": "sedar",
+    "wire_company_id": null,
+    "press_url": "https://www.western-uranium.com/investors/investor-highlights/",
+    "evidence": [
+      "https://www.western-uranium.com/investors/investor-highlights/",
+      "https://www.western-uranium.com/news-media/news-releases/"
+    ],
+    "note": "hits={'sedar': 1}"
+  },
+  {
+    "ticker": "XRI",
+    "name": "Xcite Uranium Inc.",
+    "website": "https://xciteuranium.com",
+    "press_source": "sedar",
+    "wire_company_id": null,
+    "press_url": "https://xciteuranium.com/news",
+    "evidence": [
+      "https://xciteuranium.com/news"
+    ],
+    "note": "hits={'sedar': 4}"
+  },
+  {
+    "ticker": "YMC",
+    "name": "Yukon Metals Corp.",
+    "website": "https://yukonmetals.com/",
+    "press_source": "sedar",
+    "wire_company_id": null,
+    "press_url": "https://yukonmetals.com/investors/corporate-media/2025",
+    "evidence": [
+      "https://yukonmetals.com/investors/corporate-media/2025",
+      "https://yukonmetals.com/news/news-2026"
+    ],
+    "note": "hits={'sedar': 1}"
+  },
+  {
+    "ticker": "ZEUS",
+    "name": "Zeus North America Mining Corp.",
+    "website": "https://www.zeusminingcorp.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://www.zeusminingcorp.com/investors/press-releases/",
+    "evidence": [
+      "https://www.zeusminingcorp.com/investors/press-releases/"
+    ],
+    "note": "no_wire_detected"
+  },
+  {
+    "ticker": "ZIGY",
+    "name": "Stardust Metal Corp.",
+    "website": "https://stardustmetal.com",
+    "press_source": null,
+    "wire_company_id": null,
+    "press_url": "https://stardustmetal.com/news/2026/",
+    "evidence": [
+      "https://stardustmetal.com/news/2026/",
+      "https://stardustmetal.com/news/stardust-appoints-dr-mynyr-hoxha-as-vp-exploration/"
+    ],
+    "note": "no_wire_detected"
+  }
+]

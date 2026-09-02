@@ -1,0 +1,3118 @@
+[
+  {
+    "ticker": "ACDX",
+    "company_id": "ACDX",
+    "name": "American Copper Development Corp",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8445
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "American Copper Development Corp. Provides Corporate Update",
+      "American Copper Development Corp. Joins the Defense Industrial Base Consortium, Advancing Its Mission to Unlock Domestic Copper Supply from New Mexico's Historic Lordsburg District"
+    ]
+  },
+  {
+    "ticker": "ADDY",
+    "company_id": "ADDY",
+    "name": "Adelayde Exploration Inc",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 4360
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Adelayde Exploration Formulating Plans for the Next Phase of Work on the Perron-East Gold Project in Quebec",
+      "Adelayde Exploration to Commence Operations on the George Lake South Antimony Project in New Brunswick"
+    ]
+  },
+  {
+    "ticker": "AFF",
+    "company_id": "AFF",
+    "name": "Affinity Metals Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 5458
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Affinity Metals Corp. Reprices Non-Brokered Private Placement",
+      "Affinity Metals Corp. Announces up to $100,000 Non-Brokered Private Placement"
+    ]
+  },
+  {
+    "ticker": "AGC",
+    "company_id": "AGC",
+    "name": "Avanti Gold Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 6873
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Avanti Commences 42,000 Metre Drill Program at Misisi, Targeting Resource Expansion and Delineation of New Targets",
+      "Avanti Gold Engages Oakstrom Advisors for Investor Relations & Strategic Communications Advisory"
+    ]
+  },
+  {
+    "ticker": "ALMA",
+    "company_id": "ALMA",
+    "name": "Alma Gold Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 6526
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "RETRANSMISSION - Drilling at Swanson Gold Deposit Confirms Large-Scale Gold Discovery with 1.18 g/t Au over 255.04 metres and 1.65 g/t Au over 136.01 metres",
+      "LaFleur Minerals Files PEA Technical Report Supporting Restart of Gold Production at Beacon Gold Mill, Québec"
+    ]
+  },
+  {
+    "ticker": "AMQ",
+    "company_id": "AMQ",
+    "name": "Abitibi Metals Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 11775
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Abitibi Metals Announces Non-Brokered Financing Led by Discovery Silver, with a 9.9% Strategic Stake",
+      "Abitibi Metals Expands Western Down-Plunge Zone with 150m Step-Out, Intersecting 2.71% CuEq over 7m within 1.81% CuEq over 15m"
+    ]
+  },
+  {
+    "ticker": "ANT",
+    "company_id": "ANT",
+    "name": "Anteros Metals Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 9885
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Anteros Metals Advances Seagull Project Targeting Natural Hydrogen, Helium and PGE Mineralization and Engages Chibougamau Drilling",
+      "Anteros Metals Announces Appointment of Abraham Drost as Executive Chairman and Amended Pricing of Non-Brokered Private Placement"
+    ]
+  },
+  {
+    "ticker": "API",
+    "company_id": "API",
+    "name": "Appia Rare Earths & Uranium Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 5416
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Appia Completes SPARTAN MT Survey at its Otherside Uranium Property",
+      "Appia to Exhibit at PDAC 2026 Booth 2715 (Investors Exchange, MTCC - Toronto)"
+    ]
+  },
+  {
+    "ticker": "ARGL",
+    "company_id": "ARGL",
+    "name": "Argyle Resources Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 10451
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Argyle Announces Option to Acquire McKay Hill Silver-Gold Property in the Yukon's Keno Hill District",
+      "Argyle Resources Announces Stock Option Cancellation with Intention to Regrant Equal Options"
+    ]
+  },
+  {
+    "ticker": "ARQ",
+    "company_id": "ARQ",
+    "name": "Argo Gold Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 3921
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Argo Receives Permit for The Uchi Gold Project",
+      "Argo Acquires Additional Mineral Claims at the Hurdman Silver-Zinc Project"
+    ]
+  },
+  {
+    "ticker": "ARS",
+    "company_id": "ARS",
+    "name": "Ares Strategic Mining Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 10880
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 1,
+    "sample_headlines": [
+      "Ares Strategic Mining Completes Flotation Plant Infrastructure and Steel and Fabrication"
+    ]
+  },
+  {
+    "ticker": "ASHL",
+    "company_id": "ASHL",
+    "name": "Ashley Gold Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8792
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 2,
+    "sample_headlines": [
+      "Ashley Gold Corp. Announces Closing of Second Tranche of Financing",
+      "Ashley Announces Completion of Initial Public Offering"
+    ]
+  },
+  {
+    "ticker": "ATC",
+    "company_id": "ATC",
+    "name": "ATERRA Metals Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 7721
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Totora Cu/Au Project Reverse Circulation Drilling Completed and Diamond Drill Rig Being Mobilized",
+      "ATERRA Retains Research Capital for Capital Markets Services"
+    ]
+  },
+  {
+    "ticker": "AUEX",
+    "company_id": "AUEX",
+    "name": "Advanced Gold Exploration Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8072
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Advanced Gold Commences Work on Silver Belle, Nevada",
+      "Advanced Gold Exploration Announces Appointment of Director"
+    ]
+  },
+  {
+    "ticker": "AUMC",
+    "company_id": "AUMC",
+    "name": "Auric Minerals Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 10953
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Auric Minerals Corp. Announces Filing of Amended and Restated Offering Document for LIFE Offering",
+      "Auric Minerals Corp. Announces Adoption of Quarterly Reporting Exemption Under SAR Pilot Program"
+    ]
+  },
+  {
+    "ticker": "AUOZ",
+    "company_id": "AUOZ",
+    "name": "Emperor Metals Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8461
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Emperor Metals Provides Drilling Update from Duquesne West",
+      "Emperor Confirms 107.7 Meters of 0.5 Grams/Tonne Gold Intercept at Duquesne West, in an Expanding System"
+    ]
+  },
+  {
+    "ticker": "AWR",
+    "company_id": "AWR",
+    "name": "Aurwest Resources Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 3362
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Pacific Bay & Aurwest Sign Weaver Gold Property Definitive Option/JV Agreement",
+      "Pacific Bay Receives Positive New Geological Report on Weaver Gold Property in BC"
+    ]
+  },
+  {
+    "ticker": "BAD",
+    "company_id": "BAD",
+    "name": "Naughty Ventures Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 3326
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Naughty Ventures Corp. Announces Results of Soil Sampling on the Copper-Gold Lord Baron Project, Extends Strike Length to ~6.1km, Newfoundland",
+      "Naughty Ventures Applauds Strong Drill Results from Metalsource Mining and Highlights Upcoming Catalysts"
+    ]
+  },
+  {
+    "ticker": "BATT",
+    "company_id": "BATT",
+    "name": "Dark Star Minerals Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 9815
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Dark Star Announces Termination of Option Agreement with Critical One Energy Inc.",
+      "Dark Star Announces Appointment of Duane Parnham"
+    ]
+  },
+  {
+    "ticker": "BATX",
+    "company_id": "BATX",
+    "name": "Battery X Metals Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 6076
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Battery Mineral Resources Provides Ontario Exploration Update",
+      "Battery Mineral Resources Corp. Announces Closing of First Tranche of LIFE Private Placement Offering"
+    ]
+  },
+  {
+    "ticker": "BG",
+    "company_id": "BG",
+    "name": "Big Gold Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 9105
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Big Gold Launches 2026 Exploration Program at Tabor, Commences Target Generation Phase",
+      "Big Gold Advances 2026 Exploration Plans and Highlights Strategic Position Within Two Active Ontario Gold Districts"
+    ]
+  },
+  {
+    "ticker": "BGLD",
+    "company_id": "BGLD",
+    "name": "Boreal Gold Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 10708
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Boreal Gold Commences Drilling at the Gold Rock Vein on the North Star Property in Manitoba",
+      "Boreal Gold Inc. Grants Incentive Stock Options"
+    ]
+  },
+  {
+    "ticker": "BMT",
+    "company_id": "BMT",
+    "name": "Bahia Metals Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 4082
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Homerun Resources Inc. to Participate in Water Tower Research Insights Conference on April 14, 2026",
+      "Homerun Resources Inc. Announces Sponsored BDR Listing on B3 Stock Exchange"
+    ]
+  },
+  {
+    "ticker": "BOOM",
+    "company_id": "BOOM",
+    "name": "Galloper Gold Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 11683
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Galloper Delivers New 2026 Mineral Resource Estimate for LPSE Deposit on Glover Island",
+      "Galloper Initiates Geophysics Program Evaluation of Glover Island"
+    ]
+  },
+  {
+    "ticker": "BRS",
+    "company_id": "BRS",
+    "name": "BRS Resources Ltd.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 4168
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 4,
+    "sample_headlines": [
+      "BRS Resources Provides Update on Drilling at the Cowtrail Copper-Gold Project",
+      "BRS Resources Announces Update on AleAnna Energy, LLC"
+    ]
+  },
+  {
+    "ticker": "BULL",
+    "company_id": "BULL",
+    "name": "Quest Critical Metals Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 6337
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Quest Critical Metals Announces Completion of Diamond Drill Hole Testing a Strong IP Anomaly in the Area of the Tisova-Klingenthal Cu-Co Deposit",
+      "Quest Critical Metals Announces Closing of Non-Brokered Private Placement Offering and Will Commence Drilling in June"
+    ]
+  },
+  {
+    "ticker": "BYRG",
+    "company_id": "BYRG",
+    "name": "Bayridge Resources Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 10256
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Bayridge Resources Advances Baker Lake Uranium Project with Completed Data Reinterpretation and Planned 2026 Exploration Program",
+      "Bayridge Resources Advances Community Engagement Ahead of 2026 Program at the Baker Lake Uranium Project, Nunavut"
+    ]
+  },
+  {
+    "ticker": "C",
+    "company_id": "C",
+    "name": "Commodore Metals Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 11649
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 1,
+    "sample_headlines": [
+      "Commodore Commences Follow-Up Exploration Program on Keefers-Hannah Gold Project"
+    ]
+  },
+  {
+    "ticker": "CANU",
+    "company_id": "CANU",
+    "name": "Canadian Uranium Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 1745
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "NexGen Announces Expansion of High-Grade Zone at Patterson Corridor East (PCE) and the Completion of 2026 Winter Drill Program",
+      "NexGen Receives Final Federal Approval for the Rook I Uranium Project"
+    ]
+  },
+  {
+    "ticker": "CAPR",
+    "company_id": "CAPR",
+    "name": "Caprock Mining Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8515
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Caprock Announces Plans to Commence Drill Program Designed for Pit-Constrained Mineral Resource Expansion at Destiny",
+      "Caprock Intersects 38.48 g/t Au over 1.6m Included Within a Broader Interval of 2.84 g/t over 23.2m at Destiny"
+    ]
+  },
+  {
+    "ticker": "CARM",
+    "company_id": "CARM",
+    "name": "Carmanah Minerals Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 11449
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 3,
+    "sample_headlines": [
+      "Carmanah Minerals Engages Warrior Drilling for Heritage Project; Targets Historic Eagle Zone on Burin Trend, NL",
+      "Carmanah Minerals Issues Drill Tenders to Advance Heritage Gold-Silver Project"
+    ]
+  },
+  {
+    "ticker": "CASC",
+    "company_id": "CASC",
+    "name": "Cascade Copper Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 11851
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Cascade Copper Corp. Presents in Existing Agency's Virtual Webinar Series",
+      "Aztec Minerals Corp. Presents in Existing Agency's Virtual Webinar Series"
+    ]
+  },
+  {
+    "ticker": "CAT",
+    "company_id": "CAT",
+    "name": "CAT Strategic Metals Corporation",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 11961
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "CAT Strategic Announces First Tranche Closing and Upsizing of the Offering",
+      "CAT Strategic Metals Consolidates 100% Ownership of Its Burntland Porphyry-Skarn Copper-Silver Project in New Brunswick and Announces Private Placement Offering"
+    ]
+  },
+  {
+    "ticker": "CCC",
+    "company_id": "CCC",
+    "name": "Carlyle Commodities Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 6130
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Carlyle Commodities Corp. Announces Definitive Agreement for Amalgamation with Silver Pony Resources Corp.",
+      "Carlyle Commodities Announces Resignation of Vice President of Exploration"
+    ]
+  },
+  {
+    "ticker": "CCI",
+    "company_id": "CCI",
+    "name": "Canadian Copper Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 9218
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Canadian Copper Inc. Announces Up to $96M in Project Development Capital, Deepens Strategic Partnership with Ocean Partners, and Welcomes OR Royalties Inc. as New Partner",
+      "Canadian Copper Receives Approval Milestone for Caribou Transaction and Appoints Vice President, Projects"
+    ]
+  },
+  {
+    "ticker": "CCR",
+    "company_id": "CCR",
+    "name": "Green River Gold Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 7403
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Green River Gold Corp. Provides Bi-Weekly Status Report",
+      "Green River Gold Corp. Provides Bi-Weekly Status Report"
+    ]
+  },
+  {
+    "ticker": "CDN",
+    "company_id": "CDN",
+    "name": "CDN Maverick Capital Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 4568
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Maverick Receives Drill Permits and Prepares to Drill James Bay Cu-Zn-Au-Ag Nottaway Project",
+      "CDN Maverick Provides Clarification Regarding Normal Course Issuer Bid Commencement Date and Grants Options"
+    ]
+  },
+  {
+    "ticker": "CFE",
+    "company_id": "CFE",
+    "name": "Cartier Silver Corporation",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 11987
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Cartier Silver Grants Stock Options",
+      "Cartier Silver Announces Closing of $3 Million Brokered Private Placement Led by Centurion One Capital"
+    ]
+  },
+  {
+    "ticker": "CQX",
+    "company_id": "CQX",
+    "name": "Copper Quest Exploration Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 2524
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "ArcWest Exploration Inc. Grants Stock Options",
+      "ArcWest Announces Results From 2025 Drilling of the Todd Creek Project"
+    ]
+  },
+  {
+    "ticker": "CRC",
+    "company_id": "CRC",
+    "name": "Canter Resources Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 10112
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Canter Resources Highlights Boron's Addition to U.S. Critical Minerals List-Unlocking Strategic Advantages for the Columbus Lithium-Boron Project in Nevada",
+      "Canter Resources Announces Closing of Non-Brokered Private Placement"
+    ]
+  },
+  {
+    "ticker": "CRCL",
+    "company_id": "CRCL",
+    "name": "Corcel Exploration Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8415
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Corcel Exploration Commences Drill Program at Yuma King Project",
+      "Corcel Exploration Announces Grant of Permit and Commencement of IP Survey at Yuma King Project"
+    ]
+  },
+  {
+    "ticker": "CRIV",
+    "company_id": "CRIV",
+    "name": "Carson River Ventures Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 10185
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 2,
+    "sample_headlines": [
+      "Carson River Announces Share Consolidation",
+      "Carson River and Novcorp Announce Binding Agreement for Business Combination"
+    ]
+  },
+  {
+    "ticker": "CRUZ",
+    "company_id": "CRUZ",
+    "name": "Cruz Battery Metals Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 4754
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Cruz Battery Metals Announces Maiden Mineral Resource Estimate on its Solar Lithium Project in Big Smokey Valley, Nevada",
+      "Cruz Battery Metals Acquires the 'South-Advocate Hydrogen Project' in Nova Scotia Directly Bordering Quebec Innovative Materials Corp."
+    ]
+  },
+  {
+    "ticker": "CSQ",
+    "company_id": "CSQ",
+    "name": "Canamex Gold Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 2189
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "InvestmentPitch Media Video Features Xcelerate, a Holding Company Designed from Inception to Span the Divide Between Initial Non-Medical Engineering Advancements and Apply Them to the Medical, Health and Wellness Sectors",
+      "InvestmentPitch Media Video Discusses Southern Silver Exploration's Updated PEA Results on its 100% owned Cerro Las Minitas project in Mexico, US$501M After-Tax NPV5%, 21% IRR, 48 Month Payback"
+    ]
+  },
+  {
+    "ticker": "CSR",
+    "company_id": "CSR",
+    "name": "Copper Standard Resources Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 7576
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Copper Standard Provides Portfolio and Corporate Update",
+      "Copper Standard Announces Voting Results from Annual General and Special Meeting"
+    ]
+  },
+  {
+    "ticker": "DEMC",
+    "company_id": "DEMC",
+    "name": "Discovery Energy Metals Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 9949
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 3,
+    "sample_headlines": [
+      "Wyclef Jean and Caribbean International Commerce Announce First of Many Groundbreaking Technology and Infrastructure Hub Agreements in Plateau State, Nigeria",
+      "Wyclef Jean, Caribbean International Commerce Forms Sales Teaming Collaboration using EnergyGlassSolar(TM) and Veerhouse Voda to Provide Sustainable Building Solutions"
+    ]
+  },
+  {
+    "ticker": "DRC",
+    "company_id": "DRC",
+    "name": "DRC Gold Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 9758
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "CEO.CA's Inside the Boardroom: Nextech3D.ai is Now Cash Flow Positive, Secures Major Enterprise Deals",
+      "CEO.CA's Inside the Boardroom: Origen Resources CEO on Dominating Brazil's Newest Rare Earth Province"
+    ]
+  },
+  {
+    "ticker": "EAGL",
+    "company_id": "EAGL",
+    "name": "EagleOne Metals Corporation",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 9941
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "EagleOne Completes Acquisition of Poison Springs Uranium / Rare Earths Project",
+      "EagleOne Enters into Letter of Intent to Acquire Poison Springs Uranium/Rare Earths Project"
+    ]
+  },
+  {
+    "ticker": "EATH",
+    "company_id": "EATH",
+    "name": "New Earth Resources Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8756
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "New Earth Resources Corp. Joins American Nuclear Society",
+      "New Earth Resources Corp. Completes Stock Split"
+    ]
+  },
+  {
+    "ticker": "EDGM",
+    "company_id": "EDGM",
+    "name": "Edgemont Gold Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 6955
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Edgemont Provides Update on Transaction with Laiva Gold Inc.",
+      "Edgemont Provides Update on Transaction with Laiva Gold Inc."
+    ]
+  },
+  {
+    "ticker": "EGFV",
+    "company_id": "EGFV",
+    "name": "Evolution Global Frontier Ventures Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 7618
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Evolution Global Announces Appointment of President and Corporate Secretary",
+      "Evolution Global Announces Termination of LOI and Business Combination Transaction"
+    ]
+  },
+  {
+    "ticker": "EMET",
+    "company_id": "EMET",
+    "name": "Canamera Energy Metals Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 11828
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Canamera Accelerates Turvolândia REE Program, Expanding Drill Program by 20% Following Hole TUV-AUG-014 Returning 3,255 ppm TREO over 13 Metres from Surface",
+      "Canamera Completes 11-Hole Drill Program at Patos: Field Geology Indicates Potential for Kamafugite-Hosted REE Target Profile"
+    ]
+  },
+  {
+    "ticker": "EMPS",
+    "company_id": "EMPS",
+    "name": "EMP Metals Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 9100
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Frank Scarso Hits #1 on Amazon with The Hard Way Home, A Powerful Story of Loss, Redemption, and Second Chances",
+      "Sean Morris' Leadership Book \"Built to Lead\" Hits #1 on Amazon's Free Kindle List, Bringing Real-World Command Lessons to Today's Business Leaders"
+    ]
+  },
+  {
+    "ticker": "EOM",
+    "company_id": "EOM",
+    "name": "Eco Oro Minerals Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 11597
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "RETRANSMISSION: RZOLV Reports Approximately 97.0% Gold Recovery on Complex Copper-Gold Ore Without Pretreatment, Highlighting Potential to Simplify Flowsheets Versus Cyanide",
+      "RZOLV Announces Global Strategic Partnership with EMEW Clean Technologies to Advance Integrated Recovery of Precious and Critical Metals"
+    ]
+  },
+  {
+    "ticker": "EONE",
+    "company_id": "EONE",
+    "name": "Element One Hydrogen and Critical Minerals Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8900
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Element One Develops New Numeric Prospectivity Model for Geologic Hydrogen Exploration",
+      "Element One Advances Patent-Pending Technology for Real-Time Hydrogen Production from Naturally Occuring Rock Systems"
+    ]
+  },
+  {
+    "ticker": "EPG",
+    "company_id": "EPG",
+    "name": "Epic Gold Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 6526
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "RETRANSMISSION - Drilling at Swanson Gold Deposit Confirms Large-Scale Gold Discovery with 1.18 g/t Au over 255.04 metres and 1.65 g/t Au over 136.01 metres",
+      "LaFleur Minerals Files PEA Technical Report Supporting Restart of Gold Production at Beacon Gold Mill, Québec"
+    ]
+  },
+  {
+    "ticker": "EPR",
+    "company_id": "EPR",
+    "name": "E-Power Resources Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 10063
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "NU E Power Completes Phase 1 Due Diligence at Lethbridge, Extends Hanna Site Control for 503.5 MW Alberta Portfolio",
+      "NU E Power Corp. Provides Update on Late Filing of Annual Financial Disclosure"
+    ]
+  },
+  {
+    "ticker": "ERKA",
+    "company_id": "ERKA",
+    "name": "Eureka Lithium Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 9639
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Eureka Lithium Corp. Announces Upsized Financing and Files Amended LIFE Offering Document",
+      "Eureka Lithium Corp Announces Appointment of Danny Matthews as Chief Executive Officer"
+    ]
+  },
+  {
+    "ticker": "ESAU",
+    "company_id": "ESAU",
+    "name": "ESGold Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 4999
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "ESGold Completes Shares for Services Transaction",
+      "ESGold Appoints Veteran Capital Markets Executive Jason Tong as Chief Financial Officer"
+    ]
+  },
+  {
+    "ticker": "FAT",
+    "company_id": "FAT",
+    "name": "Foremost Clean Energy Ltd.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 10093
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Spark Expands Drilling at Arapaima with Follow-Up 2,000-Metre RC Program",
+      "Spark Energy Minerals Advances Arapaima Project with Resumption of RC Drilling and Metallurgical Work"
+    ]
+  },
+  {
+    "ticker": "FENX",
+    "company_id": "FENX",
+    "name": "FenixOro Gold Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 6188
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "FenixOro Gold Corp. Announces Appointment of John Carlesso as Interim CFO",
+      "FenixOro Gold Corp Outlines 2023 Objectives for Shareholders and Investors"
+    ]
+  },
+  {
+    "ticker": "FLM",
+    "company_id": "FLM",
+    "name": "First Lithium Minerals Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 2014
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "TNR Gold Welcomes CAN$4.2 Million Strategic Investment by Altius Minerals",
+      "TNR Gold NSR Royalty Update - Ganfeng's Mariana Lithium Completed the First Export of Lithium Chloride"
+    ]
+  },
+  {
+    "ticker": "FNAU",
+    "company_id": "FNAU",
+    "name": "Four Nines Gold Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 3941
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Getchell Gold Corp. Closes Second Tranche of Non-Brokered Private Placement",
+      "Getchell Gold Announces Key Partnerships to Elevate Marketing and Corporate Development Efforts"
+    ]
+  },
+  {
+    "ticker": "FNI",
+    "company_id": "FNI",
+    "name": "Fathom Nickel Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 7843
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Fathom Announces New Discovery at the Gochager Lake Project During Completion of Winter Drill Program",
+      "Fathom Announces Commencement of Winter Drill Program at the Gochager Lake Project"
+    ]
+  },
+  {
+    "ticker": "FNX",
+    "company_id": "FNX",
+    "name": "FNX Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 7960
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "FNX Announces Completion of Name Change and Amendments to Share Structure",
+      "S2 Announces Proposed Name Change and Amendments to Share Structure"
+    ]
+  },
+  {
+    "ticker": "FRG",
+    "company_id": "FRG",
+    "name": "Forge Resources Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8680
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Forge Resources Delivers Strategic Update on La Estrella Coal Project as Development Activities Accelerate",
+      "Forge Resources Engages Capitaliz Marketing for Investor Awareness Services"
+    ]
+  },
+  {
+    "ticker": "FWM",
+    "company_id": "FWM",
+    "name": "Flow Metals Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 9758
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "CEO.CA's Inside the Boardroom: Nextech3D.ai is Now Cash Flow Positive, Secures Major Enterprise Deals",
+      "CEO.CA's Inside the Boardroom: Origen Resources CEO on Dominating Brazil's Newest Rare Earth Province"
+    ]
+  },
+  {
+    "ticker": "GAND",
+    "company_id": "GAND",
+    "name": "Gander Gold Corporation",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 2380
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Gossan Resources Completes Sale of Bird River Claims",
+      "Gossan Resources 2023 Year in Review, 2024 Strategic Plans, 2023 AGM Results, and Grant of Options"
+    ]
+  },
+  {
+    "ticker": "GC",
+    "company_id": "GC",
+    "name": "Goldcana Resources Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 11653
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 2,
+    "sample_headlines": [
+      "Goldcana Reports Results from Phase I Exploration on the Triple F Gold Project",
+      "Goldcana Expands Triple F Gold Project Land Holdings and Commences Phase I Exploration Program"
+    ]
+  },
+  {
+    "ticker": "GCC",
+    "company_id": "GCC",
+    "name": "Golden Cariboo Resources Ltd.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8107
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Golden Cariboo Resources Ltd. Activates the Connector by Sharechest to Attract Investors",
+      "B2B Industrial Inc. Activates the Connector by Sharechest to Attract Investors"
+    ]
+  },
+  {
+    "ticker": "GCP",
+    "company_id": "GCP",
+    "name": "Golcap Resources Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 2373
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Lara Exploration Completes Brokered Offering and Non-Brokered Offering for Aggregate Proceeds of C$33,750,000",
+      "Early Warning News Release Regarding the Issuance of Securities of Golcap Resources Corp."
+    ]
+  },
+  {
+    "ticker": "GDN",
+    "company_id": "GDN",
+    "name": "Golden Age Exploration Ltd.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 12128
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Golden Age Exploration Ltd. Announces Option to Acquire 100% of MAC Minerals' Uranium Exploration Portfolio in Australia",
+      "Golden Age Exploration Announces Exclusive Option to Acquire a 100% Interest in Australian Uranium Assets"
+    ]
+  },
+  {
+    "ticker": "GGC",
+    "company_id": "GGC",
+    "name": "Generic Gold Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 3923
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Generic Gold Announces Resignation of Director",
+      "Generic Gold Completes Phase 3 Drill Program on the Belvais Project in Northwestern Abitibi, Québec"
+    ]
+  },
+  {
+    "ticker": "GGLD",
+    "company_id": "GGLD",
+    "name": "General Copper Gold Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 7631
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "General Copper Gold Reassesses Historical Drill Hole; Additional Samples Submitted for Assay",
+      "General Copper Gold Announces the Commencement of Further Exploration Following the Initial Drill Program That Successfully Targeted an Untested IP Anomaly and Intersected Copper Mineralization of 0.5% over 76.95m"
+    ]
+  },
+  {
+    "ticker": "GLDS",
+    "company_id": "GLDS",
+    "name": "Golden Spike Resources Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8310
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Golden Spike Soil Sampling Outlines Gold-Zinc-Copper-Arsenic Anomalies at Gregory River",
+      "Golden Spike Intersects Wide Zone of Low-Grade Gold-Zinc-Copper Mineralization at Gregory River"
+    ]
+  },
+  {
+    "ticker": "GLM",
+    "company_id": "GLM",
+    "name": "Golden Lake Exploration Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 6126
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Eric Sprott Announces Changes to His Holdings in Silver Storm Mining Ltd",
+      "Eric Sprott Announces Changes to His Holdings in Americas Gold and Silver Corporation"
+    ]
+  },
+  {
+    "ticker": "GMR",
+    "company_id": "GMR",
+    "name": "Gelum Resources Ltd.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 6458
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Gelum Changes Location of Annual General Meeting",
+      "Gelum Closes Non-Brokered Private Placement Grants Stock Options"
+    ]
+  },
+  {
+    "ticker": "GOH",
+    "company_id": "GOH",
+    "name": "GoldHaven Resources Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 7246
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "GoldHaven Enters into Definitive Agreement to Acquire BC Gold & Copper Assets",
+      "GoldHaven Announces Filing of NI 43-101 Technical Report on the Powerline Uranium Project"
+    ]
+  },
+  {
+    "ticker": "GOR",
+    "company_id": "GOR",
+    "name": "Goldrea Resources Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 10358
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Goldrea Announces Non-Brokered Private Placement",
+      "Goldrea Appoints Jean-David Moore as Director"
+    ]
+  },
+  {
+    "ticker": "GRAY",
+    "company_id": "GRAY",
+    "name": "Graycliff Exploration Limited",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8952
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Graycliff Exploration Closes Oversubscribed Private Placement",
+      "Graycliff Exploration Announces AGM Results"
+    ]
+  },
+  {
+    "ticker": "GRBM",
+    "company_id": "GRBM",
+    "name": "Green Bridge Metals Corporation",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 6193
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Metals Group and Member Companies to Showcase at Vancouver Resource Investment Conference 2026",
+      "Honey Badger Silver Inc. Invites You to Join Us at the Vancouver Resource Investment Conference"
+    ]
+  },
+  {
+    "ticker": "GRUV",
+    "company_id": "GRUV",
+    "name": "Protium Clean Energy Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8142
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Protium Clean Energy Corp. Closes Oversubscribed Private Placement Offering",
+      "Protium Clean Energy Corp. Announces Continued Private Placement Offering"
+    ]
+  },
+  {
+    "ticker": "GSTR",
+    "company_id": "GSTR",
+    "name": "Glenstar Minerals Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 10804
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Drilling Results at Green Monster Project Show Geologically Complex Polymetallic Structure",
+      "Assay Results Report High Grade Gold Encountered in Coca Cola Zone Trenching Program at Wildhorse Project; Phase 1 Drilling Begins"
+    ]
+  },
+  {
+    "ticker": "GTCH",
+    "company_id": "GTCH",
+    "name": "Getchell Gold Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 4600
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Seabridge Gold Reports Maiden Snip North Resource Estimate at Its Iskut Project in B.C.'s Golden Triangle",
+      "Decision to Issue Construction Permits for Seabridge Gold's KSM Mitchell Treaty Tunnels Delayed"
+    ]
+  },
+  {
+    "ticker": "GURN",
+    "company_id": "GURN",
+    "name": "Global Uranium Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 890
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Skeleton Coast Uranium Appoints Practara to Complete NI 43-101 Technical Reports for Five Namibian Exclusive Prospecting Licences",
+      "Skeleton Coast Uranium Announces Closing of $5 Million Non-Brokered Private Placement"
+    ]
+  },
+  {
+    "ticker": "GXP",
+    "company_id": "GXP",
+    "name": "Greenridge Exploration Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 3046
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "ALX Resources Corp. Receives Shareholder Approval for the Previously Announced Plan of Arrangement with Greenridge Exploration Inc.",
+      "ALX Resources Corp. Announces Filing and Mailing of the Management Information Circular in Connection with Its Annual and Special Meeting of Shareholders to Approve the Acquisition of the Company by Greenridge Exploration Inc."
+    ]
+  },
+  {
+    "ticker": "HERC",
+    "company_id": "HERC",
+    "name": "Hercules Resources Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 9425
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Hercules Metals Announces Positive Results of Induced Polarization Survey at New Targets, Hercules Project, Idaho",
+      "Hercules Metals Intersects 670 m of 0.45% Copper, 4 g/t Ag and 95 ppm Mo, including 213 m of 0.67% Copper, 10 g/t Ag, 128 ppm Mo at the Leviathan Porphyry System in Idaho"
+    ]
+  },
+  {
+    "ticker": "HHE",
+    "company_id": "HHE",
+    "name": "First Atlas Resources Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 11423
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "First Atlas Announces Launch of New Company Website and Provides Corporate Update",
+      "First Atlas Resources Corp. Adopts QIMC'S R2G2(TM) Model as QIMC'S Successive Drill Results Continue to Strengthen Hydrogen System Along the Nova Scotia Corridor"
+    ]
+  },
+  {
+    "ticker": "HLND",
+    "company_id": "HLND",
+    "name": "Highland Critical Minerals Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 11668
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Highland Critical Minerals Closes Non-Brokered Flow-Through Private Placement",
+      "Highland Critical Minerals Announces Non-Brokered Flow-Through Private Placement"
+    ]
+  },
+  {
+    "ticker": "HRK",
+    "company_id": "HRK",
+    "name": "Highrock Resources Ltd.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 10083
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Highrock Resources Closes Private Placement",
+      "Highrock Resources Upsizes Private Placement"
+    ]
+  },
+  {
+    "ticker": "HTRC",
+    "company_id": "HTRC",
+    "name": "High Tide Resources Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 12036
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "ICG Silver & Gold Appoints Senior Technical Advisor and Announces Formation of Technical Advisory Committee",
+      "ICG Silver & Gold Secures ~2,000-Acre Expansion at the Tuscarora District and Identifies Large Scale Structural Source"
+    ]
+  },
+  {
+    "ticker": "HUNT",
+    "company_id": "HUNT",
+    "name": "Gold Hunter Resources Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8550
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Gold Hunter Resources Completes AI-Assisted Targeting at Great Northern Ahead of Inaugural Drill Program",
+      "Gold Hunter's President's Letter to Shareholders"
+    ]
+  },
+  {
+    "ticker": "HWG",
+    "company_id": "HWG",
+    "name": "Headwater Gold Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 10337
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Centurion One Capital Launches Inaugural Miami Summit at The Iconic Faena Forum",
+      "Centurion One Capital Concludes Record Breaking Invitation-Only 9th Annual Growth Conference at The Four Seasons Hotel, Toronto"
+    ]
+  },
+  {
+    "ticker": "HZ",
+    "company_id": "HZ",
+    "name": "Hertz Energy Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 9656
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Hertz Energy Expands Its Lake George Antimony-Tungsten Property and Launches Exploration Program Surrounding Historic Lake George Antimony Mine",
+      "Hertz Energy Inc. Announces LIFE and Flow-Through Offering for Gross Proceeds up to $5,000,000"
+    ]
+  },
+  {
+    "ticker": "KBX",
+    "company_id": "KBX",
+    "name": "Kobrea Exploration Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 10375
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Kobrea Provides Update on Drill Program at El Perdido Porphyry Copper-Gold-Molybdenum System - Mendoza Province, Argentina",
+      "Kobrea Expands Phase 1 Drill Program at El Perdido Porphyry Copper-Gold-Molybdenum System - Mendoza Province, Argentina"
+    ]
+  },
+  {
+    "ticker": "KENY",
+    "company_id": "KENY",
+    "name": "Makenita Resources Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 11165
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Makenita Joins Canadian Association of Defence and Security Industries (CADSI)",
+      "Makenita to Commence Operations on the Sisson West Tungsten Project in New Brunswick"
+    ]
+  },
+  {
+    "ticker": "KOG",
+    "company_id": "KOG",
+    "name": "KO Gold Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8611
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Trojan Gold Inc. Closes a Non-Brokered Unit Offering",
+      "Trojan Gold Inc. Announces Non-Brokered Unit Offering"
+    ]
+  },
+  {
+    "ticker": "KUYA",
+    "company_id": "KUYA",
+    "name": "Kuya Silver Corporation",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 5945
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Kuya Silver Appoints Former Las Bambas General Manager Edgardo Orderique to Lead Peru Operations and Reports Year End 2025 Financial Results",
+      "Kuya Silver Reports Growing Silver Production at the Bethania Project in Q1 2026"
+    ]
+  },
+  {
+    "ticker": "KVM",
+    "company_id": "KVM",
+    "name": "Kingsview Minerals Ltd.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8574
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Kingsview Minerals Closes Private Placement and Corporate Update",
+      "Kingsview Minerals Launches Private Placement"
+    ]
+  },
+  {
+    "ticker": "LCR",
+    "company_id": "LCR",
+    "name": "Lancaster Resources Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 7646
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Lancaster Resources Announces Financing",
+      "Richard Paolone Joins Lancaster Resources Board of Directors"
+    ]
+  },
+  {
+    "ticker": "LEO",
+    "company_id": "LEO",
+    "name": "Lion Copper and Gold Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 1020
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Lion Copper & Gold Corp. Announces Key Milestones Advancing the Yerington Copper Project",
+      "Lion Copper and Gold Corp. Appoints Samuel Engineering as Lead Consultant for Definitive Feasibility Study and Nexus Environmental Consultants as Lead Permitting Consultant for Yerington Copper Project"
+    ]
+  },
+  {
+    "ticker": "LFLR",
+    "company_id": "LFLR",
+    "name": "LaFleur Minerals Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 6526
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "RETRANSMISSION - Drilling at Swanson Gold Deposit Confirms Large-Scale Gold Discovery with 1.18 g/t Au over 255.04 metres and 1.65 g/t Au over 136.01 metres",
+      "LaFleur Minerals Files PEA Technical Report Supporting Restart of Gold Production at Beacon Gold Mill, Québec"
+    ]
+  },
+  {
+    "ticker": "LIBR",
+    "company_id": "LIBR",
+    "name": "Libra Energy Materials Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 9331
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Libra Energy Materials Awarded $200,000 Grant from Ontario Government",
+      "Libra Reports Results from 2025 Field Program at James Bay Projects"
+    ]
+  },
+  {
+    "ticker": "LIVE",
+    "company_id": "LIVE",
+    "name": "Live Energy Minerals Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8689
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Live Energy Minerals Announces Amending Agreement with US Critical Metals for McDermitt East Lithium Project",
+      "Live Energy Minerals Announces Stock Option Grant"
+    ]
+  },
+  {
+    "ticker": "LTHM",
+    "company_id": "LTHM",
+    "name": "Champion Electric Metals Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8681
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Champion Electric Announces Closing of Shares for Debt Transaction",
+      "Champion Electric Announces its Intention to Complete a Shares for Debt Transaction"
+    ]
+  },
+  {
+    "ticker": "M",
+    "company_id": "M",
+    "name": "Myriad Uranium Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 9191
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Myriad Uranium Corp. Presents in Red Cloud's Virtual Webinar Series",
+      "West Coast Silver Ltd. Presents in Red Cloud's Virtual Webinar Series"
+    ]
+  },
+  {
+    "ticker": "MAXX",
+    "company_id": "MAXX",
+    "name": "Max Power Mining Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 12001
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 2,
+    "sample_headlines": [
+      "Hampton Securities Limited Announces Closing of $20.5 Million Brokered LIFE Offering for Max Power Mining Corp",
+      "Hampton Securities Limited Announces Closing of Initial Public Offering of Units for North America Home Finance Inc. on the Canadian Securities Exchange Under Ticker Symbol \"NAHF\""
+    ]
+  },
+  {
+    "ticker": "MBL",
+    "company_id": "MBL",
+    "name": "Mabel Ventures Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 11527
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 3,
+    "sample_headlines": [
+      "Mabel Ventures Announces Termination of Purchase Agreement",
+      "Mabel Ventures Closes Private Placement"
+    ]
+  },
+  {
+    "ticker": "MCL",
+    "company_id": "MCL",
+    "name": "McLaren Resources Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 932
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "McLaren Completes Drone MAG Program at Blue Quartz Gold Property, Timmins, Ontario",
+      "McLaren Resources Completes Financing"
+    ]
+  },
+  {
+    "ticker": "MEC",
+    "company_id": "MEC",
+    "name": "Mustang Energy Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 12293
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 2,
+    "sample_headlines": [
+      "Allied Strategic Resource Announces Name Change",
+      "Mustang Energy and Allied Strategic Resource Announce Closing of Plan of Arrangement and CSE Conditional Approval for the Allied Shares"
+    ]
+  },
+  {
+    "ticker": "MEDA",
+    "company_id": "MEDA",
+    "name": "Medaro Mining Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8279
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Medaro Mining Announces Digital Marketing Services Extension Agreement",
+      "Medaro Mining Announces Exploration Program at Clay Howells West Project in Ontario"
+    ]
+  },
+  {
+    "ticker": "MERC",
+    "company_id": "MERC",
+    "name": "Mercado Minerals Ltd.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 12124
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Mercado Minerals Provides Update on Drill Program at Copalito",
+      "Mercado Minerals Completes Historic Drill Core Re-Sampling and Re-Assaying Program at the Copalito Project"
+    ]
+  },
+  {
+    "ticker": "MIRL",
+    "company_id": "MIRL",
+    "name": "Minera IRL Limited",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 6185
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Cerrado Gold Introduces Gold Production Growth Strategy and Provides Update from Its 2021 Exploration Program at Its Minera Don Nicolás Gold Project in Argentina",
+      "Cerrado Gold Reports After Tax NPV5% of US$617 Million with IRR of 94.8% in Its Updated Preliminary Economic Assessment at Its Monte do Carmo Gold Project in Brazil"
+    ]
+  },
+  {
+    "ticker": "MLKM",
+    "company_id": "MLKM",
+    "name": "Mayo Lake Minerals Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 5471
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Mayo Lake Plans 2,000 Metre Drill Program on RIRGS",
+      "Mayo Delineates Reduced Intrusion Related Gold System Target at Dawn Gulch"
+    ]
+  },
+  {
+    "ticker": "MNG",
+    "company_id": "MNG",
+    "name": "Mongoose Mining Ltd.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8422
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Mongoose Mining Announces Mount Thom 2025 Drill Program Results: Confirming IOCG-Style Copper-Cobalt Mineralization",
+      "Mongoose Mining Announces Appointment of Independent Director"
+    ]
+  },
+  {
+    "ticker": "MSM",
+    "company_id": "MSM",
+    "name": "Metalsource Mining Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 12035
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Metalsource Mining Intersects 1.1kg/t AgEq over 3.1m, Continues Identifying Widespread Polymetallic Mineralization While Expanding the Dip Length of the System Approximately 260m from Surface",
+      "RETRANSMISSION: Metalsource Mining Intersects 48.04 g/t AuEq over 12.62m, Including 210.72 g/t AuEq over 2.74m, Extends Mineralization down Dip 195m, Continues to Expand Gold, Silver and Base Metal Mineralization"
+    ]
+  },
+  {
+    "ticker": "NATB",
+    "company_id": "NATB",
+    "name": "NatBridge Resources Ltd.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 10244
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "NatBridge Advances Cahuilla Consolidation with New LOI for Additional Deeded Parcels",
+      "NatBridge to Expand Mineral Claim Base with Binding Letter of Intent for Additional Cahuilla Gold Project Parcels"
+    ]
+  },
+  {
+    "ticker": "NBRK",
+    "company_id": "NBRK",
+    "name": "New Break Resources Ltd.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8019
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "New Break Commences Trading on the OTCQB Venture Market Under the Symbol NBRKF",
+      "New Break Awarded $200,000 OJEP Grant in Support of its Moray Gold Project"
+    ]
+  },
+  {
+    "ticker": "NEWD",
+    "company_id": "NEWD",
+    "name": "Newfoundland Discovery Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 7129
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Newfoundland Discovery Announces Debt Settlement Transaction",
+      "Newfoundland Discovery Announces Effective Date of Share Consolidation"
+    ]
+  },
+  {
+    "ticker": "NEXU",
+    "company_id": "NEXU",
+    "name": "Nexus Uranium Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 7273
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Nexus Uranium Corp. Appoints ISR Permitting Expert Mark Hollenbeck to Advisory Board and Announces Chord Project Board of Minerals Hearing for May 2026",
+      "Nexus Uranium Closes on Seven High-Grade Uranium Targets in America's Most Prolific Breccia Pipe District"
+    ]
+  },
+  {
+    "ticker": "NEXX",
+    "company_id": "NEXX",
+    "name": "Nexcel Metals Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 11702
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Nexcel Metals Corp. Provides Corporate Update Highlighting Strengthening Tungsten Market, Completed Airborne Survey, and Expanded Land Position at Burnt Hill",
+      "Nexcel Further Expands Burnt Hill Tungsten Project to 8,046 Hectares Through Additional Claim Staking"
+    ]
+  },
+  {
+    "ticker": "NINE",
+    "company_id": "NINE",
+    "name": "Nine Mile Metals Ltd.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 7335
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Nine Mile Metals Announces Closing of Private Placement",
+      "Nine Mile Metals Announces Private Placement of up to $1 Million"
+    ]
+  },
+  {
+    "ticker": "NIX",
+    "company_id": "NIX",
+    "name": "NorthX Nickel Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 6810
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Michael Gentile Announces Filing of Early Warning Report Related to Acquisition of Units of Cascadia Minerals Ltd.",
+      "Michael Gentile Announces Filing of Early Warning Report Related to Acquisition of Units of Aeonian Resources Corp."
+    ]
+  },
+  {
+    "ticker": "NLR",
+    "company_id": "NLR",
+    "name": "Northern Lights Resources Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 12033
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Ashram Project PEA Nears Completion as Mont Royal Establishes Advisory Board and Strengthens Management",
+      "Mont Royal via Commerce Resources Receives an Extension of the Critical Minerals Infrastructure Fund Conditional Approval for Revised Road Strategy for the Ashram Rare Earths & Fluorspar Project, Quebec"
+    ]
+  },
+  {
+    "ticker": "NOP",
+    "company_id": "NOP",
+    "name": "Nevada Organic Phosphate Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 9821
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Nevada Organic Phosphate Provides Update on Its 3 Additional Applications to Prospect in 2026",
+      "Nevada Organic Phosphate Provides Update on 2026 Exploration Program at Murdock Mountain"
+    ]
+  },
+  {
+    "ticker": "NRED",
+    "company_id": "NRED",
+    "name": "NovaRed Mining Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 9977
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "NovaRed Mining Inc. Integrates Artificial Intelligence into Mineral Exploration Strategy with Provisional Patent Filing",
+      "NovaRed Advances Drill Targeting at Wilmac with Acquisition of Historical Geophysical and Geochemical Data"
+    ]
+  },
+  {
+    "ticker": "NSG",
+    "company_id": "NSG",
+    "name": "Northstar Gold Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 6839
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Northstar Provides Financings and Cam Copper Surgical Mining Updates",
+      "Northstar Intersects High-Grade VMS Depth Extension at Cam Copper 3.05% Cu, 5.9 g/t Au, 22.9 g/t Ag, 0.45% Mo over 3.07 Metres; 13.95% Cu Bornite Intercept at Depth"
+    ]
+  },
+  {
+    "ticker": "NSJ",
+    "company_id": "NSJ",
+    "name": "NSJ Gold Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8233
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Talent Infinity Provides Wildcat Property Update",
+      "Talent Infinity Announces Engagement with Red Cloud Securities"
+    ]
+  },
+  {
+    "ticker": "NT",
+    "company_id": "NT",
+    "name": "Newterra Resources Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 10204
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Newterra Resources Enters into Option Agreement to Acquire Willans Gold Property Located in the Red Lake Mining Camp of Ontario",
+      "Newterra Resources Issues Shares to Ferdinand Gold Property Optionors"
+    ]
+  },
+  {
+    "ticker": "NUKV",
+    "company_id": "NUKV",
+    "name": "Nuclear Vision Limited",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 10510
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Nuclear Vision Closes Upsized Private Placement with Participation by Eric Sprott",
+      "Nuclear Vision Announces Update"
+    ]
+  },
+  {
+    "ticker": "NVPC",
+    "company_id": "NVPC",
+    "name": "Nova Pacific Metals Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 10425
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Nova Pacific Metals Completes Acquisition and Secures 100% Interest in the Lara VMS Project",
+      "Nova Pacific Metals Announces Mineral Resource Estimate for the Coronation Deposit at the Lara Project, Highlighting Open-Pit Potential"
+    ]
+  },
+  {
+    "ticker": "NVR",
+    "company_id": "NVR",
+    "name": "North Valley Resources Ltd.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8168
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "North Valley Resources Announces Annual Shareholder Meeting Results and Appointment of New Board Member",
+      "North Valley Resources Identifies Strong Vector Toward Untested Large-scale Cu-Au System at Comstock Project, Southern British Columbia"
+    ]
+  },
+  {
+    "ticker": "NXU",
+    "company_id": "NXU",
+    "name": "Nexco Resources Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 5798
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Nexco Announces Closing of 1st Tranche of Convertible Debenture Financing",
+      "Nexco Announces Unsecured Convertible Debenture Financing"
+    ]
+  },
+  {
+    "ticker": "OMGA",
+    "company_id": "OMGA",
+    "name": "Omega Pacific Resources Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 11671
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Omega Pacific Clarifies Size of Previously Announced Private Placement",
+      "Omega Pacific Announces Non-Brokered Private Placement"
+    ]
+  },
+  {
+    "ticker": "OROG",
+    "company_id": "OROG",
+    "name": "Gold Orogen Resources Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 4064
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Lode Gold Submits Drill Permit Application at Fremont Gold Mine",
+      "Lode Gold Provides Update on Subsidiary Gold Orogen's RTO Transaction and CSE Listing Effective Date Feb 11, 2026"
+    ]
+  },
+  {
+    "ticker": "OWLI",
+    "company_id": "OWLI",
+    "name": "One World Lithium Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 2189
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "InvestmentPitch Media Video Features Xcelerate, a Holding Company Designed from Inception to Span the Divide Between Initial Non-Medical Engineering Advancements and Apply Them to the Medical, Health and Wellness Sectors",
+      "InvestmentPitch Media Video Discusses Southern Silver Exploration's Updated PEA Results on its 100% owned Cerro Las Minitas project in Mexico, US$501M After-Tax NPV5%, 21% IRR, 48 Month Payback"
+    ]
+  },
+  {
+    "ticker": "PATH",
+    "company_id": "PATH",
+    "name": "Newpath Resources Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 7393
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Newpath Resources Announces Termination of Northshore Option Agreement",
+      "Newpath Resources Announces Executive Team Update"
+    ]
+  },
+  {
+    "ticker": "PAU",
+    "company_id": "PAU",
+    "name": "Provenance Gold Corp",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 5654
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Provenance Gold Intersects 2.18 g/t Gold over 83.82m including 18.19 g/t Gold over 1.68m and 39.61 g/t Gold over 0.91m At the Herman Area",
+      "Provenance Gold Initiates Metallurgical Testwork at the Eldorado Project"
+    ]
+  },
+  {
+    "ticker": "PGA",
+    "company_id": "PGA",
+    "name": "Pegmatite One Lithium and Gold Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 9391
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Pegmatite One Investigates Strategic Diversification into Cryptocurrencies",
+      "Pegmatite One Options Dort Gold Property in Central British Columbia"
+    ]
+  },
+  {
+    "ticker": "PHOS",
+    "company_id": "PHOS",
+    "name": "First Phosphate Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8917
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "EIFO, Denmark's Export Credit Agency, Issues Letter of Intent for a Guarantee of up to EUR 170 Million for the First Phosphate Igneous Phosphate Mining Project",
+      "L'agence danoise de crédit à l'exportation, EIFO, émet une lettre d'intention visant une garantie pouvant atteindre 170 millions d'euros pour le projet minier de phosphate igné de First Phosphate"
+    ]
+  },
+  {
+    "ticker": "PLTO",
+    "company_id": "PLTO",
+    "name": "Pluto Ventures Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 10994
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Pluto Ventures Inc. Shares for Debt Settlement",
+      "Pluto Ventures Highlights Regional Geology and Exploration Potential at the Dardanelle Gold Project"
+    ]
+  },
+  {
+    "ticker": "PMAX",
+    "company_id": "PMAX",
+    "name": "Powermax Minerals Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 11633
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Powermax Minerals Shares Combined Assay and Geophysical Findings for Atikokan Rare Earth Property in Northwestern Ontario",
+      "Powermax Minerals Reports Soil and Rock REE Results at Cameron Project, British Columbia"
+    ]
+  },
+  {
+    "ticker": "PNGC",
+    "company_id": "PNGC",
+    "name": "Loyalist Exploration Limited",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 11851
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Cascade Copper Corp. Presents in Existing Agency's Virtual Webinar Series",
+      "Aztec Minerals Corp. Presents in Existing Agency's Virtual Webinar Series"
+    ]
+  },
+  {
+    "ticker": "PNRG",
+    "company_id": "PNRG",
+    "name": "Pan American Energy Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 3417
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Centaurus Announces Grant of Options",
+      "Centaurus Energy Announces Change of Auditor"
+    ]
+  },
+  {
+    "ticker": "PRNC",
+    "company_id": "PRNC",
+    "name": "Prince Silver Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 9758
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "CEO.CA's Inside the Boardroom: Nextech3D.ai is Now Cash Flow Positive, Secures Major Enterprise Deals",
+      "CEO.CA's Inside the Boardroom: Origen Resources CEO on Dominating Brazil's Newest Rare Earth Province"
+    ]
+  },
+  {
+    "ticker": "PRR",
+    "company_id": "PRR",
+    "name": "Prospect Ridge Resources Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 9875
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "North Peak Closes Second and Final Tranche of Previously Announced Non-Brokered Private Placement, Raising Total Funds of $5.675 Million",
+      "North Peak Announces Initial $4.38 Million Closing for Previously Announced Non-Brokered Private Placement"
+    ]
+  },
+  {
+    "ticker": "PSE",
+    "company_id": "PSE",
+    "name": "Pasinex Resources Limited",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 5448
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 3,
+    "sample_headlines": [
+      "Silcom Systems Inc. Options Gunman Zinc Project, Nevada to Pasinex Resources Limited",
+      "Silcom Systems Announces Appointment of New CEO and Private Placement"
+    ]
+  },
+  {
+    "ticker": "PSIL",
+    "company_id": "PSIL",
+    "name": "Pacifica Silver Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 10814
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Pacifica Silver Reports Initial Phase II Drill Results at Claudia with Multiple High-Grade Intercepts at the Aguilareña Area",
+      "Pacifica Silver Announces Adoption of Semi-Annual Reporting"
+    ]
+  },
+  {
+    "ticker": "QB",
+    "company_id": "QB",
+    "name": "Quarterback Resources Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 11612
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 4,
+    "sample_headlines": [
+      "Quarterback Reports Grab Sample Assays from Twin Project with up to 1,220 Grams per Tonne Gold",
+      "Quarterback Resources Completes Exploration Program on Twin Gold Project"
+    ]
+  },
+  {
+    "ticker": "QBAT",
+    "company_id": "QBAT",
+    "name": "Quantum Battery Metals Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 5644
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Quantum Battery Metals Corp. Announces Closing of $507,500 Non-Brokered Private Placement",
+      "Quantum Battery Metals Corp. Announces Amendment of LIFE Offering to Non-Brokered Private Placement of Units"
+    ]
+  },
+  {
+    "ticker": "QIM",
+    "company_id": "QIM",
+    "name": "Quimbaya Gold Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 11347
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Quimbaya Gold Expands Strategic Land Position in Segovia Gold District by 6,420 Hectares",
+      "Quimbaya Gold Appoints Dr. Mark Cruise as Technical Advisor"
+    ]
+  },
+  {
+    "ticker": "QIMC",
+    "company_id": "QIMC",
+    "name": "Quebec Innovative Materials Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 7968
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "QIMC to Begin Drilling DDH-26-03 April 21, 2026; Expands Depth to 900 Metres; DDH-26-02 Extension to 700 Metres Planned",
+      "QIMC Announces $15.0 Million Bought Deal LIFE Offering of Units"
+    ]
+  },
+  {
+    "ticker": "QQQ",
+    "company_id": "QQQ",
+    "name": "Questcorp Mining Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 10197
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Questcorp Mining Accelerates Phase 2 Exploration at La Union Following New Gold Discovery",
+      "Questcorp Mining Expands Marisa Target with Stronger Depth-Related IP Chargeability at North Island Copper Project"
+    ]
+  },
+  {
+    "ticker": "RAIN",
+    "company_id": "RAIN",
+    "name": "Rain City Resources Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 7323
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Rain City Resources Announces Expansive Technology Agreement with Ion Source LLC for Lithium and Critical Minerals Extraction",
+      "Rain City Resources Announces Revocation of Management Cease Trade Order"
+    ]
+  },
+  {
+    "ticker": "RECE",
+    "company_id": "RECE",
+    "name": "Resource Centrix Holdings Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8583
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Resource Centrix Announces Commencement of Trading on OTCQB, Board Changes and Appointment of New Director",
+      "Resource Centrix Announces Formal Commencement of OTCQB Application, Confirmation of Corporate Development Manager-Mr. Jeffrey Wong, and Resignation of Director Mr. Kyle Bergstrom"
+    ]
+  },
+  {
+    "ticker": "RFLX",
+    "company_id": "RFLX",
+    "name": "Reflex Advanced Materials Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 2402
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "VIDEO - BTV Visits the Yukon: 7 Companies Advancing Growth: Banyan Gold, Fuerte Metals, Sitka Gold, White Gold, Klondike Gold, Cascadia Minerals & Silver North",
+      "VIDEO - BTV Explores Thesis Gold, Lion Copper & Gold, Brixton Metals, North American Iron, Quimbaya Gold, Canstar Resources, Capitan Silver"
+    ]
+  },
+  {
+    "ticker": "RFR",
+    "company_id": "RFR",
+    "name": "Renforth Resources Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8418
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 1,
+    "sample_headlines": [
+      "Renforth's Polymetallic Victoria West Delivers a Suite of Battery Metals near Surface with 2.2kms Mineralized Strike Drilled Within 5km Structure, in a 20km Magnetic Anomaly"
+    ]
+  },
+  {
+    "ticker": "RGLD",
+    "company_id": "RGLD",
+    "name": "Red Lake Gold Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 6194
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Early Warning Report and News Release Regarding Securities of Red Lake Gold Inc.",
+      "Early Warning Report and News Release Regarding Securities of Dixie Gold Inc."
+    ]
+  },
+  {
+    "ticker": "RGN",
+    "company_id": "RGN",
+    "name": "Rush Gold Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 5156
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Carolina Rush Announces Grant of Restricted Share Units",
+      "Carolina Rush Announces Option Grant"
+    ]
+  },
+  {
+    "ticker": "RISE",
+    "company_id": "RISE",
+    "name": "Rise Gold Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 2255
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Rise Gold Announces Strategic Partnership",
+      "Rise Gold Announces Delay in Trial Schedule"
+    ]
+  },
+  {
+    "ticker": "RMES",
+    "company_id": "RMES",
+    "name": "Red Metal Resources Ltd.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 4932
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Red Metal Completes LiDAR Analysis and Identifies New Exploration Targets",
+      "Red Metal Resources Retains Marketing Services"
+    ]
+  },
+  {
+    "ticker": "ROAD",
+    "company_id": "ROAD",
+    "name": "Mineral Road Discovery Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 6341
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Mineral Road Appoints Chief Financial Officer",
+      "Mineral Road Announces Non-Brokered Private Placement"
+    ]
+  },
+  {
+    "ticker": "RSH",
+    "company_id": "RSH",
+    "name": "Rush Rare Metals Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 9126
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Rush Announces Filing of Technical Report for the Copper Mountain Uranium Project in Wyoming",
+      "Myriad Uranium and Rush Rare Metals Execute Definitive Merger Agreement Pursuant to Which Myriad Will Acquire Rush"
+    ]
+  },
+  {
+    "ticker": "RVR",
+    "company_id": "RVR",
+    "name": "Rift Valley Resources Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 5836
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Rift Valley Resources Corp. Announces Agreement with ARK Mediacom",
+      "Rift Valley Resources Corp. Appoints Mr. Vern Fotheringham as Non-Executive Chairman"
+    ]
+  },
+  {
+    "ticker": "SANU",
+    "company_id": "SANU",
+    "name": "Sanu Gold Corp",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8941
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Sanu Gold Confirms 8km Gold Corridor at Daina 1 on Multiple Parallel Structures, in Guinea, West Africa",
+      "Announcing Results of Annual General and Special Meeting of Shareholders"
+    ]
+  },
+  {
+    "ticker": "SASQ",
+    "company_id": "SASQ",
+    "name": "Sasquatch Resources Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8796
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Sasquatch Resources Provides Corporate Update",
+      "Sasquatch Resources Completes Acquisition of Claims in Port Alberni Region and Reports Technical Details and Upcoming Work Plans"
+    ]
+  },
+  {
+    "ticker": "SCU",
+    "company_id": "SCU",
+    "name": "Sankamap Metals Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 11623
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Sankamap Closes Oversubscribed Private Placement",
+      "Sankamap Announces $5.0M Private Placement"
+    ]
+  },
+  {
+    "ticker": "SCV",
+    "company_id": "SCV",
+    "name": "Scotch Creek Ventures Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8623
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Scotch Creek Leverages Exploration Data to Optimize Portfolio",
+      "Scotch Creek Discovers Lithium-Enriched Sandstone at Miranda Project"
+    ]
+  },
+  {
+    "ticker": "SEAG.X",
+    "company_id": "SEAG",
+    "name": "Seahawk Ventures Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 2281
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Seahawk Announces Definitive Agreements for Proposed Acquisition of Arizona and New Mexico Property Portfolio",
+      "Seahawk Announces Proposed Acquisition of Arizona and New Mexico Property Portfolio"
+    ]
+  },
+  {
+    "ticker": "SEAS",
+    "company_id": "SEAS",
+    "name": "Deep Sea Minerals Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8722
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Fotor's Joint Research on \"PMDformer\" Accepted at ICLR 2026: A Leap Forward in Long-Term Time Series Forecasting",
+      "IAS ANALYSIS Launches MONET-R FT-NIR Analyzer: A Breakthrough in High-End Lab Instruments from China"
+    ]
+  },
+  {
+    "ticker": "SHOW",
+    "company_id": "SHOW",
+    "name": "Showcase Minerals Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8814
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "A Full Technology Portfolio for the Future of Mobility: Chery Showcases Advanced Innovations at Beijing Auto Show 2026",
+      "Leading with LUXEED V9 Debut at Beijing Auto Show , the Full Lineup Unveils a New Vision of Intelligent Premium"
+    ]
+  },
+  {
+    "ticker": "SI",
+    "company_id": "SI",
+    "name": "Silicon Metals Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8241
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Silicon Metals Corp. Executes Letter of Intent Respecting Mineral Claims in Newfoundland and Labrador",
+      "Silicon Metals Corp. Announces Appointment of New Director"
+    ]
+  },
+  {
+    "ticker": "SLA",
+    "company_id": "SLA",
+    "name": "Silver Acadia Exploration Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 6260
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "CORRECTION FROM SOURCE: Silver Acadia Reports High-Grade Silver and Gold Results Including 7.1 m @ 396.8 g/t Silver and 2.38 g/t Gold from the Nicholas-Denys Property in New Brunswick",
+      "Silver Acadia Reports High-Grade Silver and Gold Results Including 7.1 m @ 396.8 g/t Silver and 2.38 g/t Gold from the Nicholas-Denys Property in New Brunswick"
+    ]
+  },
+  {
+    "ticker": "SLO",
+    "company_id": "SLO",
+    "name": "Starlo Ventures Ltd.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 12038
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 1,
+    "sample_headlines": [
+      "Starlo Ventures Announces Management and Director Changes"
+    ]
+  },
+  {
+    "ticker": "SLV",
+    "company_id": "SLV",
+    "name": "Silver Dollar Resources Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 7232
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Silver Dollar Extends Advertising and Investor Awareness Campaign with Investing News Network",
+      "Exploration Drilling Underway at Silver Dollar's La Joya Silver (Copper-Gold) Project"
+    ]
+  },
+  {
+    "ticker": "SLZ",
+    "company_id": "SLZ",
+    "name": "Slave Lake Zinc Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 6453
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Slave Lake Zinc Identifies Major Deep-Seated Hydrothermal System and Large-Scale Metal Zonation at O'Connor Lake",
+      "Slave Lake Zinc Confirms High-Grade District Potential at O'Connor Lake; Assays Return Up to 7.75% Lead and 6.62% Zinc"
+    ]
+  },
+  {
+    "ticker": "SPOD",
+    "company_id": "SPOD",
+    "name": "Spod Lithium Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 7939
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "SPOD Lithium Terminates Lithium Grande 4 and MegaLi Properties Option Agreements and Announces Results of AGSM",
+      "SPOD Lithium Announces Sale of its North Nipigon Lithium Project in Ontario and Change in Management"
+    ]
+  },
+  {
+    "ticker": "SPRK",
+    "company_id": "SPRK",
+    "name": "Spark Energy Minerals Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 10093
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Spark Expands Drilling at Arapaima with Follow-Up 2,000-Metre RC Program",
+      "Spark Energy Minerals Advances Arapaima Project with Resumption of RC Drilling and Metallurgical Work"
+    ]
+  },
+  {
+    "ticker": "SRAN",
+    "company_id": "SRAN",
+    "name": "Sranan Gold Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 10997
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Sranan Gold Mobilizes Second Drill Rig onto its Tapanahony Project Targeting 5,000-Metres along the Poeketi Zone.",
+      "Sranan Gold Announces Senior Leadership Changes"
+    ]
+  },
+  {
+    "ticker": "SRS",
+    "company_id": "SRS",
+    "name": "Sorrento Resources Ltd.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 9602
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Sorrento Resources Provides Update on Drilling at the Rodgers Cove Gold Project",
+      "Sorrento Resources Announces Visible Gold Intersected in the First Drill Hole at the Rodgers Cove Gold Project"
+    ]
+  },
+  {
+    "ticker": "STCU",
+    "company_id": "STCU",
+    "name": "Star Copper Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 11682
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 4,
+    "sample_headlines": [
+      "Cascadia and Granite Creek Complete Business Combination",
+      "Granite Creek Obtains Securityholder Approval for Arrangement"
+    ]
+  },
+  {
+    "ticker": "STGX",
+    "company_id": "STGX",
+    "name": "StrategX Elements Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8512
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "StrategX Elements Corp. Announces Management and Director Changes",
+      "StrategX Elements Corp. Confirms Board Expansion, AGM Approval and Continued Focus on Critical Minerals in Nunavut, Canada"
+    ]
+  },
+  {
+    "ticker": "STK",
+    "company_id": "STK",
+    "name": "Silverstock Metals Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8578
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Silverstock Provides Corporate Update",
+      "Silverstock Announces Closing of Private Placement"
+    ]
+  },
+  {
+    "ticker": "STMN",
+    "company_id": "STMN",
+    "name": "UraniumX Discovery Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 10832
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "F4's Murphy Lake, Todd Lake and Wales Lake Projects to Be the Focus of Summer Exploration",
+      "F4 and UraniumX Announce Field Program Underway at Murphy Lake"
+    ]
+  },
+  {
+    "ticker": "STNG",
+    "company_id": "STNG",
+    "name": "Stinger Resources Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 7811
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Stinger Resources Inc. Announces Grant of Stock Options",
+      "Stinger Resources Inc. Completes Non-Brokered Private Placement"
+    ]
+  },
+  {
+    "ticker": "SUU",
+    "company_id": "SUU",
+    "name": "Strathmore Plus Uranium Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 3282
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Strathmore Continues to Advance Agate Project with Spring Drilling Program",
+      "Strathmore Adopts Semi-Annual Financial Reporting"
+    ]
+  },
+  {
+    "ticker": "SX",
+    "company_id": "SX",
+    "name": "St-Georges Eco-Mining Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 6427
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Viper Networks Officially Rebrands as 0Wire, Solidifying Their Bold Everything Wireless Telecom + Energy Strategy",
+      "StrainsForPains, Inc. Discusses Inspiration, App Technology and CBD Market Entrance with The Stock Day Podcast"
+    ]
+  },
+  {
+    "ticker": "TANA",
+    "company_id": "TANA",
+    "name": "Tana Resources Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8060
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Tana Resources Corp. Announces Private Placement Closing",
+      "Tana Resources Corp. Announces $175,000 Financing"
+    ]
+  },
+  {
+    "ticker": "TAUR",
+    "company_id": "TAUR",
+    "name": "Taurus Gold Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8500
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Taurus Gold Corp. Announces Results of AGSM",
+      "Taurus Gold Corp. Management Updates"
+    ]
+  },
+  {
+    "ticker": "TEX",
+    "company_id": "TEX",
+    "name": "Targa Exploration Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 6489
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Kenorland Minerals Announces Termination of Joint Venture Exploration Agreement at the O'Sullivan Project, Quebec; Receives Notice of Exercise of Top-Up Right from Sumitomo and Centerra",
+      "Kenorland Minerals and Auranova Resources Commence Spring Drill Program at the South Uchi Project, Ontario"
+    ]
+  },
+  {
+    "ticker": "TGII",
+    "company_id": "TGII",
+    "name": "Trojan Gold Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8611
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Trojan Gold Inc. Closes a Non-Brokered Unit Offering",
+      "Trojan Gold Inc. Announces Non-Brokered Unit Offering"
+    ]
+  },
+  {
+    "ticker": "TMIN",
+    "company_id": "TMIN",
+    "name": "Teako Minerals Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8258
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Teako Engages Trion Communications GmbH to Facilitate Institutional German Roadshow",
+      "Teako Minerals Expands Global Capital Markets Presence with Frankfurt Stock Exchange Listing"
+    ]
+  },
+  {
+    "ticker": "TN",
+    "company_id": "TN",
+    "name": "Tartisan Nickel Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 1492
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Tartisan Nickel Corp. Closes Initial $500,000 Flow-Through Financing at $0.38 per Share",
+      "Tartisan Nickel Corp. Passes All Matters at Annual General Meeting of Shareholders"
+    ]
+  },
+  {
+    "ticker": "TONE",
+    "company_id": "TONE",
+    "name": "Triple One Metals Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 3852
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Edison Lithium Provides Clarifying Disclosure Regarding Option for Joutel North-West and Gagne Gold Properties from Globex",
+      "Edison Lithium Acquires Option for Joutel North-West and Gagne Gold Properties from Globex"
+    ]
+  },
+  {
+    "ticker": "TRG",
+    "company_id": "TRG",
+    "name": "Tarachi Gold Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 10244
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "NatBridge Advances Cahuilla Consolidation with New LOI for Additional Deeded Parcels",
+      "NatBridge to Expand Mineral Claim Base with Binding Letter of Intent for Additional Cahuilla Gold Project Parcels"
+    ]
+  },
+  {
+    "ticker": "TTX",
+    "company_id": "TTX",
+    "name": "Tantalex Lithium Resources Corporation",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 9737
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Lipari Mining to Attend 121 Mining Investment Conference in Dubai on November 26-27",
+      "West Coast Silver to Attend 121 Mining Investment Conference in London"
+    ]
+  },
+  {
+    "ticker": "UCM",
+    "company_id": "UCM",
+    "name": "United Critical Minerals Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 11827
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "United Critical Minerals Announces Results from 2025 Field Program at Tahlo Lake Property, British Columbia",
+      "Trimera Metals Announces Effective Date of Name and Symbol Change"
+    ]
+  },
+  {
+    "ticker": "UE",
+    "company_id": "UE",
+    "name": "Urano Energy Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8126
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Aero Energy, Urano Energy and Pegasus Resources Announce Closing of $10.5 Million Subscription Receipt Private Placement",
+      "Aero Energy Announces Closing of Charity Flow-Through Private Placement"
+    ]
+  },
+  {
+    "ticker": "UG",
+    "company_id": "UG",
+    "name": "Upside Gold Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 7337
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "New Found Gold Continues to Expand Dropkick Zone, Queensway Gold Project",
+      "New Found Gold Files 2025 Year End Disclosure Documents"
+    ]
+  },
+  {
+    "ticker": "UX",
+    "company_id": "UX",
+    "name": "Puranium Energy Ltd.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8575
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Puranium Energy Announces Loan and Issuance of Bonus Warrants",
+      "Puranium Energy Announces Closing of Non-Brokered Private Placement"
+    ]
+  },
+  {
+    "ticker": "VBN",
+    "company_id": "VBN",
+    "name": "Pedro Resources Ltd.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 6003
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Pedro Resources Announces Appointment of CEO",
+      "Pedro Resources Ltd. Announces Loan and Management Changes"
+    ]
+  },
+  {
+    "ticker": "WBGD",
+    "company_id": "WBGD",
+    "name": "Waraba Gold Limited",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 7458
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Waraba Gold Limited Unaware of Any Material Change",
+      "Waraba Gold Closes $4,500,000 Private Placement"
+    ]
+  },
+  {
+    "ticker": "WDGY",
+    "company_id": "WDGY",
+    "name": "Wedgemount Resources Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 7678
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Wedgemount Announces Option Grant",
+      "Wedgemount Announces Corporate Update"
+    ]
+  },
+  {
+    "ticker": "WEST",
+    "company_id": "WEST",
+    "name": "West Mining Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8411
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Antimony Resources Corp. (ATMY) (ATMYF) (K8J0) Intersects High-Grade Antimony-Bearing Stibnite Mineralization of 4.38% Antimony (Sb) over 7.05 Meters (m) Including 9.76% Sb over 3.15 Meters",
+      "Antimony Resources Corp. (ATMY) (ATMYF) (K8J0) Initiates Technical and Environmental Studies Towards Permitting the Bald Hill Antimony Project"
+    ]
+  },
+  {
+    "ticker": "WG",
+    "company_id": "WG",
+    "name": "Westward Gold Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 6193
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Metals Group and Member Companies to Showcase at Vancouver Resource Investment Conference 2026",
+      "Honey Badger Silver Inc. Invites You to Join Us at the Vancouver Resource Investment Conference"
+    ]
+  },
+  {
+    "ticker": "XRI",
+    "company_id": "XRI",
+    "name": "Xcite Uranium Inc.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 8603
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Xcite to Issue Shares under Option Agreements for Multiple Athabasca Basin Uranium Projects",
+      "Xcite Resources Inc. Announces Name Change to Xcite Uranium Inc."
+    ]
+  },
+  {
+    "ticker": "YMC",
+    "company_id": "YMC",
+    "name": "Yukon Metals Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 9656
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Hertz Energy Expands Its Lake George Antimony-Tungsten Property and Launches Exploration Program Surrounding Historic Lake George Antimony Mine",
+      "Hertz Energy Inc. Announces LIFE and Flow-Through Offering for Gross Proceeds up to $5,000,000"
+    ]
+  },
+  {
+    "ticker": "ZIGY",
+    "company_id": "ZIGY",
+    "name": "Stardust Metal Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 2809
+    },
+    "discovery_confidence": "v2_verified_by_headline_match",
+    "release_count_probe": 5,
+    "sample_headlines": [
+      "Stardust Appoints Dr. Mynyr Hoxha as VP Exploration",
+      "Stardust to Participate in PDAC 2026 and Ore Day VIP Investor Lunch"
+    ]
+  }
+]

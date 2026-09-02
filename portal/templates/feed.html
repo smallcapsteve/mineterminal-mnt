@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}News — MiningNewsTerminal{% endblock %}
+{% block content %}
+  <h2 class="page-title">News</h2>
+
+  <section class="filters">
+    <form method="get" action="/">
+      <label for="ticker">Company:</label>
+      <select name="ticker" id="ticker" onchange="this.form.submit()">
+        <option value="">All companies ({{ tickers|length }} companies)</option>
+        {% for t, n in tickers %}
+          <option value="{{ t }}" {% if t == selected_ticker %}selected{% endif %}>
+            {{ t }} &middot; {{ n }}
+          </option>
+        {% endfor %}
+      </select>
+      {% for c in selected_cats %}<input type="hidden" name="cat" value="{{ c }}">{% endfor %}
+      <noscript><button type="submit">Filter</button></noscript>
+    </form>
+  </section>
+
+  {% if category_counts %}
+    <section class="category-filter">
+      <form method="get" action="/" id="catform">
+        {% if selected_ticker %}<input type="hidden" name="ticker" value="{{ selected_ticker }}">{% endif %}
+        <span class="cat-filter-label">Category</span>
+        {% for code, name, count in category_counts %}
+          <label class="cat-chip cat-chip-{{ code }}{% if code in selected_cats %} cat-chip-on{% endif %}">
+            <input type="checkbox" name="cat" value="{{ code }}"
+                   {% if code in selected_cats %}checked{% endif %}
+                   onchange="document.getElementById('catform').submit()">
+            <span class="cat-chip-name">{{ name }}</span>
+            <span class="cat-chip-count">{{ count }}</span>
+          </label>
+        {% endfor %}
+        {% if selected_cats %}
+          <a class="cat-clear" href="/{% if selected_ticker %}?ticker={{ selected_ticker }}{% endif %}">Clear</a>
+        {% endif %}
+        <noscript><button type="submit">Apply</button></noscript>
+      </form>
+    </section>
+  {% endif %}
+
+  <div class="feed-grid">
+    <div class="feed-main">
+      {% if not events %}
+        <p class="empty">No articles{% if selected_ticker %} for {{ selected_ticker }}{% endif %}{% if selected_cats %} matching selected categories{% endif %} yet.</p>
+      {% else %}
+        <ul class="events">
+          {% for e in events %}
+            <li class="event">
+              <div class="event-meta">
+                {% if e["ticker"] %}
+                <a class="ticker" href="/company/{{ e['ticker'].lower() }}">{{ e["ticker"] }}</a>
+                {% else %}<span class="ticker">—</span>{% endif %}
+                {% set _cn = e["ticker"] | company_name %}
+                {% if _cn %}<a class="source" href="/company/{{ e['ticker'].lower() }}">{{ _cn }}</a>{% endif %}
+                <span class="date">{{ (e["published_at"] or e["classified_at"] or "")[:10] }}</span>
+              </div>
+              <h3><a href="/event/{{ e['event_id'] }}">{{ (e["raw_headline"] or "(no headline)") | smart_title }}</a></h3>
+              {% set cats = (e["categories"] or "") %}
+              {% if cats %}
+                <div class="event-cats">
+                  {% for code, name in (cats | cat_chips) %}
+                    <span class="cat-badge cat-{{ code }}">{{ name }}</span>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+
+    <aside class="feed-sidebar">
+      {% if recent_financings %}
+        <div class="sidebar-card">
+          <div class="sc-header">Recent Financings</div>
+          <ul>
+            {% for f in recent_financings %}
+              <li>
+                <div class="recfin-row">
+                  <strong style="color: var(--brand-red);">{{ f['ticker'] }}</strong>
+                  <span class="fin-status fin-status-{{ f['status'] }}">{{ f['status'] | replace('_', ' ') }}</span>
+                  {% if f['gross_closed_fmt'] or f['gross_announced_fmt'] %}
+                    <span class="recfin-amt">{{ f['gross_closed_fmt'] or f['gross_announced_fmt'] }}</span>
+                  {% endif %}
+                </div>
+                {% if f['last_event_id'] %}
+                  <a class="recfin-link" href="/event/{{ f['last_event_id'] }}">
+                    {{ (f['last_headline'] or 'View latest release') | smart_title }}
+                  </a>
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+    </aside>
+  </div>
+{% endblock %}

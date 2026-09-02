@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Financings — MNT{% endblock %}
+{% block content %}
+  <h2 class="page-title">Financings</h2>
+  <section class="fin-state-tabs">
+    <a class="fin-state-tab {% if (state or 'open') == 'open' %}fin-state-tab-active fin-state-tab-open{% endif %}"
+       href="/financings?state=open{% if selected_ticker %}&ticker={{ selected_ticker }}{% endif %}">
+      <span class="fin-state-dot fin-state-dot-open"></span> OPEN
+    </a>
+    <a class="fin-state-tab {% if state == 'closed' %}fin-state-tab-active fin-state-tab-closed{% endif %}"
+       href="/financings?state=closed{% if selected_ticker %}&ticker={{ selected_ticker }}{% endif %}">
+      <span class="fin-state-dot fin-state-dot-closed"></span> CLOSED
+    </a>
+    <a class="fin-state-tab {% if state == 'all' %}fin-state-tab-active{% endif %}"
+       href="/financings?state=all{% if selected_ticker %}&ticker={{ selected_ticker }}{% endif %}">
+      ALL
+    </a>
+  </section>
+
+
+  <section class="filters fin-filters">
+    <form method="get" action="/financings">
+      <label for="ticker">Company:</label>
+      <select name="ticker" id="ticker" onchange="this.form.submit()">
+        <option value="">All companies</option>
+        {% for t in tickers %}
+          <option value="{{ t }}" {% if t == selected_ticker %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="status">Status:</label>
+      <select name="status" id="status" onchange="this.form.submit()">
+        <option value="">All statuses</option>
+        {% for s, c in status_counts %}
+          <option value="{{ s }}" {% if s == selected_status %}selected{% endif %}>
+            {{ s }} ({{ c }})
+          </option>
+        {% endfor %}
+      </select>
+
+      {% if selected_ticker or selected_status %}
+        <a class="cat-clear" href="/financings">Clear</a>
+      {% endif %}
+      <span class="muted">{{ rows|length }} shown · {{ total }} total</span>
+    </form>
+  </section>
+
+  {% if not rows %}
+    <p class="empty">No financings yet.</p>
+  {% else %}
+    <table class="fin-table">
+      <thead>
+        <tr>
+          <th>Ticker</th>
+          <th>Announced</th>
+          <th>Type</th>
+          <th>Size announced</th>
+          <th>Size closed</th>
+          <th>Unit price</th>
+          <th>Warrant</th>
+          <th>Status</th>
+          <th>Last update</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr>
+            <td class="fin-ticker">{{ r["ticker"] }}</td>
+            <td class="fin-date">{{ (r["announced_at"] or "")[:10] }}</td>
+            <td class="fin-kind">{{ (r["kind"] or "—") | replace("_", " ") | replace("+", " · ") }}</td>
+            <td class="fin-amt">{{ r["gross_announced_fmt"] or "—" }}</td>
+            <td class="fin-amt">{{ r["gross_closed_fmt"] or "—" }}</td>
+            <td class="fin-amt">
+              {% if r["unit_price"] %}${{ "%.3f"|format(r["unit_price"]) }}{% else %}—{% endif %}
+            </td>
+            <td class="fin-warrant">{{ r["warrant_summary"] or "—" }}</td>
+            <td>
+              <span class="fin-status fin-status-{{ r['status'] }}">{{ r["status"] | replace('_', ' ') }}</span>
+              {% if (r["n_tranches"] or 0) > 0 %}
+                <span class="fin-tranches">· {{ r["n_tranches"] }} tranche{% if r["n_tranches"] != 1 %}s{% endif %}</span>
+              {% endif %}
+            </td>
+            <td class="fin-date">
+              <a href="/event/{{ r['seed_event_id'] }}">{{ (r["last_update_at"] or "")[:10] }}</a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+{% endblock %}

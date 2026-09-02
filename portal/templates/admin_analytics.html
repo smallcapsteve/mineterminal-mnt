@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% block title %}Stats — MiningNewsTerminal{% endblock %}
+{% block head_extra %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+{% endblock %}
+{% block content %}
+    <nav class="admin-nav" style="margin: 0.5rem 0 1rem; padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb;">
+      <a href="/admin" style="margin-right: 1rem; color: var(--brand-red);">Events</a>
+      <a href="/admin/companies" style="margin-right: 1rem; color: var(--brand-red);">Companies</a>
+      <a href="/admin/analytics" style="margin-right: 1rem; font-weight:600;">Analytics</a>
+      <span style="float:right;"><form method="post" action="/admin/logout" style="display:inline;"><button type="submit" style="background:none; border:none; color:var(--brand-red); cursor:pointer;">Log out</button></form></span>
+    </nav>
+
+  <div class="stats-page">
+    <header class="stats-header">
+      <h2 class="stats-title">Stats</h2>
+      <p class="stats-subtitle">Simple, powerful analytics for {{ "miningnewsterminal.com" }}.</p>
+    </header>
+
+    <nav class="stats-tabs">
+      {% set tabs = [('hour','Today (hourly)'), ('day','Day'), ('month','Month'), ('year','Year')] %}
+      {% for g, label in tabs %}
+        <a href="/admin/analytics?granularity={{ g }}"
+           class="stats-tab {% if g == granularity %}stats-tab-active{% endif %}">{{ label }}</a>
+      {% endfor %}
+    </nav>
+
+    <section class="stats-card">
+      <div class="stats-period-bar">
+        <div class="stats-period-nav">
+          {% if prev_period %}
+            <a class="stats-period-btn" href="/admin/analytics?granularity={{ granularity }}&period={{ prev_period }}">←</a>
+          {% else %}
+            <span class="stats-period-btn stats-period-disabled">←</span>
+          {% endif %}
+          <span class="stats-period-label">{{ period_label }}</span>
+          {% if next_period %}
+            <a class="stats-period-btn" href="/admin/analytics?granularity={{ granularity }}&period={{ next_period }}">→</a>
+          {% else %}
+            <span class="stats-period-btn stats-period-disabled">→</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="stats-chart-wrap">
+        <canvas id="stats-chart" height="280"></canvas>
+      </div>
+
+      <div class="stats-kpi-row">
+        <div class="stats-kpi stats-kpi-active">
+          <div class="stats-kpi-label">👁 Views</div>
+          <div class="stats-kpi-value">{{ "{:,}".format(totals.humans or 0) }}</div>
+        </div>
+        <div class="stats-kpi">
+          <div class="stats-kpi-label">👥 Visitors</div>
+          <div class="stats-kpi-value">{{ "{:,}".format(totals.uniques or 0) }}</div>
+        </div>
+        <div class="stats-kpi">
+          <div class="stats-kpi-label">📰 Articles read</div>
+          <div class="stats-kpi-value">{{ "{:,}".format(totals.articles_read or 0) }}</div>
+        </div>
+        <div class="stats-kpi">
+          <div class="stats-kpi-label">🤖 Bot crawls</div>
+          <div class="stats-kpi-value">{{ "{:,}".format(totals.bots or 0) }}</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="analytics-grid">
+      <section class="analytics-section">
+        <h3>Top articles</h3>
+        {% if top_articles %}
+          <table class="analytics-table">
+            <thead><tr><th>Ticker</th><th>Headline</th><th>Views</th><th>Visitors</th></tr></thead>
+            <tbody>
+              {% for r in top_articles %}
+                <tr>
+                  <td class="fin-ticker">{{ r.ticker }}</td>
+                  <td><a href="{{ r.url }}">{{ (r.raw_headline or '(no headline)') | smart_title }}</a></td>
+                  <td class="num">{{ r.views }}</td>
+                  <td class="num">{{ r.uniques }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p class="empty">No views in this period yet.</p>
+        {% endif %}
+      </section>
+
+      <section class="analytics-section">
+        <h3>Top tickers</h3>
+        {% if top_tickers %}
+          <table class="analytics-table">
+            <thead><tr><th>Ticker</th><th>Views</th><th>Visitors</th></tr></thead>
+            <tbody>
+              {% for r in top_tickers %}
+                <tr>
+                  <td class="fin-ticker">{{ r.ticker }}</td>
+                  <td class="num">{{ r.views }}</td>
+                  <td class="num">{{ r.uniques }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p class="empty">—</p>
+        {% endif %}
+      </section>
+    </div>
+
+    <section class="analytics-section">
+      <h3>Top referrers</h3>
+      {% if top_referrers %}
+        <table class="analytics-table">
+          <thead><tr><th>Source</th><th>Views</th></tr></thead>
+          <tbody>
+            {% for r in top_referrers %}
+              <tr>
+                <td>{{ r.source[:120] }}</td>
+                <td class="num">{{ r.views }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="empty">—</p>
+      {% endif %}
+    </section>
+
+    <p class="muted" style="margin-top:1.5rem;font-size:0.78rem;">
+      Bot detection by user-agent regex; IP hashed daily with rotating salt (no raw IPs stored). All times UTC.
+    </p>
+  </div>
+
+  <script>
+    (function() {
+      const labels   = {{ buckets | map(attribute='label') | list | tojson }};
+      const views    = {{ buckets | map(attribute='views') | list | tojson }};
+      const visitors = {{ buckets | map(attribute='visitors') | list | tojson }};
+      const ctx = document.getElementById('stats-chart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Views',
+              data: views,
+              backgroundColor: '#D71920',
+              borderRadius: 2,
+              maxBarThickness: 50,
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                afterLabel: function(ctx) {
+                  return 'Visitors: ' + visitors[ctx.dataIndex];
+                }
+              },
+              backgroundColor: '#1a1a1a',
+              titleFont: { weight: 'bold' },
+              padding: 10,
+              cornerRadius: 2,
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: '#6b6b6b', font: { size: 11 } }
+            },
+            y: {
+              beginAtZero: true,
+              grid: { color: '#ececea' },
+              ticks: { color: '#6b6b6b', precision: 0, font: { size: 11 } }
+            }
+          }
+        }
+      });
+    })();
+  </script>
+{% endblock %}

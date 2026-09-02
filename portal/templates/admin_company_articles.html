@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Admin · Articles for {{ rec["ticker"] }} — MNT{% endblock %}
+{% block content %}
+  <section class="admin">
+    <p><a href="/admin/companies">← All companies</a></p>
+    <h1>Articles · {{ rec["ticker"] }}</h1>
+    <nav class="admin-nav" style="margin: 0.5rem 0 1rem; padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb;">
+      <a href="/admin" style="margin-right: 1rem; color: var(--brand-red);">Events</a>
+      <a href="/admin/companies" style="margin-right: 1rem; color: var(--brand-red);">Companies</a>
+      <a href="/admin/analytics" style="margin-right: 1rem; color: var(--brand-red);">Analytics</a>
+      <span style="float:right;"><form method="post" action="/admin/logout" style="display:inline;"><button type="submit" style="background:none; border:none; color:var(--brand-red); cursor:pointer;">Log out</button></form></span>
+    </nav>
+
+    <p>
+      <strong>{{ rec.get("name") or rec["ticker"] }}</strong>
+      <span class="muted"> — {{ events|length }} article{{ "s" if events|length != 1 else "" }} 
+      across tickers: {{ tickers_for_company | join(", ") }}</span>
+    </p>
+    <p><a href="/admin/companies/{{ rec['ticker'] }}/edit">Edit company</a> · <a href="/company/{{ rec['ticker'].lower() }}">View on site ↗</a></p>
+
+    {% if deleted %}
+      <div class="notice" style="background: #e8f5e8;">Article deleted.</div>
+    {% endif %}
+
+    {% if not events %}
+      <p class="empty">No articles found for this company.</p>
+    {% else %}
+      <table class="events-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Ticker</th>
+            <th>Categories</th>
+            <th>Headline</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in events %}
+            <tr>
+              <td>{{ (e["date"] or "")[:10] }}</td>
+              <td><span style="font-family: monospace;">{{ e["ticker"] }}</span></td>
+              <td>
+                {% set cats = (e["categories"] or "").split("|") %}
+                {% for c in cats if c %}
+                  <span class="cat-badge" style="font-size: 0.75rem;">{{ c }}</span>
+                {% endfor %}
+              </td>
+              <td>
+                {% if e["slug"] %}
+                  <a href="/news/{{ e['ticker'].lower() }}/{{ e['slug'] }}" target="_blank">
+                    {{ (e["raw_headline"] or "(no headline)")[:120] }}
+                  </a>
+                {% else %}
+                  <a href="/event/{{ e['event_id'] }}" target="_blank">
+                    {{ (e["raw_headline"] or "(no headline)")[:120] }}
+                  </a>
+                {% endif %}
+              </td>
+              <td>
+                <span class="status status-{{ e['review_status'] }}">{{ e["review_status"] }}</span>
+              </td>
+              <td>
+                <a href="/admin/events/{{ e['event_id'] }}/tickers?back=/admin/companies/{{ rec['ticker'] }}/articles"
+                   style="margin-right:.5rem;">Tickers</a>
+                <form method="post"
+                      action="/admin/companies/{{ rec['ticker'] }}/articles/{{ e['event_id'] }}/delete"
+                      style="display:inline;"
+                      onsubmit="return confirm('Delete this article? This cannot be undone.');">
+                  <button type="submit" class="danger small"
+                          style="background:#fee; border:1px solid #f99; color:#900; padding:.2rem .5rem; cursor:pointer;">
+                    Delete
+                  </button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </section>
+{% endblock %}

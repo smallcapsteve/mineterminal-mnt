@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Admin · Companies — MNT{% endblock %}
+{% block content %}
+  <section class="admin">
+    <h1>Companies</h1>
+    <nav class="admin-nav" style="margin: 0.5rem 0 1rem; padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb;">
+      <a href="/admin" style="margin-right: 1rem; {{ 'font-weight:600;' if request.url.path == '/admin' else 'color: var(--brand-red);' }}">Events</a>
+      <a href="/admin/companies" style="margin-right: 1rem; {{ 'font-weight:600;' if request.url.path.startswith('/admin/companies') else 'color: var(--brand-red);' }}">Companies</a>
+      <a href="/admin/analytics" style="margin-right: 1rem; {{ 'font-weight:600;' if request.url.path == '/admin/analytics' else 'color: var(--brand-red);' }}">Analytics</a>
+      <span style="float:right;"><form method="post" action="/admin/logout" style="display:inline;"><button type="submit" style="background:none; border:none; color:var(--brand-red); cursor:pointer;">Log out</button></form></span>
+    </nav>
+
+    <p class="muted">Edit a company's name, change its ticker symbol, or record past tickers.</p>
+    <form method="get" action="/admin/companies" class="filters">
+      <label>Search:
+        <input type="search" name="q" value="{{ q }}" placeholder="ticker or name">
+      </label>
+      <button type="submit">Filter</button>
+      {% if q %}<a href="/admin/companies">Clear</a>{% endif %}
+    </form>
+    <p class="muted">{{ tickers|length }} companies shown</p>
+    <table class="events-table">
+      <thead>
+        <tr>
+          <th>Ticker</th>
+          <th>Name</th>
+          <th>Previous tickers</th>
+          <th>Source</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in tickers %}
+          <tr>
+            <td><strong>{{ t["ticker"] }}</strong></td>
+            <td>{{ t.get("name") or "" }}</td>
+            <td>
+              {% for p in (t.get("previous_tickers") or []) %}
+                <span style="display:inline-block; margin-right:.5rem;">
+                  {{ p["ticker"] }}{% if p.get("ended_at") %} <span class="muted">(ended {{ p["ended_at"] }})</span>{% endif %}
+                </span>
+              {% endfor %}
+            </td>
+            <td class="muted">{{ t.get("source") or "" }}</td>
+            <td><a href="/admin/companies/{{ t['ticker'] }}/edit">Edit</a> · <a href="/admin/companies/{{ t['ticker'] }}/articles">Articles</a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Admin · Edit {{ rec["ticker"] }} — MNT{% endblock %}
+{% block content %}
+  <section class="admin">
+    <p><a href="/admin/companies">← All companies</a> · <a href="/admin/companies/{{ rec['ticker'] }}/articles">View articles</a></p>
+    <h1>Edit {{ rec["ticker"] }}</h1>
+    <nav class="admin-nav" style="margin: 0.5rem 0 1rem; padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb;">
+      <a href="/admin" style="margin-right: 1rem; {{ 'font-weight:600;' if request.url.path == '/admin' else 'color: var(--brand-red);' }}">Events</a>
+      <a href="/admin/companies" style="margin-right: 1rem; {{ 'font-weight:600;' if request.url.path.startswith('/admin/companies') else 'color: var(--brand-red);' }}">Companies</a>
+      <a href="/admin/analytics" style="margin-right: 1rem; {{ 'font-weight:600;' if request.url.path == '/admin/analytics' else 'color: var(--brand-red);' }}">Analytics</a>
+      <span style="float:right;"><form method="post" action="/admin/logout" style="display:inline;"><button type="submit" style="background:none; border:none; color:var(--brand-red); cursor:pointer;">Log out</button></form></span>
+    </nav>
+
+
+    {% if saved %}
+      <div class="notice" style="background: #e8f5e8;">Saved successfully.</div>
+    {% endif %}
+    {% if error %}
+      <div class="notice" style="background: #ffe8e8;">Error: {{ error }}</div>
+    {% endif %}
+    {% if db_changes %}
+      <div class="notice">
+        DB ticker rewrite:
+        {% for tbl, n in db_changes.items() %}{{ tbl }}={{ n }}{% if not loop.last %}, {% endif %}{% endfor %}
+      </div>
+    {% endif %}
+
+    <form method="post" action="/admin/companies/{{ rec['ticker'] }}/edit"
+          style="max-width: 640px;">
+
+      <label style="display:block; margin: 0.75rem 0;">
+        Company name:<br>
+        <input type="text" name="name" value="{{ rec.get('name') or '' }}"
+               style="width:100%; padding: 0.5rem;">
+      </label>
+
+      <label style="display:block; margin: 0.75rem 0;">
+        Current ticker:<br>
+        <input type="text" name="ticker" value="{{ rec['ticker'] }}"
+               style="width:100%; padding: 0.5rem; font-family: monospace;">
+        <small class="muted">Changing this will also rename the ticker on every DB record
+        (events, financings, drills, resources). The old ticker will automatically be added
+        to previous tickers below with today's date.</small>
+      </label>
+
+      <fieldset style="margin-top: 1rem; padding: 1rem;">
+        <legend>Previous tickers</legend>
+        <p class="muted">Past ticker symbols this company traded under. The ended-at date is
+        the day the new ticker took effect.</p>
+        <div id="prevrows">
+          {% for p in (rec.get("previous_tickers") or []) %}
+            <div class="prevrow" style="margin: 0.5rem 0;">
+              <input type="text" name="prev_ticker" value="{{ p['ticker'] }}"
+                     placeholder="OLD.TKR" style="font-family: monospace;">
+              <input type="date" name="prev_ended_at" value="{{ p.get('ended_at') or '' }}">
+              <button type="button" onclick="this.parentElement.remove()">Remove</button>
+            </div>
+          {% endfor %}
+          <div class="prevrow" style="margin: 0.5rem 0;">
+            <input type="text" name="prev_ticker" placeholder="OLD.TKR" style="font-family: monospace;">
+            <input type="date" name="prev_ended_at">
+            <button type="button" onclick="this.parentElement.remove()">Remove</button>
+          </div>
+        </div>
+        <button type="button" onclick="
+          var div = document.createElement('div');
+          div.className = 'prevrow';
+          div.style.margin = '0.5rem 0';
+          div.innerHTML = '<input type=&quot;text&quot; name=&quot;prev_ticker&quot; placeholder=&quot;OLD.TKR&quot; style=&quot;font-family: monospace;&quot;> <input type=&quot;date&quot; name=&quot;prev_ended_at&quot;> <button type=&quot;button&quot; onclick=&quot;this.parentElement.remove()&quot;>Remove</button>';
+          document.getElementById('prevrows').appendChild(div);">+ Add row</button>
+      </fieldset>
+
+      <button type="submit" style="margin-top: 1rem; padding: 0.5rem 1rem;">Save</button>
+    </form>
+  </section>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Admin — MNT{% endblock %}
+{% block content %}
+  <section class="admin">
+    <h1>Admin</h1>
+    <nav class="admin-nav" style="margin: 0.5rem 0 1rem; padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb;">
+      <a href="/admin" style="margin-right: 1rem; {{ 'font-weight:600;' if request.url.path == '/admin' else 'color: var(--brand-red);' }}">Events</a>
+      <a href="/admin/companies" style="margin-right: 1rem; {{ 'font-weight:600;' if request.url.path.startswith('/admin/companies') else 'color: var(--brand-red);' }}">Companies</a>
+      <a href="/admin/analytics" style="margin-right: 1rem; {{ 'font-weight:600;' if request.url.path == '/admin/analytics' else 'color: var(--brand-red);' }}">Analytics</a>
+      <span style="float:right;"><form method="post" action="/admin/logout" style="display:inline;"><button type="submit" style="background:none; border:none; color:var(--brand-red); cursor:pointer;">Log out</button></form></span>
+    </nav>
+
+    <div class="notice">
+      Default password is in use. Change the <code>MNT_ADMIN_PASSWORD_HASH</code> env var to rotate it.
+    </div>
+    <form class="filters" method="get" action="/admin">
+      <label>Company:
+        <select name="ticker" onchange="this.form.submit()">
+          <option value="">All</option>
+          {% for t, n in tickers %}
+            <option value="{{ t }}" {% if t == selected_ticker %}selected{% endif %}>{{ t }} ({{ n }})</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>Status:
+        <select name="status" onchange="this.form.submit()">
+          {% for s in ["", "auto_approved", "pending", "rejected"] %}
+            <option value="{{ s }}" {% if s == selected_status %}selected{% endif %}>{{ s or "all" }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </form>
+
+    <form method="post" action="/admin/events/bulk" id="bulkform">
+      <div class="bulkbar">
+        <button type="submit" name="action" value="approve">Approve selected</button>
+        <button type="submit" name="action" value="reject">Reject selected</button>
+        <button type="submit" name="action" value="delete" class="danger"
+                onclick="return confirm('Delete the selected events? This cannot be undone.')">
+          Delete selected
+        </button>
+        <span class="muted">{{ events|length }} shown</span>
+      </div>
+      <table class="events-table">
+        <thead>
+          <tr>
+            <th><input type="checkbox" onclick="document.querySelectorAll('.rowcb').forEach(c=>c.checked=this.checked)"></th>
+            <th>Date</th>
+            <th>Ticker</th>
+            <th>Source</th>
+            <th>Headline</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in events %}
+            <tr>
+              <td><input type="checkbox" class="rowcb" name="event_ids" value="{{ e['event_id'] }}"></td>
+              <td>{{ (e["published_at"] or e["classified_at"] or "")[:10] }}</td>
+              <td>{{ e["ticker"] or "" }}</td>
+              <td>{{ e["source_name"] or "" }}</td>
+              <td><a href="/event/{{ e['event_id'] }}">{{ (e["raw_headline"] or "(no headline)")[:90] }}</a></td>
+              <td><span class="status status-{{ e['review_status'] }}">{{ e["review_status"] or "" }}</span></td>
+              <td>
+                <button type="submit" formaction="/admin/events/{{ e['event_id'] }}/delete"
+                        formmethod="post" class="danger small"
+                        onclick="return confirm('Delete this event?')">Delete</button>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </form>
+  </section>
+{% endblock %}

@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}MiningNewsTerminal{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css?v=v34">
+  <link rel="icon" type="image/png" href="/static/mnt-logo.svg?v=v10">
+  {% block head_extra %}{% endblock %}
+</head>
+<body>
+  <div class="top-ribbon">
+    <div class="top-ribbon-inner">
+      <span class="top-ribbon-date">{{ now_str or "" }}</span>
+      <div class="top-ribbon-links">
+        <a href="https://mineterminalpro.com" target="_blank" rel="noopener">MineTerminalPro</a>
+        <a href="https://thedeepdive.ca" target="_blank" rel="noopener">TheDeepDive</a>
+        <a href="https://seditracker.com" target="_blank" rel="noopener">SEDITracker</a>
+      </div>
+    </div>
+  </div>
+
+<header class="masthead">
+    <div class="masthead-inner">
+      <a class="brand-link" href="/">
+        <img src="/static/mnt-logo.svg?v=v10" alt="" class="brand-icon">
+        <span class="brand-wordmark">MiningNewsTerminal</span>
+      </a>
+      <div class="masthead-right">
+        <span class="masthead-date">{{ now_str or "" }}</span>
+        {% if is_admin %}
+          <a class="admin-link" href="/admin">Admin</a>
+          <form method="post" action="/admin/logout" class="inline">
+            <button type="submit" class="linkbtn">Log out</button>
+          </form>
+        {% else %}
+          <a class="admin-link" href="/admin/login">Admin</a>
+        {% endif %}
+      </div>
+    </div>
+  </header>
+
+  <nav class="primary-nav">
+    <div class="primary-nav-inner">
+      <div class="primary-nav-links">
+      <a href="/" {% if page == 'news' %}class="active"{% endif %}>News</a>
+      <a href="/financings" {% if page == 'financings' %}class="active"{% endif %}>Financings</a>
+      <a href="/drills" {% if page == 'drills' %}class="active"{% endif %}>Drill Results</a>
+      <a href="/resources" {% if page == 'resources' %}class="active"{% endif %}>Resource Estimates</a>
+      {% if is_admin %}<a href="/admin/analytics" {% if page == 'admin' %}class="active"{% endif %}>Analytics</a>{% endif %}
+      </div>
+      <form class="primary-nav-search" method="get" action="/search">
+        <input type="search" name="q" placeholder="Search news…" value="{{ q or '' }}">
+        <button type="submit">Search</button>
+      </form>
+    </div>
+  </nav>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <span>MiningNewsTerminal &copy; 2026</span>
+  </footer>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "MiningNewsTerminal",
+    "url": "https://miningnewsterminal.com",
+    "logo": "https://miningnewsterminal.com/static/mnt-logo.svg",
+    "description": "Real-time news and financings tracker for Canadian junior mining companies."
+  }
+  </script>
+
+<script id="header-date-tz-v1">
+/* HEADER_DATE_TZ_V1_BEGIN */
+(function(){
+  if (window.__mtpHeaderDateTzV1) return;
+  window.__mtpHeaderDateTzV1 = true;
+  function torontoDate(){
+    try {
+      var fmt = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/Toronto',
+        weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+      });
+      var parts = fmt.formatToParts(new Date());
+      var p = {};
+      parts.forEach(function(x){ p[x.type] = x.value; });
+      return (p.weekday + ', ' + p.month + ' ' + p.day + ', ' + p.year).toUpperCase();
+    } catch(e){ return null; }
+  }
+  function applyDate(){
+    var s = torontoDate();
+    if (!s) return;
+    var sels = '.top-ribbon-date, .mtp-top-ribbon-date, [class*="ribbon-date"], #mtpRibbonDate';
+    document.querySelectorAll(sels).forEach(function(el){
+      if (el.textContent.trim() !== s) el.textContent = s;
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyDate);
+  else applyDate();
+  /* Re-check every 30s in case the page is open across the local midnight. */
+  setInterval(applyDate, 30000);
+})();
+/* HEADER_DATE_TZ_V1_END */
+</script>
+
+</body>
+</html>

@@ -1,0 +1,862 @@
+[
+  {
+    "ticker": "CACR.CN",
+    "ok": true,
+    "total": "400",
+    "pages": "400",
+    "first_date": "2026-04-24T16:40:17",
+    "site": "https://canadachrome.com"
+  },
+  {
+    "ticker": "BG.CN",
+    "ok": true,
+    "total": "40",
+    "pages": "40",
+    "first_date": "2026-04-21T07:31:46",
+    "site": "https://biggold.ca"
+  },
+  {
+    "ticker": "BGLD.CN",
+    "ok": true,
+    "total": "28",
+    "pages": "28",
+    "first_date": "2026-04-07T15:02:41",
+    "site": "https://borealgold.ca"
+  },
+  {
+    "ticker": "BAR.CN",
+    "ok": true,
+    "total": "56",
+    "pages": "56",
+    "first_date": "2025-12-29T10:48:04",
+    "site": "https://barrancogold.com"
+  },
+  {
+    "ticker": "BY.CN",
+    "ok": true,
+    "total": "61",
+    "pages": "61",
+    "first_date": "2026-04-07T04:45:00",
+    "site": "https://beyondminerals.ca"
+  },
+  {
+    "ticker": "BYRG.CN",
+    "ok": true,
+    "total": "44",
+    "pages": "44",
+    "first_date": "2026-04-08T08:05:36",
+    "site": "https://bayridgeresources.com"
+  },
+  {
+    "ticker": "CCC.CN",
+    "ok": true,
+    "total": "106",
+    "pages": "106",
+    "first_date": "2026-03-31T08:01:16",
+    "site": "https://carlylecommodities.com"
+  },
+  {
+    "ticker": "CCI.CN",
+    "ok": true,
+    "total": "60",
+    "pages": "60",
+    "first_date": "2026-04-14T06:00:00",
+    "site": "https://canadiancopper.com"
+  },
+  {
+    "ticker": "CCR.CN",
+    "ok": true,
+    "total": "115",
+    "pages": "115",
+    "first_date": "2024-09-09T23:12:43",
+    "site": "https://greenrivergold.com"
+  },
+  {
+    "ticker": "CSR.CN",
+    "ok": true,
+    "total": "25",
+    "pages": "25",
+    "first_date": "2025-09-09T12:40:36",
+    "site": "https://copperstandard.com"
+  },
+  {
+    "ticker": "COMT.CN",
+    "ok": true,
+    "total": "62",
+    "pages": "62",
+    "first_date": "2026-03-17T05:00:25",
+    "site": "https://collectivemetalsinc.com"
+  },
+  {
+    "ticker": "CXC.CN",
+    "ok": true,
+    "total": "30",
+    "pages": "30",
+    "first_date": "2026-04-01T01:00:48",
+    "site": "https://cmxgoldandsilver.com"
+  },
+  {
+    "ticker": "CRUZ.CN",
+    "ok": true,
+    "total": "142",
+    "pages": "142",
+    "first_date": "2026-03-18T00:01:44",
+    "site": "https://www.cruzbatterymetals.com"
+  },
+  {
+    "ticker": "CARM.CN",
+    "ok": true,
+    "total": "29",
+    "pages": "29",
+    "first_date": "2026-04-14T14:01:06",
+    "site": "https://carmanahcorp.ca"
+  },
+  {
+    "ticker": "DEMC.CN",
+    "ok": true,
+    "total": "37",
+    "pages": "37",
+    "first_date": "2025-07-15T15:11:46",
+    "site": "https://discoveryenergymetals.com"
+  },
+  {
+    "ticker": "EMET.CN",
+    "ok": true,
+    "total": "34",
+    "pages": "34",
+    "first_date": "2026-04-14T13:18:42",
+    "site": "https://canamerametals.com"
+  },
+  {
+    "ticker": "EONE.CN",
+    "ok": true,
+    "total": "21",
+    "pages": "21",
+    "first_date": "2026-04-23T11:56:00",
+    "site": "https://e1-h2.com"
+  },
+  {
+    "ticker": "EPG.CN",
+    "ok": true,
+    "total": "142",
+    "pages": "142",
+    "first_date": "2026-02-13T22:00:00",
+    "site": "https://epicgoldcorp.com"
+  },
+  {
+    "ticker": "ERKA.CN",
+    "ok": true,
+    "total": "46",
+    "pages": "46",
+    "first_date": "2026-04-22T00:43:59",
+    "site": "https://eurekalithiumcorp.com"
+  },
+  {
+    "ticker": "ESAU.CN",
+    "ok": true,
+    "total": "191",
+    "pages": "191",
+    "first_date": "2026-04-17T13:31:28",
+    "site": "https://esgold.com"
+  },
+  {
+    "ticker": "ETR.CN",
+    "ok": true,
+    "total": "83",
+    "pages": "83",
+    "first_date": "2026-01-22T18:45:59",
+    "site": "https://etruscusresources.com"
+  },
+  {
+    "ticker": "FNI.CN",
+    "ok": true,
+    "total": "90",
+    "pages": "90",
+    "first_date": "2026-04-07T12:29:44",
+    "site": "https://fathomnickel.com"
+  },
+  {
+    "ticker": "FNX.CN",
+    "ok": true,
+    "total": "18",
+    "pages": "18",
+    "first_date": "2025-12-05T19:23:02",
+    "site": "https://fnxminerals.com"
+  },
+  {
+    "ticker": "FOX.CN",
+    "ok": true,
+    "total": "58",
+    "pages": "58",
+    "first_date": "2025-11-12T09:36:18",
+    "site": "https://fox-river.ca"
+  },
+  {
+    "ticker": "FTEL.CN",
+    "ok": true,
+    "total": "142",
+    "pages": "142",
+    "first_date": "2026-04-17T16:02:19",
+    "site": "https://firsttellurium.com"
+  },
+  {
+    "ticker": "GAND.CN",
+    "ok": true,
+    "total": "23",
+    "pages": "23",
+    "first_date": "2024-08-20T20:56:44",
+    "site": "https://gandergold.com"
+  },
+  {
+    "ticker": "GDN.CN",
+    "ok": true,
+    "total": "36",
+    "pages": "36",
+    "first_date": "2026-04-23T01:24:23",
+    "site": "https://goldenageexploration.com"
+  },
+  {
+    "ticker": "GOR.CN",
+    "ok": true,
+    "total": "64",
+    "pages": "64",
+    "first_date": "2026-03-25T13:44:11",
+    "site": "https://goldrea.com"
+  },
+  {
+    "ticker": "GPO.CN",
+    "ok": true,
+    "total": "25",
+    "pages": "25",
+    "first_date": "2026-04-23T09:11:17",
+    "site": "https://www.goldportcorporation.com"
+  },
+  {
+    "ticker": "GRAY.CN",
+    "ok": true,
+    "total": "54",
+    "pages": "54",
+    "first_date": "2023-10-04T12:30:34",
+    "site": "https://graycliffexploration.com"
+  },
+  {
+    "ticker": "GSTR.CN",
+    "ok": true,
+    "total": "36",
+    "pages": "36",
+    "first_date": "2026-04-17T02:24:00",
+    "site": "https://glenstar.ca"
+  },
+  {
+    "ticker": "GURN.CN",
+    "ok": true,
+    "total": "61",
+    "pages": "61",
+    "first_date": "2026-04-20T05:00:00",
+    "site": "https://www.globaluranium.com"
+  },
+  {
+    "ticker": "GXP.CN",
+    "ok": true,
+    "total": "66",
+    "pages": "66",
+    "first_date": "2026-04-14T05:00:00",
+    "site": "https://greenridge-exploration.com"
+  },
+  {
+    "ticker": "HM.CN",
+    "ok": true,
+    "total": "13",
+    "pages": "13",
+    "first_date": "2026-03-20T14:00:00",
+    "site": "https://hmexploration.com"
+  },
+  {
+    "ticker": "HRK.CN",
+    "ok": true,
+    "total": "8",
+    "pages": "8",
+    "first_date": "2024-04-14T04:50:10",
+    "site": "https://highrockresources.ltd"
+  },
+  {
+    "ticker": "HUNT.CN",
+    "ok": true,
+    "total": "46",
+    "pages": "46",
+    "first_date": "2026-04-21T05:58:28",
+    "site": "https://goldhunterresources.com"
+  },
+  {
+    "ticker": "HWG.CN",
+    "ok": true,
+    "total": "89",
+    "pages": "89",
+    "first_date": "2026-03-19T05:00:18",
+    "site": "https://headwatergold.com"
+  },
+  {
+    "ticker": "INTG.CN",
+    "ok": true,
+    "total": "49",
+    "pages": "49",
+    "first_date": "2026-03-25T14:01:00",
+    "site": "https://www.integralmetals.com"
+  },
+  {
+    "ticker": "KENY.CN",
+    "ok": true,
+    "total": "23",
+    "pages": "23",
+    "first_date": "2026-04-01T00:01:05",
+    "site": "https://www.makenitaresources.com"
+  },
+  {
+    "ticker": "KOG.CN",
+    "ok": true,
+    "total": "30",
+    "pages": "30",
+    "first_date": "2026-03-22T14:06:14",
+    "site": "https://kogoldnz.com"
+  },
+  {
+    "ticker": "LCR.CN",
+    "ok": true,
+    "total": "33",
+    "pages": "33",
+    "first_date": "2025-12-10T11:22:29",
+    "site": "https://lancaster-resources.com"
+  },
+  {
+    "ticker": "LECR.CN",
+    "ok": true,
+    "total": "77",
+    "pages": "77",
+    "first_date": "2025-08-06T11:06:04",
+    "site": "https://leocormining.com"
+  },
+  {
+    "ticker": "LION.CN",
+    "ok": true,
+    "total": "50",
+    "pages": "50",
+    "first_date": "2025-02-10T11:48:18",
+    "site": "https://globalli-iongraphite.com"
+  },
+  {
+    "ticker": "M.CN",
+    "ok": true,
+    "total": "106",
+    "pages": "106",
+    "first_date": "2026-04-22T08:14:03",
+    "site": "https://myriaduranium.com"
+  },
+  {
+    "ticker": "MANN.CN",
+    "ok": true,
+    "total": "70",
+    "pages": "70",
+    "first_date": "2025-09-17T15:57:00",
+    "site": "https://manning-ventures.com"
+  },
+  {
+    "ticker": "MAXM.CN",
+    "ok": true,
+    "total": "42",
+    "pages": "42",
+    "first_date": "2026-04-20T05:00:00",
+    "site": "https://maxusmining.com"
+  },
+  {
+    "ticker": "MAXX.CN",
+    "ok": true,
+    "total": "114",
+    "pages": "114",
+    "first_date": "2026-04-21T11:02:31",
+    "site": "https://www.maxpowermining.com"
+  },
+  {
+    "ticker": "MEDA.CN",
+    "ok": true,
+    "total": "110",
+    "pages": "110",
+    "first_date": "2026-01-27T14:06:26",
+    "site": "https://medaromining.com"
+  },
+  {
+    "ticker": "MEGA.CN",
+    "ok": false,
+    "status": 200,
+    "site": "https://megawattmetals.com"
+  },
+  {
+    "ticker": "MEO.CN",
+    "ok": true,
+    "total": "20",
+    "pages": "20",
+    "first_date": "2026-04-15T09:37:56",
+    "site": "https://cameoresourcesinc.com"
+  },
+  {
+    "ticker": "MILI.CN",
+    "ok": true,
+    "total": "62",
+    "pages": "62",
+    "first_date": "2026-04-08T13:17:21",
+    "site": "https://www.militarymetalscorp.com"
+  },
+  {
+    "ticker": "MLM.CN",
+    "ok": true,
+    "total": "116",
+    "pages": "116",
+    "first_date": "2026-04-13T07:30:00",
+    "site": "https://mcfarlanelakemining.com"
+  },
+  {
+    "ticker": "MMET.CN",
+    "ok": true,
+    "total": "52",
+    "pages": "52",
+    "first_date": "2026-04-21T13:30:00",
+    "site": "https://miatametals.com"
+  },
+  {
+    "ticker": "MNG.CN",
+    "ok": true,
+    "total": "17",
+    "pages": "17",
+    "first_date": "2026-04-02T19:44:41",
+    "site": "https://mongoosemining.com"
+  },
+  {
+    "ticker": "MOC.CN",
+    "ok": true,
+    "total": "82",
+    "pages": "82",
+    "first_date": "2026-03-05T10:46:26",
+    "site": "https://mosaicminerals.ca"
+  },
+  {
+    "ticker": "MOLT.CN",
+    "ok": true,
+    "total": "56",
+    "pages": "56",
+    "first_date": "2025-11-03T22:18:46",
+    "site": "https://moltenmetalscorp.com"
+  },
+  {
+    "ticker": "MONI.CN",
+    "ok": true,
+    "total": "44",
+    "pages": "44",
+    "first_date": "2025-09-03T17:22:16",
+    "site": "https://globaltacticalmetals.com"
+  },
+  {
+    "ticker": "NATO.CN",
+    "ok": true,
+    "total": "10",
+    "pages": "10",
+    "first_date": "2026-04-20T15:18:10",
+    "site": "https://www.natitanium.com"
+  },
+  {
+    "ticker": "NEWD.CN",
+    "ok": true,
+    "total": "123",
+    "pages": "123",
+    "first_date": "2026-03-13T15:09:36",
+    "site": "https://newfoundlanddiscovery.ca"
+  },
+  {
+    "ticker": "NEXU.CN",
+    "ok": true,
+    "total": "154",
+    "pages": "154",
+    "first_date": "2026-04-16T03:00:00",
+    "site": "https://nexusuranium.com"
+  },
+  {
+    "ticker": "NICO.CN",
+    "ok": true,
+    "total": "89",
+    "pages": "89",
+    "first_date": "2025-10-08T07:30:00",
+    "site": "https://class1nickel.com"
+  },
+  {
+    "ticker": "NINE.CN",
+    "ok": true,
+    "total": "173",
+    "pages": "173",
+    "first_date": "2026-04-23T11:45:47",
+    "site": "https://ninemilemetals.com"
+  },
+  {
+    "ticker": "NOM.CN",
+    "ok": true,
+    "total": "89",
+    "pages": "89",
+    "first_date": "2026-04-22T16:42:24",
+    "site": "https://norsemont.com"
+  },
+  {
+    "ticker": "NOP.CN",
+    "ok": true,
+    "total": "41",
+    "pages": "41",
+    "first_date": "2026-04-13T03:57:28",
+    "site": "https://www.nevadaphosphate.com"
+  },
+  {
+    "ticker": "NVPC.CN",
+    "ok": true,
+    "total": "41",
+    "pages": "41",
+    "first_date": "2026-04-09T09:30:10",
+    "site": "https://www.novapacificmetals.com"
+  },
+  {
+    "ticker": "OMGA.CN",
+    "ok": true,
+    "total": "10",
+    "pages": "10",
+    "first_date": "2022-09-10T22:11:40",
+    "site": "https://omegapacific.ca"
+  },
+  {
+    "ticker": "OWLI.CN",
+    "ok": true,
+    "total": "184",
+    "pages": "184",
+    "first_date": "2025-07-16T04:25:39",
+    "site": "https://oneworldlithium.com"
+  },
+  {
+    "ticker": "PATH.CN",
+    "ok": true,
+    "total": "60",
+    "pages": "60",
+    "first_date": "2024-10-03T08:21:12",
+    "site": "https://newpathresources.com"
+  },
+  {
+    "ticker": "PGR.CN",
+    "ok": true,
+    "total": "17",
+    "pages": "17",
+    "first_date": "2025-11-12T16:53:00",
+    "site": "https://planetgreenmetals.ca"
+  },
+  {
+    "ticker": "PMAX.CN",
+    "ok": true,
+    "total": "32",
+    "pages": "32",
+    "first_date": "2026-03-12T09:19:19",
+    "site": "https://powermaxminerals.com"
+  },
+  {
+    "ticker": "PMC.CN",
+    "ok": true,
+    "total": "47",
+    "pages": "47",
+    "first_date": "2026-03-28T12:16:07",
+    "site": "https://pelotonminerals.com"
+  },
+  {
+    "ticker": "PNRG.CN",
+    "ok": true,
+    "total": "127",
+    "pages": "127",
+    "first_date": "2026-04-23T05:00:13",
+    "site": "https://panam-energy.com"
+  },
+  {
+    "ticker": "POWR.CN",
+    "ok": true,
+    "total": "51",
+    "pages": "51",
+    "first_date": "2025-04-04T14:59:46",
+    "site": "https://powrlithium.com"
+  },
+  {
+    "ticker": "PRCG.CN",
+    "ok": true,
+    "total": "16",
+    "pages": "16",
+    "first_date": "2026-04-16T11:08:13",
+    "site": "https://precoregold.com"
+  },
+  {
+    "ticker": "PRIZ.CN",
+    "ok": true,
+    "total": "105",
+    "pages": "105",
+    "first_date": "2026-04-07T07:00:58",
+    "site": "https://prismometals.com"
+  },
+  {
+    "ticker": "PRR.CN",
+    "ok": true,
+    "total": "43",
+    "pages": "43",
+    "first_date": "2026-03-26T04:45:00",
+    "site": "https://prospectridgeresources.com"
+  },
+  {
+    "ticker": "PSE.CN",
+    "ok": true,
+    "total": "200",
+    "pages": "200",
+    "first_date": "2026-03-27T07:30:33",
+    "site": "https://pasinex.com"
+  },
+  {
+    "ticker": "PURR.CN",
+    "ok": true,
+    "total": "45",
+    "pages": "45",
+    "first_date": "2026-01-07T17:31:53",
+    "site": "https://pantherminerals.ca"
+  },
+  {
+    "ticker": "QIM.CN",
+    "ok": true,
+    "total": "63",
+    "pages": "63",
+    "first_date": "2026-04-15T11:30:00",
+    "site": "https://www.quimbayagold.com"
+  },
+  {
+    "ticker": "QIMC.CN",
+    "ok": true,
+    "total": "85",
+    "pages": "85",
+    "first_date": "2026-04-23T00:24:48",
+    "site": "https://qimaterials.com"
+  },
+  {
+    "ticker": "QREE.CN",
+    "ok": true,
+    "total": "57",
+    "pages": "57",
+    "first_date": "2024-06-25T06:23:44",
+    "site": "https://qree.ca"
+  },
+  {
+    "ticker": "RFLX.CN",
+    "ok": true,
+    "total": "55",
+    "pages": "55",
+    "first_date": "2026-03-06T15:44:34",
+    "site": "https://reflexmaterials.com"
+  },
+  {
+    "ticker": "RFR.CN",
+    "ok": true,
+    "total": "49",
+    "pages": "49",
+    "first_date": "2026-04-23T10:34:01",
+    "site": "https://renforthresources.com"
+  },
+  {
+    "ticker": "RGN.CN",
+    "ok": true,
+    "total": "17",
+    "pages": "17",
+    "first_date": "2026-04-17T05:30:08",
+    "site": "https://rushgoldcorp.com"
+  },
+  {
+    "ticker": "RSH.CN",
+    "ok": true,
+    "total": "33",
+    "pages": "33",
+    "first_date": "2026-04-20T12:51:04",
+    "site": "https://www.rushraremetals.com"
+  },
+  {
+    "ticker": "RUU.CN",
+    "ok": true,
+    "total": "64",
+    "pages": "64",
+    "first_date": "2026-04-02T05:00:00",
+    "site": "https://refinedenergy.com"
+  },
+  {
+    "ticker": "SASQ.CN",
+    "ok": true,
+    "total": "39",
+    "pages": "39",
+    "first_date": "2026-03-01T22:48:50",
+    "site": "https://sasquatchresources.com"
+  },
+  {
+    "ticker": "SCV.CN",
+    "ok": true,
+    "total": "64",
+    "pages": "64",
+    "first_date": "2026-02-13T23:12:39",
+    "site": "https://www.scotch-creek.com"
+  },
+  {
+    "ticker": "SEAG.X.CN",
+    "ok": true,
+    "total": "30",
+    "pages": "30",
+    "first_date": "2026-02-23T21:27:58",
+    "site": "https://seahawkgoldcorp.com"
+  },
+  {
+    "ticker": "SLZ.CN",
+    "ok": true,
+    "total": "48",
+    "pages": "48",
+    "first_date": "2026-02-04T05:00:00",
+    "site": "https://zinccorp.ca"
+  },
+  {
+    "ticker": "STCU.CN",
+    "ok": true,
+    "total": "62",
+    "pages": "62",
+    "first_date": "2026-04-14T00:01:50",
+    "site": "https://starcopper.com"
+  },
+  {
+    "ticker": "STMN.CN",
+    "ok": true,
+    "total": "21",
+    "pages": "21",
+    "first_date": "2026-04-16T17:18:47",
+    "site": "https://www.uraniumx.ca"
+  },
+  {
+    "ticker": "STNG.CN",
+    "ok": true,
+    "total": "21",
+    "pages": "21",
+    "first_date": "2026-03-11T17:44:45",
+    "site": "https://stingerresources.com"
+  },
+  {
+    "ticker": "SUR.CN",
+    "ok": true,
+    "total": "147",
+    "pages": "147",
+    "first_date": "2026-03-04T05:30:42",
+    "site": "https://surfacemetals.com"
+  },
+  {
+    "ticker": "SUU.CN",
+    "ok": true,
+    "total": "108",
+    "pages": "108",
+    "first_date": "2026-04-14T09:00:00",
+    "site": "https://strathmoreplus.com"
+  },
+  {
+    "ticker": "SX.CN",
+    "ok": true,
+    "total": "99",
+    "pages": "99",
+    "first_date": "2026-04-01T11:00:00",
+    "site": "https://stgeorgesecomining.com"
+  },
+  {
+    "ticker": "TERA.CN",
+    "ok": false,
+    "status": 404,
+    "site": "https://terrabresources.com/en"
+  },
+  {
+    "ticker": "TGII.CN",
+    "ok": true,
+    "total": "28",
+    "pages": "28",
+    "first_date": "2024-05-27T14:40:26",
+    "site": "https://trojangold.com"
+  },
+  {
+    "ticker": "TICO.CN",
+    "ok": true,
+    "total": "18",
+    "pages": "18",
+    "first_date": "2026-04-21T02:00:00",
+    "site": "https://www.csetico.com"
+  },
+  {
+    "ticker": "TMAS.CN",
+    "ok": true,
+    "total": "91",
+    "pages": "91",
+    "first_date": "2026-04-24T07:00:00",
+    "site": "https://temasresources.com"
+  },
+  {
+    "ticker": "TMIN.CN",
+    "ok": true,
+    "total": "88",
+    "pages": "88",
+    "first_date": "2026-04-24T11:05:06",
+    "site": "https://teakominerals.com"
+  },
+  {
+    "ticker": "TN.CN",
+    "ok": true,
+    "total": "52",
+    "pages": "52",
+    "first_date": "2026-04-09T00:07:06",
+    "site": "https://tartisannickel.com/en"
+  },
+  {
+    "ticker": "TTX.CN",
+    "ok": true,
+    "total": "39",
+    "pages": "39",
+    "first_date": "2025-08-26T18:35:31",
+    "site": "https://tantalexlithium.com"
+  },
+  {
+    "ticker": "UE.CN",
+    "ok": true,
+    "total": "97",
+    "pages": "97",
+    "first_date": "2024-02-01T08:27:40",
+    "site": "https://uranoenergy.com"
+  },
+  {
+    "ticker": "UG.CN",
+    "ok": true,
+    "total": "17",
+    "pages": "17",
+    "first_date": "2026-04-14T14:02:36",
+    "site": "https://upsidegoldcorp.com"
+  },
+  {
+    "ticker": "ULTH.CN",
+    "ok": true,
+    "total": "78",
+    "pages": "78",
+    "first_date": "2026-03-10T13:28:52",
+    "site": "https://unitedlithium.com"
+  },
+  {
+    "ticker": "USCM.CN",
+    "ok": true,
+    "total": "77",
+    "pages": "77",
+    "first_date": "2026-01-15T08:41:34",
+    "site": "https://uscmcorp.com"
+  },
+  {
+    "ticker": "VRTX.CN",
+    "ok": true,
+    "total": "84",
+    "pages": "84",
+    "first_date": "2026-02-18T14:00:00",
+    "site": "https://vortexenergycorp.com"
+  }
+]

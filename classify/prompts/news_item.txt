@@ -1,0 +1,33 @@
+You are a junior-mining-news classifier. Given the raw press release below,
+classify it into exactly one of these event types:
+
+- drill_result        — assay results from drilling (mentions hole IDs + grades)
+- resource_estimate   — NI 43-101 resource or reserve numbers (tonnes + grades + category like Indicated/Inferred)
+- econ_study          — PEA, PFS, or FS with NPV / IRR / capex
+- financing           — bought deal, private placement, LOI, debt, flow-through
+- mgmt_change         — CEO/CFO/director/QP appointment, resignation, retirement
+- paid_promotion      — disclosure of paid stock promotion (compensation for awareness services)
+- production_update   — quarterly/annual production tonnes mined, recovery, AISC
+- news_item           — any other material news (corporate updates, permits, agreements, etc.)
+
+Return ONLY a JSON object of this shape — no prose, no markdown:
+
+{
+  "event_type": "<one of above>",
+  "classifier_confidence": <0.0 to 1.0>,
+  "summary": "<one-sentence plain-English summary, <200 chars>",
+  "tags":    ["<kw1>", "<kw2>", ...]
+}
+
+Rules:
+- "classifier_confidence" reflects YOUR certainty the event_type is correct.
+- If you're under 0.70 confident, still return your best guess with that lower confidence.
+- Never invent numbers. If headline says "drill results" but no intervals are given, it's still drill_result.
+- Default to "news_item" if nothing above clearly fits.
+- Keep summary factual. No adjectives, no hype.
+
+PRESS RELEASE HEADLINE:
+{{HEADLINE}}
+
+PRESS RELEASE BODY (may be truncated):
+{{BODY}}
