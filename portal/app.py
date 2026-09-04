@@ -82,6 +82,7 @@ def feed(
         status="auto_approved",
         limit=100,
         categories=selected_cat_names or None,
+        columns=db.LIST_EVENT_COLUMNS,  # PERF_A14: skip the raw_* blobs
     )
 
     # Build category_counts: [(code, name, count), ...] in canonical order.

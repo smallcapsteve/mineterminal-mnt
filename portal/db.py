@@ -2,10 +2,23 @@ from __future__ import annotations
 import os
 import sqlite3
 import threading
+import time
 from pathlib import Path
 from typing import Iterator
 
 DB_PATH = Path(os.environ.get("MNT_PORTAL_DB", "/opt/mnt/app/portal/portal.db"))
+
+# PERF_A14 (2026-09-04): raw_html (14.9 KB avg), raw_body (8.2 KB) and
+# raw_excerpt (0.9 KB) are never rendered by the feed, yet SELECT * pulled
+# 3.3 MB off disk on every homepage request. Callers needing only list
+# metadata pass columns=LIST_EVENT_COLUMNS. The default stays "*", so no
+# other caller changes behaviour. Internal constant, never user input.
+LIST_EVENT_COLUMNS = (
+    "event_id, event_type, ticker, company_id, property_id, source_url, "
+    "source_name, published_at, classified_at, classifier_model, "
+    "classifier_confidence, review_status, raw_headline, ingested_at, "
+    "categories, slug, additional_tickers"
+)
 _LOCAL = threading.local()
 
 SCHEMA = """
@@ -135,7 +148,25 @@ def list_tickers() -> list[tuple[str, int]]:
     return sorted(counts.items())
 
 
+# PERF_A14 (2026-09-04): this scans every auto_approved event to produce nine
+# counts, costing 0.31s on every homepage request. The counts only move when
+# the scraper ingests, so they are cached for 5 minutes. Article listings are
+# NOT cached; only the category chip counts can lag, by at most _CATEGORY_TTL.
+_CATEGORY_TTL = 300.0
+_category_cache: tuple = ()
+
+
 def list_categories() -> list[tuple[str, int]]:
+    global _category_cache
+    now = time.monotonic()
+    if _category_cache and (now - _category_cache[0]) < _CATEGORY_TTL:
+        return _category_cache[1]
+    result = _list_categories_uncached()
+    _category_cache = (now, result)
+    return result
+
+
+def _list_categories_uncached() -> list[tuple[str, int]]:
     """Return ordered list of (category, count) pairs across auto_approved
     events. Uses the canonical category list from portal.categorize so
     order is stable.
@@ -164,7 +195,8 @@ def list_categories() -> list[tuple[str, int]]:
 
 def list_events(ticker: str | None = None, status: str | None = "auto_approved",
                 categories: list[str] | None = None,
-                limit: int = 100, offset: int = 0) -> list[sqlite3.Row]:
+                limit: int = 100, offset: int = 0,
+                columns: str = "*") -> list[sqlite3.Row]:
     c = get_conn()
     where, args = [], []
     if status:
@@ -190,7 +222,7 @@ def list_events(ticker: str | None = None, status: str | None = "auto_approved",
                 f"%|{cat}|%",
             ])
         where.append("(" + " OR ".join(cat_clauses) + ")")
-    sql = "SELECT * FROM events"
+    sql = "SELECT " + columns + " FROM events"
     if where:
         sql += " WHERE " + " AND ".join(where)
     sql += " ORDER BY COALESCE(published_at, classified_at) DESC LIMIT ? OFFSET ?"
