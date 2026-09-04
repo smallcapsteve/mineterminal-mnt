@@ -1704,3 +1704,125 @@ def api_companies_stage_signals():
 # --- admin API (added 2026-05-04) ---
 from portal.admin import router as admin_router
 app.include_router(admin_router)
+
+
+# ====== MTP company links (appended) ======
+"""MNT_MTP_TICKER_LINKS_V1 — link the ticker column through to a company's
+Overview page on MineTerminalPro.
+
+Two facts drive the design:
+  * MNT stores tickers with an exchange suffix ("ACRE.CN"); MTP stores them
+    bare ("ACRE"), with the exchange in its own field. The suffix has to be
+    stripped or the link resolves to nothing.
+  * MTP covers only part of our universe (CSE plus a handful of TSXV). A
+    ticker it does not hold falls back to MTP's company directory, i.e. a
+    click that does not do what it promised. So a link is rendered only for
+    tickers MTP actually has; the rest stay plain text.
+
+The company list comes from MinePortal on this same box — the source MTP
+itself renders from. It is cached on disk and refreshed on a background
+thread, so a page render never waits on a network call and a restart does
+not lose the list. If the list is unavailable the filter returns "" and every
+ticker renders as plain text: it degrades to today's behaviour, not to
+broken links.
+"""
+import json as _json_mtp
+import os as _os_mtp
+import threading as _thr_mtp
+import time as _time_mtp
+import urllib.request as _req_mtp
+
+_MTP_COMPANY_URL = "https://mineterminalpro.com/companies/"
+_MTP_SOURCE_URL = "http://127.0.0.1:8090/api/companies"
+_MTP_CACHE_PATH = "/var/lib/mnt-portal/mtp-companies.json"
+_MTP_TTL_S = 6 * 3600
+_MTP_FETCH_TIMEOUT_S = 10
+
+_mtp_state = {"tickers": frozenset(), "fetched_at": 0.0, "refreshing": False}
+_mtp_lock = _thr_mtp.Lock()
+
+
+def _mtp_base_ticker(value):
+    """'ACRE.CN' -> 'ACRE'. MTP keys companies on the bare symbol."""
+    if not value:
+        return ""
+    return str(value).strip().upper().split(".")[0]
+
+
+def _mtp_parse(payload):
+    rows = payload.get("companies") if isinstance(payload, dict) else payload
+    out = set()
+    for row in rows or []:
+        if isinstance(row, dict):
+            base = _mtp_base_ticker(row.get("ticker"))
+            if base:
+                out.add(base)
+    return frozenset(out)
+
+
+def _mtp_read_cache():
+    try:
+        with open(_MTP_CACHE_PATH) as fh:
+            blob = _json_mtp.load(fh)
+        return frozenset(blob.get("tickers") or []), float(blob.get("fetched_at") or 0.0)
+    except Exception:
+        return frozenset(), 0.0
+
+
+def _mtp_write_cache(tickers, fetched_at):
+    try:
+        _os_mtp.makedirs(_os_mtp.path.dirname(_MTP_CACHE_PATH), exist_ok=True)
+        tmp = _MTP_CACHE_PATH + ".tmp"
+        with open(tmp, "w") as fh:
+            _json_mtp.dump({"tickers": sorted(tickers), "fetched_at": fetched_at}, fh)
+        _os_mtp.replace(tmp, _MTP_CACHE_PATH)
+    except Exception as exc:
+        log.warning("mtp company cache write failed: %s", exc)
+
+
+def _mtp_refresh():
+    """Background thread only — never called on a request path."""
+    try:
+        with _req_mtp.urlopen(_MTP_SOURCE_URL, timeout=_MTP_FETCH_TIMEOUT_S) as resp:
+            payload = _json_mtp.loads(resp.read().decode("utf-8"))
+        tickers = _mtp_parse(payload)
+        if not tickers:
+            log.warning("mtp company list came back empty; keeping previous")
+            return
+        now = _time_mtp.time()
+        with _mtp_lock:
+            _mtp_state["tickers"] = tickers
+            _mtp_state["fetched_at"] = now
+        _mtp_write_cache(tickers, now)
+        log.info("mtp company list refreshed: %d tickers", len(tickers))
+    except Exception as exc:
+        log.warning("mtp company list refresh failed: %s", exc)
+    finally:
+        with _mtp_lock:
+            _mtp_state["refreshing"] = False
+
+
+def _mtp_tickers():
+    with _mtp_lock:
+        tickers = _mtp_state["tickers"]
+        stale = (_time_mtp.time() - _mtp_state["fetched_at"]) > _MTP_TTL_S
+        start = stale and not _mtp_state["refreshing"]
+        if start:
+            _mtp_state["refreshing"] = True
+    if start:
+        _thr_mtp.Thread(target=_mtp_refresh, name="mtp-companies", daemon=True).start()
+    return tickers
+
+
+def _mtp_company_url(ticker):
+    """Jinja filter. MTP Overview URL, or "" when MTP has no page for it."""
+    base = _mtp_base_ticker(ticker)
+    if base and base in _mtp_tickers():
+        return _MTP_COMPANY_URL + base
+    return ""
+
+
+_mtp_state["tickers"], _mtp_state["fetched_at"] = _mtp_read_cache()
+templates.env.filters["mtp_url"] = _mtp_company_url
+_mtp_tickers()  # cold cache -> kicks off the first background refresh
+# ====== end MTP company links ======
