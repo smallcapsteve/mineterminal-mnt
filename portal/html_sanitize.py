@@ -29,9 +29,15 @@ ALLOWED_TAGS = {
 }
 
 # Tags whose *contents* are discarded too, not just the tag itself.
-CLEAN_CONTENT_TAGS = {"script", "style", "iframe", "object", "embed", "form",
-                      "input", "button", "select", "textarea", "noscript",
-                      "template", "svg", "math"}
+#
+# `form` is deliberately NOT here. ASP.NET WebForms wraps the entire page body
+# in a single <form runat="server">, so treating form as content-destroying
+# deletes the whole article: measured against the live corpus it removed 501
+# <td>, 479 <p> and 445 <span> from one release alone. Same reasoning for
+# input/button/select/textarea - they are simply left out of ALLOWED_TAGS, so
+# the tag is stripped and any text inside it survives.
+CLEAN_CONTENT_TAGS = {"script", "style", "iframe", "object", "embed",
+                      "noscript", "template", "svg", "math"}
 
 ALLOWED_ATTRIBUTES = {
     "*": {"class", "id", "title", "dir", "lang", "style"},
@@ -93,13 +99,21 @@ def _smoke_test() -> None:
     and the module quietly degrades to nh3 defaults - sanitising correctly
     but discarding tables, classes and the cosmetic scrubbers' hooks.
     """
-    probe = '<p class="x" style="text-align:center">t</p><table><tr><td>c</td></tr></table>'
+    probe = ('<p class="x" style="text-align:center">t</p>'
+             '<table><tr><td>c</td></tr></table>'
+             # ASP.NET wraps whole pages in one <form>; content inside it must
+             # survive. Regression guard for the 2026-09-08 measurement.
+             '<form><table><tr><td>inform</td></tr></table></form>'
+             '<script>alert(1)</script><img src=x onerror="alert(1)">')
     out = nh3.clean(
         probe, tags=ALLOWED_TAGS, clean_content_tags=CLEAN_CONTENT_TAGS,
         attributes=ALLOWED_ATTRIBUTES, url_schemes=ALLOWED_URL_SCHEMES,
         link_rel="noopener noreferrer", strip_comments=True,
     )
-    for expect in ('class="x"', "text-align:center", "<td>"):
+    for forbid in ("<script", "onerror", "alert(1)"):
+        if forbid in out:
+            raise RuntimeError(f"sanitizer let through {forbid!r}: {out!r}")
+    for expect in ('class="x"', "text-align:center", "<td>", "inform"):
         if expect not in out:
             raise RuntimeError(
                 f"sanitizer config rejected {expect!r}; got {out!r}"
