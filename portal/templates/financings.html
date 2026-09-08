@@ -65,7 +65,7 @@
       <tbody>
         {% for r in rows %}
           <tr>
-            <td class="fin-ticker">{% set _mtp = r["ticker"] | mtp_url %}{% if _mtp %}<a class="mtp-co" href="{{ _mtp }}" target="_blank" rel="noopener" title="Open {{ r['ticker'] }} on MineTerminalPro">{{ r["ticker"] }}</a>{% else %}{{ r["ticker"] }}{% endif %}</td>
+            <td class="fin-ticker">{% set _mtp = r["ticker"] | mtp_url('financings') %}{% if _mtp %}<a class="mtp-co" href="{{ _mtp }}" target="_blank" rel="noopener" title="Open {{ r['ticker'] }} financings on MineTerminalPro">{{ r["ticker"] }}</a>{% else %}{{ r["ticker"] }}{% endif %}</td>
             <td class="fin-date">{{ (r["announced_at"] or "")[:10] }}</td>
             <td class="fin-kind">{{ (r["kind"] or "—") | replace("_", " ") | replace("+", " · ") }}</td>
             <td class="fin-amt">{{ r["gross_announced_fmt"] or "—" }}</td>

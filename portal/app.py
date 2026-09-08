@@ -18,7 +18,14 @@ logging.basicConfig(
 log = logging.getLogger("portal")
 
 BASE_DIR = Path(__file__).parent
-app = FastAPI(title="MNT Portal")
+app = FastAPI(
+    title="MNT Portal",
+    # B32 (2026-09-07): the interactive API docs published a browsable map of
+    # every route, write endpoints included. Off in production.
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None,
+)
 
 # MNT_NEWS_API_V1_HOOK
 try:
@@ -1814,15 +1821,189 @@ def _mtp_tickers():
     return tickers
 
 
-def _mtp_company_url(ticker):
-    """Jinja filter. MTP Overview URL, or "" when MTP has no page for it."""
+# MTP's company page is split into sections, each with its own address (D1).
+# Slugs verified against the live tab strip 2026-09-08. "capital" was renamed
+# to "insider-sales" on 2026-09-07 and financings moved to a Financials
+# sub-page; old /capital links still redirect, but we target the current names.
+_MTP_SECTION_PATHS = {
+    "overview": "",
+    "economic-study": "/economic-study",
+    "mining": "/mining",
+    "news": "/news",
+    "financials": "/financials",
+    "financings": "/financials/financings",
+    "management": "/management",
+    "insider-sales": "/insider-sales",
+    "sedar": "/sedar",
+}
+
+
+def _mtp_company_url(ticker, section=None):
+    """Jinja filter. MTP URL for a company, or "" when MTP has no page for it.
+
+    The optional section sends the reader to the part of the company page that
+    matches the row they clicked (H6) rather than always to Overview. An
+    unrecognised section falls back to Overview rather than inventing an
+    address that does not exist -- a general link beats a broken one.
+    """
     base = _mtp_base_ticker(ticker)
-    if base and base in _mtp_tickers():
-        return _MTP_COMPANY_URL + base
-    return ""
+    if not base or base not in _mtp_tickers():
+        return ""
+    key = (section or "overview").strip().lower()
+    path = _MTP_SECTION_PATHS.get(key)
+    if path is None:
+        log.warning("unknown MTP section %r; linking to Overview", section)
+        path = ""
+    return _MTP_COMPANY_URL + base + path
 
 
 _mtp_state["tickers"], _mtp_state["fetched_at"] = _mtp_read_cache()
 templates.env.filters["mtp_url"] = _mtp_company_url
 _mtp_tickers()  # cold cache -> kicks off the first background refresh
 # ====== end MTP company links ======
+
+
+# ====== search index (appended) ======
+"""MNT_SEARCH_FTS_V1 - /search backed by an FTS5 index instead of a full scan.
+
+Before: `raw_headline/raw_body LIKE '%term%'` read every approved article on
+every search - 15,815 rows, ~124 MB of body text - and `SELECT *` additionally
+pulled `raw_html` (214 MB across the table) that the results list never
+renders. Measured 1.35-1.93s per search at the origin.
+
+After: an FTS5 index (`events_fts`, external-content over `events`) kept
+current by three triggers, plus the narrow column list PERF_A14 added for
+exactly this reason.
+
+Two deliberate choices, both Justin's:
+  * Word-start matching, so "gold" still finds Goldfield and Goldcorp but no
+    longer matches inside "marigold". The alternative, a trigram index,
+    preserves substring matching exactly at 2-3x the index size.
+  * Newest first, unchanged. FTS5 offers relevance ranking (bm25); keeping
+    published_at DESC means the only change a reader notices is the speed.
+
+The schema is created here as well as by hand so a database rebuilt from
+scratch gets the index instead of silently reverting to a full scan - the
+mistake recorded as H3 against the H1 index fix.
+"""
+import re as _re_fts
+import threading as _thr_fts
+
+# Letters and digits only. Everything else is punctuation to the tokenizer, and
+# letting it through would be FTS5 query syntax rather than search text.
+_FTS_TERM_RE = _re_fts.compile(r"[0-9A-Za-z\u00c0-\u024f]+")
+
+_FTS_SCHEMA = """
+CREATE VIRTUAL TABLE IF NOT EXISTS events_fts USING fts5(
+    raw_headline, raw_body, ticker,
+    content='events', content_rowid='rowid'
+);
+CREATE TRIGGER IF NOT EXISTS events_fts_ai AFTER INSERT ON events BEGIN
+  INSERT INTO events_fts(rowid, raw_headline, raw_body, ticker)
+  VALUES (new.rowid, new.raw_headline, new.raw_body, new.ticker);
+END;
+CREATE TRIGGER IF NOT EXISTS events_fts_ad AFTER DELETE ON events BEGIN
+  INSERT INTO events_fts(events_fts, rowid, raw_headline, raw_body, ticker)
+  VALUES ('delete', old.rowid, old.raw_headline, old.raw_body, old.ticker);
+END;
+CREATE TRIGGER IF NOT EXISTS events_fts_au AFTER UPDATE ON events BEGIN
+  INSERT INTO events_fts(events_fts, rowid, raw_headline, raw_body, ticker)
+  VALUES ('delete', old.rowid, old.raw_headline, old.raw_body, old.ticker);
+  INSERT INTO events_fts(rowid, raw_headline, raw_body, ticker)
+  VALUES (new.rowid, new.raw_headline, new.raw_body, new.ticker);
+END;
+"""
+
+_SEARCH_COLS = ", ".join("e." + _c.strip() for _c in db.LIST_EVENT_COLUMNS.split(","))
+
+_SEARCH_SQL_FTS = (
+    "SELECT " + _SEARCH_COLS + " FROM events_fts "
+    "JOIN events e ON e.rowid = events_fts.rowid "
+    "WHERE events_fts MATCH ? AND e.review_status='auto_approved' "
+    "ORDER BY e.published_at DESC LIMIT 200"
+)
+
+_SEARCH_SQL_LIKE = (
+    "SELECT " + _SEARCH_COLS + " FROM events e "
+    "WHERE e.review_status='auto_approved' "
+    "  AND (e.raw_headline LIKE ? OR e.raw_body LIKE ? OR e.ticker LIKE ?) "
+    "ORDER BY e.published_at DESC LIMIT 200"
+)
+
+
+def _fts_match_query(q):
+    """User text -> a safe FTS5 MATCH expression, or "" if there is nothing to search.
+
+    Every term is quoted, so FTS5 operators a visitor happens to type - AND, OR,
+    NOT, -, *, quotes, parentheses - are treated as text rather than syntax. The
+    trailing * on each term is what gives word-start matching.
+    """
+    terms = _FTS_TERM_RE.findall(q or "")
+    return " ".join('"%s"*' % t for t in terms[:12])
+
+
+def _fts_rebuild():
+    """Background only - a full rebuild takes ~15s and holds a write lock."""
+    try:
+        conn = db.get_conn()
+        conn.execute("INSERT INTO events_fts(events_fts) VALUES('rebuild')")
+        conn.commit()
+        log.info("events_fts rebuilt")
+    except Exception as exc:
+        log.warning("events_fts rebuild failed: %s", exc)
+
+
+def _fts_ensure_schema():
+    try:
+        conn = db.get_conn()
+        conn.executescript(_FTS_SCHEMA)
+        conn.commit()
+        # count(*) on an external-content FTS table reads through to the CONTENT
+        # table, so it reports the full row count even when the index is empty
+        # and cannot be used as a population check. This cost one wasted build
+        # on 2026-09-08. The index's own storage is events_fts_data; an empty
+        # index holds <= 2 rows there.
+        blocks = conn.execute("SELECT COUNT(*) FROM events_fts_data").fetchone()[0]
+        if blocks <= 2 and conn.execute("SELECT COUNT(*) FROM events").fetchone()[0]:
+            log.warning("events_fts is empty; rebuilding in the background")
+            _thr_fts.Thread(target=_fts_rebuild, name="events-fts-rebuild",
+                            daemon=True).start()
+    except Exception as exc:
+        log.warning("events_fts schema check failed: %s", exc)
+
+
+_orig_search_page = search_page
+
+
+def search_page(request: Request, q: str = ""):  # noqa: F811
+    q = (q or "").strip()
+    rows = []
+    if q:
+        conn = db.get_conn()
+        match = _fts_match_query(q)
+        if match:
+            try:
+                rows = list(conn.execute(_SEARCH_SQL_FTS, (match,)))
+            except Exception as exc:
+                # A search must never 500. Fall back to the old scan: slow, but
+                # correct, and it keeps working if the index is ever dropped.
+                log.warning("fts search failed for %r, falling back to scan: %s", q, exc)
+                pattern = "%" + q + "%"
+                rows = list(conn.execute(_SEARCH_SQL_LIKE, (pattern, pattern, pattern)))
+    return templates.TemplateResponse(request, "search.html", {
+        "request": request,
+        "q": q,
+        "events": rows,
+        "page": "search",
+        "is_admin": auth.is_logged_in(request),
+    })
+
+
+app.routes[:] = [r for r in app.routes if not (
+    getattr(r, "path", None) == "/search"
+    and getattr(r, "endpoint", None) is _orig_search_page
+)]
+app.get("/search", response_class=HTMLResponse)(search_page)
+
+_fts_ensure_schema()
+# ====== end search index ======

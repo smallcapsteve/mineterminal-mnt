@@ -45,7 +45,7 @@
       <tbody>
         {% for r in rows %}
           <tr>
-            <td class="fin-ticker">{% set _mtp = r["ticker"] | mtp_url %}{% if _mtp %}<a class="mtp-co" href="{{ _mtp }}" target="_blank" rel="noopener" title="Open {{ r['ticker'] }} on MineTerminalPro">{{ r["ticker"] }}</a>{% else %}{{ r["ticker"] }}{% endif %}</td>
+            <td class="fin-ticker">{% set _mtp = r["ticker"] | mtp_url('mining') %}{% if _mtp %}<a class="mtp-co" href="{{ _mtp }}" target="_blank" rel="noopener" title="Open {{ r['ticker'] }} mining data on MineTerminalPro">{{ r["ticker"] }}</a>{% else %}{{ r["ticker"] }}{% endif %}</td>
             <td>{{ r["company_name"] }}</td>
             <td class="fin-date">{{ (r["published_at"] or "")[:10] }}</td>
             <td><span class="mre-type-badge mre-type-{{ (r["mre_type"] or "updated")|lower }}">{{ r["mre_type"] or "—" }}</span></td>
