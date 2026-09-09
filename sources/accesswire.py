@@ -35,7 +35,7 @@ UA = (
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 )
-BASE = "https://www.accesswire.com"
+BASE = "https://www.accessnewswire.com"
 
 
 # ============ Low-level helpers ============
@@ -101,12 +101,134 @@ def _parse_date(s: str) -> str | None:
         return None
 
 
-def _fetch(url: str) -> str:
-    """Fetch URL and return HTML."""
+_PW = None
+_BROWSER = None
+
+
+def _browser():
+    """One browser per process, reused across every page in a run.
+
+    A7: playwright is what pins this box to ~117 MB free RAM during the
+    SediTracker scrape. Launching one browser per release would be far worse
+    than launching one per run, so callers must call close_browser() when done.
+    """
+    global _PW, _BROWSER
+    if _BROWSER is None:
+        from playwright.sync_api import sync_playwright
+        _PW = sync_playwright().start()
+        _BROWSER = _PW.chromium.launch(headless=True, args=["--no-sandbox"])
+    return _BROWSER
+
+
+def close_browser():
+    global _PW, _BROWSER
+    try:
+        if _BROWSER is not None:
+            _BROWSER.close()
+    except Exception:
+        pass
+    try:
+        if _PW is not None:
+            _PW.stop()
+    except Exception:
+        pass
+    _BROWSER = None
+    _PW = None
+
+
+def _fetch_plain(url: str) -> str:
+    """Plain HTTP. Kept for callers that do not need the challenge cleared."""
     with httpx.Client(headers={"User-Agent": UA}, timeout=25, follow_redirects=True) as c:
         r = c.get(url)
         r.raise_for_status()
         return r.text
+
+
+def _fetch_rendered(url: str, wait_ms: int = 5000, wait_until: str = "domcontentloaded") -> str:
+    """Load the page in a real browser so Cloudflare's challenge resolves.
+
+    The listing page needs networkidle -- that is the state it was proven
+    against on 2026-09-09 -- but networkidle can hang on a page holding a
+    connection open, so a timeout there falls back rather than failing.
+    """
+    pg = _browser().new_page(user_agent=UA)
+    try:
+        try:
+            pg.goto(url, wait_until=wait_until, timeout=45000)
+        except Exception:
+            if wait_until == "domcontentloaded":
+                raise
+            pg.goto(url, wait_until="domcontentloaded", timeout=45000)
+        pg.wait_for_timeout(wait_ms)
+        return pg.content()
+    finally:
+        try:
+            pg.close()
+        except Exception:
+            pass
+
+
+def _fetch(url: str, render: bool = True) -> str:
+    """Fetch URL and return HTML. Rendered by default -- accessnewswire.com
+    returns a 403 challenge page to anything that is not a browser."""
+    if render:
+        return _fetch_rendered(url)
+    return _fetch_plain(url)
+
+
+# Release URLs look like /newsroom/en/<sector-slug>/<title-slug>-<id>.
+# The sector is in the path, so mining releases are a path filter rather than
+# a keyword guess -- which is what the Google News path had to do.
+RELEASE_RE = re.compile(r"^/newsroom/[a-z]{2}/([a-z0-9-]+)/(.+?)-(\d{5,})$")
+SECTOR = "metals-and-mining"
+
+
+def list_sector_recent(sector: str = SECTOR, pages: int = 1, limit: int = 60) -> list[dict]:
+    """Recent releases from Accesswire's own per-sector newsroom listing.
+
+    This replaces Google News as the discovery mechanism: it is Accesswire's
+    own index of the sector, so nothing is lost to a search ranking, a result
+    cap, or a keyword list.
+    """
+    out: list[dict] = []
+    seen: set[str] = set()
+    for pnum in range(1, max(1, pages) + 1):
+        url = f"{BASE}/newsroom/industry/{sector}"
+        if pnum > 1:
+            url += f"?page={pnum}"
+        try:
+            html = _fetch_rendered(url, wait_ms=9000, wait_until="networkidle")
+        except Exception as e:
+            print(f"[accesswire] listing fetch failed {url}: {e}")
+            break
+        soup = BeautifulSoup(html, "lxml")
+        found = 0
+        for a in soup.select("a[href]"):
+            href = (a.get("href") or "").strip()
+            if href.startswith(BASE):
+                href = href[len(BASE):]
+            href = href.split("?")[0].split("#")[0]
+            m = RELEASE_RE.match(href)
+            if not m or m.group(1) != sector:
+                continue
+            full = BASE + href
+            if full in seen:
+                continue
+            seen.add(full)
+            found += 1
+            out.append({
+                "source_url":   full,
+                "source_name":  "accessnewswire",
+                "published_at": None,
+                "raw_headline": _clean(a.get_text(" ", strip=True)),
+                "release_id":   m.group(3),
+            })
+            if len(out) >= limit:
+                return out
+        print(f"[accesswire] listing page {pnum}: {found} release links")
+        if found == 0:
+            break
+    return out
 
 
 def _get_organization_url(cfg: dict, ticker: str) -> str | None:
@@ -312,7 +434,8 @@ def fetch_body(summary: dict) -> dict:
 
     # Body extraction -- try known containers, fall back progressively
     body_el = (
-        soup.select_one("div.article-body")
+        soup.select_one("#replace-me")
+        or soup.select_one("div.article-body")
         or soup.select_one("#content")
         or soup.select_one("div.press-release")
         or soup.select_one("article")
@@ -321,20 +444,54 @@ def fetch_body(summary: dict) -> dict:
         or soup
     )
 
-    # Drop chrome + decorative elements before sanitization
-    for tag in body_el.find_all([
+    # There are no date meta tags on the current template, but every release
+    # opens with a dateline: "VANCOUVER, BC / ACCESS Newswire / September 9, 2026 /"
+    if not summary.get("published_at"):
+        from datetime import datetime as _dt
+        head_txt = re.sub(r"\s+", " ", body_el.get_text(" ", strip=True))[:700]
+        m = (re.search(r"ACCESS\s*Newswire\s*/\s*([A-Z][a-z]+ \d{1,2}, \d{4})", head_txt)
+             or re.search(r"\b(\d{1,2} [A-Z][a-z]+ \d{4})\b", head_txt)
+             or re.search(r"\b([A-Z][a-z]+ \d{1,2}, \d{4})\b", head_txt))
+        if m:
+            for _fmt in ("%B %d, %Y", "%d %B %Y"):
+                try:
+                    summary["published_at"] = _dt.strptime(m.group(1), _fmt).strftime("%Y-%m-%dT%H:%M:%S")
+                    break
+                except ValueError:
+                    pass
+
+    # Drop chrome + decorative elements before sanitization.
+    # Materialise the list and skip tags already removed with an ancestor --
+    # a decomposed tag has attrs None and any further access raises.
+    def _strip(tags):
+        for tag in list(tags):
+            try:
+                if tag.attrs is None or tag.parent is None:
+                    continue
+                yield tag
+            except Exception:
+                continue
+
+    for tag in _strip(body_el.find_all([
         "script", "style", "nav", "footer", "header", "aside", "form",
         "iframe", "object", "embed", "svg", "canvas", "noscript", "button",
         "input", "select", "textarea", "meta", "link",
-    ]):
-        tag.decompose()
+    ])):
+        try:
+            tag.decompose()
+        except Exception:
+            pass
 
     # Drop site chrome by id/class heuristic
-    for tag in body_el.find_all(True):
-        cls = " ".join(tag.get("class") or [])
-        ident = tag.get("id") or ""
-        if re.search(r"(social|share|newsletter|subscribe|related|sidebar|menu|cookie|breadcrumb|footer|header)", cls + " " + ident, re.I):
-            tag.decompose()
+    CHROME_RE = r"(social|share|newsletter|subscribe|related|sidebar|menu|cookie|breadcrumb|footer|header)"
+    for tag in _strip(body_el.find_all(True)):
+        try:
+            cls = " ".join(tag.get("class") or [])
+            ident = tag.get("id") or ""
+            if re.search(CHROME_RE, cls + " " + ident, re.I):
+                tag.decompose()
+        except Exception:
+            continue
 
     # Sanitized HTML
     raw_html = _sanitize_release_html(body_el, page_url=summary.get("source_url", ""))
