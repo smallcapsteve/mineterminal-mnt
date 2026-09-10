@@ -1052,3 +1052,30 @@ if _v5_prev_clean is not None:
             pass
         return str(soup)
 # END QUALITY_V5_PATCH
+
+
+# ============================================================================
+# QUALITY_V6_SECURITY_PATCH (2026-09-08) — B20
+# Everything above this line is COSMETIC. The V1-V5 passes strip related-posts
+# widgets, rewrite links and tidy chrome; none of them removes a script tag,
+# an event handler or a javascript: URL. Tested 2026-09-07 and again
+# 2026-09-08: 198 of 1,518 sampled releases reached the browser carrying at
+# least one of those.
+#
+# This appends a real allow-list sanitiser, and it runs LAST on purpose —
+# the cosmetic passes key off `class` and `data-widget_type`, so sanitising
+# first would break related-posts stripping.
+#
+# The import is deliberately NOT wrapped in try/except. A security control
+# that silently disables itself when its dependency is missing is worse than
+# no control, because nothing signals it. If nh3 or html_sanitize is missing,
+# mnt-portal fails to start and that is the intended, visible outcome.
+# ============================================================================
+from .html_sanitize import sanitize_release_html as _v6_sanitize
+
+_v6_prev_clean = clean_release_html
+
+
+def clean_release_html(html_str, source_url=""):  # noqa: F811
+    return _v6_sanitize(_v6_prev_clean(html_str, source_url))
+# END QUALITY_V6_SECURITY_PATCH

@@ -6785,7 +6785,7 @@
   },
   {
     "ticker": "WGO.V",
-    "name": "We chat with Donovan Pollitt, President of White Gold Corp",
+    "name": "White Gold Corp.",
     "source": "newsfile_gnews",
     "source_params": {},
     "discovery_confidence": "newsfile_auto",
@@ -8945,12 +8945,13 @@
   },
   {
     "ticker": "SASK.V",
-    "name": "Sask",
+    "name": "ATHA Energy Corp.",
     "source": "globenewswire_gnews",
     "source_params": {},
     "discovery_confidence": "globenewswire_auto",
     "discovered_at": "2026-06-30",
-    "exchange": "TSXV"
+    "exchange": "TSXV",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
   },
   {
     "ticker": "TCF.CN",
@@ -9071,12 +9072,13 @@
   },
   {
     "ticker": "EPL.V",
-    "name": "Refined Energy Corp",
+    "name": "Eagle Plains Resources Ltd.",
     "source": "globenewswire_gnews",
     "source_params": {},
     "discovery_confidence": "globenewswire_auto",
     "discovered_at": "2026-07-03",
-    "exchange": "TSXV"
+    "exchange": "TSXV",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
   },
   {
     "ticker": "SK.CN",
@@ -9242,7 +9244,7 @@
   },
   {
     "ticker": "GR.V",
-    "name": "Gr",
+    "name": "Great Atlantic Resources Corp.",
     "source": "newsfile_gnews",
     "source_params": {},
     "discovery_confidence": "newsfile_auto",
@@ -10097,12 +10099,13 @@
   },
   {
     "ticker": "OGN.V",
-    "name": "Ogn",
+    "name": "Orogen Royalties Inc.",
     "source": "thenewswire",
     "source_params": {},
     "discovery_confidence": "wire_auto",
     "discovered_at": "2026-08-20",
-    "exchange": "TSXV"
+    "exchange": "TSXV",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
   },
   {
     "ticker": "ALTH.CN",
@@ -10318,6 +10321,348 @@
     "source_params": {},
     "discovery_confidence": "newsfile_auto",
     "discovered_at": "2026-09-02",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "AZT.V",
+    "name": "Aztec Minerals Corp",
+    "source": "cnw_gnews",
+    "source_params": {},
+    "discovery_confidence": "cnw_auto",
+    "discovered_at": "2026-09-02",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "ZONE.V",
+    "name": "September 3, 2026 \u2013 Enerev5 Metals Inc",
+    "source": "thenewswire",
+    "source_params": {},
+    "discovery_confidence": "wire_auto",
+    "discovered_at": "2026-09-04",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "VRB.V",
+    "name": "Vrb",
+    "source": "thenewswire",
+    "source_params": {},
+    "discovery_confidence": "wire_auto",
+    "discovered_at": "2026-09-04",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "PCA.TO",
+    "name": "Phoenix Metals Corp",
+    "source": "globenewswire_gnews",
+    "source_params": {},
+    "discovery_confidence": "globenewswire_auto",
+    "discovered_at": "2026-09-08",
+    "exchange": "TSX"
+  },
+  {
+    "ticker": "ACDC.V",
+    "name": "Acdc",
+    "source": "thenewswire",
+    "source_params": {},
+    "discovery_confidence": "wire_auto",
+    "discovered_at": "2026-09-08",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "ESK.V",
+    "company_id": "ESK",
+    "name": "Eskay Mining Corp.",
+    "source": "wire_discovery_only",
+    "source_params": {},
+    "discovery_confidence": "verified_exchange_listing",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
+  },
+  {
+    "ticker": "FDY.TO",
+    "company_id": "FDY",
+    "name": "Faraday Copper Corp.",
+    "source": "wire_discovery_only",
+    "source_params": {},
+    "discovery_confidence": "verified_exchange_listing",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
+  },
+  {
+    "ticker": "BAY.V",
+    "company_id": "BAY",
+    "name": "Aston Bay Holdings Ltd.",
+    "source": "wire_discovery_only",
+    "source_params": {},
+    "discovery_confidence": "verified_exchange_listing",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
+  },
+  {
+    "ticker": "SLR.TO",
+    "company_id": "SLR",
+    "name": "Solitario Resources Corp.",
+    "source": "wire_discovery_only",
+    "source_params": {},
+    "discovery_confidence": "verified_exchange_listing",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
+  },
+  {
+    "ticker": "GAL.V",
+    "company_id": "GAL",
+    "name": "Galantas Gold Corporation",
+    "source": "wire_discovery_only",
+    "source_params": {},
+    "discovery_confidence": "verified_exchange_listing",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
+  },
+  {
+    "ticker": "KG.V",
+    "company_id": "KG",
+    "name": "Klondike Gold Corp.",
+    "source": "wire_discovery_only",
+    "source_params": {},
+    "discovery_confidence": "verified_exchange_listing",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
+  },
+  {
+    "ticker": "MARI.TO",
+    "company_id": "MARI",
+    "name": "Marimaca Copper Corp.",
+    "source": "wire_discovery_only",
+    "source_params": {},
+    "discovery_confidence": "verified_exchange_listing",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
+  },
+  {
+    "ticker": "GSVR.V",
+    "company_id": "GSVR",
+    "name": "Guanajuato Silver Company Ltd.",
+    "source": "wire_discovery_only",
+    "source_params": {},
+    "discovery_confidence": "verified_exchange_listing",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
+  },
+  {
+    "ticker": "AGX.V",
+    "company_id": "AGX",
+    "name": "Silver X Mining Corp.",
+    "source": "wire_discovery_only",
+    "source_params": {},
+    "discovery_confidence": "verified_exchange_listing",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
+  },
+  {
+    "ticker": "JAG.TO",
+    "company_id": "JAG",
+    "name": "Jaguar Mining Inc.",
+    "source": "wire_discovery_only",
+    "source_params": {},
+    "discovery_confidence": "verified_exchange_listing",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
+  },
+  {
+    "ticker": "MKO.V",
+    "company_id": "MKO",
+    "name": "Mako Mining Corp.",
+    "source": "wire_discovery_only",
+    "source_params": {},
+    "discovery_confidence": "verified_exchange_listing",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
+  },
+  {
+    "ticker": "BYN.V",
+    "company_id": "BYN",
+    "name": "Banyan Gold Corp.",
+    "source": "wire_discovery_only",
+    "source_params": {},
+    "discovery_confidence": "verified_exchange_listing",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
+  },
+  {
+    "ticker": "CANX.V",
+    "company_id": "CANX",
+    "name": "CANEX Metals Inc.",
+    "source": "wire_discovery_only",
+    "source_params": {},
+    "discovery_confidence": "verified_exchange_listing",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
+  },
+  {
+    "ticker": "AHR.V",
+    "company_id": "AHR",
+    "name": "Amarc Resources Ltd.",
+    "source": "wire_discovery_only",
+    "source_params": {},
+    "discovery_confidence": "verified_exchange_listing",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
+  },
+  {
+    "ticker": "SNG.V",
+    "company_id": "SNG",
+    "name": "Silver Range Resources Ltd.",
+    "source": "wire_discovery_only",
+    "source_params": {},
+    "discovery_confidence": "verified_exchange_listing",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
+  },
+  {
+    "ticker": "PEAK.V",
+    "company_id": "PEAK",
+    "name": "Sun Peak Metals Corp.",
+    "source": "wire_discovery_only",
+    "source_params": {},
+    "discovery_confidence": "verified_exchange_listing",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
+  },
+  {
+    "ticker": "ELEC.V",
+    "company_id": "ELEC",
+    "name": "Electric Royalties Ltd.",
+    "source": "wire_discovery_only",
+    "source_params": {},
+    "discovery_confidence": "verified_exchange_listing",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
+  },
+  {
+    "ticker": "TRU.V",
+    "company_id": "TRU",
+    "name": "TRU Precious Metals Corp.",
+    "source": "wire_discovery_only",
+    "source_params": {},
+    "discovery_confidence": "verified_exchange_listing",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
+  },
+  {
+    "ticker": "KALO.V",
+    "company_id": "KALO",
+    "name": "Kalo Gold Corp.",
+    "source": "wire_discovery_only",
+    "source_params": {},
+    "discovery_confidence": "verified_exchange_listing",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
+  },
+  {
+    "ticker": "RGC.V",
+    "company_id": "RGC",
+    "name": "Relevant Gold Corp.",
+    "source": "wire_discovery_only",
+    "source_params": {},
+    "discovery_confidence": "verified_exchange_listing",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
+  },
+  {
+    "ticker": "SRI.V",
+    "company_id": "SRI",
+    "name": "Sparton Resources Inc.",
+    "source": "wire_discovery_only",
+    "source_params": {},
+    "discovery_confidence": "verified_exchange_listing",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
+  },
+  {
+    "ticker": "TTS.V",
+    "company_id": "TTS",
+    "name": "Tintina Mines Limited",
+    "source": "wire_discovery_only",
+    "source_params": {},
+    "discovery_confidence": "verified_exchange_listing",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
+  },
+  {
+    "ticker": "FFF.CN",
+    "company_id": "FFF",
+    "name": "55 North Mining Inc.",
+    "source": "wire_discovery_only",
+    "source_params": {},
+    "discovery_confidence": "verified_exchange_listing",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
+  },
+  {
+    "ticker": "GER.V",
+    "company_id": "GER",
+    "name": "Glen Eagle Resources Inc.",
+    "source": "wire_discovery_only",
+    "source_params": {},
+    "discovery_confidence": "verified_exchange_listing",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
+  },
+  {
+    "ticker": "ABA.V",
+    "company_id": "ABA",
+    "name": "Abasca Resources Inc.",
+    "source": "wire_discovery_only",
+    "source_params": {},
+    "discovery_confidence": "verified_exchange_listing",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
+  },
+  {
+    "ticker": "FOMO.CN",
+    "company_id": "FOMO",
+    "name": "Formation Metals Inc.",
+    "source": "wire_discovery_only",
+    "source_params": {},
+    "discovery_confidence": "verified_exchange_listing",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
+  },
+  {
+    "ticker": "SVRS.V",
+    "company_id": "SVRS",
+    "name": "Silver Storm Mining Ltd.",
+    "source": "wire_discovery_only",
+    "source_params": {},
+    "discovery_confidence": "verified_exchange_listing",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
+  },
+  {
+    "ticker": "GEMG.V",
+    "company_id": "GEMG",
+    "name": "Gemdale Gold Inc.",
+    "source": "wire_discovery_only",
+    "source_params": {},
+    "discovery_confidence": "verified_exchange_listing",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
+  },
+  {
+    "ticker": "TTG.V",
+    "company_id": "TTG",
+    "name": "Trans Canada Gold Corp.",
+    "source": "wire_discovery_only",
+    "source_params": {},
+    "discovery_confidence": "verified_exchange_listing",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
+  },
+  {
+    "ticker": "ALGR.V",
+    "company_id": "ALGR",
+    "name": "Algo Grande Copper Corp.",
+    "source": "wire_discovery_only",
+    "source_params": {},
+    "discovery_confidence": "verified_exchange_listing",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
+  },
+  {
+    "ticker": "RGR.CN",
+    "company_id": "RGR",
+    "name": "Rio Grande Resources Ltd.",
+    "source": "wire_discovery_only",
+    "source_params": {},
+    "discovery_confidence": "verified_exchange_listing",
+    "name_source": "exchange listing verified 2026-09-08 (H5)"
+  },
+  {
+    "ticker": "CLCO.V",
+    "name": "Culico Metals Inc",
+    "source": "cnw_gnews",
+    "source_params": {},
+    "discovery_confidence": "cnw_auto",
+    "discovered_at": "2026-09-09",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "BEA.V",
+    "name": "September 09, 2026 - Belmont Resources",
+    "source": "thenewswire",
+    "source_params": {},
+    "discovery_confidence": "wire_auto",
+    "discovered_at": "2026-09-09",
     "exchange": "TSXV"
   }
 ]
