@@ -29,7 +29,7 @@ import json
 import logging
 import os
 import time
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse

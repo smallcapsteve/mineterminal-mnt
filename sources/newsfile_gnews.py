@@ -15,7 +15,6 @@ from __future__ import annotations
 import datetime as dt
 import hashlib
 import html as _html
-import json
 import re
 import urllib.parse
 from typing import Iterator

@@ -14,8 +14,8 @@ Match heuristic for grouping:
     are compatible AND gross/unit_price are similar (or missing).
   - Orphans (no announcement match) become standalone financing rows.
 """
-import os, sys, sqlite3
-from datetime import datetime, timedelta
+import sys, sqlite3
+from datetime import datetime
 
 sys.path.insert(0, "/opt/mnt/app")
 sys.path.insert(0, "/opt/mnt/app/portal")

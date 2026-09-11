@@ -19,10 +19,10 @@ For each ticker in tickers.all.json:
 Concurrency: ThreadPoolExecutor(max_workers=20) — 300 companies / ~10s each.
 """
 from __future__ import annotations
-import json, re, sys, time
+import json, re, time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin
 
 import httpx
 

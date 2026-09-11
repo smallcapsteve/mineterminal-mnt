@@ -34,7 +34,7 @@ from portal.quality import reason_to_skip as _quality_skip_reason
 # ---- config ---------------------------------------------------------------
 load_dotenv(APP_ROOT / ".env")
 HMAC_SECRET   = os.environ.get("MNT_HMAC_SECRET", "").strip()
-PORTAL_INGEST = os.environ.get("PORTAL_INGEST_URL", "http://104.131.123.144/ingest").rstrip("/")
+PORTAL_INGEST = os.environ.get("PORTAL_INGEST_URL", "http://127.0.0.1/ingest").rstrip("/")
 TICKERS_FILE  = APP_ROOT / "tickers.json"
 SEEN_FILE     = APP_ROOT / "data" / "seen_events.json"
 LOG_DIR       = APP_ROOT / "data" / "logs"
