@@ -2,6 +2,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 from pathlib import Path
 
 from fastapi import FastAPI, Form, HTTPException, Header, Query, Request
@@ -231,16 +232,12 @@ def admin_delete_one(request: Request, event_id: str):
 def healthz():
     return {"ok": True, "events": db.count_events()}
 
-# ----- ops (HMAC-signed admin over HTTP) -------------------------------
-from portal.ops import router as ops_router  # noqa: E402
-app.include_router(ops_router)
 
 
 # ====== /financings tab (appended) ======
 # financings_route_patch.py — append-only patch to portal/app.py
 # Adds /financings route + helpers. Imports from portal.financing_extract
 # at the top so fmt_money / fmt_warrant_summary are available.
-import sqlite3
 from fastapi import Query
 from fastapi.responses import HTMLResponse
 
@@ -347,7 +344,6 @@ vars (now_str, latest_headline, latest_event_id, latest_news,
 recent_financings, page) needed by the new base.html.
 """
 import datetime as _dt
-from fastapi.responses import HTMLResponse as _HtmlResp
 
 _orig_template_response = templates.TemplateResponse
 
@@ -480,7 +476,6 @@ def search_page(
 
 
 # ====== pretty_source Jinja filter (appended) ======
-import re as _re_pretty
 _SOURCE_PRETTY = {
     'company_ir_wp':  'Company Website',
     'company_site':   'Company Website',
@@ -506,7 +501,7 @@ def _pretty_source(name):
     if key in _SOURCE_PRETTY:
         return _SOURCE_PRETTY[key]
     # Strip suffix like 'companysite:athenagoldcorp.com' -> 'companysite'
-    head = _re_pretty.split(r'[:/@]', key, maxsplit=1)[0]
+    head = re.split(r'[:/@]', key, maxsplit=1)[0]
     if head in _SOURCE_PRETTY:
         return _SOURCE_PRETTY[head]
     # Substring fallback
@@ -520,11 +515,10 @@ templates.env.filters['pretty_source'] = _pretty_source
 
 
 # ====== SEO additions (appended) ======
-import re as _re_seo
 from fastapi.responses import PlainTextResponse, Response as _SeoResponse
 
 _SITE_BASE = "https://miningnewsterminal.com"
-_NONALNUM_SEO = _re_seo.compile(r"[^a-z0-9]+")
+_NONALNUM_SEO = re.compile(r"[^a-z0-9]+")
 
 
 def _seo_slugify(s, max_len=80):
@@ -538,8 +532,8 @@ def _seo_slugify(s, max_len=80):
 def _seo_meta_description(text, max_len=155):
     if not text:
         return ""
-    t = _re_seo.sub(r"<[^>]+>", "", str(text))  # strip HTML
-    t = _re_seo.sub(r"\s+", " ", t).strip()
+    t = re.sub(r"<[^>]+>", "", str(text))  # strip HTML
+    t = re.sub(r"\s+", " ", t).strip()
     if len(t) <= max_len:
         return t
     return t[:max_len].rsplit(" ", 1)[0] + "…"
@@ -620,19 +614,18 @@ def robots_txt():
 
 # ====== Analytics dashboard (appended) ======
 import hashlib as _hashlib_an
-import re as _re_an
 import secrets as _secrets_an
 from datetime import datetime as _dt_an, timedelta as _td_an
 
 # Bot UA detection (server-side filter — keeps the views table clean of crawlers)
-_BOT_UA_RE = _re_an.compile(
+_BOT_UA_RE = re.compile(
     r"(?:bot|crawler|spider|slurp|fetcher|preview|prerender|"
     r"googlebot|bingbot|yandex|duckduckbot|baiduspider|"
     r"facebookexternalhit|twitterbot|linkedinbot|whatsapp|"
     r"telegram|discordbot|slackbot|pinterest|applebot|"
     r"semrush|ahrefs|mj12bot|petalbot|seznambot|sogou|"
     r"chatgpt|gptbot|claude|perplexity|amazonbot|bytedance)",
-    _re_an.I,
+    re.I,
 )
 
 # Daily-rotating salt for hashing IPs (PII protection — IPs are never stored raw)
@@ -1886,12 +1879,11 @@ The schema is created here as well as by hand so a database rebuilt from
 scratch gets the index instead of silently reverting to a full scan - the
 mistake recorded as H3 against the H1 index fix.
 """
-import re as _re_fts
 import threading as _thr_fts
 
 # Letters and digits only. Everything else is punctuation to the tokenizer, and
 # letting it through would be FTS5 query syntax rather than search text.
-_FTS_TERM_RE = _re_fts.compile(r"[0-9A-Za-z\u00c0-\u024f]+")
+_FTS_TERM_RE = re.compile(r"[0-9A-Za-z\u00c0-\u024f]+")
 
 _FTS_SCHEMA = """
 CREATE VIRTUAL TABLE IF NOT EXISTS events_fts USING fts5(

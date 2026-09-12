@@ -18,7 +18,6 @@ from __future__ import annotations
 import datetime as dt
 import hashlib
 import html as _html
-import json
 import re
 from typing import Iterator, Iterable
 from xml.etree import ElementTree as ET

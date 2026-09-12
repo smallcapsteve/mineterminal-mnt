@@ -33,7 +33,7 @@ from pipeline.run import build_envelope, archive_envelope, sign_and_post, classi
 from portal.quality import reason_to_skip  # noqa: E402
 import random  # noqa: E402
 
-PORTAL_URL = os.environ.get("PORTAL_URL", "http://104.131.123.144")
+PORTAL_URL = os.environ.get("PORTAL_URL", "http://127.0.0.1")
 INGEST_ENDPOINT = f"{PORTAL_URL}/ingest"
 TICKERS_PATH = APP_DIR / "tickers.json"
 

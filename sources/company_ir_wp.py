@@ -24,7 +24,6 @@ import datetime as dt
 import hashlib
 import re
 from typing import Iterator
-from urllib.parse import urljoin
 from xml.etree import ElementTree as ET
 
 import httpx

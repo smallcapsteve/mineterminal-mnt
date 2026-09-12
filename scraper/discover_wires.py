@@ -23,13 +23,12 @@ Meant to be re-runnable; skips network errors gracefully.
 """
 from __future__ import annotations
 import json
-import os
 import re
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin
 
 import requests
 from bs4 import BeautifulSoup

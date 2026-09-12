@@ -11,7 +11,6 @@ Usage:
 from __future__ import annotations
 import argparse
 import json
-import os
 import sys
 import time
 import sqlite3
@@ -23,7 +22,7 @@ sys.path.insert(0, str(APP))
 import sources  # noqa
 from pipeline.run import (
     build_envelope, sign_and_post, archive_envelope,
-    load_seen, save_seen, log, HMAC_SECRET,
+    load_seen, save_seen, HMAC_SECRET,
 )
 from classify.classifier import classify as classify_event
 from portal.quality import reason_to_skip as _quality_skip_reason

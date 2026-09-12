@@ -4,7 +4,6 @@ import sqlite3
 import threading
 import time
 from pathlib import Path
-from typing import Iterator
 
 DB_PATH = Path(os.environ.get("MNT_PORTAL_DB", "/opt/mnt/app/portal/portal.db"))
 

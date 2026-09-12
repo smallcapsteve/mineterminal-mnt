@@ -4,7 +4,7 @@
 Runs the same logic as the original backfill scripts but is safe to run repeatedly:
 they all DELETE then re-INSERT from current events. Designed to be invoked by
 a systemd timer every 30 minutes."""
-import subprocess, sys, time
+import subprocess, time
 
 scripts = [
     ('/opt/mnt/app/financing_backfill.py',  'financings'),
