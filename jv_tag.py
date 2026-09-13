@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""JV_TAG_V2 — file a co-issued release under both companies.
+"""JV_TAG_V4 — file a co-issued release under both companies.
 
 Justin, 2026-09-13: *"Can you add a feature that files joint venture news under
 both companies tickers?"*
@@ -16,44 +16,53 @@ and an event row only has one ticker.
 **Except it does not.** `events.additional_tickers` already exists, and
 `portal/db.py` already reads it everywhere that matters: the company event list,
 the per-company counts, and both filtered queries. `portal/app.py` even has an
-admin screen for editing it. **One event in the entire database has it set.** So
-this is not a feature to build; it is a populated field to start populating.
+admin screen for editing it. **One event in the entire database had it set.** So
+this was not a feature to build; it was a populated field to start populating.
 
 **How a partner is identified** (Justin's choice, of three offered): the
 company's curated MinePortal name, or an explicit exchange-qualified ticker,
 appearing **in the headline itself**. Not the body. A release that mentions a
-competitor, an acquirer or a royalty holder in paragraph six does not tag them;
-a release whose headline reads "Questcorp Mining and Riverside Resources
-Complete Geophysics Programs" tags both.
+competitor in paragraph six does not tag them; a release whose headline reads
+"Questcorp Mining and Riverside Resources Complete Geophysics Programs" tags
+both.
 
-**Three guards, each earned by a real failure:**
+**Six guards. Every one of them was earned by a real false positive**, found by
+reading the proposals rather than by imagining what could go wrong. The count
+went 285 → 117 → 111 → 93 as they were added:
 
-  * A name match needs **at least two words** after corporate suffixes are
-    stripped. "Riverside Resources" qualifies; a company called "Gold" or
-    "Nevada" can only ever be matched by its ticker. This costs real
-    single-word matches — Teck by name, for instance — and that is the right
-    trade when the alternative is tagging every gold release with a company
-    called Gold.
-  * At any position in the headline the **longest** matching name wins, so
-    "Riverside Resources" is not also matched as a shorter overlapping name.
-  * **The event's own company must be named in its own headline too** (V2).
-    Without this, a misattributed event looks exactly like a co-issued one:
-    MQM.V carried eleven events whose headlines all read "New Age Metals ..."
-    and never mentioned MacDonald Mines. Those are not joint ventures, they are
-    somebody else's news under the wrong ticker, and cross-filing them would
-    have spread the error into a second company rather than surfacing it.
+  1. A name needs **two words** after corporate suffixes are stripped, so a
+     company called "Gold" can only ever be matched by its ticker.
+  2. At any position the **longest** name wins.
+  3. The **primary's own spans are claimed first**, or a shorter name sitting
+     inside it matches — "West Red Lake Gold Mines" tagging "Red Lake Gold".
+  4. The **primary must be named in its own headline**. Without this a
+     misattribution looks exactly like a co-issue: MQM.V carried eleven events
+     whose headlines all read "New Age Metals ..." and never mentioned
+     MacDonald Mines. Cross-filing those would have spread the error into a
+     second company instead of surfacing it. 160 events are skipped this way,
+     and they are a finding in their own right.
+  5. A name followed by **district/camp/belt/project/mine is a place**. Red Lake
+     Gold Inc. and White Gold Corp. are real companies that share a name with
+     the district they were named after.
+  6. **Admiration is not co-issue**, and **more than two partners is a
+     roundup**: "Star Copper Congratulates Doubleview Gold's ...", "Claims
+     Adjacent to Trident Resources", "BTV Spotlights: NevGold, Calian Group,
+     Talisker Resources, Dakota Gold, Oreterra Metals, ...".
+
+**The ticker form requires a colon.** Allowing a hyphen made "TSX-V ACCEPTANCE
+TO SETTLEMENT" parse as exchange "TSX", separator "-", ticker "V".
 
 **Nothing is applied automatically to history** (Justin's choice). `--propose`
-writes candidate pairs to its own store with status `pending` and touches
-`portal.db` not at all. `--apply` is a separate, explicit step, and can be
-limited to one pair at a time. Both V2 fixes were found by reading V1's
-proposals, which is exactly what that separation is for.
+writes candidates with status `pending` and touches `portal.db` not at all;
+`--apply` is separate and can be limited to one pair. Every guard above exists
+because that separation gave someone a chance to look.
 
 Run:
     python3 jv_tag.py --propose --days 400      # scan history, change nothing
     python3 jv_tag.py --review                  # what it proposes, grouped
     python3 jv_tag.py --review --pair QQQ.CN:RRI.V
     python3 jv_tag.py --apply --pair QQQ.CN:RRI.V
+    python3 jv_tag.py --unapply --pair QQQ.CN:RRI.V   # exact rollback
     python3 jv_tag.py --reject --pair FOO.V:BAR.V
     python3 jv_tag.py --stats
 """
@@ -218,7 +227,33 @@ def names_primary(headline: str, primary: str, by_sym: dict,
     return bool(rx and rx.search(headline))
 
 
-def partners_in(headline: str, primary: str, pats: list) -> list[tuple]:
+# --- three guards, each earned by a false positive in the first real scan ---
+
+# A company name followed by one of these is a place or an asset, not the
+# company: "Ontario's Red Lake Gold District", "Yukon's White Gold District".
+# Red Lake Gold Inc. and White Gold Corp. are both real companies in the
+# universe, and both share their name with the district they are named after.
+_PLACE_AFTER = re.compile(
+    r"^\s+(district|camp|belt|trend|corridor|region|area|basin|greenstone"
+    r"|property|properties|project|mine|mines|deposit|zone|claims?)\b", re.I)
+
+# A junior riding on a neighbour's news is not a co-issue. "Star Copper
+# Congratulates Doubleview Gold's Mineral Resource Estimate", "Naughty Ventures
+# Applauds Strong Drill Results from Metalsource Mining", "Welcomes Significant
+# Discovery at Pirate Gold's Neighbouring Moby Dick Project", "Acquires Claims
+# Adjacent to Trident Resources".
+_PROMO = re.compile(
+    r"\b(congratulat\w*|applaud\w*|neighbou?r\w*|adjacent|nearby"
+    r"|spotlights?|btv\s+explores)\b", re.I)
+
+# A media roundup names everyone: "BTV Spotlights: NevGold, Calian Group,
+# Talisker Resources, Dakota Gold, Oreterra Metals, Titan Mining, ...". No
+# release co-issued by three separate companies looks like this.
+_MAX_PARTNERS = 2
+
+
+def partners_in(headline: str, primary: str, pats: list,
+                by_sym: dict | None = None) -> list[tuple]:
     """(symbol, matched_text, how) for every other universe company named in
     this headline. Overlapping matches are resolved longest-first."""
     if not headline:
@@ -227,7 +262,17 @@ def partners_in(headline: str, primary: str, pats: list) -> list[tuple]:
     primary_bare = primary.split(".")[0]
 
     taken: list[tuple[int, int]] = []
+    # Claim the primary company's own name first. Otherwise a shorter company
+    # name sitting inside it gets matched: a headline about "West Red Lake Gold
+    # Mines" would be tagged with a company called "Red Lake Gold", because the
+    # primary is skipped in the loop below and so never claims its own span.
+    for rx in (by_sym or {}).get(primary) or []:
+        for m in rx.finditer(headline):
+            taken.append(m.span())
     out: dict[str, tuple] = {}
+    if _PROMO.search(headline):
+        return []                        # somebody else's news, admired
+
     for rx, sym, how, _disp in pats:
         if sym == primary or sym.split(".")[0] == primary_bare:
             continue                     # the event's own company
@@ -235,9 +280,13 @@ def partners_in(headline: str, primary: str, pats: list) -> list[tuple]:
             a, b = m.span()
             if any(a < tb and ta < b for ta, tb in taken):
                 continue                 # inside a longer name already matched
+            if how == "name" and _PLACE_AFTER.match(headline[b:]):
+                continue                 # a district, not the company
             taken.append((a, b))
             if sym not in out:
                 out[sym] = (sym, m.group(0), how)
+    if len(out) > _MAX_PARTNERS:
+        return []                        # a roundup, not a co-issue
     return list(out.values())
 
 
@@ -259,7 +308,8 @@ def tags_for(headline: str, primary: str) -> list[str]:
             _live_pats, _live_by_sym, _live_short = build_index()
         if not names_primary(headline, primary, _live_by_sym, _live_short):
             return []                            # misattribution, not co-issue
-        return [s for s, _t, _h in partners_in(headline, primary, _live_pats)]
+        return [s for s, _t, _h in
+                partners_in(headline, primary, _live_pats, _live_by_sym)]
     except Exception:                            # noqa: BLE001
         return []
 
@@ -290,7 +340,7 @@ def propose(con, days: int, limit: int | None) -> int:
         if i % 5000 == 0:
             log(f"  {i:,}/{len(rows):,} scanned, {n_hit} with a partner")
         headline = r["raw_headline"] or ""
-        found = partners_in(headline, r["ticker"] or "", pats)
+        found = partners_in(headline, r["ticker"] or "", pats, by_sym)
         if not found:
             continue
         if not names_primary(headline, r["ticker"] or "", by_sym, short):
@@ -397,6 +447,48 @@ def apply(con, pair: str | None, dry: bool) -> int:
     return n
 
 
+def unapply(con, pair: str | None) -> int:
+    """Undo applied tags. Every applied (event_id, partner) is recorded, so a
+    rollback is exact: remove just that partner from that event, leaving any
+    tag a person set by hand, and any other partner, alone.
+
+    This exists because the first real --apply ran without its intended
+    portal.db snapshot: the backup command was run as `mnt` and could not write
+    to /root, and the failure was on stderr while the apply went ahead. The
+    data was recoverable from this table, but recoverable-in-principle is not a
+    rollback, so here it is as a command.
+    """
+    where, args = "status='applied'", []
+    if pair:
+        a, b = pair.upper().split(":", 1)
+        where += " AND primary_tk=? AND partner_tk=?"
+        args = [a, b]
+    rows = con.execute(
+        f"SELECT event_id, partner_tk FROM proposals WHERE {where}", args).fetchall()
+    if not rows:
+        print("nothing applied to undo")
+        return 0
+    p = sqlite3.connect(PORTAL_DB)
+    n = 0
+    for r in rows:
+        cur = p.execute("SELECT additional_tickers FROM events WHERE event_id=?",
+                        (r["event_id"],)).fetchone()
+        if not cur:
+            continue
+        have = [t for t in (cur[0] or "").strip("|").split("|")
+                if t and t != r["partner_tk"]]
+        p.execute("UPDATE events SET additional_tickers=? WHERE event_id=?",
+                  (pipe(have), r["event_id"]))
+        con.execute("UPDATE proposals SET status='pending', acted_at=NULL "
+                    "WHERE event_id=? AND partner_tk=?",
+                    (r["event_id"], r["partner_tk"]))
+        n += 1
+    p.commit()
+    con.commit()
+    log(f"removed {n} tags; those proposals are pending again")
+    return n
+
+
 def reject(con, pair: str) -> int:
     a, b = pair.upper().split(":", 1)
     cur = con.execute(
@@ -424,6 +516,8 @@ def main() -> int:
     ap.add_argument("--propose", action="store_true")
     ap.add_argument("--review", action="store_true")
     ap.add_argument("--apply", action="store_true")
+    ap.add_argument("--unapply", action="store_true",
+                    help="undo applied tags (optionally --pair)")
     ap.add_argument("--reject", action="store_true")
     ap.add_argument("--stats", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
@@ -440,6 +534,8 @@ def main() -> int:
         review(con, args.pair, args.samples)
     if args.apply:
         apply(con, args.pair, args.dry_run)
+    if args.unapply:
+        unapply(con, args.pair)
     if args.reject:
         if not args.pair:
             print("--reject needs --pair", file=sys.stderr)
@@ -447,7 +543,8 @@ def main() -> int:
         reject(con, args.pair)
     if args.stats:
         stats(con)
-    if not any([args.propose, args.review, args.apply, args.reject, args.stats]):
+    if not any([args.propose, args.review, args.apply, args.unapply,
+                args.reject, args.stats]):
         ap.print_help()
         return 2
     return 0
