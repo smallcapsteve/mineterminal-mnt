@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""JV_TAG_V1 — file a co-issued release under both companies.
+"""JV_TAG_V2 — file a co-issued release under both companies.
 
 Justin, 2026-09-13: *"Can you add a feature that files joint venture news under
 both companies tickers?"*
@@ -24,25 +24,30 @@ company's curated MinePortal name, or an explicit exchange-qualified ticker,
 appearing **in the headline itself**. Not the body. A release that mentions a
 competitor, an acquirer or a royalty holder in paragraph six does not tag them;
 a release whose headline reads "Questcorp Mining and Riverside Resources
-Complete Geophysics Programs" tags both. Headline-only is the conservative
-choice and it is the one that matches the case this was built for — all 53 of
-the QQQ.CN events name Riverside in the headline.
+Complete Geophysics Programs" tags both.
 
-**Two guards against the obvious failure mode**, which is a generic company name
-matching everything:
+**Three guards, each earned by a real failure:**
 
   * A name match needs **at least two words** after corporate suffixes are
     stripped. "Riverside Resources" qualifies; a company called "Gold" or
-    "Nevada" can only ever be matched by its ticker. This costs real single-word
-    matches — Teck by name, for instance — and that is the right trade when the
-    alternative is tagging every gold release with a company called Gold.
+    "Nevada" can only ever be matched by its ticker. This costs real
+    single-word matches — Teck by name, for instance — and that is the right
+    trade when the alternative is tagging every gold release with a company
+    called Gold.
   * At any position in the headline the **longest** matching name wins, so
     "Riverside Resources" is not also matched as a shorter overlapping name.
+  * **The event's own company must be named in its own headline too** (V2).
+    Without this, a misattributed event looks exactly like a co-issued one:
+    MQM.V carried eleven events whose headlines all read "New Age Metals ..."
+    and never mentioned MacDonald Mines. Those are not joint ventures, they are
+    somebody else's news under the wrong ticker, and cross-filing them would
+    have spread the error into a second company rather than surfacing it.
 
 **Nothing is applied automatically to history** (Justin's choice). `--propose`
 writes candidate pairs to its own store with status `pending` and touches
 `portal.db` not at all. `--apply` is a separate, explicit step, and can be
-limited to one pair at a time.
+limited to one pair at a time. Both V2 fixes were found by reading V1's
+proposals, which is exactly what that separation is for.
 
 Run:
     python3 jv_tag.py --propose --days 400      # scan history, change nothing
@@ -93,7 +98,10 @@ _SUFFIX = re.compile(
 _PUNCT = re.compile(r"[^\w\s&-]+")
 _WS = re.compile(r"\s+")
 
-# "(TSXV: RRI)", "TSX-V:RRI", "CSE: QQQ"
+# "(TSXV: RRI)", "CSE: QQQ".
+# A colon is required. Allowing a hyphen as the separator made "TSX-V ACCEPTANCE
+# TO SETTLEMENT" parse as exchange "TSX", separator "-", ticker "V", and tagged
+# every such release with the company whose ticker is V.
 _EXCHANGE = r"(?:TSX-?V|TSXV|TSX|CSE|CNSX|NEO|OTCQB|OTCQX|OTC|NYSE|NASDAQ|FSE|ASX)"
 
 
@@ -115,43 +123,99 @@ def core_name(name: str) -> str:
     return _WS.sub(" ", s).strip()
 
 
-def build_index() -> tuple[list, dict]:
-    """(patterns, by_symbol).
+# Words too common to identify a company on their own. Only consulted for the
+# short-form leniency below, never for finding a partner.
+_WEAK_FIRST = {
+    "new", "gold", "silver", "copper", "nickel", "lithium", "uranium", "zinc",
+    "north", "northern", "south", "southern", "east", "eastern", "west",
+    "western", "great", "grand", "canada", "canadian", "america", "american",
+    "pacific", "atlantic", "arctic", "first", "global", "international",
+    "united", "royal", "star", "sun", "red", "blue", "green", "black", "white",
+    "big", "high", "mountain", "lake", "river", "rock", "summit", "apex",
+    "core", "prime", "true", "pure", "next", "one", "alpha", "omega", "delta",
+}
+
+
+def _short_forms(cores: dict) -> dict:
+    """symbol -> a compiled pattern for the company's first word, when that
+    word is distinctive enough to stand alone."""
+    out = {}
+    for sym, core in cores.items():
+        first = (core.split() or [""])[0]
+        if len(first) >= 4 and first.lower() not in _WEAK_FIRST:
+            out[sym] = re.compile(rf"(?<![\w]){re.escape(first)}(?![\w])", re.I)
+    return out
+
+
+def build_index() -> tuple[list, dict, dict]:
+    """(patterns, by_sym, short_forms).
 
     patterns is a list of (compiled_regex, symbol, kind, display) ordered so
     that longer names are tried first — at a given position in the headline the
     longest company name should win, not whichever happened to be indexed
     first.
+
+    by_sym maps a symbol to its own patterns, which is how we check that the
+    company an event is filed under is actually named in its own headline.
     """
     import universe_client
 
-    pats, by_symbol = [], {}
+    pats, by_sym, cores = [], {}, {}
     for c in universe_client.load():
         sym = (c.get("symbol") or "").strip().upper()
         if not sym:
             continue
-        by_symbol[sym] = c
         bare = sym.split(".")[0]
+        mine = by_sym.setdefault(sym, [])
 
         # A ticker is only ever matched when the exchange is stated next to it.
         # A bare three-letter ticker in prose is far too easy to hit by accident.
-        pats.append((
-            re.compile(rf"\b{_EXCHANGE}\s*[:\-]\s*{re.escape(bare)}\b", re.I),
-            sym, "ticker", f"{_EXCHANGE}: {bare}",
-        ))
+        rx = re.compile(rf"\b{_EXCHANGE}\s*:\s*{re.escape(bare)}\b", re.I)
+        pats.append((rx, sym, "ticker", f"{_EXCHANGE}: {bare}"))
+        mine.append(rx)
 
         core = core_name(c.get("name") or "")
+        if core:
+            cores[sym] = core
         if len(core.split()) < 2:
             continue                     # too generic to match on by name
         # Tolerate runs of whitespace inside the name.
         body = r"\s+".join(re.escape(w) for w in core.split())
-        pats.append((
-            re.compile(rf"(?<![\w]){body}(?![\w])", re.I), sym, "name", core,
-        ))
+        rx = re.compile(rf"(?<![\w]){body}(?![\w])", re.I)
+        pats.append((rx, sym, "name", core))
+        mine.append(rx)
 
     # Longest display string first, so overlapping names resolve to the longest.
     pats.sort(key=lambda p: len(p[3]), reverse=True)
-    return pats, by_symbol
+    return pats, by_sym, _short_forms(cores)
+
+
+def names_primary(headline: str, primary: str, by_sym: dict,
+                  short: dict | None = None) -> bool:
+    """Is the company this event is filed under actually named in its own
+    headline?
+
+    This is the check that separates a co-issued release from a
+    **misattribution**. MQM.V carried eleven events whose headlines all read
+    "New Age Metals ..." and never mentioned MacDonald Mines at all — those are
+    not joint ventures, they are somebody else's news filed under the wrong
+    ticker, and cross-filing them would spread the error into a second company
+    instead of surfacing it. Requiring the primary to be named drops them.
+
+    The check is deliberately **lenient**, because headlines use short forms:
+    "Barrick Announces Investment in Kingfisher Metals" never says "Barrick
+    Mining Corporation". Leniency here is safe — this only decides whether an
+    event is allowed to be considered at all, and the partner it gets matched
+    against is still found by the strict full-name rule. A company whose first
+    word is something like "New" or "Gold" gets no short form and falls back to
+    its full name.
+    """
+    sym = (primary or "").strip().upper()
+    for rx in by_sym.get(sym) or []:
+        if rx.search(headline):
+            return True
+    rx = (short or {}).get(sym)
+    return bool(rx and rx.search(headline))
 
 
 def partners_in(headline: str, primary: str, pats: list) -> list[tuple]:
@@ -182,15 +246,19 @@ def partners_in(headline: str, primary: str, pats: list) -> list[tuple]:
 # --------------------------------------------------------------------------
 
 _live_pats = None
+_live_by_sym = None
+_live_short = None
 
 
 def tags_for(headline: str, primary: str) -> list[str]:
     """The partner symbols for one headline. Used by portal/jv_gate.py at
     ingest. Never raises — a failure here must not stop an event being stored."""
-    global _live_pats
+    global _live_pats, _live_by_sym, _live_short
     try:
         if _live_pats is None:
-            _live_pats, _ = build_index()
+            _live_pats, _live_by_sym, _live_short = build_index()
+        if not names_primary(headline, primary, _live_by_sym, _live_short):
+            return []                            # misattribution, not co-issue
         return [s for s, _t, _h in partners_in(headline, primary, _live_pats)]
     except Exception:                            # noqa: BLE001
         return []
@@ -207,7 +275,7 @@ def pipe(tickers: list[str]) -> str | None:
 # --------------------------------------------------------------------------
 
 def propose(con, days: int, limit: int | None) -> int:
-    pats, _ = build_index()
+    pats, by_sym, short = build_index()
     log(f"{len(pats)} match patterns from the universe")
     p = sqlite3.connect(f"file:{PORTAL_DB}?mode=ro", uri=True)
     p.row_factory = sqlite3.Row
@@ -217,12 +285,17 @@ def propose(con, days: int, limit: int | None) -> int:
     rows = p.execute(q, (since,)).fetchall()
     log(f"{len(rows):,} events since {since}")
 
-    n_hit = n_new = 0
+    n_hit = n_new = n_misattr = 0
     for i, r in enumerate(rows, 1):
         if i % 5000 == 0:
             log(f"  {i:,}/{len(rows):,} scanned, {n_hit} with a partner")
-        found = partners_in(r["raw_headline"] or "", r["ticker"] or "", pats)
+        headline = r["raw_headline"] or ""
+        found = partners_in(headline, r["ticker"] or "", pats)
         if not found:
+            continue
+        if not names_primary(headline, r["ticker"] or "", by_sym, short):
+            # Somebody else's news filed under this ticker. Not a co-issue.
+            n_misattr += 1
             continue
         already = set((r["additional_tickers"] or "").strip("|").split("|"))
         n_hit += 1
@@ -245,7 +318,9 @@ def propose(con, days: int, limit: int | None) -> int:
                 log(f"stopped at --limit {limit}")
                 return n_new
     con.commit()
-    log(f"{n_hit:,} events name another universe company in the headline")
+    log(f"{n_hit:,} events name another universe company AND their own")
+    log(f"{n_misattr:,} named another company but NOT their own — skipped as "
+        f"probable misattribution, not co-issue")
     log(f"{n_new:,} new proposals written (status pending)")
     return n_new
 
