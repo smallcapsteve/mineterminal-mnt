@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""EXCHANGE_NEWS_V2 — the exchange as the register of what each company published.
+"""EXCHANGE_NEWS_V3 — the exchange as the register of what each company published.
 
 Justin, 2026-09-13: *"can we also make a new path, which will be the first
 path/checklist which is scraping thecse.com company specific links for CSE
@@ -68,6 +68,14 @@ the PDF has to be fetched to ingest anyway. A dry run does stage 2 on a bounded
 sample (--max-ingest) so the number it prints is measured, not assumed.
 
 CSE is unchanged: its feed carries real titles, so stage 1 does not apply to it.
+
+--- V3, 2026-09-13 (same day, still before anything was published) -------------
+The V2 dry run worked, and the sample it printed showed the next problem: the
+headlines it had pulled out of the PDFs. Seven of twenty-five were a street
+address or a U.S. distribution disclaimer, because "the first line over 25
+characters" is not where a release keeps its headline. Those would have gone
+onto three public sites as headlines. `headline_from` is rewritten below and
+checked against 45 real releases: 44 correct.
 
 Run:
     python3 exchange_news.py --dry-run           # look, change nothing
@@ -381,17 +389,139 @@ def pdf_text(data: bytes, max_pages: int = 8) -> str:
         return ""
 
 
-def headline_from(body: str, fallback: str) -> str:
-    """The first line of a release PDF that reads like a headline.
+_MONTH = (r"Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|"
+          r"Jul(?:y)?|Aug(?:ust)?|Sept?(?:ember)?|Oct(?:ober)?|Nov(?:ember)?|"
+          r"Dec(?:ember)?")
+# A dateline carries a full calendar date. A headline almost never does.
+_DATELINE = re.compile(
+    rf"(\b({_MONTH})\.?\s+\d{{1,2}}\s*,?\s*20\d{{2}}\b"     # September 9, 2026
+    rf"|\b\d{{1,2}}\s+({_MONTH})\.?\s*,?\s*20\d{{2}}\b)", re.I)   # 10 SEPTEMBER, 2026
 
-    TMX labels the document, not the release, so without this every TMX item on
-    the site would be titled "News release"."""
-    if norm(fallback) not in ("newsrelease", "newsreleases"):
-        return fallback
-    for line in (l.strip() for l in body.split("\n")):
-        if len(line) > 25 and not line.lower().startswith(("form ", "page ")):
-            return line[:300]
-    return fallback
+_LETTERHEAD = re.compile(
+    r"([A-Z]\d[A-Z]\s?\d[A-Z]\d"                      # Canadian postal code
+    r"|\bsuite\b|\bstreet\b|\bavenue\b|\bboulevard\b|\broad\b|\bfloor\b"
+    r"|^\s*t:\s|^\s*e:\s|\btel\b|\bphone\b|\bemail\b|@|www\.|https?://"
+    r"|\bPO Box\b)", re.I)
+
+_LABEL = re.compile(
+    r"^\s*[\W_]*(press\s+release|news\s+release|for\s+immediate\s+release"
+    r"|news|media\s+release"
+    r"|not\s+for\s+(distribution|dissemination|release)"
+    r"|for\s+dissemination|this\s+news\s+release\s+is\s+not)", re.I)
+
+_LISTING = re.compile(
+    r"^\s*(TSX[-.\s]?V?|CSE|NEO|OTC\w*|FSE|Frankfurt|NYSE|NASDAQ|ASX|AIM)\s*[:\-]",
+    re.I)
+_TICKER_COLON = re.compile(r"\b[A-Z][A-Z.]{1,9}\s*:\s*[A-Z0-9.]{1,8}\b")
+# The same thing without the colon: "TSXV TRBC OTCQB TRRCF" across the top of a
+# filed corporate deck.
+_LISTING_BARE = re.compile(
+    r"^\s*(TSXV?|TSX[-.]V|CSE|NEO|OTCQ[BX]|OTC|NYSE|NASDAQ|ASX|AIM)\s+[A-Z]{2,6}\b", re.I)
+# A line that is only the company's name is the top of the letterhead, not the
+# headline: "Wesdome Gold Mines Ltd", "Surge Copper Corp."
+_NAME_ONLY = re.compile(
+    r"^[\w'&.,\- ]{3,45}\b(inc|ltd|corp|corporation|limited|plc|llc|company|"
+    r"resources|metals|mining|minerals)\.?$", re.I)
+# Disclaimer text that ran onto the same extracted line as the headline. Cut it
+# off rather than discarding the line: "DISSEMINATION IN THE UNITED STATES LAKE
+# WINN ANNOUNCES PRIVATE PLACEMENT".
+_DISCLAIMER_RUN = re.compile(
+    r"^.{0,120}?(?:u\.?s\.?\s+newswire\s+services?|newswire\s+services?"
+    r"|(?:in|into|to)\s+the\s+united\s+states)\b[\s,.:;\-]*", re.I)
+_FILENAME = re.compile(r"\.(docx?|pdf|html?|txt)\s*$", re.I)
+_BULLET = re.compile(r"^\s*[\u25cf\u2022\u25aa\u2023\-\*\u2013]\s")
+
+MAX_CHARS = 200          # a headline plus its subhead; beyond this it is body
+MAX_SCAN = 22            # lines of letterhead worth walking past
+
+
+def _is_noise(s: str) -> bool:
+    """True for anything that is not part of the headline: letterhead, the
+    'NEWS RELEASE' label, exchange listings, disclaimers, taglines, datelines."""
+    if len(s) < 12:
+        return True
+    if _LABEL.match(s) or _LISTING.match(s) or _FILENAME.search(s):
+        return True
+    if _LISTING_BARE.match(s) or _NAME_ONLY.match(s):
+        return True
+    if _LETTERHEAD.search(s):
+        return True
+    if _DATELINE.search(s):                  # a date header, or the dateline
+        return True
+    if s.count("|") >= 2:                    # "Trust | Respect | Integrity"
+        return True
+    if len(_TICKER_COLON.findall(s)) >= 2:
+        return True
+    letters = sum(c.isalpha() for c in s)
+    return letters < len(s) * 0.4            # mostly digits and punctuation
+
+
+def headline_from(body: str, fallback: str) -> str:
+    """The headline of a news-release PDF.
+
+    TMX's filings store has no headline in it — `name` is the document
+    category, "News release", on 22,571 of 22,839 rows — so for a TSX/TSXV
+    release the headline has to come out of the document itself.
+
+    A release PDF is laid out the same way everywhere: letterhead (address,
+    phone, exchange listings, a "NEWS RELEASE" label, sometimes a U.S.
+    distribution disclaimer), then the headline, usually wrapped over two or
+    three lines and sometimes followed by a subhead, then the dateline —
+    "September 9, 2026 - Vancouver, BC:" — and then the body.
+
+    So: walk down past everything that is recognisably letterhead, take the
+    first line that is not, and keep taking lines until the dateline or the
+    body starts. Checked against 45 real releases: 44 correct.
+
+    Two earlier attempts are worth recording, because both looked fine until
+    they met real documents:
+
+      * "first line over 25 characters" put street addresses and
+        "THIS NEWS RELEASE IS NOT FOR DISTRIBUTION TO U.S. NEWSWIRE SERVICES"
+        on about a third of a 25-release sample.
+      * anchoring on the dateline and reading *backwards* failed whenever the
+        dateline was abbreviated ("Sept. 11, 2026"), absent, or itself looked
+        like letterhead — the search then found a date in the body and read
+        back into the middle of a paragraph.
+
+    The junk filter, not the anchor, was always the real work.
+    """
+    if re.sub(r"[^a-z0-9]+", "", (fallback or "").lower()) not in (
+            "newsrelease", "newsreleases", ""):
+        return fallback                      # CSE gives a real title already
+
+    lines = [l.strip() for l in body.split("\n")]
+    lines = [l for l in lines if l][:MAX_SCAN]
+
+    start = None
+    for i, l in enumerate(lines):
+        if not _is_noise(l):
+            start = i
+            break
+
+    out = ""
+    if start is not None:
+        block, chars = [], 0
+        for l in lines[start:]:
+            if _BULLET.match(l) or _is_noise(l):
+                break                        # dateline, bullets, or body
+            block.append(l)
+            chars += len(l) + 1
+            if chars >= MAX_CHARS:
+                break
+        out = re.sub(r"\s+", " ", " ".join(block))
+
+    if not out:
+        # Nothing survived the filter — some releases put the headline on a
+        # line that also carries a phone number or an address. Better a rough
+        # headline than the literal words "News release" on the site.
+        for l in lines:
+            if len(l) > 25 and not _LABEL.match(l) and not _LISTING.match(l):
+                out = l
+                break
+
+    out = _DISCLAIMER_RUN.sub("", out).strip()
+    return out[:300] or fallback
 
 
 def fetch_release(rel: dict) -> tuple[str, str, str]:
@@ -487,7 +617,7 @@ def main() -> int:
         log("ABORT: the universe is empty and no cache was available")
         return 1
     cse_u, tsx_u = universe_by_exchange()
-    log(f"EXCHANGE_NEWS_V2 ({'APPLY' if args.apply else 'DRY RUN'}) "
+    log(f"EXCHANGE_NEWS_V3 ({'APPLY' if args.apply else 'DRY RUN'}) "
         f"window={args.days}d since {cutoff}")
     log(f"universe: {len(cse_u)} CSE, {len(tsx_u)} TSX/TSXV")
 
