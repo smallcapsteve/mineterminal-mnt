@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""EXCHANGE_NEWS_V3 — the exchange as the register of what each company published.
+"""EXCHANGE_NEWS_V4 — the exchange as the register of what each company published.
 
 Justin, 2026-09-13: *"can we also make a new path, which will be the first
 path/checklist which is scraping thecse.com company specific links for CSE
@@ -77,6 +77,17 @@ characters" is not where a release keeps its headline. Those would have gone
 onto three public sites as headlines. `headline_from` is rewritten below and
 checked against 45 real releases: 44 correct.
 
+--- V4, 2026-09-13 (same day) --------------------------------------------------
+Deployment only. The first --apply run failed at the first publish with
+`PermissionError: /opt/mnt/app/.env`: the unit ran as root with an empty
+CapabilityBoundingSet, and root without CAP_DAC_OVERRIDE cannot read a 0600 file
+it does not own. Widening the capability set was the wrong fix — running this as
+root at all would scatter root-owned files through /opt/mnt/app/data, which is
+how data/seen_events.json ended up root-owned and unwritable by the mnt-run jobs
+that need it. So the job runs as `mnt` like every other MNT job, and the two
+filing-store paths became environment variables so the unit can bind-mount the
+stores into its own namespace instead.
+
 Run:
     python3 exchange_news.py --dry-run           # look, change nothing
     python3 exchange_news.py --apply             # reconcile + fill gaps
@@ -103,8 +114,17 @@ import universe_client  # noqa: E402
 
 DB_PATH = os.environ.get("EXCHANGE_NEWS_DB", f"{APP_ROOT}/data/exchange_news.db")
 PORTAL_DB = "/opt/mnt/app/portal/portal.db"
-CSE_SYMBOLS_DB = "/root/minetracker/data/cse_filings.db"
-TMX_FILINGS_DB = "/root/minetracker/data/tmx_filings.db"
+# The CSE and TMX filing stores belong to the MTP collector and live under
+# /root, which is mode 700 - the `mnt` user this job runs as cannot traverse
+# into it. Rather than run the collector as root (which would leave root-owned
+# files all through /opt/mnt/app/data, a failure this box has already had once
+# with seen_events.json), the systemd unit bind-mounts that directory into the
+# unit's own namespace read-only and points these at it. Defaults are the real
+# paths, so the script still works when run by hand as root.
+CSE_SYMBOLS_DB = os.environ.get(
+    "CSE_FILINGS_DB", "/root/minetracker/data/cse_filings.db")
+TMX_FILINGS_DB = os.environ.get(
+    "TMX_FILINGS_DB", "/root/minetracker/data/tmx_filings.db")
 CSE_API = "https://website-data-api-v2.thecse.com/api/news-releases?companyId={}&locale=en"
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 14_2) AppleWebKit/605.1.15 "
       "(KHTML, like Gecko) Version/17.2 Safari/605.1.15")
@@ -617,7 +637,7 @@ def main() -> int:
         log("ABORT: the universe is empty and no cache was available")
         return 1
     cse_u, tsx_u = universe_by_exchange()
-    log(f"EXCHANGE_NEWS_V3 ({'APPLY' if args.apply else 'DRY RUN'}) "
+    log(f"EXCHANGE_NEWS_V4 ({'APPLY' if args.apply else 'DRY RUN'}) "
         f"window={args.days}d since {cutoff}")
     log(f"universe: {len(cse_u)} CSE, {len(tsx_u)} TSX/TSXV")
 
