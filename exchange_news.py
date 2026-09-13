@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""EXCHANGE_NEWS_V1 — the exchange as the register of what each company published.
+"""EXCHANGE_NEWS_V2 — the exchange as the register of what each company published.
 
 Justin, 2026-09-13: *"can we also make a new path, which will be the first
 path/checklist which is scraping thecse.com company specific links for CSE
@@ -42,6 +42,32 @@ existed.
            SeekingAlpha and Motley Fool commentary via QuoteMedia ("Best 3
            Copper Stocks To Buy For The AI Boom" was the top item for Lundin).
            That is not issuer news and must not be ingested as if it were.
+
+--- V2, 2026-09-13 (same day, before anything was published) -------------------
+V1's first dry run reported 587 gaps out of 641 releases — a 92% miss rate that
+was not believable, and it was not true. The cause is that TMX's filings store
+has no headline in it. `name` is the *document category*: 22,571 of the 22,839
+news-release rows say literally "News release". V1 matched on title, so every
+TMX release compared "News release" against MNT's real headlines, matched
+nothing, and was counted as missed. An --apply run would have ingested 25
+duplicates per run forever.
+
+The headline for a TMX release exists in exactly one place: inside the PDF. So
+the reconcile is now two stages, cheap first:
+
+  1. **Count, per (ticker, day).** If MNT already holds as many events for that
+     company that day as the exchange lists, the release is covered. No fetch.
+     This alone accounts for 164 of 473 TMX releases in a 14-day window.
+  2. **Headline, from the document.** Only for what stage 1 leaves over: fetch
+     the PDF, take the real headline out of it, and *then* run the title match —
+     own ticker first, then cross-ticker, which is what detects a wire filing a
+     release under the wrong company. Ingest only if that also finds nothing.
+
+Stage 2 costs a fetch, but only for releases that already look uncovered, and
+the PDF has to be fetched to ingest anyway. A dry run does stage 2 on a bounded
+sample (--max-ingest) so the number it prints is measured, not assumed.
+
+CSE is unchanged: its feed carries real titles, so stage 1 does not apply to it.
 
 Run:
     python3 exchange_news.py --dry-run           # look, change nothing
@@ -91,7 +117,7 @@ CREATE TABLE IF NOT EXISTS releases (
     title          TEXT,
     url            TEXT,
     status         TEXT NOT NULL DEFAULT 'pending',
-       -- pending | matched | ingested | no_body | error | skipped
+       -- pending | covered | matched | ingested | no_body | error | skipped
     matched_event  TEXT,
     wrong_ticker   TEXT,               -- the ticker a wire filed it under, if different
     note           TEXT,
@@ -185,7 +211,10 @@ def pull_cse(cse_universe: dict, ids: dict, cutoff: str, only: set | None) -> li
         targets = [t for t in targets if t[0] in only]
     log(f"CSE: {len(targets)} companies to ask "
         f"({len(cse_universe) - len(targets)} of ours have no CSE listing id)")
-    for b, cid in targets:
+    for i, (b, cid) in enumerate(targets, 1):
+        if i % 75 == 0:
+            log(f"  CSE: {i}/{len(targets)} asked, {len(rows)} releases so far")
+        time.sleep(0.05)          # ~0.5s per call already; this is courtesy
         try:
             d = json.loads(http_get(CSE_API.format(cid)))
         except Exception as e:                       # noqa: BLE001
@@ -251,12 +280,19 @@ def pull_tmx(tsx_universe: dict, cutoff: str, only: set | None) -> list[dict]:
 # reconcile
 # --------------------------------------------------------------------------
 
-def find_match(pcon: sqlite3.Connection, rel: dict) -> tuple[str | None, str | None]:
+def find_match(pcon: sqlite3.Connection, rel: dict,
+               title: str | None = None) -> tuple[str | None, str | None]:
     """(event_id, ticker_it_was_filed_under). Looks for this release among the
-    events MNT already has — first under the right ticker, then under any."""
+    events MNT already has — first under the right ticker, then under any.
+
+    `title` overrides rel["title"]. That is how a TMX release is matched: the
+    caller pulls the real headline out of the PDF and passes it here, because
+    rel["title"] is the string "News release" for every TMX row in the store."""
     d = rel["published_date"]
-    n1 = norm(rel["title"])
-    if not n1:
+    n1 = norm(title if title is not None else rel["title"])
+    if not n1 or n1 in ("newsrelease", "newsreleases"):
+        # Nothing to match on. Say so rather than reporting "not found", which
+        # is what V1 did and why it called 587 covered releases missing.
         return None, None
 
     def scan(rows):
@@ -278,11 +314,6 @@ def find_match(pcon: sqlite3.Connection, rel: dict) -> tuple[str | None, str | N
     if eid:
         return eid, None
 
-    # TMX gives us "News release" as the title, which matches nothing — so a
-    # cross-ticker search on it would be meaningless. Only do it for real titles.
-    if rel["source"] == "tmx" and norm(rel["title"]) in ("newsrelease", "newsreleases"):
-        return None, None
-
     other = pcon.execute(
         "SELECT event_id, raw_headline, ticker FROM events "
         "WHERE date(published_at) BETWEEN date(?,'-2 day') AND date(?,'+2 day')",
@@ -292,6 +323,40 @@ def find_match(pcon: sqlite3.Connection, rel: dict) -> tuple[str | None, str | N
     if eid:
         return eid, tk           # found, but filed under the wrong company
     return None, None
+
+
+def covered_by_count(pcon: sqlite3.Connection, rels: list[dict]) -> set:
+    """Stage 1 — the cheap half of the reconcile, for TMX only.
+
+    TMX tells us *that* a company filed a release on a day, never what it said.
+    So instead of asking "is this headline on the site", ask the only question
+    the data supports: **does MNT already hold as many events for this company
+    that day as the exchange lists?** If it does, there is nothing missing.
+
+    Deliberately conservative in the direction that costs a fetch rather than a
+    duplicate: two releases on one day with only one event on the site leaves
+    the day a candidate, and stage 2 sorts out which one is the new one.
+
+    +/- 1 day, because an evening release is routinely dated the next morning by
+    a wire and vice versa.
+
+    Returns the uids that need no further work.
+    """
+    by_day = {}
+    for r in rels:
+        by_day.setdefault((r["bare"], r["published_date"]), []).append(r)
+    out = set()
+    for (b, d), group in by_day.items():
+        have = pcon.execute(
+            "SELECT COUNT(*) FROM events WHERE ticker LIKE ? "
+            "AND date(published_at) BETWEEN date(?,'-1 day') AND date(?,'+1 day')",
+            (b + "%", d, d),
+        ).fetchone()[0]
+        if have >= len(group):
+            for r in group:
+                out.add(uid_for(r["source"], r["ticker"], r["published_date"],
+                                r["title"]))
+    return out
 
 
 # --------------------------------------------------------------------------
@@ -316,31 +381,42 @@ def pdf_text(data: bytes, max_pages: int = 8) -> str:
         return ""
 
 
-def ingest(rel: dict) -> tuple[bool, str]:
-    """Fetch, extract, classify and post one release. Returns (ok, note)."""
+def headline_from(body: str, fallback: str) -> str:
+    """The first line of a release PDF that reads like a headline.
+
+    TMX labels the document, not the release, so without this every TMX item on
+    the site would be titled "News release"."""
+    if norm(fallback) not in ("newsrelease", "newsreleases"):
+        return fallback
+    for line in (l.strip() for l in body.split("\n")):
+        if len(line) > 25 and not line.lower().startswith(("form ", "page ")):
+            return line[:300]
+    return fallback
+
+
+def fetch_release(rel: dict) -> tuple[str, str, str]:
+    """(body, headline, error). Fetches the PDF and reads it; publishes nothing.
+
+    Split out of ingest() in V2 because the headline is needed *before* the
+    match decision for TMX, not after it."""
     if not rel["url"]:
-        return False, "no url"
+        return "", "", "no url"
     try:
         data = http_get(rel["url"])
     except Exception as e:                       # noqa: BLE001
-        return False, f"fetch: {type(e).__name__} {str(e)[:60]}"
+        return "", "", f"fetch: {type(e).__name__} {str(e)[:60]}"
     if not data[:5].startswith(b"%PDF"):
-        return False, f"not a pdf ({data[:8]!r})"
+        return "", "", f"not a pdf ({data[:8]!r})"
     body = pdf_text(data)
     if len(body) < 200:
-        return False, f"pdf text too short ({len(body)} chars)"
+        return "", "", f"pdf text too short ({len(body)} chars)"
+    return body, headline_from(body, rel["title"]), ""
 
+
+def publish(rel: dict, body: str, headline: str) -> tuple[bool, str]:
+    """Classify an already-fetched release and post it to MNT's ingest."""
     from pipeline.run import build_envelope, sign_and_post, archive_envelope
     from classify.classifier import classify as classify_event
-
-    headline = rel["title"]
-    if norm(headline) in ("newsrelease", "newsreleases"):
-        # TMX labels the document, not the release. The PDF's first real line is
-        # the headline; anything else would put "News release" on the site.
-        for line in (l.strip() for l in body.split("\n")):
-            if len(line) > 25 and not line.lower().startswith(("form ", "page ")):
-                headline = line[:300]
-                break
 
     try:
         cls = classify_event(headline, body)
@@ -411,83 +487,138 @@ def main() -> int:
         log("ABORT: the universe is empty and no cache was available")
         return 1
     cse_u, tsx_u = universe_by_exchange()
-    log(f"EXCHANGE_NEWS_V1 ({'APPLY' if args.apply else 'DRY RUN'}) "
+    log(f"EXCHANGE_NEWS_V2 ({'APPLY' if args.apply else 'DRY RUN'}) "
         f"window={args.days}d since {cutoff}")
     log(f"universe: {len(cse_u)} CSE, {len(tsx_u)} TSX/TSXV")
 
     releases = pull_tmx(tsx_u, cutoff, only) + pull_cse(cse_u, cse_company_ids(), cutoff, only)
-    log(f"exchanges list {len(releases)} releases in the window")
+    log(f"exchanges list {len(releases)} releases in the window "
+        f"({sum(1 for r in releases if r['source'] == 'tmx')} TMX, "
+        f"{sum(1 for r in releases if r['source'] == 'cse')} CSE)")
 
     pcon = sqlite3.connect(f"file:{PORTAL_DB}?mode=ro", uri=True)
-    n_new = n_matched = n_wrong = n_gap = 0
-    gaps = []
-    for rel in releases:
-        uid = uid_for(rel["source"], rel["ticker"], rel["published_date"], rel["title"])
-        prev = con.execute("SELECT status FROM releases WHERE uid=?", (uid,)).fetchone()
-        if prev and prev["status"] in ("matched", "ingested", "skipped"):
-            continue
-        if not prev:
-            n_new += 1
+    now = dt.datetime.utcnow().isoformat()
 
-        eid, wrong = find_match(pcon, rel)
+    # Anything already settled in a previous run is left alone. An unreadable
+    # PDF is held back for three days too: without that, a handful of
+    # permanently broken documents would eat the whole --max-ingest budget on
+    # every run and nothing new would ever be looked at.
+    settled = {r[0] for r in con.execute(
+        "SELECT uid FROM releases WHERE status IN "
+        "('covered','matched','ingested','skipped') "
+        "OR (status='error' AND acted_at > datetime('now','-3 day'))")}
+    fresh = [r for r in releases
+             if uid_for(r["source"], r["ticker"], r["published_date"], r["title"])
+             not in settled]
+    log(f"{len(releases) - len(fresh)} were settled by an earlier run; "
+        f"{len(fresh)} to look at")
+
+    def record(rel, status, **kw):
+        if not args.apply:
+            return
+        uid = uid_for(rel["source"], rel["ticker"], rel["published_date"], rel["title"])
+        con.execute(
+            "INSERT INTO releases (uid,ticker,bare,exchange,source,published_date,"
+            "title,url,status,matched_event,wrong_ticker,note,acted_at) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?) "
+            "ON CONFLICT(uid) DO UPDATE SET status=excluded.status, "
+            "matched_event=excluded.matched_event, wrong_ticker=excluded.wrong_ticker, "
+            "note=excluded.note, acted_at=excluded.acted_at",
+            (uid, rel["ticker"], rel["bare"], rel["exchange"], rel["source"],
+             rel["published_date"], rel["title"], rel["url"], status,
+             kw.get("event"), kw.get("wrong"), kw.get("note"), now))
+
+    # ---- stage 1 ---------------------------------------------------------
+    # TMX by count (it has no headline to match on); CSE by its real title.
+    tmx_fresh = [r for r in fresh if r["source"] == "tmx"]
+    cov = covered_by_count(pcon, tmx_fresh)
+
+    n_covered = n_matched = n_wrong = 0
+    candidates = []
+    for rel in fresh:
+        uid = uid_for(rel["source"], rel["ticker"], rel["published_date"], rel["title"])
+        if rel["source"] == "tmx":
+            if uid in cov:
+                n_covered += 1
+                record(rel, "covered", note="MNT already had that day's events")
+            else:
+                candidates.append(rel)
+            continue
+        eid, wrong = find_match(pcon, rel)       # CSE: real title, match now
         if eid:
             n_matched += 1
-            if wrong:
-                n_wrong += 1
-            if args.apply:
-                con.execute(
-                    "INSERT INTO releases (uid,ticker,bare,exchange,source,published_date,"
-                    "title,url,status,matched_event,wrong_ticker,acted_at) "
-                    "VALUES (?,?,?,?,?,?,?,?,'matched',?,?,?) "
-                    "ON CONFLICT(uid) DO UPDATE SET status='matched', matched_event=excluded.matched_event,"
-                    " wrong_ticker=excluded.wrong_ticker, acted_at=excluded.acted_at",
-                    (uid, rel["ticker"], rel["bare"], rel["exchange"], rel["source"],
-                     rel["published_date"], rel["title"], rel["url"], eid, wrong,
-                     dt.datetime.utcnow().isoformat()))
+            n_wrong += 1 if wrong else 0
+            record(rel, "matched", event=eid, wrong=wrong)
         else:
-            n_gap += 1
-            gaps.append(rel)
-            if args.apply:
-                con.execute(
-                    "INSERT OR IGNORE INTO releases (uid,ticker,bare,exchange,source,"
-                    "published_date,title,url,status) VALUES (?,?,?,?,?,?,?,?,'pending')",
-                    (uid, rel["ticker"], rel["bare"], rel["exchange"], rel["source"],
-                     rel["published_date"], rel["title"], rel["url"]))
-    if args.apply:
-        con.commit()
+            candidates.append(rel)
 
-    log(f"already on the site: {n_matched}  (of which filed under the WRONG ticker: {n_wrong})")
-    log(f"the wires missed: {n_gap}")
-    for g in gaps[:15]:
-        log(f"   GAP {g['bare']:<7} {g['published_date']} [{g['source']}] {g['title'][:70]}")
+    log(f"stage 1 — already covered: {n_covered} TMX (by that day's event count), "
+        f"{n_matched} CSE (by headline; {n_wrong} of them under the WRONG ticker)")
+    log(f"stage 1 leaves {len(candidates)} candidates "
+        f"({sum(1 for r in candidates if r['source'] == 'tmx')} TMX, "
+        f"{sum(1 for r in candidates if r['source'] == 'cse')} CSE)")
 
-    n_ing = n_fail = 0
-    if args.apply and not args.no_ingest and gaps:
-        for rel in gaps[:args.max_ingest]:
-            uid = uid_for(rel["source"], rel["ticker"], rel["published_date"], rel["title"])
-            ok, note = ingest(rel)
+    # ---- stage 2 ---------------------------------------------------------
+    # Open the document, take the real headline, and only then decide. Bounded
+    # in both modes: a dry run confirms a sample so its number is measured.
+    cap = args.max_ingest
+    n_late = n_late_wrong = n_ing = n_fail = n_gap = 0
+    for rel in candidates[:cap]:
+        body, headline, err = fetch_release(rel)
+        if err:
+            n_fail += 1
+            record(rel, "error", note=err)
+            log(f"   UNREADABLE {rel['bare']:<7} {rel['published_date']} {err[:60]}")
+            continue
+        eid, wrong = find_match(pcon, rel, title=headline)
+        if eid:
+            n_late += 1
+            n_late_wrong += 1 if wrong else 0
+            record(rel, "matched", event=eid, wrong=wrong, note="matched on the PDF headline")
+            log(f"   ON SITE    {rel['bare']:<7} {rel['published_date']} "
+                f"{'[WRONG TICKER: ' + wrong + '] ' if wrong else ''}{headline[:60]}")
+            continue
+        n_gap += 1
+        if args.apply and not args.no_ingest:
+            ok, note = publish(rel, body, headline)
             if ok:
                 n_ing += 1
-                con.execute("UPDATE releases SET status='ingested', note=?, acted_at=? WHERE uid=?",
-                            (note, dt.datetime.utcnow().isoformat(), uid))
+                record(rel, "ingested", note=note)
             else:
                 n_fail += 1
-                con.execute("UPDATE releases SET status='error', note=?, acted_at=? WHERE uid=?",
-                            (note, dt.datetime.utcnow().isoformat(), uid))
-            log(f"   {'INGESTED' if ok else 'FAILED  '} {rel['bare']:<7} {rel['published_date']} {note[:70]}")
-        con.commit()
-        if len(gaps) > args.max_ingest:
-            log(f"   {len(gaps) - args.max_ingest} more gaps left for the next run (--max-ingest)")
+                record(rel, "error", note=note)
+            log(f"   {'INGESTED' if ok else 'FAILED  '} {rel['bare']:<7} "
+                f"{rel['published_date']} {headline[:45]} — {note[:45]}")
+        else:
+            record(rel, "pending", note="confirmed gap, not published")
+            log(f"   GAP        {rel['bare']:<7} {rel['published_date']} {headline[:60]}")
+
+    checked = min(len(candidates), cap)
+    if checked:
+        log(f"stage 2 — opened {checked} of {len(candidates)} candidates: "
+            f"{n_late} were already on the site after all "
+            f"({n_late_wrong} under the wrong ticker), {n_gap} are real gaps, "
+            f"{n_fail} could not be read")
+        rate = n_gap / checked
+        log(f"          on that sample, {rate:.0%} of candidates are genuine gaps "
+            f"-> roughly {round(len(candidates) * rate)} of {len(candidates)} "
+            f"over the {args.days}-day window")
+    if len(candidates) > cap:
+        log(f"          {len(candidates) - cap} candidates left for the next run "
+            f"(--max-ingest {cap})")
 
     if args.apply:
+        con.commit()
         con.execute("INSERT INTO runs (started_at,finished_at,mode,seen,matched,ingested,"
                     "failed,wrong_ticker,note) VALUES (?,?,?,?,?,?,?,?,?)",
                     (started, dt.datetime.utcnow().isoformat(), "apply", len(releases),
-                     n_matched, n_ing, n_fail, n_wrong, f"window={args.days}d"))
+                     n_covered + n_matched + n_late, n_ing, n_fail,
+                     n_wrong + n_late_wrong, f"window={args.days}d"))
         con.commit()
 
-    log(f"done in {time.monotonic() - t0:.0f}s — seen={len(releases)} new={n_new} "
-        f"matched={n_matched} wrong_ticker={n_wrong} gaps={n_gap} "
+    log(f"done in {time.monotonic() - t0:.0f}s — seen={len(releases)} "
+        f"covered={n_covered} matched={n_matched + n_late} "
+        f"wrong_ticker={n_wrong + n_late_wrong} confirmed_gaps={n_gap} "
         f"ingested={n_ing} failed={n_fail}")
     con.close()
     return 0
