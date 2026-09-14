@@ -154,6 +154,78 @@ def _parse_date(s: str) -> Optional[str]:
     return None
 
 
+
+# --- the lede is the news; everything below the disclaimer heading is not -----
+_RE_FLS_START = re.compile(
+    r"(?i)(forward[\-\s]looking\s+(?:statement|information)"
+    r"|cautionary\s+(?:note|statement)"
+    r"|neither\s+the\s+(?:tsx|canadian\s+securities)"
+    r"|this\s+news\s+release\s+(?:contains|includes)\s+forward)")
+
+# Past-tense completion of THIS release's financing.
+_RE_CLOSED_NOW = re.compile(
+    r"(?i)\b(?:has|have)\s+(?:now\s+)?(?:successfully\s+)?closed\b"
+    r"|\bannounces?\s+(?:the\s+)?(?:successful\s+)?clos(?:ing|ure)\s+of\b"
+    r"|\b(?:has|have)\s+completed\s+(?:the|its)\b"
+    r"|\bis\s+pleased\s+to\s+announce\s+(?:the\s+)?(?:successful\s+)?clos(?:ing|ure)\b"
+    r"|\bcompletion\s+of\s+(?:the|its)\s+(?:previously\s+announced\s+)?"
+    r"(?:non[\-\s]brokered\s+)?(?:private\s+placement|offering|financing)\b")
+
+# If these sit beside the match it is a close that has not happened yet.
+_RE_CLOSE_FUTURE = re.compile(
+    r"(?i)\b(?:prior\s+to|before|upon|anticipated|expects?\s+to|intends?\s+to"
+    r"|will\s+close|subject\s+to)\b")
+
+# _RE_FIN_NOUN does not know every instrument ("Convertible Promissory Notes"),
+# but a close verb next to an amount in the HEADLINE is not ambiguous.
+_RE_HEADLINE_MONEY = re.compile(
+    r"\$\s?[\d,]+(?:\.\d+)?\s*(?:million|billion|m\b|bn\b)?", re.I)
+
+
+def _lede(body: str, n: int = 900) -> str:
+    """The body above the forward-looking-statements heading, capped."""
+    b = body or ""
+    m = _RE_FLS_START.search(b)
+    if m:
+        b = b[:m.start()]
+    return b[:n]
+
+
+# A company closes acquisitions, earn-ins and property options as readily as it
+# closes placements. _RE_FIN_NOUN is the discriminator the headline path already
+# uses; these are the instruments it does not list.
+_RE_INSTRUMENT = re.compile(
+    r"(?i)\b(?:private\s+placement|offering|financing|placement|subscription\s+receipt"
+    r"|convertible\s+(?:debenture|note|promissory\s+note)|debenture|promissory\s+note"
+    r"|flow[\-\s]through|LIFE\s+offering|unit\s+offering|bought\s+deal"
+    r"|credit\s+facility|loan\s+facility|equity\s+raise|capital\s+raise"
+    # plurals: "PRIVATE PLACEMENTS", "Convertible Promissory Notes"
+    r")e?s?\b")
+
+# ... and the things a close verb attaches to that are NOT a financing.
+_RE_NOT_A_FINANCING = re.compile(
+    r"(?i)\b(?:acquisition|earn[\-\s]?in|option\s+agreement|amalgamation|arrangement"
+    r"|merger|name\s+change|consolidation|sale\s+of|disposition|joint\s+venture)\b")
+
+
+def _close_is_financing(window: str) -> bool:
+    """True only if the close language is about a financing instrument."""
+    if _RE_NOT_A_FINANCING.search(window):
+        return False
+    return bool(_RE_INSTRUMENT.search(window) or _RE_FIN_NOUN.search(window))
+
+
+def _body_reports_a_close(body: str) -> bool:
+    L = _lede(body)
+    for m in _RE_CLOSED_NOW.finditer(L):
+        window = L[max(0, m.start() - 110):m.end() + 130]
+        if _RE_CLOSE_FUTURE.search(L[max(0, m.start() - 90):m.end() + 90]):
+            continue
+        if _close_is_financing(window):
+            return True
+    return False
+
+
 def classify_role(headline: str, body: str) -> tuple[str, Optional[str]]:
     """Return (role, tranche_label).
 
@@ -180,9 +252,19 @@ def classify_role(headline: str, body: str) -> tuple[str, Optional[str]]:
         return "final_close", None
     if _RE_ANNOUNCE_VERB.search(h) and _RE_FIN_NOUN.search(h):
         return "announcement", tranche
-    # Body fallback
-    b = (body or "")[:2000]
-    if _RE_CLOSE_VERB.search(b) and "closed" in b.lower():
+    # A close verb plus an amount in the headline, for instruments
+    # _RE_FIN_NOUN does not list: "KO Gold Closes $200,000 in Convertible
+    # Promissory Notes".
+    if (_RE_CLOSE_VERB.search(h) and _RE_HEADLINE_MONEY.search(h)
+            and _close_is_financing(h)):
+        if tranche and tranche != "final":
+            return "tranche_close", tranche
+        return "final_close", tranche
+
+    # Body fallback -- the lede only, above the disclaimer, past tense.
+    # Reading 2,000 characters here put 97 AGM results, booth announcements and
+    # warrant extensions into the closed-financings table.
+    if _body_reports_a_close(body):
         return "final_close", tranche
     return "mention", tranche
 

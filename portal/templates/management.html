@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Management Changes — MiningNewsTerminal{% endblock %}
+{% block content %}
+  <h2 class="page-title">Management Changes</h2>
+
+  <section class="fin-state-tabs">
+    <a class="fin-state-tab {% if (scope or 'all') == 'all' %}fin-state-tab-active{% endif %}"
+       href="/management-changes">ALL</a>
+    <a class="fin-state-tab {% if scope == 'management' %}fin-state-tab-active{% endif %}"
+       href="/management-changes?scope=management">MANAGEMENT</a>
+    <a class="fin-state-tab {% if scope == 'board' %}fin-state-tab-active{% endif %}"
+       href="/management-changes?scope=board">BOARD</a>
+    <a class="fin-state-tab {% if scope == 'advisory' %}fin-state-tab-active{% endif %}"
+       href="/management-changes?scope=advisory">ADVISORY</a>
+  </section>
+
+  <section class="filters fin-filters">
+    <form method="get" action="/management-changes">
+      {% if scope %}<input type="hidden" name="scope" value="{{ scope }}">{% endif %}
+      <label for="ticker">Company:</label>
+      <select name="ticker" id="ticker" onchange="this.form.submit()">
+        <option value="">All companies</option>
+        {% for t in tickers %}
+          <option value="{{ t }}" {% if t == selected_ticker %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="action">Change:</label>
+      <select name="action" id="action" onchange="this.form.submit()">
+        <option value="">All changes</option>
+        <option value="appointed" {% if selected_action == 'appointed' %}selected{% endif %}>Joined</option>
+        <option value="departed" {% if selected_action == 'departed' %}selected{% endif %}>Left</option>
+        <option value="changed" {% if selected_action == 'changed' %}selected{% endif %}>Changed</option>
+      </select>
+
+      {% if selected_ticker or selected_action or scope %}
+        <a class="cat-clear" href="/management-changes">Clear</a>
+      {% endif %}
+      <span class="muted">{{ rows|length }} shown · {{ total }} total</span>
+    </form>
+  </section>
+
+  {% if not rows %}
+    <p class="empty">No management changes yet.</p>
+  {% else %}
+    <table class="fin-table">
+      <thead>
+        <tr>
+          <th>Ticker</th>
+          <th>Date</th>
+          <th>Change</th>
+          <th>Person</th>
+          <th>Role</th>
+          <th>Where</th>
+          <th>Release</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr>
+            <td class="fin-ticker">{% set _mtp = r["ticker"] | mtp_url('management') %}{% if _mtp %}<a class="mtp-co" href="{{ _mtp }}" target="_blank" rel="noopener" title="Open {{ r['ticker'] }} on MineTerminalPro">{{ r["ticker"] }}</a>{% else %}{{ r["ticker"] }}{% endif %}</td>
+            <td class="fin-date">{{ (r["published_at"] or "")[:10] }}</td>
+            <td>
+              <span class="fin-status fin-status-{{ 'closed' if r['action'] == 'departed' else 'announced' }}">
+                {{ {'departed': 'left', 'changed': 'changed'}.get(r['action'], 'joined') }}
+              </span>
+            </td>
+            <td class="mgmt-person">{{ r["person"] or "—" }}</td>
+            <td class="mgmt-role">{{ r["role"] or "—" }}</td>
+            <td class="fin-kind">{{ r["scope"] }}</td>
+            <td class="mgmt-headline">
+              <a href="/event/{{ r['event_id'] }}">{{ (r["raw_headline"] or "")[:110] }}</a>
+              {% if (r["n_changes"] or 1) > 1 %}
+                <span class="fin-tranches">· {{ r["n_changes"] }} people</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+{% endblock %}

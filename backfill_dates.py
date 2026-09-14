@@ -60,11 +60,23 @@ _MONTH = (r"Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|"
           r"Jul(?:y)?|Aug(?:ust)?|Sep(?:t|tember)?|Oct(?:ober)?|Nov(?:ember)?|"
           r"Dec(?:ember)?")
 
+# A PDF text layer splits the digits of a date as readily as it puts a space
+# before the comma: "May 27, 202 6", "February 1 7, 2026". The split forms are
+# listed first so a plain date still matches the plain branch, and the captured
+# digits have their space removed before int().
+_DAY = r"\d\s\d|\d{1,2}"
+_YEAR = r"20\d\s\d|20\d{2}"
+
+
+def _digits(s: str) -> int:
+    return int(s.replace(" ", ""))
+
+
 _PATTERNS = [
     # September 9, 2026 · Sept. 11, 2026 · February 26th, 2025
-    re.compile(rf"\b({_MONTH})\.?\s+(\d{{1,2}})(?:st|nd|rd|th)?\s*,?\s*(20\d{{2}})\b", re.I),
+    re.compile(rf"\b({_MONTH})\.?\s+({_DAY})(?:st|nd|rd|th)?\s*,?\s*({_YEAR})\b", re.I),
     # 10 SEPTEMBER, 2026 · 9th June 2026
-    re.compile(rf"\b(\d{{1,2}})(?:st|nd|rd|th)?\s+({_MONTH})\.?\s*,?\s*(20\d{{2}})\b", re.I),
+    re.compile(rf"\b({_DAY})(?:st|nd|rd|th)?\s+({_MONTH})\.?\s*,?\s*({_YEAR})\b", re.I),
     # 2026-09-09
     re.compile(r"\b(20\d{2})-(\d{2})-(\d{2})\b"),
 ]
@@ -73,7 +85,7 @@ _PATTERNS = [
 # when a PDF puts both on one extracted line the date comes along:
 #   "OPTIONS GRANTED July 17th, 2026 – Muskoka - Ontario – Steadright..."
 _DATELINE_HEAD = re.compile(
-    rf"\s*[-–—(,]?\s*\b(?:{_MONTH})\.?\s+\d{{1,2}}(?:st|nd|rd|th)?\s*,?\s*20\d{{2}}\b",
+    rf"\s*[-–—(,]?\s*\b(?:{_MONTH})\.?\s+(?:{_DAY})(?:st|nd|rd|th)?\s*,?\s*(?:{_YEAR})\b",
     re.I)
 
 WINDOW = 1800          # characters of the document to consider; measured, see above
@@ -116,9 +128,9 @@ def _candidates(text: str) -> list[tuple[int, dt.date]]:
         for m in pat.finditer(text):
             try:
                 if i == 0:
-                    mo, d, y = _MON[m.group(1)[:3].lower()], int(m.group(2)), int(m.group(3))
+                    mo, d, y = _MON[m.group(1)[:3].lower()], _digits(m.group(2)), _digits(m.group(3))
                 elif i == 1:
-                    d, mo, y = int(m.group(1)), _MON[m.group(2)[:3].lower()], int(m.group(3))
+                    d, mo, y = _digits(m.group(1)), _MON[m.group(2)[:3].lower()], _digits(m.group(3))
                 else:
                     y, mo, d = int(m.group(1)), int(m.group(2)), int(m.group(3))
                 out.append((m.start(), dt.date(y, mo, d)))
@@ -202,6 +214,17 @@ SELF_TEST = [
      "TORONTO, September 14 , 2026 – NexGold Mining Corp. (TSXV: NEXG)",
      "2026-09-14", "2026-09-14", "dateline"),
 
+    # The text layer split the digits of the year. Seen live in the TMX
+    # backfill: "Edmonton, AB, May 27, 202 6 - Metalero Mining Corp."
+    ("Metalero Announces $3.0M Private Placement\n"
+     "Edmonton, AB, May 27, 202 6 – Metalero Mining Corp. (TSXV: MLO)",
+     "2026-05-27", "2026-05-27", "dateline"),
+
+    # and of the day
+    ("One Step Closer to Cash Flow\n"
+     "VANCOUVER, BC, February 1 7, 2026 – Heritage Mining Ltd. (CSE: HML)",
+     "2026-02-17", "2026-02-17", "dateline"),
+
     # nothing readable: fall back to the exchange's date
     ("", "2026-05-05", "2026-05-05", "upload"),
     ("Scanned image, no text layer worth reading.", "2026-05-05", "2026-05-05", "upload"),
@@ -228,6 +251,10 @@ TRIM_TEST = [
     # ... but a date parenthesised at the end is filing furniture
     ("Metals Corp Announces Closing of Private Placement (February 4 2026)",
      "Metals Corp Announces Closing of Private Placement"),
+    # a split year is still a dateline
+    ("Metalero Announces $3.0M Private Placement Edmonton, AB, May 27, 202 6 – "
+     "Metalero Mining Corp. (TSXV: MLO)",
+     "Metalero Announces $3.0M Private Placement Edmonton, AB"),
 ]
 
 

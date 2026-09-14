@@ -10,6 +10,7 @@ scripts = [
     ('/opt/mnt/app/financing_backfill.py',  'financings'),
     ('/opt/mnt/app/drill_backfill.py',      'drill_results'),
     ('/opt/mnt/app/resource_backfill.py',   'resource_estimates'),
+    ('/opt/mnt/app/management_backfill.py', 'management_changes'),
 ]
 for path, label in scripts:
     print(f'[sync_structured] running {label} backfill')

@@ -8,6 +8,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/style.css?v=v34">
+  <!-- TYPEAHEAD_V1: the search dropdown only. Shared with SediTracker through
+       the static symlink; kept out of style.css so it can be reverted by
+       deleting two lines. -->
+  <link rel="stylesheet" href="/static/typeahead.css?v=v1">
   <link rel="icon" type="image/png" href="/static/mnt-logo.svg?v=v10">
   <style id="mnt-mtp-ticker-links">
   /* MNT_MTP_TICKER_LINKS_V1_BEGIN */
@@ -63,10 +67,11 @@
       <a href="/financings" {% if page == 'financings' %}class="active"{% endif %}>Financings</a>
       <a href="/drills" {% if page == 'drills' %}class="active"{% endif %}>Drill Results</a>
       <a href="/resources" {% if page == 'resources' %}class="active"{% endif %}>Resource Estimates</a>
+      <a href="/management-changes" {% if page == 'management' %}class="active"{% endif %}>Management Changes</a>
       {% if is_admin %}<a href="/admin/analytics" {% if page == 'admin' %}class="active"{% endif %}>Analytics</a>{% endif %}
       </div>
-      <form class="primary-nav-search" method="get" action="/search">
-        <input type="search" name="q" placeholder="Search news…" value="{{ q or '' }}">
+      <form class="primary-nav-search" method="get" action="/search" data-typeahead data-suggest="/api/search">
+        <input type="search" name="q" placeholder="Search ticker, company or news…" value="{{ q or '' }}" autocomplete="off">
         <button type="submit">Search</button>
       </form>
     </div>
@@ -122,6 +127,10 @@
 })();
 /* HEADER_DATE_TZ_V1_END */
 </script>
+
+<!-- TYPEAHEAD_V1: the dropdown under the search box. Deferred, and the form
+     works exactly as before if it never loads. -->
+<script src="/static/typeahead.js?v=v1" defer></script>
 
 </body>
 </html>

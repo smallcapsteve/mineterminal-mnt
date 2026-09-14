@@ -96,9 +96,15 @@ def title_is_hollow(t: str) -> bool:
 # excluded for being a place and a section header for being a section header,
 # which are the actual reasons.
 
+# A PDF text layer splits the digits of a date as readily as it puts a space
+# before the comma: "May 27, 202 6", "February 1 7, 2026". Both shapes are
+# datelines and both were invisible here until 2026-09-14.
+_DAY = r"\d\s\d|\d{1,2}"
+_YEAR = r"20\d\s\d|20\d{2}"
+
 _DOC_DATELINE = re.compile(
-    rf"\b(?:{_MONTHS})\.?\s+\d{{1,2}}(?:st|nd|rd|th)?\s*,?\s*20\d{{2}}\b"
-    rf"|\b\d{{1,2}}\s+(?:{_MONTHS})\.?\s*,?\s*20\d{{2}}\b", re.I)
+    rf"\b(?:{_MONTHS})\.?\s+(?:{_DAY})(?:st|nd|rd|th)?\s*,?\s*(?:{_YEAR})\b"
+    rf"|\b(?:{_DAY})\s+(?:{_MONTHS})\.?\s*,?\s*(?:{_YEAR})\b", re.I)
 
 # A dateline introduces the release and sits at the front of its line:
 # "Toronto, Ontario – September 10, 2026 – Wesdome". A headline that happens to
@@ -504,6 +510,16 @@ DOC_TEST = [
      "Nevada Organic Phosphate Inc. (the \u201cCompany\u201d)\n"
      "Nevada Organic Phosphate Reports Drill Results at Pine Valley\n",
      "Nevada Organic Phosphate Reports Drill Results at Pine Valley"),
+
+    # The text layer split the digits of the year, so the dateline was
+    # invisible and ran into the headline. Seen live in the TMX backfill.
+    ("Metalero Announces $3.0M Private Placement\n"
+     "Edmonton, AB, May 27, 202 6 \u2013 Metalero Mining Corp. (TSXV: MLO)\n",
+     "Metalero Announces $3.0M Private Placement"),
+
+    ("One Step Closer to Cash Flow: Average grades of 3.72g/t Au from 1930s Rockpiles\n"
+     "VANCOUVER, BC, February 1 7, 2026 \u2013 Heritage Mining Ltd. (CSE: HML)\n",
+     "One Step Closer to Cash Flow: Average grades of 3.72g/t Au from 1930s Rockpiles"),
 
     # a company whose name contains a street word must keep its headline
     ("MINERAL ROAD COMMISSIONS STRATEGIC REVIEW OF SIGNIFICANT\n"

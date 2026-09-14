@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS financings (
     unit_comp         TEXT,
     warrant_strike    REAL,
     warrant_term_months INTEGER,
+    unit_count        INTEGER,
     n_tranches        INTEGER DEFAULT 0,
     n_events          INTEGER DEFAULT 0,
     seed_event_id     TEXT
@@ -72,6 +73,12 @@ CREATE INDEX IF NOT EXISTS ix_finev_role ON financing_events(role);
 
 def init_schema(con):
     con.executescript(SCHEMA)
+    # unit_count was extracted into financing_events from the start but never
+    # had a home here, so the number sat one table away while the financing
+    # rendered as empty.
+    cols = {r[1] for r in con.execute("PRAGMA table_info(financings)")}
+    if "unit_count" not in cols:
+        con.execute("ALTER TABLE financings ADD COLUMN unit_count INTEGER")
     con.commit()
 
 
@@ -140,13 +147,13 @@ def run_pass2_group(con):
             "INSERT INTO financings("
             " ticker, announced_at, last_update_at, kind, status,"
             " gross_announced, unit_price, unit_comp, warrant_strike,"
-            " warrant_term_months, n_events, seed_event_id"
-            ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+            " warrant_term_months, unit_count, n_events, seed_event_id"
+            ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (
                 a["ticker"], a["event_date"], a["event_date"], a["kind"],
                 "announced",
                 a["gross_total"], a["unit_price"], a["unit_comp"],
-                a["warrant_strike"], a["warrant_term_months"], 1,
+                a["warrant_strike"], a["warrant_term_months"], a["unit_count"], 1,
                 a["event_id"],
             ),
         )
@@ -228,6 +235,9 @@ def run_pass2_group(con):
             }.get(o["role"], None)
             patch = ["last_update_at=?", "n_events = n_events + 1"]
             args = [o["event_date"]]
+            if o["unit_count"]:
+                patch.append("unit_count = COALESCE(unit_count, ?)")
+                args.append(o["unit_count"])
             if new_status:
                 patch.append("status=?")
                 args.append(new_status)
@@ -261,15 +271,19 @@ def run_pass2_group(con):
                 "INSERT INTO financings("
                 " ticker, announced_at, last_update_at, kind, status,"
                 " gross_announced, gross_closed, unit_price, unit_comp, warrant_strike,"
-                " warrant_term_months, n_tranches, n_events, seed_event_id"
-                ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                " warrant_term_months, unit_count, n_tranches, n_events, seed_event_id"
+                ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 (
                     o["ticker"], o["event_date"], o["event_date"], o["kind"],
                     new_status,
-                    o["gross_total"] if o["role"] == "upsize" else None,
+                    # An orphan that is not a close still knows the size of the
+                    # deal it is describing. Storing it only for 'upsize' threw
+                    # away 94 real amounts, including a $295M termination.
+                    None if o["role"] in ("final_close", "tranche_close") else o["gross_total"],
                     o["gross_total"] if o["role"] in ("final_close", "tranche_close") else None,
                     o["unit_price"], o["unit_comp"],
                     o["warrant_strike"], o["warrant_term_months"],
+                    o["unit_count"],
                     1 if o["role"] in ("final_close", "tranche_close") else 0,
                     1, o["event_id"],
                 ),

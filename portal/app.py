@@ -2002,3 +2002,52 @@ app.get("/search", response_class=HTMLResponse)(search_page)
 
 _fts_ensure_schema()
 # ====== end search index ======
+
+
+# ====== /management-changes tab (appended 2026-09-14) ======
+# There is no "Management Changes" category, so this table is built by
+# management_extract acting as its own detector. See management_backfill.py.
+@app.get("/management-changes", response_class=HTMLResponse)
+def management_changes_page(
+    request: Request,
+    ticker: str = None,
+    scope: str = None,
+    action: str = None,
+):
+    conn = db.get_conn()
+    where, args = [], []
+    if ticker:
+        where.append("ticker = ?")
+        args.append(ticker)
+    if scope in ("management", "board", "advisory"):
+        where.append("scope = ?")
+        args.append(scope)
+    if action in ("appointed", "departed", "changed"):
+        where.append("action = ?")
+        args.append(action)
+    sql = "SELECT * FROM management_changes"
+    if where:
+        sql += " WHERE " + " AND ".join(where)
+    sql += " ORDER BY published_at DESC, mgmt_id DESC LIMIT 500"
+    try:
+        rows = list(conn.execute(sql, args))
+        total = conn.execute("SELECT COUNT(*) FROM management_changes").fetchone()[0]
+        tickers = [r[0] for r in conn.execute(
+            "SELECT DISTINCT ticker FROM management_changes "
+            "WHERE ticker IS NOT NULL ORDER BY ticker")]
+    except Exception:
+        # the table is created by management_backfill.py; an empty page is a
+        # better answer than a 500 if the first run has not happened yet
+        rows, total, tickers = [], 0, []
+
+    return templates.TemplateResponse(request, "management.html", {
+        "request": request,
+        "page": "management",
+        "rows": rows,
+        "total": total,
+        "tickers": tickers,
+        "selected_ticker": ticker,
+        "selected_action": action,
+        "scope": scope,
+    })
+
