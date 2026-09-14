@@ -33,16 +33,8 @@ _MONTHS = (r"Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|"
            r"Jul(?:y)?|Aug(?:ust)?|Sep(?:t|tember)?|Oct(?:ober)?|Nov(?:ember)?|"
            r"Dec(?:ember)?")
 
-# "September 10, 2026", "dated Sept 4, 2026", "(September 1, 2026)"
 _DATEISH = (r"(?:\(?\s*(?:dated\s+)?[A-Za-z]{3,9}\.?\s+\d{1,2},?\s*20\d{2}\s*\)?)")
 
-# Optionally a company name and a dash, then the words themselves, then
-# optionally a date, then optionally a separator. Everything after the words is
-# optional because the boilerplate is often the entire title.
-#
-# The company branch requires a dash, pipe, or a short unpunctuated token. That
-# is what stops "Company Issues Press Release Correction Regarding Assay Widths"
-# from being eaten: only boilerplate *set off* by punctuation is boilerplate.
 _TITLE_PREFIX = re.compile(
     r"^\s*"
     r"(?:" + _DATEISH + r"\s*[-–—|:,]?\s*)?"
@@ -57,9 +49,6 @@ _TITLE_HOLLOW = re.compile(
     r"(?:[-–—|(,]?\s*(?:dated\s+)?[A-Za-z]*\.?\s*\d{0,2},?\s*20\d{2}\s*\)?)?\s*$",
     re.I)
 
-# "HML PR August 26, 2026" is 22 characters and survives the hollow regex, so
-# the length rule is load-bearing. Lowering it to keep "Change in Directors"
-# would let that one through.
 MIN_TITLE_CHARS = 28
 
 
@@ -81,13 +70,7 @@ def clean_title(raw: str) -> str:
 
 
 def title_is_hollow(t: str) -> bool:
-    """True when the title should not be trusted as a headline.
-
-    Named for its original meaning — "says nothing at all" — but widened by an
-    audit of 1,675 published headlines to include any title too short to carry a
-    company name and a fact. There is no verb escape hatch: `Drilling Results`
-    contains an action word and is still worse than what its own document says.
-    """
+    """True when the title should not be trusted as a headline."""
     if not t:
         return True
     if _TITLE_HOLLOW.match(t):
@@ -101,24 +84,27 @@ def title_is_hollow(t: str) -> bool:
 #
 # A release PDF is laid out the same way everywhere: letterhead, then the
 # headline — usually wrapped over two or three lines — then the dateline, then
-# the body. The mistake in the first extractor was using ONE "is this
+# the body. The mistake in the original extractor was using ONE "is this
 # letterhead" test for two different questions: where does the headline start,
 # and where does it end. A line under 12 characters is almost certainly
 # letterhead *before* the headline and is almost certainly a continuation
-# *inside* it, and the same is true of a line that looks like a company name.
+# *inside* it.
+#
+# Allowing short continuations is what recovers "Financing" and "at Tynagh". It
+# is also what swept in "KELOWNA, BC", which the original excluded only by
+# accident — it happened to be 11 characters. So a place is now excluded for
+# being a place, which is the actual reason.
 
 _DOC_DATELINE = re.compile(
     rf"\b(?:{_MONTHS})\.?\s+\d{{1,2}}(?:st|nd|rd|th)?,?\s*20\d{{2}}\b"
     rf"|\b\d{{1,2}}\s+(?:{_MONTHS})\.?,?\s*20\d{{2}}\b", re.I)
 
-# The wire's own stamp, which always sits at the start of the dateline:
+# The wire's stamp, always at the start of the dateline:
 # "Vancouver, British Columbia--(Newsfile Corp. - September 11, 2026) -"
 _DOC_WIRE = re.compile(
     r"--\s*\(|\(\s*Newsfile|\(\s*GLOBE\s*NEWSWIRE|\(\s*CNW|\(\s*ACCESS\s*Newswire"
     r"|\(\s*Business\s*Wire|\(\s*The\s*Newswire", re.I)
 
-# Address, contact details, and registration identifiers. The ARBN branch is
-# there because "Li-FT Power Ltd. ARBN: 696 815 595" became a headline.
 _DOC_LETTERHEAD = re.compile(
     r"[A-Z]\d[A-Z]\s?\d[A-Z]\d|\bsuite\b|\bstreet\b|\bavenue\b|\bboulevard\b"
     r"|\bfloor\b|\btel\b|\bphone\b|\bfax\b|\bemail\b|@|www\.|https?://|\bPO Box\b"
@@ -129,10 +115,25 @@ _DOC_LISTING = re.compile(
     re.I)
 
 _DOC_LABEL = re.compile(
-    r"^\s*[\W_]*(?:press|news|media)\s*release\b|^\s*for\s+immediate\s+release"
-    r"|^\s*not\s+for\s+(?:distribution|dissemination|release)", re.I)
+    r"^\s*[\W_]*(?:press|news|media)\s*release\b|^\s*for\s+immediate\s+release", re.I)
+
+# The U.S. distribution disclaimer, including the second line of a wrapped one:
+# "THIS NEWS RELEASE IS NOT FOR DISTRIBUTION TO U.S. NEWSWIRE SERVICES" /
+# "OR FOR DISSEMINATION IN THE UNITED STATES"
+_DOC_DISCLAIMER = re.compile(
+    r"^\s*(?:this\s+(?:news|press)\s+release\s+is\s+not"
+    r"|not\s+for\s+(?:distribution|dissemination|release)"
+    r"|or\s+for\s+(?:distribution|dissemination)"
+    r"|for\s+dissemination)", re.I)
+
+# The same disclaimer where it ran onto the headline's own line.
+_DOC_DISCLAIMER_RUN = re.compile(
+    r"^.{0,150}?(?:u\.?s\.?\s+newswire\s+services?|newswire\s+services?"
+    r"|(?:in|into|to)\s+the\s+united\s+states)\b[\s,.:;\-]*", re.I)
 
 _DOC_BULLET = re.compile(r"^\s*[●•▪‣\-\*–]\s")
+
+_DOC_FILENAME = re.compile(r"\.(?:docx?|pdf|html?|txt)\s*$", re.I)
 
 # A line that is only a company name is letterhead. Deliberately NOT including
 # resources / metals / mining / minerals: "Test Work Results from the Mineral
@@ -141,20 +142,31 @@ _DOC_BULLET = re.compile(r"^\s*[●•▪‣\-\*–]\s")
 _DOC_NAME_ONLY = re.compile(
     r"^[\w'&.,\- ]{3,45}\b(?:inc|ltd|corp|corporation|limited|plc|llc)\.?$", re.I)
 
+# "KELOWNA, BC" · "Vancouver, British Columbia" — the dateline's place, which
+# often sits on its own short line straight after the headline.
+_DOC_PLACE = re.compile(
+    r"^[A-Za-z][A-Za-z.\-' ]{1,26},\s*(?:[A-Z]{2}|British Columbia|Ontario|Alberta"
+    r"|Quebec|Québec|Saskatchewan|Manitoba|Nova Scotia|New Brunswick"
+    r"|Newfoundland(?: and Labrador)?|Yukon|Nunavut|Nevada|Arizona|Colorado|Utah"
+    r"|Idaho|Montana|Texas|California|Washington|Canada|USA)\.?\s*$")
+
 MAX_HEADLINE_CHARS = 220
 MAX_SCAN_LINES = 24
 MIN_HEADLINE_CHARS = 20
+MAX_PLACE_LINE_CHARS = 34
+
+
+def _is_letterhead(s: str) -> bool:
+    """Things that are never part of a headline, wherever they appear."""
+    return bool(_DOC_LETTERHEAD.search(s) or _DOC_DATELINE.search(s)
+                or _DOC_LISTING.match(s) or _DOC_LABEL.match(s)
+                or _DOC_DISCLAIMER.match(s) or _DOC_BULLET.match(s)
+                or _DOC_FILENAME.search(s) or _DOC_WIRE.search(s))
 
 
 def _starts_headline(s: str) -> bool:
     """False while we are still walking through letterhead."""
-    if len(s) < 12:
-        return False
-    if _DOC_LABEL.match(s) or _DOC_LISTING.match(s):
-        return False
-    if _DOC_LETTERHEAD.search(s) or _DOC_DATELINE.search(s):
-        return False
-    if _DOC_NAME_ONLY.match(s):
+    if len(s) < 12 or _is_letterhead(s) or _DOC_NAME_ONLY.match(s):
         return False
     if s.count("|") >= 2:
         return False
@@ -168,9 +180,9 @@ def _ends_headline(s: str) -> bool:
     Notably absent: any test on length, and any company-name test. Both belong
     to finding the start, and applying them here truncated real headlines.
     """
-    return bool(_DOC_DATELINE.search(s) or _DOC_WIRE.search(s)
-                or _DOC_BULLET.match(s) or _DOC_LABEL.match(s)
-                or _DOC_LISTING.match(s) or _DOC_LETTERHEAD.search(s))
+    if _is_letterhead(s):
+        return True
+    return bool(len(s) <= MAX_PLACE_LINE_CHARS and _DOC_PLACE.match(s))
 
 
 def headline_from_body(body: str, fallback: str = "") -> str:
@@ -193,6 +205,7 @@ def headline_from_body(body: str, fallback: str = "") -> str:
         if chars >= MAX_HEADLINE_CHARS:
             break
     out = re.sub(r"\s+", " ", " ".join(block)).strip()
+    out = _DOC_DISCLAIMER_RUN.sub("", out).strip()
     if len(out) < MIN_HEADLINE_CHARS:
         return fallback or out
     return out[:300]
@@ -245,8 +258,9 @@ SELF_TEST = [
      "August Drilling Update at the Example Project", False),
 ]
 
-# Real TMX documents, trimmed to the lines that matter. Every one of these
-# produced a wrong headline before this extractor was rewritten.
+# Real TMX and CSE documents, trimmed to the lines that matter. The first four
+# were broken by the original extractor; the last five were broken by the
+# rewrite that fixed those four.
 DOC_TEST = [
     ("Scottie Announces $27 Million Non-Brokered\nFinancing\n"
      "Vancouver, British Columbia--(Newsfile Corp. - September 11, 2026) - Scottie Resources\n",
@@ -267,6 +281,29 @@ DOC_TEST = [
     ("Prospector Completes Return of Capital\n"
      "Vancouver, British Columbia--(Newsfile Corp. - September 11, 2026) -\n",
      "Prospector Completes Return of Capital"),
+
+    # a filename, not a headline
+    ("2026-09-10 AGM Results - Draft.docx\nInomin Announces AGM Results\n"
+     "Vancouver, British Columbia--(Newsfile Corp. - September 11, 2026) - Inomin Mines\n",
+     "Inomin Announces AGM Results"),
+
+    # the disclaimer, and its wrapped second line
+    ("THIS NEWS RELEASE IS NOT FOR DISTRIBUTION TO U.S. NEWSWIRE SERVICES\n"
+     "OR FOR DISSEMINATION IN THE UNITED STATES\n"
+     "LAKE WINN ANNOUNCES PRIVATE PLACEMENT\n"
+     "Vancouver, British Columbia – September 10, 2026 – Lake Winn Resources\n",
+     "LAKE WINN ANNOUNCES PRIVATE PLACEMENT"),
+
+    # a bullet is body, never a headline
+    ("• All required permits received – DLP has received the necessary permits\n"
+     "DLP Receives Drill Permits at Esperanza\n"
+     "Vancouver, British Columbia – September 9, 2026 – DLP Resources\n",
+     "DLP Receives Drill Permits at Esperanza"),
+
+    # the dateline's place on its own short line
+    ("CANTEX CLOSED SECOND TRANCHE OF PRIVATE PLACEMENT\nKELOWNA, BC\n"
+     "September 11, 2026 - Cantex Mine Development Corp.\n",
+     "CANTEX CLOSED SECOND TRANCHE OF PRIVATE PLACEMENT"),
 
     # letterhead first, then the headline — the shape the original handled well
     ("Wesdome Gold Mines Ltd\n8 King Street East, Suite 811\nToronto, ON M5C 1B5\n"
@@ -296,8 +333,8 @@ def self_test(verbose: bool = True) -> int:
         if not ok:
             bad += 1
         if verbose or not ok:
-            print(f"  {'ok  ' if ok else 'FAIL'}  doc -> {got[:72]!r}"
-                  f"{'' if ok else f'{chr(10)}        WANTED {want[:72]!r}'}")
+            print(f"  {'ok  ' if ok else 'FAIL'}  doc -> {got[:70]!r}"
+                  f"{'' if ok else f'{chr(10)}        WANTED {want[:70]!r}'}")
     total = len(SELF_TEST) + len(DOC_TEST)
     if verbose:
         print(f"\n{total - bad}/{total} passed")
