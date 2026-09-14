@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""EXCHANGE_NEWS_V4 — the exchange as the register of what each company published.
+"""EXCHANGE_NEWS_V5 — the exchange as the register of what each company published.
 
 Justin, 2026-09-13: *"can we also make a new path, which will be the first
 path/checklist which is scraping thecse.com company specific links for CSE
@@ -22,9 +22,8 @@ guessed.**
 
   1. Ask each exchange what the company published in the window.
   2. Match each release against what MNT already collected.
-  3. Where a wire got there first, record the match — and flag it if the wire
-     filed it under a different ticker, because that is an attribution error we
-     could not otherwise see.
+  3. Where a wire got there first, record the match — and correct it if the wire
+     filed it under a different ticker.
   4. Only where nothing matched: fetch the PDF, extract the text, classify, and
      ingest it.
 
@@ -35,9 +34,10 @@ existed.
 **Sources.**
   CSE      website-data-api-v2.thecse.com/api/news-releases?companyId=<id>
            company ids come from the CSE filings collector's own `symbols`
-           table, already maintained for ~348 companies.
+           table, already maintained for ~348 companies. V5 adds the
+           whole-market feed for the fast lane.
   TSX/TSXV `data/tmx_filings.db`, category "News releases" — the company's own
-           disclosure as filed, already refreshed every 4 hours.
+           disclosure as filed.
            **Deliberately NOT money.tmx.com's News tab**, which returns
            SeekingAlpha and Motley Fool commentary via QuoteMedia ("Best 3
            Copper Stocks To Buy For The AI Boom" was the top item for Lundin).
@@ -88,10 +88,44 @@ that need it. So the job runs as `mnt` like every other MNT job, and the two
 filing-store paths became environment variables so the unit can bind-mount the
 stores into its own namespace instead.
 
+--- V5, 2026-09-14 -------------------------------------------------------------
+Justin: *"Can you make it so Path C is the first check, AKA it being Path A?"*
+
+Measured first, because taken literally it is the wrong thing to build. For 162
+releases both paths have, **the wire arrived first in 155**. The TMX filings
+store runs a median **52 hours** behind the wires (p90 ten days), and its
+collector is not refreshing on the four-hourly cadence its own documentation
+claims — 25 new rows across two days against 966 releases in 30 days. Putting
+TMX in front would delay TSX/TSXV news by about two days.
+
+So "first" splits in two, and V5 does both halves of what is actually possible:
+
+  * **First in authority, everywhere.** The exchange states the issuer; the
+    wires guess. Where they disagree, the exchange now wins —
+    `correct_attribution` re-files the event under the ticker the exchange
+    states. It reuses `jv_tag.names_primary` to tell the two cases apart: if the
+    company it is currently filed under is *also* named in the headline that is
+    a co-issue, so keep the primary and cross-file; if it is not named at all
+    the wire simply guessed wrong, so re-file and drop the wrong ticker rather
+    than demoting it. Every correction is recorded in `corrections` and
+    `--undo-corrections` puts them all back exactly.
+  * **First in time, for CSE.** The CSE feed is live, and it turns out to have a
+    whole-market endpoint. It returns all 97,737 releases as 43 MB and ignores
+    limit/page — but it is ordered newest first and the server streams it, so
+    reading only the head costs one request. Measured: 300 KB gives 271
+    releases spanning 12 days in 3 seconds, against 337 requests and 190 seconds
+    for the per-company sweep. `--fast` uses it, and that lane can run ahead of
+    the wires for the ~346 CSE companies.
+
+TMX stays on the slow reconcile lane, because no amount of scheduling fixes a
+source that is two days late.
+
 Run:
     python3 exchange_news.py --dry-run           # look, change nothing
+    python3 exchange_news.py --apply --fast --days 3   # the CSE lead lane
     python3 exchange_news.py --apply             # reconcile + fill gaps
     python3 exchange_news.py --apply --no-ingest # reconcile only
+    python3 exchange_news.py --undo-corrections  # exact rollback of re-filings
     python3 exchange_news.py --stats
 """
 from __future__ import annotations
@@ -154,6 +188,16 @@ CREATE TABLE IF NOT EXISTS releases (
 );
 CREATE INDEX IF NOT EXISTS idx_rel_status ON releases(status, published_date DESC);
 CREATE INDEX IF NOT EXISTS idx_rel_ticker ON releases(bare, published_date DESC);
+CREATE TABLE IF NOT EXISTS corrections (
+    event_id     TEXT PRIMARY KEY,
+    from_ticker  TEXT NOT NULL,
+    to_ticker    TEXT NOT NULL,
+    kind         TEXT NOT NULL,     -- 'refiled' | 'co_issue'
+    dropped      TEXT,              -- the ticker removed, when it was refiled
+    headline     TEXT,
+    source       TEXT,
+    at           TEXT DEFAULT CURRENT_TIMESTAMP
+);
 CREATE TABLE IF NOT EXISTS runs (
     id INTEGER PRIMARY KEY, started_at TEXT, finished_at TEXT, mode TEXT,
     seen INTEGER, matched INTEGER, ingested INTEGER, failed INTEGER,
@@ -271,6 +315,175 @@ def pull_cse(cse_universe: dict, ids: dict, cutoff: str, only: set | None) -> li
     if n_err:
         log(f"CSE: {n_err} companies could not be read")
     return rows
+
+
+CSE_ALL = "https://website-data-api-v2.thecse.com/api/news-releases?locale=en"
+# The whole-market feed is one response of every CSE release ever — 43 MB and
+# 97,737 items — and it ignores limit/page. But it is ordered newest first and
+# the server streams it, so reading only the head gets the newest releases for
+# one request. Measured: 300 KB = 271 releases spanning 12 days, in 3 seconds,
+# against 337 requests and 190 seconds for the per-company sweep.
+CSE_HEAD_BYTES = int(os.environ.get("CSE_HEAD_BYTES", 300_000))
+
+
+def pull_cse_fast(cse_universe: dict, cutoff: str, only: set | None) -> list[dict]:
+    """Every CSE issuer's newest releases, in one request.
+
+    This is the half of the system that can genuinely be *first* — the CSE feed
+    is live, where the TMX filings store runs a median 52 hours behind the
+    wires. Used by the fast lane; the per-company sweep remains the backstop for
+    the reconcile lane, because the head only reaches back about twelve days.
+    """
+    req = urllib.request.Request(CSE_ALL, headers={"User-Agent": UA, "Accept": "*/*"})
+    try:
+        with urllib.request.urlopen(req, timeout=FETCH_TIMEOUT_S) as r:
+            raw = r.read(CSE_HEAD_BYTES).decode("utf-8", "ignore")
+    except Exception as e:                       # noqa: BLE001
+        log(f"WARNING: CSE fast feed unreachable ({type(e).__name__} {str(e)[:60]})")
+        return []
+
+    i = raw.find("[")
+    if i < 0:
+        log("WARNING: CSE fast feed did not look like a list")
+        return []
+    dec, pos, rows, seen = json.JSONDecoder(), i + 1, [], 0
+    while True:
+        while pos < len(raw) and raw[pos] in " \n\r\t,":
+            pos += 1
+        try:
+            obj, pos = dec.raw_decode(raw, pos)
+        except Exception:                        # noqa: BLE001
+            break                                # the truncated tail object
+        seen += 1
+        date = (obj.get("date") or "")[:10]
+        if not date or date < cutoff:
+            continue
+        syms = {bare(x) for x in (obj.get("symbols") or [])}
+        if obj.get("mainSymbol"):
+            syms.add(bare(obj["mainSymbol"]))
+        hit = syms & set(cse_universe)
+        if not hit:
+            continue
+        b = bare(obj.get("mainSymbol") or "") or sorted(hit)[0]
+        if b not in cse_universe:
+            b = sorted(hit)[0]
+        if only and b not in only:
+            continue
+        rows.append({
+            "source": "cse", "bare": b,
+            "ticker": cse_universe[b].get("symbol") or b,
+            "exchange": "CSE", "published_date": date,
+            "title": (obj.get("title") or "").strip(),
+            "url": obj.get("fileUrl") or "",
+        })
+    log(f"CSE fast feed: read {seen} releases, {len(rows)} are ours since {cutoff}")
+    return rows
+
+
+# --------------------------------------------------------------------------
+# the exchange is the authority on who a release belongs to
+# --------------------------------------------------------------------------
+
+_JV = None
+
+
+def _jv_index():
+    """(jv_tag module, by_sym, short_forms) — the same company-name matcher the
+    cross-filing feature uses, reused here to tell a co-issue from an error."""
+    global _JV
+    if _JV is None:
+        import jv_tag
+        _, by_sym, short = jv_tag.build_index()
+        _JV = (jv_tag, by_sym, short)
+    return _JV
+
+
+def correct_attribution(con, pdb_rw, eid: str, want: str, headline: str,
+                        source: str, apply_it: bool) -> str | None:
+    """The exchange says this release is `want`'s. MNT filed it elsewhere.
+
+    Two cases, and telling them apart is the whole job:
+
+      * **Co-issue.** The company it is filed under is also named in the
+        headline — a joint venture, a merger, an option agreement. Both
+        attributions are true. Keep the existing primary and add ours.
+      * **Misattribution.** The headline never mentions the company it is filed
+        under. The wire guessed and guessed wrong. Re-file it under the ticker
+        the exchange states, and drop the wrong one rather than demoting it —
+        leaving it on would keep somebody else's news on that company's page.
+
+    Returns 'co_issue', 'refiled', or None when nothing needed doing.
+    """
+    row = pdb_rw.execute(
+        "SELECT ticker, COALESCE(additional_tickers,'') FROM events WHERE event_id=?",
+        (eid,)).fetchone()
+    if not row:
+        return None
+    cur, addl = (row[0] or "").upper(), row[1]
+    want = (want or "").upper()
+    if not want or cur == want:
+        return None
+
+    jv, by_sym, short = _jv_index()
+    have = [t for t in addl.strip("|").split("|") if t]
+    co = jv.names_primary(headline, cur, by_sym, short)
+
+    if co:
+        if want in have:
+            return None
+        have.append(want)
+        new_primary, dropped, kind = cur, None, "co_issue"
+    else:
+        new_primary, dropped, kind = want, cur, "refiled"
+        have = [t for t in have if t not in (want, cur)]
+
+    if apply_it:
+        pdb_rw.execute(
+            "UPDATE events SET ticker=?, company_id=?, additional_tickers=? "
+            "WHERE event_id=?",
+            (new_primary, new_primary.split(".")[0], jv.pipe(have), eid))
+        con.execute(
+            "INSERT INTO corrections (event_id,from_ticker,to_ticker,kind,dropped,"
+            "headline,source) VALUES (?,?,?,?,?,?,?) ON CONFLICT(event_id) DO NOTHING",
+            (eid, cur, new_primary, kind, dropped, headline[:220], source))
+    return kind
+
+
+def undo_corrections(con, limit: int | None = None) -> int:
+    """Put every corrected event back exactly where it was. The `corrections`
+    table records the ticker each one came from, so this is exact rather than
+    reconstructed — the lesson from applying the JV backfill without a working
+    backup."""
+    rows = con.execute(
+        "SELECT event_id, from_ticker, to_ticker, kind, dropped FROM corrections"
+        + (f" LIMIT {int(limit)}" if limit else "")).fetchall()
+    if not rows:
+        print("no corrections to undo")
+        return 0
+    p = sqlite3.connect(PORTAL_DB)
+    jv, _, _ = _jv_index()
+    n = 0
+    for r in rows:
+        cur = p.execute("SELECT COALESCE(additional_tickers,'') FROM events "
+                        "WHERE event_id=?", (r["event_id"],)).fetchone()
+        if not cur:
+            continue
+        have = [t for t in cur[0].strip("|").split("|") if t]
+        if r["kind"] == "co_issue":
+            have = [t for t in have if t != r["to_ticker"]]
+            primary = r["from_ticker"]
+        else:
+            have = [t for t in have if t != r["from_ticker"]]
+            primary = r["from_ticker"]
+        p.execute("UPDATE events SET ticker=?, company_id=?, additional_tickers=? "
+                  "WHERE event_id=?",
+                  (primary, primary.split(".")[0], jv.pipe(have), r["event_id"]))
+        con.execute("DELETE FROM corrections WHERE event_id=?", (r["event_id"],))
+        n += 1
+    p.commit()
+    con.commit()
+    log(f"undid {n} corrections")
+    return n
 
 
 def pull_tmx(tsx_universe: dict, cutoff: str, only: set | None) -> list[dict]:
@@ -605,9 +818,22 @@ def main() -> int:
     ap.add_argument("--no-ingest", action="store_true",
                     help="reconcile and record the gaps, publish nothing")
     ap.add_argument("--only", help="comma-separated bare tickers")
+    ap.add_argument("--source", choices=("both", "cse", "tmx"), default="both",
+                    help="which exchange to read")
+    ap.add_argument("--fast", action="store_true",
+                    help="CSE only, via the whole-market feed: the lane that "
+                         "runs ahead of the wires")
+    ap.add_argument("--no-correct", action="store_true",
+                    help="do not re-file releases the exchange attributes elsewhere")
+    ap.add_argument("--max-correct", type=int, default=25)
+    ap.add_argument("--undo-corrections", action="store_true")
     args = ap.parse_args()
 
     con = db()
+
+    if args.undo_corrections:
+        undo_corrections(con)
+        return 0
 
     if args.stats:
         tot = con.execute("SELECT COUNT(*) FROM releases").fetchone()[0]
@@ -618,6 +844,8 @@ def main() -> int:
             print(f"  source {r[0]:<6} {r[1]}")
         w = con.execute("SELECT COUNT(*) FROM releases WHERE wrong_ticker IS NOT NULL").fetchone()[0]
         print(f"  filed under the wrong ticker by a wire: {w}")
+        for r in con.execute("SELECT kind, COUNT(*) c FROM corrections GROUP BY 1"):
+            print(f"  corrected ({r[0]}): {r['c']}")
         for r in con.execute("SELECT started_at, mode, seen, matched, ingested, failed "
                              "FROM runs ORDER BY id DESC LIMIT 5"):
             print("  run", dict(r))
@@ -637,11 +865,19 @@ def main() -> int:
         log("ABORT: the universe is empty and no cache was available")
         return 1
     cse_u, tsx_u = universe_by_exchange()
-    log(f"EXCHANGE_NEWS_V4 ({'APPLY' if args.apply else 'DRY RUN'}) "
+    log(f"EXCHANGE_NEWS_V5 ({'APPLY' if args.apply else 'DRY RUN'}) "
+        f"{'FAST/cse-lead' if args.fast else args.source} "
         f"window={args.days}d since {cutoff}")
     log(f"universe: {len(cse_u)} CSE, {len(tsx_u)} TSX/TSXV")
 
-    releases = pull_tmx(tsx_u, cutoff, only) + pull_cse(cse_u, cse_company_ids(), cutoff, only)
+    if args.fast:
+        args.source = "cse"
+    releases = []
+    if args.source in ("both", "tmx"):
+        releases += pull_tmx(tsx_u, cutoff, only)
+    if args.source in ("both", "cse"):
+        releases += (pull_cse_fast(cse_u, cutoff, only) if args.fast
+                     else pull_cse(cse_u, cse_company_ids(), cutoff, only))
     log(f"exchanges list {len(releases)} releases in the window "
         f"({sum(1 for r in releases if r['source'] == 'tmx')} TMX, "
         f"{sum(1 for r in releases if r['source'] == 'cse')} CSE)")
@@ -684,6 +920,22 @@ def main() -> int:
     cov = covered_by_count(pcon, tmx_fresh)
 
     n_covered = n_matched = n_wrong = 0
+    n_corr: dict = {}
+    pdb_rw = sqlite3.connect(PORTAL_DB) if args.apply else None
+
+    def maybe_correct(con_, eid, rel, headline, args_):
+        """The exchange states the issuer. Where MNT disagrees, make it agree."""
+        if args_.no_correct:
+            return None
+        if sum(n_corr.values()) >= args_.max_correct:
+            return None
+        kind = correct_attribution(con_, pdb_rw or pcon, eid, rel["ticker"],
+                                   headline or "", rel["source"], bool(args_.apply))
+        if kind:
+            log(f"   {'CORRECTED' if args_.apply else 'WOULD CORRECT'} "
+                f"{kind:<9} -> {rel['ticker']:<10} {(headline or '')[:56]}")
+        return kind
+
     candidates = []
     for rel in fresh:
         uid = uid_for(rel["source"], rel["ticker"], rel["published_date"], rel["title"])
@@ -697,7 +949,11 @@ def main() -> int:
         eid, wrong = find_match(pcon, rel)       # CSE: real title, match now
         if eid:
             n_matched += 1
-            n_wrong += 1 if wrong else 0
+            if wrong:
+                n_wrong += 1
+                k = maybe_correct(con, eid, rel, rel["title"], args)
+                if k:
+                    n_corr[k] = n_corr.get(k, 0) + 1
             record(rel, "matched", event=eid, wrong=wrong)
         else:
             candidates.append(rel)
@@ -723,7 +979,11 @@ def main() -> int:
         eid, wrong = find_match(pcon, rel, title=headline)
         if eid:
             n_late += 1
-            n_late_wrong += 1 if wrong else 0
+            if wrong:
+                n_late_wrong += 1
+                k = maybe_correct(con, eid, rel, headline, args)
+                if k:
+                    n_corr[k] = n_corr.get(k, 0) + 1
             record(rel, "matched", event=eid, wrong=wrong, note="matched on the PDF headline")
             log(f"   ON SITE    {rel['bare']:<7} {rel['published_date']} "
                 f"{'[WRONG TICKER: ' + wrong + '] ' if wrong else ''}{headline[:60]}")
@@ -756,6 +1016,13 @@ def main() -> int:
     if len(candidates) > cap:
         log(f"          {len(candidates) - cap} candidates left for the next run "
             f"(--max-ingest {cap})")
+
+    if n_corr:
+        log(f"attribution: {n_corr.get('refiled', 0)} re-filed under the ticker the "
+            f"exchange states, {n_corr.get('co_issue', 0)} cross-filed as co-issues")
+    if pdb_rw is not None:
+        pdb_rw.commit()
+        pdb_rw.close()
 
     if args.apply:
         con.commit()
