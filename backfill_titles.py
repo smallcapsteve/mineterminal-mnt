@@ -91,9 +91,10 @@ def title_is_hollow(t: str) -> bool:
 # *inside* it.
 #
 # Allowing short continuations is what recovers "Financing" and "at Tynagh". It
-# is also what swept in "KELOWNA, BC", which the original excluded only by
-# accident — it happened to be 11 characters. So a place is now excluded for
-# being a place, which is the actual reason.
+# is also what swept in "KELOWNA, BC" and "Highlights", which the original
+# excluded only by accident — both happened to be short. So a place is now
+# excluded for being a place and a section header for being a section header,
+# which are the actual reasons.
 
 _DOC_DATELINE = re.compile(
     rf"\b(?:{_MONTHS})\.?\s+\d{{1,2}}(?:st|nd|rd|th)?,?\s*20\d{{2}}\b"
@@ -103,11 +104,8 @@ _DOC_DATELINE = re.compile(
 # "Toronto, Ontario – September 10, 2026 – Wesdome". A headline that happens to
 # mention a date mentions it late: "DLP Receives Drill Permits at Esperanza;
 # First-Ever Drill Program to Commence September 18, 2026" — at character 78.
-# Without this bound that headline was read as letterhead and skipped.
 DATELINE_MAX_POS = 45
 
-# The wire's stamp, always at the start of the dateline:
-# "Vancouver, British Columbia--(Newsfile Corp. - September 11, 2026) -"
 _DOC_WIRE = re.compile(
     r"--\s*\(|\(\s*Newsfile|\(\s*GLOBE\s*NEWSWIRE|\(\s*CNW|\(\s*ACCESS\s*Newswire"
     r"|\(\s*Business\s*Wire|\(\s*The\s*Newswire", re.I)
@@ -130,7 +128,6 @@ _DOC_LISTING = re.compile(
 _DOC_LABEL = re.compile(
     r"^\s*[\W_]*(?:press|news|media)\s*release\b|^\s*for\s+immediate\s+release", re.I)
 
-# The U.S. distribution disclaimer, including the second line of a wrapped one.
 _DOC_DISCLAIMER = re.compile(
     r"^\s*(?:this\s+(?:news|press)\s+release\s+is\s+not"
     r"|not\s+for\s+(?:distribution|dissemination|release)"
@@ -145,14 +142,17 @@ _DOC_BULLET = re.compile(r"^\s*[●•▪‣\-\*–]\s")
 
 _DOC_FILENAME = re.compile(r"\.(?:docx?|pdf|html?|txt)\s*$", re.I)
 
+# The section header a mining release puts directly under its headline.
+_DOC_SECTION = re.compile(
+    r"^\s*(?:key\s+)?(?:highlights?|summary|overview|about|背景)\s*:?\s*$", re.I)
+
 # Deliberately NOT including resources / metals / mining / minerals: "Test Work
 # Results from the Mineral Resources" is a headline continuation, and ending in
 # an industry word does not make a line a company name.
 _DOC_NAME_ONLY = re.compile(
     r"^[\w'&.,\- ]{3,45}\b(?:inc|ltd|corp|corporation|limited|plc|llc)\.?$", re.I)
 
-# "KELOWNA, BC" · "Vancouver, British Columbia" — the dateline's place, often on
-# its own short line straight after the headline.
+# "KELOWNA, BC" · "Vancouver, British Columbia" — the dateline's place.
 _DOC_PLACE = re.compile(
     r"^[A-Za-z][A-Za-z.\-' ]{1,26},\s*(?:[A-Z]{2}|British Columbia|Ontario|Alberta"
     r"|Quebec|Québec|Saskatchewan|Manitoba|Nova Scotia|New Brunswick"
@@ -183,7 +183,7 @@ def _starts_headline(s: str) -> bool:
     """False while we are still walking through letterhead."""
     if len(s) < 12 or _is_letterhead(s) or _DOC_NAME_ONLY.match(s):
         return False
-    if s.count("|") >= 2:
+    if _DOC_SECTION.match(s) or s.count("|") >= 2:
         return False
     letters = sum(c.isalpha() for c in s)
     return letters >= len(s) * 0.4
@@ -195,7 +195,7 @@ def _ends_headline(s: str) -> bool:
     Notably absent: any test on length, and any company-name test. Both belong
     to finding the start, and applying them here truncated real headlines.
     """
-    if _is_letterhead(s):
+    if _is_letterhead(s) or _DOC_SECTION.match(s):
         return True
     return bool(len(s) <= MAX_PLACE_LINE_CHARS and _DOC_PLACE.match(s))
 
@@ -310,7 +310,8 @@ DOC_TEST = [
      "Vancouver, British Columbia – September 9, 2026 – DLP Resources\n",
      "DLP Receives Drill Permits at Esperanza"),
 
-    # the headline itself names a date, late in a long line
+    # the headline itself names a date, late in a long line, and a section
+    # header follows it
     ("DLP Receives Drill Permits at Esperanza; First-Ever Drill Program to Commence "
      "September 18, 2026\nHighlights\n"
      "• All required permits received – DLP has received the necessary permits\n",
