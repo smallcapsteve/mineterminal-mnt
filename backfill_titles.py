@@ -6,10 +6,10 @@ that is the whole reason the exchange path exists. Its `title`, though, is
 whatever the issuer typed into a form, and measured across all 3,856 of our
 2026 titles:
 
-  * **497 (12.9%)** lead with `News Release - `, `Press Release (date)`, or
-    are placeholders outright — `News Release`, `Press Release`,
+  * **464 (12.0%)** carry boilerplate: `News Release - `, `Press Release (date)`,
+    or are placeholders outright — `News Release`, `Press Release`,
     `HML PR August 26, 2026`, `ESGold Corp. - Press Release (September 10, 2026)`.
-  * **87 more (2.3%)** are under 28 characters.
+  * **326 (8.5%)** say nothing at all once that is stripped.
 
 The first capped backfill run published *"ESGold Corp. - Press Release
 (September 10, 2026)"* to three public sites. That is the problem this module
@@ -17,20 +17,24 @@ exists to stop.
 
 Two rules, in order:
 
-  1. **Strip the boilerplate.** Most of the 497 are good headlines wearing a
-     prefix: `News Release - Krait Commences Trading on Frankfurt Stock
-     Exchange` is fine once four words come off the front.
+  1. **Strip the boilerplate.** Most are good headlines wearing a prefix:
+     `News Release - Krait Commences Trading on Frankfurt Stock Exchange` is
+     fine once four words come off the front.
   2. **If nothing survives, say so** — and let the caller take the headline out
      of the PDF instead, which it is fetching anyway.
 
-Rule 2 is deliberately conservative. A short title that still names an action
-(`Stock Options Granted`, `Gold Rock Assay Results`) is kept, because replacing
-it costs a PDF parse and the replacement can itself be wrong. Only a title with
-no action word *and* no length is thrown away.
+**Erring towards "hollow" is deliberate.** Run against all 3,856 titles, 41 are
+called hollow despite a raw length over 45 characters, because what survives the
+strip is a bare noun phrase — `Final Base Shelf Prospectus`, `Change in
+Directors`, `Niobium Mineralization`. Those could be kept. They are not, because
+the two errors are not symmetric: a wrong *hollow* costs a PDF parse that is
+happening anyway and usually produces a better headline, while a wrong *not
+hollow* puts a placeholder on three public sites. `headline_for()` in the runner
+falls back to the cleaned title anyway if the document yields nothing.
 
-These rules are separate from the runner so they can be corrected without
-touching a 27 KB file, and because they are the part most likely to need
-correcting: they are pattern-matching against free text a human typed.
+These rules live apart from the runner so they can be corrected without touching
+a 27 KB file, and because they are the part most likely to need correcting: they
+are pattern-matching against free text a human typed into a form.
 
     python3 backfill_titles.py          # run the self-test
 """
@@ -46,6 +50,11 @@ _DATEISH = (r"(?:\(?\s*(?:dated\s+)?[A-Za-z]{3,9}\.?\s+\d{1,2},?\s*20\d{2}\s*\)?
 # optionally a date, then optionally a separator. Everything after the words is
 # optional because the boilerplate is often the entire title — the first
 # version required a trailing separator and so left "News Release" untouched.
+#
+# Note the leading company-name branch requires a dash or pipe after it. That is
+# what stops "Company Issues Press Release Correction Regarding Assay Widths"
+# from being eaten: the phrase is mid-sentence in a real headline, and only
+# boilerplate that is *set off* by punctuation is boilerplate.
 _TITLE_PREFIX = re.compile(
     r"^\s*(?:[\w'&.,()\- ]{2,40}?\s*[-–—|]\s*)?"
     r"(?:news|press|media)\s*releases?"
@@ -70,6 +79,10 @@ _HAS_VERB = re.compile(
     r"|trad\w*|present\w*|approv\w*|terminat\w*|settl\w*|issu\w*|stak\w*"
     r"|sampl\w*|survey\w*|agreement\w*|placement\w*|financ\w*)", re.I)
 
+# "HML PR August 26, 2026" is 22 characters and survives the hollow regex
+# because nothing sets the boilerplate off with punctuation. The length rule is
+# what catches it, so this threshold is load-bearing — lowering it to keep
+# "Change in Directors" would let that one through.
 MIN_TITLE_CHARS = 28
 
 
@@ -103,13 +116,15 @@ def title_is_hollow(t: str) -> bool:
 
 SELF_TEST = [
     # (raw title, expected cleaned, expected hollow?) — every one of these is a
-    # real 2026 title from the CSE feed.
+    # real 2026 title from the CSE feed, except the last, which is the shape of
+    # headline the stripper must not touch.
     ("ESGold Corp. - Press Release (September 10, 2026)", "", True),
     ("ESGold Corp - Press Release (September 1, 2026)", "", True),
     ("News Release", "", True),
     ("Press Release", "", True),
     ("AREE | Press Release", "", True),
     ("HML PR August 26, 2026", "HML PR August 26, 2026", True),
+    ("Press Release - August 19, 2026", "", True),
     ("News Release - Krait Commences Trading on Frankfurt Stock Exchange",
      "Krait Commences Trading on Frankfurt Stock Exchange", False),
     ("News Release dated September 4, 2026 - Announcing Definitive Agreement Signing",
@@ -126,9 +141,10 @@ SELF_TEST = [
      "TARGA CLOSES FINAL TRANCHE OF NON-BROKERED PRIVATE PLACEMENT", False),
     ("Riverside Resources Expands British Columbia Mineral Tenures",
      "Riverside Resources Expands British Columbia Mineral Tenures", False),
-    # must not eat a real headline that merely contains the word
+    # Mid-sentence, not boilerplate: must survive untouched. An earlier version
+    # of this case asserted the opposite and was itself the bug.
     ("Company Issues Press Release Correction Regarding Assay Widths",
-     "Correction Regarding Assay Widths", False),
+     "Company Issues Press Release Correction Regarding Assay Widths", False),
 ]
 
 
