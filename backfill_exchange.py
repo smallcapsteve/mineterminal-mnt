@@ -55,7 +55,11 @@ The fix is an ordering, and it is the shape of the whole script: **stage 2 opens
 the document, takes the real date out of it, matches on that date, and only then
 publishes.** Matching before opening the document is precisely the bug, and it
 is why stage 1 cannot be made to catch these — stage 1 exists to decide whether
-a fetch is worth it, not whether to publish.
+a fetch is worth paying for, not whether to publish.
+
+Regression-tested against the 203 duplicates the first run created: the date
+fix alone accounts for 155 of them, and `find_twin`'s similarity fallback for
+another 36. The remaining 12 turn out not to be duplicates at all.
 
 **Preconditions gate the run, they do not merely precede it.** Twice this system
 has produced a confident, wrong, zero-exit summary because a missing dependency
@@ -78,6 +82,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import difflib
 import os
 import shutil
 import sys
@@ -91,6 +96,8 @@ import backfill_titles as T         # noqa: E402  title -> headline rules
 import exchange_news as X           # noqa: E402  the reconcile lives there
 
 BACKFILL_TAG = "backfill_exchange"
+TWIN_SIMILARITY = 0.90
+TWIN_WINDOW_DAYS = 3
 SAMPLE_HEADLINE = "Example Gold Corp. Reports Drill Results from the Example Project"
 SAMPLE_BODY = (
     "VANCOUVER, BC - Example Gold Corp. today reported assay results from its "
@@ -126,6 +133,44 @@ def dated(rel: dict, body: str) -> tuple[dt.date, str]:
     received it. See backfill_dates for why that distinction matters."""
     upload = dt.date.fromisoformat(rel["published_date"][:10])
     return D.release_date(body, upload)
+
+
+def find_twin(pcon, rel: dict, headline: str, published: dt.date):
+    """(event_id, wrong_ticker) — is this release already on the site?
+
+    `X.find_match` first, which compares headline prefixes. That misses a wire
+    that reworded slightly: 36 of the 203 duplicates the first run created
+    differed only as "Norsemont Appoints Ariel Tepperman to Its Board" differs
+    from "Norsemont Mining Appoints Ariel Tepperman to Its Board" — one extra
+    word at the front, and a prefix comparison is defeated.
+
+    Now that the date comes from the document rather than the feed it can be
+    trusted, so a release from the same company within three days whose headline
+    is 90% similar is the same release. The date is doing the discriminating
+    here; without it this threshold would be far too loose.
+    """
+    match_rel = dict(rel, published_date=published.isoformat())
+    eid, wrong = X.find_match(pcon, match_rel, title=headline)
+    if eid:
+        return eid, wrong
+
+    n1 = X.norm(headline)
+    if len(n1) < 25:
+        return None, None
+    iso = published.isoformat()
+    rows = pcon.execute(
+        "SELECT event_id, raw_headline FROM events "
+        "WHERE ticker LIKE ? AND date(published_at) "
+        "BETWEEN date(?,?) AND date(?,?)",
+        (rel["bare"] + "%", iso, f"-{TWIN_WINDOW_DAYS} day", iso, f"+{TWIN_WINDOW_DAYS} day"),
+    ).fetchall()
+    for eid2, hl in rows:
+        n2 = X.norm(hl)
+        if len(n2) < 25:
+            continue
+        if difflib.SequenceMatcher(None, n1[:90], n2[:90]).ratio() >= TWIN_SIMILARITY:
+            return eid2, None
+    return None, None
 
 
 # --------------------------------------------------------------------------
@@ -428,9 +473,7 @@ def main() -> int:
             if published.isoformat() != rel["published_date"][:10]:
                 n_moved += 1
 
-            # Match on the real date, not the feed's.
-            match_rel = dict(rel, published_date=published.isoformat())
-            eid, wrong = X.find_match(pcon, match_rel, title=headline)
+            eid, wrong = find_twin(pcon, rel, headline, published)
             if eid:
                 n_late += 1
                 record(rel, "matched", event=eid, wrong=wrong,
