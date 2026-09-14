@@ -33,7 +33,7 @@ _MONTHS = (r"Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|"
            r"Jul(?:y)?|Aug(?:ust)?|Sep(?:t|tember)?|Oct(?:ober)?|Nov(?:ember)?|"
            r"Dec(?:ember)?")
 
-_DATEISH = (r"(?:\(?\s*(?:dated\s+)?[A-Za-z]{3,9}\.?\s+\d{1,2},?\s*20\d{2}\s*\)?)")
+_DATEISH = (r"(?:\(?\s*(?:dated\s+)?[A-Za-z]{3,9}\.?\s+\d{1,2}\s*,?\s*20\d{2}\s*\)?)")
 
 _TITLE_PREFIX = re.compile(
     r"^\s*"
@@ -97,8 +97,8 @@ def title_is_hollow(t: str) -> bool:
 # which are the actual reasons.
 
 _DOC_DATELINE = re.compile(
-    rf"\b(?:{_MONTHS})\.?\s+\d{{1,2}}(?:st|nd|rd|th)?,?\s*20\d{{2}}\b"
-    rf"|\b\d{{1,2}}\s+(?:{_MONTHS})\.?,?\s*20\d{{2}}\b", re.I)
+    rf"\b(?:{_MONTHS})\.?\s+\d{{1,2}}(?:st|nd|rd|th)?\s*,?\s*20\d{{2}}\b"
+    rf"|\b\d{{1,2}}\s+(?:{_MONTHS})\.?\s*,?\s*20\d{{2}}\b", re.I)
 
 # A dateline introduces the release and sits at the front of its line:
 # "Toronto, Ontario – September 10, 2026 – Wesdome". A headline that happens to
@@ -154,10 +154,35 @@ _DOC_NAME_ONLY = re.compile(
 
 # "KELOWNA, BC" · "Vancouver, British Columbia" — the dateline's place.
 _DOC_PLACE = re.compile(
-    r"^[A-Za-z][A-Za-z.\-' ]{1,26},\s*(?:[A-Z]{2}|British Columbia|Ontario|Alberta"
+    r"^([A-Za-z][A-Za-z.\-' ]{1,26}),\s*(?:[A-Z]{2}|British Columbia|Ontario|Alberta"
     r"|Quebec|Québec|Saskatchewan|Manitoba|Nova Scotia|New Brunswick"
     r"|Newfoundland(?: and Labrador)?|Yukon|Nunavut|Nevada|Arizona|Colorado|Utah"
     r"|Idaho|Montana|Texas|California|Washington|Canada|USA)\.?\s*$")
+
+# A dateline's place is a city. A wrapped headline can also end in a region -
+# "Project, Nevada", "Gold Strike One Property, Yukon", "Holes at Lisbon
+# Valley, Utah" - and treating those as the dateline truncated three of the
+# first 53 TMX headlines mid-sentence. What separates them is the text before
+# the comma: a city is one to three capitalised tokens, none of them a
+# lowercase function word and none an orebody noun.
+_NOT_A_CITY = {
+    "project", "projects", "property", "properties", "hole", "holes", "mine",
+    "mines", "claim", "claims", "target", "targets", "zone", "zones", "deposit",
+    "deposits", "area", "areas", "district", "corridor", "corridors", "belt",
+    "trend", "vein", "veins", "prospect", "prospects", "results", "program",
+    "programs", "drilling", "phase", "stage", "block", "blocks", "lease",
+}
+
+
+def _is_dateline_place(s: str) -> bool:
+    m = _DOC_PLACE.match(s)
+    if not m:
+        return False
+    toks = m.group(1).split()
+    if not 1 <= len(toks) <= 3:
+        return False
+    return all(t[:1].isupper() and t.lower().strip(".,'-") not in _NOT_A_CITY
+               for t in toks)
 
 MAX_HEADLINE_CHARS = 220
 MAX_SCAN_LINES = 24
@@ -197,7 +222,7 @@ def _ends_headline(s: str) -> bool:
     """
     if _is_letterhead(s) or _DOC_SECTION.match(s):
         return True
-    return bool(len(s) <= MAX_PLACE_LINE_CHARS and _DOC_PLACE.match(s))
+    return len(s) <= MAX_PLACE_LINE_CHARS and _is_dateline_place(s)
 
 
 def headline_from_body(body: str, fallback: str = "") -> str:
@@ -332,6 +357,38 @@ DOC_TEST = [
      "NEWS RELEASE\nWESDOME INTERSECTS 7.8 G/T GOLD OVER 57.2 METRES AT KIENA DEEP\n"
      "Toronto, Ontario – September 10, 2026 – Wesdome Gold Mines Ltd.\n",
      "WESDOME INTERSECTS 7.8 G/T GOLD OVER 57.2 METRES AT KIENA DEEP"),
+
+    # A wrapped headline whose second line ends in a region is not the
+    # dateline. All three of these truncated real TMX headlines mid-sentence.
+    ("Toogood Gold Defines Two Priority Drill Target Corridors at the Table Mountain\n"
+     "Project, Nevada\n"
+     "Vancouver, British Columbia – September 10, 2026 – Toogood Gold Corp.\n",
+     "Toogood Gold Defines Two Priority Drill Target Corridors at the Table Mountain "
+     "Project, Nevada"),
+
+    ("Gold Strike Announces Magnetic Survey Results Identifying Exploration Targets at\n"
+     "Gold Strike One Property, Yukon\n"
+     "Vancouver, BC – September 10, 2026 – Gold Strike Resources Ltd.\n",
+     "Gold Strike Announces Magnetic Survey Results Identifying Exploration Targets "
+     "at Gold Strike One Property, Yukon"),
+
+    ("Manhattan Uranium Identifies 3.70% eU3O8 Over 5.2 ft in Compilation of 499 Historical Drill\n"
+     "Holes at Lisbon Valley, Utah\n"
+     "Vancouver, British Columbia – September 10, 2026 – Manhattan Uranium Corp.\n",
+     "Manhattan Uranium Identifies 3.70% eU3O8 Over 5.2 ft in Compilation of 499 "
+     "Historical Drill Holes at Lisbon Valley, Utah"),
+
+    # "September 14 , 2026" - a space before the comma. The dateline was not
+    # recognised, so it ran into the headline.
+    ("NexGold’s Goldboro Project Selected for Inclusion in the Canada Investment Summit\n"
+     "Prospectus\n"
+     "TORONTO, September 14 , 2026 – NexGold Mining Corp. (TSXV: NEXG ; OTCQX: NXGCF)\n",
+     "NexGold’s Goldboro Project Selected for Inclusion in the Canada Investment "
+     "Summit Prospectus"),
+
+    ("Inomin Announces AGM Results\n"
+     "Vancouver, British Columbia – September 11 , 2026 – Inomin Mines Inc. (TSXV: MINE)\n",
+     "Inomin Announces AGM Results"),
 
     # a company whose name contains a street word must keep its headline
     ("MINERAL ROAD COMMISSIONS STRATEGIC REVIEW OF SIGNIFICANT\n"

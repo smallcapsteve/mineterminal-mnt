@@ -62,9 +62,9 @@ _MONTH = (r"Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|"
 
 _PATTERNS = [
     # September 9, 2026 · Sept. 11, 2026 · February 26th, 2025
-    re.compile(rf"\b({_MONTH})\.?\s+(\d{{1,2}})(?:st|nd|rd|th)?,?\s*(20\d{{2}})\b", re.I),
+    re.compile(rf"\b({_MONTH})\.?\s+(\d{{1,2}})(?:st|nd|rd|th)?\s*,?\s*(20\d{{2}})\b", re.I),
     # 10 SEPTEMBER, 2026 · 9th June 2026
-    re.compile(rf"\b(\d{{1,2}})(?:st|nd|rd|th)?\s+({_MONTH})\.?,?\s*(20\d{{2}})\b", re.I),
+    re.compile(rf"\b(\d{{1,2}})(?:st|nd|rd|th)?\s+({_MONTH})\.?\s*,?\s*(20\d{{2}})\b", re.I),
     # 2026-09-09
     re.compile(r"\b(20\d{2})-(\d{2})-(\d{2})\b"),
 ]
@@ -73,7 +73,7 @@ _PATTERNS = [
 # when a PDF puts both on one extracted line the date comes along:
 #   "OPTIONS GRANTED July 17th, 2026 – Muskoka - Ontario – Steadright..."
 _DATELINE_RUN = re.compile(
-    rf"\s*[-–—(,]?\s*\b(?:{_MONTH})\.?\s+\d{{1,2}}(?:st|nd|rd|th)?,?\s*20\d{{2}}\b.*$",
+    rf"\s*[-–—(,]?\s*\b(?:{_MONTH})\.?\s+\d{{1,2}}(?:st|nd|rd|th)?\s*,?\s*20\d{{2}}\b.*$",
     re.I)
 
 WINDOW = 1800          # characters of the document to consider; measured, see above
@@ -181,6 +181,13 @@ SELF_TEST = [
     ("Press release 2026-02-11 - Example Mining announces", "2026-02-12",
      "2026-02-11", "dateline"),
 
+    # A space before the comma is a PDF text-layer artefact, not a typo.
+    # Until 2026-09-14 this shape matched nothing at all, so the release
+    # fell back to its upload date and kept the dateline in its headline.
+    ("NexGold’s Goldboro Project Selected for Inclusion in the Canada Investment\n"
+     "TORONTO, September 14 , 2026 – NexGold Mining Corp. (TSXV: NEXG)",
+     "2026-09-14", "2026-09-14", "dateline"),
+
     # nothing readable: fall back to the exchange's date
     ("", "2026-05-05", "2026-05-05", "upload"),
     ("Scanned image, no text layer worth reading.", "2026-05-05", "2026-05-05", "upload"),
@@ -189,6 +196,7 @@ SELF_TEST = [
 TRIM_TEST = [
     ("OPTIONS GRANTED July 17th, 2026 – Muskoka - Ontario – Steadright Critical",
      "OPTIONS GRANTED"),
+    ("OPTIONS GRANTED July 17 , 2026 – Muskoka - Ontario", "OPTIONS GRANTED"),
     ("Westward Gold Drills 12.0 Metres of 8.06 g Au/t within 27.0 Metres",
      "Westward Gold Drills 12.0 Metres of 8.06 g Au/t within 27.0 Metres"),
     ("Irving Resources Announces Results of AGM",
