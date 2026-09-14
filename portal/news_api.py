@@ -8,6 +8,12 @@ Three endpoints, all GET, all CORS-allowed:
 Registered from portal.app via news_api.register(app). Only depends on
 portal.text_helpers (clean_release_html, smart_title) and a sqlite3
 connection at the standard portal DB path.
+
+2026-09-14: by-ticker now honours `events.additional_tickers`, the field that
+cross-files a co-issued release under both partners. It did not, and the website
+did, so the same ticker gave 2 items here and 8 there. MTP's company news tab
+calls this endpoint straight from the visitor's browser, so that disagreement
+was what MTP showed.
 """
 from __future__ import annotations
 
@@ -75,13 +81,25 @@ def _categories(raw: Optional[str]) -> list[dict[str, str]]:
     return out
 
 
+def _extra_tickers(raw: Optional[str]) -> list[str]:
+    """The other companies a release is filed under. Stored pipe-delimited."""
+    return [t for t in (raw or "").strip("|").split("|") if t]
+
+
 def _row_to_card(row: sqlite3.Row) -> dict[str, Any]:
     """Light-weight article card (for list views)."""
     ticker = (row["ticker"] or "").strip()
     slug = (row["slug"] or "release").strip()
+    try:
+        extra = _extra_tickers(row["additional_tickers"])
+    except (IndexError, KeyError):
+        extra = []
     return {
         "event_id": row["event_id"],
         "ticker": ticker,
+        # Additive. A consumer asking for RRI.V can get a release whose primary
+        # ticker is QQQ.CN — this says why.
+        "additional_tickers": extra,
         "headline": smart_title(row["raw_headline"] or "") if row["raw_headline"] else "",
         "source_name": row["source_name"] or "",
         "source_url": row["source_url"] or "",
@@ -158,15 +176,25 @@ def register(app) -> None:
         if not ticker_u:
             raise HTTPException(400, "ticker required")
         con = _conn()
-        # Match exact ticker AND bare-symbol prefix (to handle suffix variations).
+        # Match exact ticker AND bare-symbol prefix (to handle suffix variations)
+        # — and the same two shapes inside additional_tickers, which is where a
+        # co-issued release carries its second company. Without that last pair
+        # this endpoint disagreed with the website it is the API for: RRI.V
+        # returned 2 items here and 8 there, because Riverside's joint releases
+        # with Questcorp are filed primarily under QQQ.CN.
         bare = ticker_u.split(".")[0]
         rows = con.execute(
             "SELECT * FROM events "
             "WHERE review_status IN ('auto_approved','approved') "
-            "  AND (upper(ticker) = ? OR upper(ticker) LIKE ?) "
+            "  AND ( upper(ticker) = ? "
+            "     OR upper(ticker) LIKE ? "
+            "     OR ('|' || upper(coalesce(additional_tickers,'')) || '|') LIKE ? "
+            "     OR ('|' || upper(coalesce(additional_tickers,'')) || '|') LIKE ? ) "
             "  AND coalesce(raw_headline,'') <> '' "
             "ORDER BY published_at DESC, ingested_at DESC LIMIT ? OFFSET ?",
-            (ticker_u, bare + ".%", limit, offset),
+            (ticker_u, bare + ".%",
+             f"%|{ticker_u}|%", f"%|{bare}.%|%",
+             limit, offset),
         ).fetchall()
         return _json({
             "ok": True,
