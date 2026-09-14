@@ -72,8 +72,8 @@ _PATTERNS = [
 # A dateline that ran into the headline. `headline_from()` splits on lines, so
 # when a PDF puts both on one extracted line the date comes along:
 #   "OPTIONS GRANTED July 17th, 2026 – Muskoka - Ontario – Steadright..."
-_DATELINE_RUN = re.compile(
-    rf"\s*[-–—(,]?\s*\b(?:{_MONTH})\.?\s+\d{{1,2}}(?:st|nd|rd|th)?\s*,?\s*20\d{{2}}\b.*$",
+_DATELINE_HEAD = re.compile(
+    rf"\s*[-–—(,]?\s*\b(?:{_MONTH})\.?\s+\d{{1,2}}(?:st|nd|rd|th)?\s*,?\s*20\d{{2}}\b",
     re.I)
 
 WINDOW = 1800          # characters of the document to consider; measured, see above
@@ -86,12 +86,26 @@ MIN_HEADLINE_AFTER_TRIM = 12
 def trim_at_dateline(headline: str) -> str:
     """Cut a headline at the point its document's dateline begins.
 
-    Only when enough headline survives: a release whose headline legitimately
-    opens with a date would otherwise be erased. Measured at 16 of ~130
-    document-derived headlines during the 2026 repair pass.
+    Two guards, both paid for:
+
+    Enough headline must survive - a release whose headline legitimately opens
+    with a date would otherwise be erased. 16 of ~130 document-derived
+    headlines during the 2026 repair pass.
+
+    And the date must actually introduce something. A dateline is followed by
+    the company issuing the release: "... - September 11, 2026 - Inomin Mines
+    Inc. ...". A headline that merely ENDS in a date is a headline: "Vertex
+    Announces Adjournment of AGM to February 13, 2026". Cutting at the date
+    there removed the only thing the headline said. Four of 1,728 stored rows.
     """
     h = (headline or "").strip()
-    t = _DATELINE_RUN.sub("", h).strip(" -–—|:,")
+    m = _DATELINE_HEAD.search(h)
+    if not m:
+        return h
+    rest = h[m.end():]
+    if len(rest.strip(" )]-–—|:,.")) < 3 and not rest.lstrip().startswith(")"):
+        return h
+    t = h[:m.start()].strip(" -–—|:,(")
     return t if len(t) >= MIN_HEADLINE_AFTER_TRIM else h
 
 
@@ -206,6 +220,14 @@ TRIM_TEST = [
      "August Drilling Update at the Example Project"),
     # too little would survive, so leave it whole
     ("July 17, 2026 - Muskoka", "July 17, 2026 - Muskoka"),
+    # a headline that ENDS in a date is a headline, not a dateline
+    ("Vertex Announces Adjournment of AGM to February 13, 2026",
+     "Vertex Announces Adjournment of AGM to February 13, 2026"),
+    ("FUTURA APPOINTS NEW CHIEF FINANCIAL OFFICER EFFECTIVE MARCH 17, 2026",
+     "FUTURA APPOINTS NEW CHIEF FINANCIAL OFFICER EFFECTIVE MARCH 17, 2026"),
+    # ... but a date parenthesised at the end is filing furniture
+    ("Metals Corp Announces Closing of Private Placement (February 4 2026)",
+     "Metals Corp Announces Closing of Private Placement"),
 ]
 
 

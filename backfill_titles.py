@@ -119,24 +119,36 @@ _DOC_ADDRESS = re.compile(
 
 _DOC_CONTACT = re.compile(
     r"[A-Z]\d[A-Z]\s?\d[A-Z]\d|\bfloor\b|\btel\b|\bphone\b|\bfax\b|\bemail\b"
-    r"|@|www\.|https?://|\b(?:ARBN|ACN|ABN)\b\s*:?\s*\d", re.I)
+    r"|@|www\.|https?://|\b(?:ARBN|ACN|ABN)\b\s*:?\s*\d"
+    r"|^\s*(?:\+\d|\(\d{3}\)\s*\d{3}|\d{3}[\s.\-]\d{3}[\s.\-]\d{4})", re.I)
+
+# Letterhead only where it sits BEFORE the headline. Inside one, the same
+# shape is a continuation: "GOLDENCARIBOO.com CSE Stock Symbol GCC" is a
+# masthead; "CEO.ca Interview" is the tail of "... Strategic Growth in".
+# That is the start/end distinction this module already turns on, and
+# collapsing the two is what truncated the Super Copper headline.
+_DOC_MASTHEAD = re.compile(r"^\s*[\w-]{3,}\.(?:com|ca|net|org|io|co)\b", re.I)
 
 _DOC_LISTING = re.compile(
-    r"^\s*(TSX[-.\s]?V?|CSE|CNSX|NEO|OTC\w*|FSE|Frankfurt|NYSE|NASDAQ|ASX|AIM)\s*[:\-]",
+    r"^\s*[\(\[]?\s*(TSX[-.\s]?V?|CSE|CNSX|NEO|OTC\w*|FSE|Frankfurt|NYSE|NASDAQ|ASX|AIM)\s*[:\-]",
     re.I)
 
 _DOC_LABEL = re.compile(
-    r"^\s*[\W_]*(?:press|news|media)\s*release\b|^\s*for\s+immediate\s+release", re.I)
+    r"^\s*[\W_]*(?:press|news|media)\s*release\b|^\s*for\s+immediate\s+release"
+    r"|^\s*item\s+\d", re.I)
 
 _DOC_DISCLAIMER = re.compile(
     r"^\s*(?:this\s+(?:news|press)\s+release\s+is\s+not"
-    r"|not\s+for\s+(?:distribution|dissemination|release)"
+    r"|not\s+(?:intended\s+for\s+)?(?:distribution|dissemination|release)"
+    r"|no\s+securities\s+regulatory\s+authority"
+    r"|newswire\s+services?\b"
+    r"|material\s+change\s+report\b"
     r"|or\s+for\s+(?:distribution|dissemination)"
     r"|for\s+dissemination)", re.I)
 
 _DOC_DISCLAIMER_RUN = re.compile(
     r"^.{0,150}?(?:u\.?s\.?\s+newswire\s+services?|newswire\s+services?"
-    r"|(?:in|into|to)\s+the\s+united\s+states)\b[\s,.:;\-]*", re.I)
+    r"|(?:in|into|to)\s+the\s+united\s+states|reviewed\s+this\s+document)\b[\s,.:;\-]*", re.I)
 
 _DOC_BULLET = re.compile(r"^\s*[●•▪‣\-\*–]\s")
 
@@ -150,7 +162,8 @@ _DOC_SECTION = re.compile(
 # Results from the Mineral Resources" is a headline continuation, and ending in
 # an industry word does not make a line a company name.
 _DOC_NAME_ONLY = re.compile(
-    r"^[\w'&.,\- ]{3,45}\b(?:inc|ltd|corp|corporation|limited|plc|llc)\.?$", re.I)
+    r"^[\w'&.,\- ]{3,45}\b(?:inc|ltd|corp|corporation|limited|plc|llc)\.?"
+    r"(?:\s*\([^)]{0,40}\))?$", re.I)
 
 # "KELOWNA, BC" · "Vancouver, British Columbia" — the dateline's place.
 _DOC_PLACE = re.compile(
@@ -169,7 +182,7 @@ _NOT_A_CITY = {
     "project", "projects", "property", "properties", "hole", "holes", "mine",
     "mines", "claim", "claims", "target", "targets", "zone", "zones", "deposit",
     "deposits", "area", "areas", "district", "corridor", "corridors", "belt",
-    "trend", "vein", "veins", "prospect", "prospects", "results", "program",
+    "trend", "basin", "vein", "veins", "prospect", "prospects", "results", "program",
     "programs", "drilling", "phase", "stage", "block", "blocks", "lease",
 }
 
@@ -183,6 +196,23 @@ def _is_dateline_place(s: str) -> bool:
         return False
     return all(t[:1].isupper() and t.lower().strip(".,'-") not in _NOT_A_CITY
                for t in toks)
+
+MAX_PROSE_SHARE = 0.45
+
+
+def reads_as_prose(s: str) -> bool:
+    """True when this reads like a sentence out of the body, not a headline.
+
+    Headlines are title-cased or upper-cased; body prose is not. Measured over
+    the 47 candidate replacements in the 2026 repair pass, real headlines ran
+    0-35% lowercase words and body sentences 54-80%, with nothing in between.
+    """
+    words = [w for w in (s or "").split() if any(c.isalpha() for c in w)]
+    if len(words) < 6:
+        return False
+    lower = sum(1 for w in words if next(c for c in w if c.isalpha()).islower())
+    return lower / len(words) > MAX_PROSE_SHARE
+
 
 MAX_HEADLINE_CHARS = 220
 MAX_SCAN_LINES = 24
@@ -207,6 +237,14 @@ def _is_letterhead(s: str) -> bool:
 def _starts_headline(s: str) -> bool:
     """False while we are still walking through letterhead."""
     if len(s) < 12 or _is_letterhead(s) or _DOC_NAME_ONLY.match(s):
+        return False
+    if _DOC_MASTHEAD.match(s):
+        return False
+    # A headline does not begin in the middle of a sentence. Judged on the
+    # whole first word, so "iMetal Resources ..." keeps its capital and
+    # "contrary is an offence ..." does not.
+    first = (s.split()[0] if s.split() else "").strip(".,;:!?)(\"'\u201c\u201d\u2018\u2019")
+    if first.isalpha() and first.islower():
         return False
     if _DOC_SECTION.match(s) or s.count("|") >= 2:
         return False
@@ -248,6 +286,11 @@ def headline_from_body(body: str, fallback: str = "") -> str:
     out = _DOC_DISCLAIMER_RUN.sub("", out).strip()
     if len(out) < MIN_HEADLINE_CHARS:
         return fallback or out
+    # Prose loses to anything else there is. With no fallback - TMX, where
+    # the document is all there is - it is still better than nothing, and
+    # the caller can apply its own judgement with reads_as_prose().
+    if fallback and reads_as_prose(out):
+        return fallback
     return out[:300]
 
 
@@ -390,12 +433,108 @@ DOC_TEST = [
      "Vancouver, British Columbia – September 11 , 2026 – Inomin Mines Inc. (TSXV: MINE)\n",
      "Inomin Announces AGM Results"),
 
+    # Boilerplate the extractor used to mistake for a headline. Each of
+    # these replaced a real feed title during the 2026 repair dry run.
+    ("No securities regulatory authority or regulator has assessed the merits of\n"
+     "these securities or reviewed this document.\n"
+     "Ashley Gold Corp. Announces Amended and Restated Offering Document\n",
+     "Ashley Gold Corp. Announces Amended and Restated Offering Document"),
+
+    ("NOT INTENDED FOR DISTRIBUTION TO UNITED STATES NEWS WIRE SERVICES OR\n"
+     "FOR DISSEMINATION IN THE UNITED STATES\n"
+     "Hemlo Explorers Announces Closing of Private Placement\n",
+     "Hemlo Explorers Announces Closing of Private Placement"),
+
+    ("(OTCQB: PMOMF) is pleased to invite investors to attend the webinar\n"
+     "Prismo Metals to Host Webinar on Recent Drill Results\n",
+     "Prismo Metals to Host Webinar on Recent Drill Results"),
+
+    ("GOLDENCARIBOO.com CSE Stock Symbol GCC\n"
+     "Golden Cariboo Closes $700,000 Non-Brokered Private Placement\n",
+     "Golden Cariboo Closes $700,000 Non-Brokered Private Placement"),
+
+    # A headline may name a website without being letterhead.
+    ("Super Copper Founder Discusses High-Grade Results and Strategic Growth in\n"
+     "CEO.ca Interview\n"
+     "Vancouver, British Columbia \u2013 January 21, 2026 \u2013 Super Copper Corp.\n",
+     "Super Copper Founder Discusses High-Grade Results and Strategic Growth in "
+     "CEO.ca Interview"),
+
+    # ... but a stock-symbol line and a phone-number line are letterhead
+    ("GOLDENCARIBOO.com CSE Stock Symbol GCC\n"
+     "Golden Cariboo Closes $700,000 Non-Brokered Private Placement\n",
+     "Golden Cariboo Closes $700,000 Non-Brokered Private Placement"),
+
+    ("+1 587 777 9072| ashleygoldcorp.com\n"
+     "Ashley Gold Corp. Announces Strategic Acquisition of the Hyndman Flank Project\n",
+     "Ashley Gold Corp. Announces Strategic Acquisition of the Hyndman Flank Project"),
+
+    # a headline does not start in the middle of a sentence
+    ("contrary is an offence. This Offering may not be suitable for you and you\n"
+     "should only invest in it if you are willing to risk the loss.\n"
+     "Ashley Gold Corp. Announces Amended and Restated Offering Document\n",
+     "Ashley Gold Corp. Announces Amended and Restated Offering Document"),
+
+    # a material change report is not a news release
+    ("Material Change Report\n"
+     "Item 1. Name and Address of Company\n"
+     "Nevada Organic Phosphate Inc. Reports Drill Results at Pine Valley\n",
+     "Nevada Organic Phosphate Inc. Reports Drill Results at Pine Valley"),
+
+    # "stock symbol" in a headline is a headline; a line that OPENS with a
+    # domain is letterhead.
+    ("Hi-VIEW RESOURCES INC. ANNOUNCES CHANGE OF STOCK SYMBOL TO GXLD\n"
+     "Vancouver, British Columbia \u2013 January 7, 2026 \u2013 Hi-View Resources Inc.\n",
+     "Hi-VIEW RESOURCES INC. ANNOUNCES CHANGE OF STOCK SYMBOL TO GXLD"),
+
+    # an ISO date is a run of digits and dashes, but it is not a phone number
+    ("2026-03-05 NEWS\n"
+     "Adelphi Metals Amends Previously Announced Private Placement\n",
+     "Adelphi Metals Amends Previously Announced Private Placement"),
+
+    # the first word carries a full stop, and is still the middle of a sentence
+    ("investment. In making this investment decision, you should seek advice\n"
+     "from a registered dealer before proceeding any further with this.\n"
+     "Ashley Gold Corp. Announces Amended and Restated Offering Document\n",
+     "Ashley Gold Corp. Announces Amended and Restated Offering Document"),
+
+    # a bare company name, with or without its defined term, is not a headline
+    ("Material Change Report\n"
+     "Item 2. Date of Material Change\n"
+     "Nevada Organic Phosphate Inc. (the \u201cCompany\u201d)\n"
+     "Nevada Organic Phosphate Reports Drill Results at Pine Valley\n",
+     "Nevada Organic Phosphate Reports Drill Results at Pine Valley"),
+
     # a company whose name contains a street word must keep its headline
     ("MINERAL ROAD COMMISSIONS STRATEGIC REVIEW OF SIGNIFICANT\n"
      "BERGSLAGEN TUNGSTEN PROJECT IN SWEDEN\n"
      "Vancouver, British Columbia – August 4, 2026 – Mineral Road Corp.\n",
      "MINERAL ROAD COMMISSIONS STRATEGIC REVIEW OF SIGNIFICANT BERGSLAGEN TUNGSTEN "
      "PROJECT IN SWEDEN"),
+]
+
+
+PROSE_TEST = [
+    # real headlines taken from the 2026 repair pass
+    ("Heritage Doubles Down at Melba: Expands Land Package ahead of Pending Drill "
+     "Results", False),
+    ("ESGold Files Amended LIFE Offering Document to include Quebec as an Offering "
+     "Jurisdiction for Previously Announced Brokered LIFE Offering", False),
+    ("Boreal Gold Reports 15.54 g/t Gold over 2.41m in Drill Hole GR-26-149 "
+     "Including 81.5 g/t Gold over 0.41m in the High-Grade Gold Rock Vein", False),
+    ("Military Metals Reports Maiden Inferred Resource Estimate Containing 67,000 "
+     "Tonnes of Antimony and 222,000 Ounces of Gold at Flagship Trojarova", False),
+    ("One Step Closer to Cash Flow: Average grades of 3.72g/t Au and 0.96g/t Au "
+     "from 1930s Rockpiles at Drayton - Black Lake", False),
+    ("Forty Pillars Announces Program Results on the Silver Dollar Project", False),
+    # and the three body sentences it offered in their place
+    ("This Offering Document constitutes an offering of these securities only in "
+     "those jurisdictions where they may be lawfully offered for sale", True),
+    ("CEO Alain Lambert and Chief Exploration Officer Dr. Craig Gibson will discuss "
+     "the upcoming drill program at its Silver King project near Superior", True),
+    ("The Company announced that, further to its news releases dated", True),
+    # too short to judge
+    ("Options Granted", False),
 ]
 
 
@@ -421,7 +560,14 @@ def self_test(verbose: bool = True) -> int:
         if verbose or not ok:
             print(f"  {'ok  ' if ok else 'FAIL'}  doc -> {got[:70]!r}"
                   f"{'' if ok else f'{chr(10)}        WANTED {want[:70]!r}'}")
-    total = len(SELF_TEST) + len(DOC_TEST)
+    for raw, want in PROSE_TEST:
+        got = reads_as_prose(raw)
+        ok = got == want
+        if not ok:
+            bad += 1
+        if verbose or not ok:
+            print(f"  {'ok  ' if ok else 'FAIL'}  prose={str(got):<5} {raw[:58]!r}")
+    total = len(SELF_TEST) + len(DOC_TEST) + len(PROSE_TEST)
     if verbose:
         print(f"\n{total - bad}/{total} passed")
     return 1 if bad else 0
