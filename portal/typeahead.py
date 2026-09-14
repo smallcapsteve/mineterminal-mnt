@@ -44,7 +44,7 @@ from portal import db
 _TTL_S = 300
 
 _lock = threading.Lock()
-_state: dict[str, Any] = {"rows": [], "built_at": 0.0}
+_state: dict[str, Any] = {"rows": [], "built_at": 0.0, "refreshing": False}
 
 
 def _name_for(ticker: str) -> str:
@@ -82,25 +82,41 @@ def _build_rows() -> list[dict[str, Any]]:
     return rows
 
 
-def _rows() -> list[dict[str, Any]]:
-    now = time.monotonic()
-    with _lock:
-        cached = _state["rows"]
-        fresh = cached and (now - _state["built_at"]) < _TTL_S
-    if fresh:
-        return cached
-
+def _refresh() -> list[dict[str, Any]]:
+    """Rebuild and store. Returns whatever the index holds afterwards."""
     try:
         built = _build_rows()
     except Exception:
         # Fails OPEN on staleness, closed on nothing: an old index answers
         # yesterday's tickers, an empty one makes the box look broken.
-        return cached
-
+        built = None
     with _lock:
-        _state["rows"] = built
-        _state["built_at"] = now
-    return built
+        if built is not None:
+            _state["rows"] = built
+            _state["built_at"] = time.monotonic()
+        _state["refreshing"] = False
+        return _state["rows"]
+
+
+def _rows() -> list[dict[str, Any]]:
+    """Never makes a reader wait for a rebuild if there is anything to answer
+    with. Fresh index: answer it. Stale index: answer it anyway and rebuild
+    behind them — five-minute-old ticker names are not worth a visible pause in
+    a box that is supposed to respond to a keystroke. Only the very first call
+    of a worker's life builds in line, and register() has already started that
+    in the background at import.
+    """
+    now = time.monotonic()
+    with _lock:
+        cached = _state["rows"]
+        if cached and (now - _state["built_at"]) < _TTL_S:
+            return cached
+        if cached:
+            if not _state["refreshing"]:
+                _state["refreshing"] = True
+                threading.Thread(target=_refresh, daemon=True).start()
+            return cached
+    return _refresh()
 
 
 def _score(row: dict[str, Any], q: str) -> Optional[int]:
@@ -156,6 +172,10 @@ def search(q: str, limit: int = 14) -> list[dict[str, str]]:
 
 
 def register(app) -> None:
+    # Build the index at import, off the request path, so the first reader to
+    # type does not pay for the first scan.
+    threading.Thread(target=_rows, daemon=True).start()
+
     @app.get("/api/search")
     def api_search(q: str = "", limit: int = 14):
         """Type-ahead for the nav search box. Same payload shape as MTP's."""
