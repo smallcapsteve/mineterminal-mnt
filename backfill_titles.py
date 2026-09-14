@@ -1,42 +1,26 @@
 #!/usr/bin/env python3
 """The exchange states the ticker. It does not state a headline.
 
-The CSE feed is authoritative about *which company* a release belongs to —
-that is the whole reason the exchange path exists. Its `title`, though, is
-whatever the issuer typed into a form.
+Two jobs live here.
 
-Measured across all 3,856 of our 2026 titles: **464 (12.0%)** carry boilerplate
-and **326 (8.5%)** say nothing once it is stripped. Then the first full run of
-1,995 was audited afterwards, and **103 of the 1,675 published headlines (6.1%)**
-were still weak. Both rounds of evidence are baked into the cases below.
+**1. Cleaning a feed title.** The CSE feed's `title` is whatever the issuer
+typed into a form. Across all 3,856 of our 2026 titles, **464 (12.0%)** carry
+boilerplate and **326 (8.5%)** say nothing once it is stripped. The first capped
+backfill run published *"ESGold Corp. - Press Release (September 10, 2026)"* to
+three public sites.
 
-Two rules, in order:
+**2. Taking a headline out of a document.** TMX has no titles at all — `name` is
+the literal string "News release" on 9,095 of 9,198 rows — so every TSX/TSXV
+headline is read from the PDF. That makes `headline_from_body` the single most
+load-bearing function in the TMX backfill.
 
-  1. **Strip the boilerplate.** Most are good headlines wearing a prefix:
-     `News Release - Krait Commences Trading on Frankfurt Stock Exchange` is
-     fine once four words come off the front.
-  2. **If what remains is thin, distrust it** — and let the caller take the
-     headline out of the PDF instead, which it is fetching anyway.
-
-**What the audit changed.** The first version kept any title containing an
-action word, however short. That left `Drilling Results`, `Property update`,
-`Financing` and `OPTIONS GRANTED` on the sites while the documents behind them
-said `Westward Gold Drills 12.0 Metres of 8.06 g Au/t within 27.0 Metres`,
-`Emperor Continues to Define Shallow High-Grade Gold Mineralization` and
-`Irving Resources Announces Results of AGM`. For a precious-metals audience the
-grade and the interval *are* the headline, so the verb escape hatch is gone and
-a short title is always distrusted.
-
-**Erring towards the document is safe by construction.** `headline_for()` in the
-runner falls back to the cleaned title whenever the document yields nothing, so
-distrusting a title can never lose a release — it can only cost a PDF parse that
-is happening anyway. The two errors are not symmetric: the other direction puts
-`ESGold Corp. - Press Release (September 10, 2026)` on three public sites, which
-is what the first capped run actually did.
+**Erring towards the document is deliberate.** A wrong "this title is hollow"
+costs a PDF parse that is happening anyway; a wrong "this title is fine" puts a
+placeholder on three public sites.
 
 These rules live apart from the runner so they can be corrected without touching
-a 23 KB file, and because they are the part most likely to need correcting: they
-are pattern-matching against free text a human typed into a form.
+a 25 KB file, and because they are the part most likely to need correcting: they
+are pattern-matching against free text a human typed.
 
     python3 backfill_titles.py          # run the self-test
 """
@@ -45,24 +29,20 @@ from __future__ import annotations
 import re
 import sys
 
-# "September 10, 2026", "dated Sept 4, 2026", "(September 1, 2026)". A day
-# number AND a year are both required, which is what keeps "August Drilling
-# Update" — a real headline — out of the date branch.
+_MONTHS = (r"Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|"
+           r"Jul(?:y)?|Aug(?:ust)?|Sep(?:t|tember)?|Oct(?:ober)?|Nov(?:ember)?|"
+           r"Dec(?:ember)?")
+
+# "September 10, 2026", "dated Sept 4, 2026", "(September 1, 2026)"
 _DATEISH = (r"(?:\(?\s*(?:dated\s+)?[A-Za-z]{3,9}\.?\s+\d{1,2},?\s*20\d{2}\s*\)?)")
 
-# The boilerplate, in the shapes issuers actually type. Every optional part here
-# was added because a real 2026 title needed it:
+# Optionally a company name and a dash, then the words themselves, then
+# optionally a date, then optionally a separator. Everything after the words is
+# optional because the boilerplate is often the entire title.
 #
-#   "June 30, 2026 News Release - Super Copper Mobilizes…"  date first
-#   "July 21, 2026 HML News Release - Year Round Update"    date AND initials
-#   "NLR News Release (August 31, 2026)"                    initials, no dash
-#   "MHL Press Release May 19, 2026"                        trailing date
-#   "New Release - Commences IP Survey at Three Guardsman"  the issuer's typo
-#
-# The company branch accepts either a name set off by a dash, or a short
-# unpunctuated token like "NLR". It deliberately does NOT accept a long
-# unpunctuated run, which is what keeps "Company Issues Press Release Correction
-# Regarding Assay Widths" — a real headline — intact.
+# The company branch requires a dash, pipe, or a short unpunctuated token. That
+# is what stops "Company Issues Press Release Correction Regarding Assay Widths"
+# from being eaten: only boilerplate *set off* by punctuation is boilerplate.
 _TITLE_PREFIX = re.compile(
     r"^\s*"
     r"(?:" + _DATEISH + r"\s*[-–—|:,]?\s*)?"
@@ -71,16 +51,15 @@ _TITLE_PREFIX = re.compile(
     r"(?:\s*[-–—|:,]?\s*" + _DATEISH + r")?"
     r"\s*(?:re\b:?|[-–—|:,])?\s*", re.I)
 
-# What remains once the words and a date are accounted for: nothing.
 _TITLE_HOLLOW = re.compile(
     r"^\s*(?:[\w'&.,()\- ]{0,40}?\s*[-–—|]\s*)?"
     r"(?:(?:news|new|press|media)\s*releases?|nr|pr)?\s*"
     r"(?:[-–—|(,]?\s*(?:dated\s+)?[A-Za-z]*\.?\s*\d{0,2},?\s*20\d{2}\s*\)?)?\s*$",
     re.I)
 
-# Below this, a title is a label rather than a headline and the document wins.
-# "Results of 2026 AGM" (19) and "Drilling Results" (16) both sit under it; the
-# documents behind them give the company name and the numbers.
+# "HML PR August 26, 2026" is 22 characters and survives the hollow regex, so
+# the length rule is load-bearing. Lowering it to keep "Change in Directors"
+# would let that one through.
 MIN_TITLE_CHARS = 28
 
 
@@ -88,9 +67,7 @@ def clean_title(raw: str) -> str:
     """Strip the boilerplate an issuer put in front of its own headline.
 
     Stripping to an empty string is a valid outcome, not a failed strip — that
-    is exactly what `News Release` should become. The first version treated it
-    as failure and handed the original straight back, which is why two of the
-    three original self-test failures looked like regex bugs and were not.
+    is exactly what `News Release` should become.
     """
     t = (raw or "").strip()
     for _ in range(3):
@@ -106,10 +83,10 @@ def clean_title(raw: str) -> str:
 def title_is_hollow(t: str) -> bool:
     """True when the title should not be trusted as a headline.
 
-    Named for its original meaning — "says nothing at all" — but widened by the
-    audit to include any title too short to carry a company name and a fact.
-    There is no verb escape hatch: `Drilling Results` contains an action word
-    and is still worse than what its own document says.
+    Named for its original meaning — "says nothing at all" — but widened by an
+    audit of 1,675 published headlines to include any title too short to carry a
+    company name and a fact. There is no verb escape hatch: `Drilling Results`
+    contains an action word and is still worse than what its own document says.
     """
     if not t:
         return True
@@ -118,11 +95,111 @@ def title_is_hollow(t: str) -> bool:
     return len(t) < MIN_TITLE_CHARS
 
 
+# --------------------------------------------------------------------------
+# reading a headline out of the document
+# --------------------------------------------------------------------------
+#
+# A release PDF is laid out the same way everywhere: letterhead, then the
+# headline — usually wrapped over two or three lines — then the dateline, then
+# the body. The mistake in the first extractor was using ONE "is this
+# letterhead" test for two different questions: where does the headline start,
+# and where does it end. A line under 12 characters is almost certainly
+# letterhead *before* the headline and is almost certainly a continuation
+# *inside* it, and the same is true of a line that looks like a company name.
+
+_DOC_DATELINE = re.compile(
+    rf"\b(?:{_MONTHS})\.?\s+\d{{1,2}}(?:st|nd|rd|th)?,?\s*20\d{{2}}\b"
+    rf"|\b\d{{1,2}}\s+(?:{_MONTHS})\.?,?\s*20\d{{2}}\b", re.I)
+
+# The wire's own stamp, which always sits at the start of the dateline:
+# "Vancouver, British Columbia--(Newsfile Corp. - September 11, 2026) -"
+_DOC_WIRE = re.compile(
+    r"--\s*\(|\(\s*Newsfile|\(\s*GLOBE\s*NEWSWIRE|\(\s*CNW|\(\s*ACCESS\s*Newswire"
+    r"|\(\s*Business\s*Wire|\(\s*The\s*Newswire", re.I)
+
+# Address, contact details, and registration identifiers. The ARBN branch is
+# there because "Li-FT Power Ltd. ARBN: 696 815 595" became a headline.
+_DOC_LETTERHEAD = re.compile(
+    r"[A-Z]\d[A-Z]\s?\d[A-Z]\d|\bsuite\b|\bstreet\b|\bavenue\b|\bboulevard\b"
+    r"|\bfloor\b|\btel\b|\bphone\b|\bfax\b|\bemail\b|@|www\.|https?://|\bPO Box\b"
+    r"|\b(?:ARBN|ACN|ABN)\b\s*:?\s*\d", re.I)
+
+_DOC_LISTING = re.compile(
+    r"^\s*(TSX[-.\s]?V?|CSE|CNSX|NEO|OTC\w*|FSE|Frankfurt|NYSE|NASDAQ|ASX|AIM)\s*[:\-]",
+    re.I)
+
+_DOC_LABEL = re.compile(
+    r"^\s*[\W_]*(?:press|news|media)\s*release\b|^\s*for\s+immediate\s+release"
+    r"|^\s*not\s+for\s+(?:distribution|dissemination|release)", re.I)
+
+_DOC_BULLET = re.compile(r"^\s*[●•▪‣\-\*–]\s")
+
+# A line that is only a company name is letterhead. Deliberately NOT including
+# resources / metals / mining / minerals: "Test Work Results from the Mineral
+# Resources" is a headline continuation, and ending in an industry word does not
+# make a line a company name.
+_DOC_NAME_ONLY = re.compile(
+    r"^[\w'&.,\- ]{3,45}\b(?:inc|ltd|corp|corporation|limited|plc|llc)\.?$", re.I)
+
+MAX_HEADLINE_CHARS = 220
+MAX_SCAN_LINES = 24
+MIN_HEADLINE_CHARS = 20
+
+
+def _starts_headline(s: str) -> bool:
+    """False while we are still walking through letterhead."""
+    if len(s) < 12:
+        return False
+    if _DOC_LABEL.match(s) or _DOC_LISTING.match(s):
+        return False
+    if _DOC_LETTERHEAD.search(s) or _DOC_DATELINE.search(s):
+        return False
+    if _DOC_NAME_ONLY.match(s):
+        return False
+    if s.count("|") >= 2:
+        return False
+    letters = sum(c.isalpha() for c in s)
+    return letters >= len(s) * 0.4
+
+
+def _ends_headline(s: str) -> bool:
+    """True for the first line that is no longer part of the headline.
+
+    Notably absent: any test on length, and any company-name test. Both belong
+    to finding the start, and applying them here truncated real headlines.
+    """
+    return bool(_DOC_DATELINE.search(s) or _DOC_WIRE.search(s)
+                or _DOC_BULLET.match(s) or _DOC_LABEL.match(s)
+                or _DOC_LISTING.match(s) or _DOC_LETTERHEAD.search(s))
+
+
+def headline_from_body(body: str, fallback: str = "") -> str:
+    """The headline of a news-release PDF, including its wrapped continuation."""
+    if not body:
+        return fallback
+    lines = [l.strip() for l in body.split("\n")]
+    lines = [l for l in lines if l][:MAX_SCAN_LINES]
+
+    start = next((i for i, l in enumerate(lines) if _starts_headline(l)), None)
+    if start is None:
+        return fallback
+
+    block, chars = [], 0
+    for l in lines[start:]:
+        if block and _ends_headline(l):
+            break
+        block.append(l)
+        chars += len(l) + 1
+        if chars >= MAX_HEADLINE_CHARS:
+            break
+    out = re.sub(r"\s+", " ", " ".join(block)).strip()
+    if len(out) < MIN_HEADLINE_CHARS:
+        return fallback or out
+    return out[:300]
+
+
 SELF_TEST = [
     # (raw title, expected cleaned, expected distrusted?)
-    # Every case is a real 2026 CSE title except the two marked as guards.
-
-    # -- nothing but boilerplate --------------------------------------------
     ("ESGold Corp. - Press Release (September 10, 2026)", "", True),
     ("ESGold Corp - Press Release (September 1, 2026)", "", True),
     ("News Release", "", True),
@@ -132,8 +209,6 @@ SELF_TEST = [
     ("NLR News Release (August 31, 2026)", "", True),
     ("MHL Press Release May 19, 2026", "", True),
     ("HML PR August 26, 2026", "HML PR August 26, 2026", True),
-
-    # -- boilerplate wrapped round a real headline ---------------------------
     ("News Release - Krait Commences Trading on Frankfurt Stock Exchange",
      "Krait Commences Trading on Frankfurt Stock Exchange", False),
     ("News Release dated September 4, 2026 - Announcing Definitive Agreement Signing",
@@ -150,8 +225,6 @@ SELF_TEST = [
      "Commences IP Survey at Three Guardsman", False),
     ("New Release dated May 29, 2026 - Announcing US Listing Application",
      "Announcing US Listing Application", False),
-
-    # -- too short to be a headline: the document wins -----------------------
     ("Drilling Results", "Drilling Results", True),
     ("Property update", "Property update", True),
     ("Financing", "Financing", True),
@@ -160,29 +233,52 @@ SELF_TEST = [
     ("Stock Options Granted", "Stock Options Granted", True),
     ("Gold Rock Assay Results", "Gold Rock Assay Results", True),
     ("Beaumont PP Closing", "Beaumont PP Closing", True),
-
-    # -- long enough to stand on their own -----------------------------------
     ("Private Placement - Tranche 2 Closes", "Private Placement - Tranche 2 Closes", False),
     ("TOCVAN PROVIDES 2025 YEAR IN REVIEW", "TOCVAN PROVIDES 2025 YEAR IN REVIEW", False),
     ("TARGA CLOSES FINAL TRANCHE OF NON-BROKERED PRIVATE PLACEMENT",
      "TARGA CLOSES FINAL TRANCHE OF NON-BROKERED PRIVATE PLACEMENT", False),
     ("Riverside Resources Expands British Columbia Mineral Tenures",
      "Riverside Resources Expands British Columbia Mineral Tenures", False),
-
-    # -- guards: these must survive untouched --------------------------------
-    # "press release" mid-sentence in a real headline. An earlier version of
-    # this case asserted the opposite and was itself the bug.
     ("Company Issues Press Release Correction Regarding Assay Widths",
      "Company Issues Press Release Correction Regarding Assay Widths", False),
-    # a month name with no day and no year is not a date
     ("News Release - August Drilling Update at the Example Project",
      "August Drilling Update at the Example Project", False),
+]
+
+# Real TMX documents, trimmed to the lines that matter. Every one of these
+# produced a wrong headline before this extractor was rewritten.
+DOC_TEST = [
+    ("Scottie Announces $27 Million Non-Brokered\nFinancing\n"
+     "Vancouver, British Columbia--(Newsfile Corp. - September 11, 2026) - Scottie Resources\n",
+     "Scottie Announces $27 Million Non-Brokered Financing"),
+
+    ("Northmin Announces Positive Metallurgical\nTest Work Results from the Mineral Resources\n"
+     "at Tynagh\nToronto, Ontario--(Newsfile Corp. - September 14, 2026) - Northmin Corporation\n",
+     "Northmin Announces Positive Metallurgical Test Work Results from the Mineral "
+     "Resources at Tynagh"),
+
+    ("Li-FT Power Ltd. ARBN: 696 815 595\n"
+     "Suite 1218-1030 West Georgia Street, Vancouver, BC, Canada, V6E 2Y3\n"
+     "www.li-ft.com / TSX-V: LIFT / ASX: LFT / OTCQX: LIFFF / FRA: WS0\n"
+     "LI-FT POWER PROJECTS FEATURED IN CANADA INVESTMENT\nSUMMIT PROSPECTUS\n"
+     "September 14, 2026 – Vancouver, B.C., Li-FT Power Ltd.\n",
+     "LI-FT POWER PROJECTS FEATURED IN CANADA INVESTMENT SUMMIT PROSPECTUS"),
+
+    ("Prospector Completes Return of Capital\n"
+     "Vancouver, British Columbia--(Newsfile Corp. - September 11, 2026) -\n",
+     "Prospector Completes Return of Capital"),
+
+    # letterhead first, then the headline — the shape the original handled well
+    ("Wesdome Gold Mines Ltd\n8 King Street East, Suite 811\nToronto, ON M5C 1B5\n"
+     "NEWS RELEASE\nWESDOME INTERSECTS 7.8 G/T GOLD OVER 57.2 METRES AT KIENA DEEP\n"
+     "Toronto, Ontario – September 10, 2026 – Wesdome Gold Mines Ltd.\n",
+     "WESDOME INTERSECTS 7.8 G/T GOLD OVER 57.2 METRES AT KIENA DEEP"),
 ]
 
 
 def self_test(verbose: bool = True) -> int:
     """Returns 0 when every case passes. Cheap, and the only thing standing
-    between a bad regex and two thousand headlines on three public sites."""
+    between a bad regex and thousands of headlines on three public sites."""
     bad = 0
     for raw, want_clean, want_hollow in SELF_TEST:
         got = clean_title(raw)
@@ -191,11 +287,20 @@ def self_test(verbose: bool = True) -> int:
         if not ok:
             bad += 1
         if verbose or not ok:
-            print(f"  {'ok  ' if ok else 'FAIL'}  {raw[:56]:<56} -> {got[:42]!r:<44} "
+            print(f"  {'ok  ' if ok else 'FAIL'}  {raw[:52]:<52} -> {got[:40]!r:<42} "
                   f"distrust={hollow}"
                   f"{'' if ok else f'   WANTED {want_clean!r} distrust={want_hollow}'}")
+    for body, want in DOC_TEST:
+        got = headline_from_body(body)
+        ok = got == want
+        if not ok:
+            bad += 1
+        if verbose or not ok:
+            print(f"  {'ok  ' if ok else 'FAIL'}  doc -> {got[:72]!r}"
+                  f"{'' if ok else f'{chr(10)}        WANTED {want[:72]!r}'}")
+    total = len(SELF_TEST) + len(DOC_TEST)
     if verbose:
-        print(f"\n{len(SELF_TEST) - bad}/{len(SELF_TEST)} passed")
+        print(f"\n{total - bad}/{total} passed")
     return 1 if bad else 0
 
 
