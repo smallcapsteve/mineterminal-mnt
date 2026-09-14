@@ -18,12 +18,13 @@ site", not two.
   * The CSE whole-market feed lists **3,856 releases for our 346 CSE companies
     in 2026**. MNT already holds 1,861. **1,995 are missing**, and of 40 opened
     and checked, 40 were genuine gaps — a 100% hit rate, not a matching bug.
-  * The TMX filings store holds **9,129 news releases** for our 697 TSX/TSXV
-    companies in 2026, reaching back to 2024-09-30.
-  * The gap is **year-round**: 241, 273, 297, 274 missing for Jan–Apr, and
-    still 203, 192, 209, 207 for May–Aug. MNT's own volume triples in May, so
-    the collectors clearly came up then, but the CSE hole never closes — the
-    wires miss roughly 200 CSE releases every month regardless.
+  * The TMX filings store holds **9,159 news releases** for our 697 TSX/TSXV
+    companies in 2026. Stage 1 covers 2,838 of them by count; **6,152 are
+    candidates**.
+  * The gap is **year-round** on CSE, and heavily front-loaded on TMX: 1,077,
+    1,139, 1,002 and 911 candidates for Jan–Apr against 475, 450, 383, 429 for
+    May–Aug. MNT's own volume triples in May, which is when the collectors came
+    up.
 
 **The review-gate decision, and why it is not a policy change.**
 `AUTO_THRESHOLD` gives `drill_result`, `resource_estimate`, `econ_study` and
@@ -38,11 +39,12 @@ Justin's call: classify for the event types, and auto-approve backfilled items
 regardless of type, tagged `backfill_exchange`. Deferred on the same day, so the
 2026 run went out unclassified; `raw_body` is stored, so a later pass can
 classify these rows without re-fetching anything, and the tag is written whether
-or not the classifier ran. **`pipeline/run.py` is untouched: the live pipeline's
-review policy is exactly as it was.**
+or not the classifier ran. **`pipeline/run.py` is untouched.**
 
 **Titles are not headlines** — `backfill_titles.py`. 12% of the CSE feed's own
-titles are boilerplate or placeholders.
+titles are boilerplate or placeholders, and TMX has no titles at all: `name` is
+the literal string "News release" on 9,095 of 9,198 rows, so every TSX/TSXV
+headline is read out of the document.
 
 **Feed dates are not release dates** — `backfill_dates.py`. This one cost us:
 the first full run published 203 duplicates because the duplicate check ran
@@ -95,7 +97,7 @@ APP_ROOT = "/opt/mnt/app"
 sys.path.insert(0, APP_ROOT)
 
 import backfill_dates as D          # noqa: E402  document -> real release date
-import backfill_titles as T         # noqa: E402  title -> headline rules
+import backfill_titles as T         # noqa: E402  title and headline rules
 import exchange_news as X           # noqa: E402  the reconcile lives there
 
 BACKFILL_TAG = "backfill_exchange"
@@ -128,11 +130,13 @@ def headline_for(rel: dict, body: str) -> tuple[str, str]:
     the cleaned title as a last resort — because a thin headline still beats
     the words "News release", and a PDF that will not parse should not cost us
     the release entirely.
+
+    For TMX there is never a usable title, so this is always the document.
     """
     t = T.clean_title(rel.get("title", ""))
     if not T.title_is_hollow(t):
         return t, ("feed" if t == (rel.get("title") or "").strip() else "feed_cleaned")
-    from_pdf = D.trim_at_dateline(X.headline_from(body, "")) if body else ""
+    from_pdf = D.trim_at_dateline(T.headline_from_body(body, "")) if body else ""
     if from_pdf and not T.title_is_hollow(from_pdf):
         return from_pdf[:300], "pdf"
     return (t or (rel.get("title") or "").strip() or "News release"), "fallback"
@@ -155,7 +159,7 @@ def find_twin(pcon, rel: dict, headline: str, published: dt.date):
       **±3 days at 0.90.** The wire rewords. 36 of the 203 duplicates the first
       run created differed only as "Norsemont Appoints Ariel Tepperman to Its
       Board" differs from "Norsemont Mining Appoints Ariel Tepperman to Its
-      Board" — one extra word at the front defeats a prefix comparison.
+      Board" — one extra word at the front, and a prefix comparison is defeated.
 
       **±21 days at 0.97.** The wire is late, or our own date is off. Appia's
       appointment is dated 2026-08-18 in the document and 2026-09-01 by the
@@ -211,7 +215,7 @@ def preflight(want_classifier: bool, need_free_mb: int = 2048) -> dict:
     if T.self_test(verbose=False) != 0:
         raise SystemExit("ABORT: the title rules failed their own self-test — run "
                          "`python3 backfill_titles.py` to see which cases.")
-    log(f"  title rules          ok ({len(T.SELF_TEST)} cases)")
+    log(f"  title rules          ok ({len(T.SELF_TEST) + len(T.DOC_TEST)} cases)")
 
     if D.self_test(verbose=False) != 0:
         raise SystemExit("ABORT: the date rules failed their own self-test — run "
@@ -469,9 +473,6 @@ def main() -> int:
 
     # ---- stage 2: open, date, match, publish — in that order ----------------
     # The ordering is the fix for the 203 duplicates the first run created.
-    # Opening the document yields the date the company actually issued the
-    # release; matching against THAT date is what pairs a late-filed release
-    # with the wire's copy. Matching first, then publishing, was the bug.
     n_ing = n_fail = n_late = n_classified = n_moved = 0
     prov_counts: dict = {}
     date_prov: dict = {}
