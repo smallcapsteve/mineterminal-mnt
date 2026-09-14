@@ -35,44 +35,34 @@ so such an event appears on no site. With the classifier *off* — how the 9,231
 third of the backfill *off* the site.
 
 Justin's call: classify for the event types, and auto-approve backfilled items
-regardless of type. These releases would publish today anyway; classification
-naming them must not make them disappear. Every such row is tagged
-`backfill_exchange` so the decision stays visible and reversible.
-**`pipeline/run.py` is untouched: the live pipeline's review policy is exactly
-as it was.**
+regardless of type, tagged `backfill_exchange`. Deferred on the same day, so the
+2026 run went out unclassified; `raw_body` is stored, so a later pass can
+classify these rows without re-fetching anything, and the tag is written whether
+or not the classifier ran. **`pipeline/run.py` is untouched: the live pipeline's
+review policy is exactly as it was.**
 
---- deferred, same day --------------------------------------------------------
-Justin: *"Can we skip this for right now, please add this as a potential future
-addition (which we will 100% need) but currently would want to skip this part."*
+**Titles are not headlines** — `backfill_titles.py`. 12% of the CSE feed's own
+titles are boilerplate or placeholders.
 
-So the backfill runs **unclassified** for now: `--no-classify` needs no API key,
-costs nothing, and lands every release as `news_item` at confidence 1.0 —
-exactly how the 9,231 existing `disabled` events reached the sites. The content
-is on MNT and MTP either way; what is missing is only the *type*, so drill
-results are not yet filterable as drill results.
+**Feed dates are not release dates** — `backfill_dates.py`. This one cost us:
+the first full run published 203 duplicates because the duplicate check ran
+against the date the *exchange received* the document rather than the date the
+company issued it. Etruscus uploaded five releases in one batch dated
+2026-08-13 that had been issued across 2025, so each landed months from the
+wire's copy and no ±3-day window could pair them.
 
-**Deferring costs nothing later, and that is deliberate.** `raw_body` is stored
-with every event, so a future classification pass reads the text back out of
-`portal.db` and never re-fetches a single PDF. The only thing that makes that
-pass possible is being able to find these rows afterwards — which is why the
-`backfill_exchange` tag is applied **whether or not the classifier ran**. That
-is the one thing that would have been expensive to add in hindsight.
+The fix is an ordering, and it is the shape of the whole script: **stage 2 opens
+the document, takes the real date out of it, matches on that date, and only then
+publishes.** Matching before opening the document is precisely the bug, and it
+is why stage 1 cannot be made to catch these — stage 1 exists to decide whether
+a fetch is worth it, not whether to publish.
 
-**Titles are not headlines.** See `backfill_titles.py`: 12% of the CSE feed's
-own titles are boilerplate or placeholders, and the first capped run published
-*"ESGold Corp. - Press Release (September 10, 2026)"* before that was caught.
-The rules live in their own module because they are pattern-matching against
-free text a human typed, and will need correcting again. `preflight()` runs
-their self-test as a gate — it caught three real bugs on its first execution,
-before a single headline reached a site.
+**Preconditions gate the run, they do not merely precede it.** Twice this system
+has produced a confident, wrong, zero-exit summary because a missing dependency
+looked like an empty result. So every precondition is checked *before the first
+fetch*:
 
-**Preconditions gate the run, they do not merely precede it.** Twice now this
-system has produced a confident, wrong, zero-exit summary because a missing
-dependency looked like an empty result — the PDF extractor this morning, and
-before that a backup that failed on stderr while the apply proceeded on stdout.
-So every precondition is checked *before the first fetch*:
-
-    extractor · title rules · HMAC secret · portal reachable · disk · classifier
+    extractor · title rules · date rules · HMAC · portal · disk · classifier
 
 and mid-run, three consecutive classifier errors abort rather than quietly
 filling the site with confidence-0.0 guesses.
@@ -80,7 +70,7 @@ filling the site with confidence-0.0 guesses.
 Run:
     python3 backfill_exchange.py --source cse --since 2026-01-01 --dry-run --no-classify
     python3 backfill_exchange.py --source cse --since 2026-01-01 --apply --no-classify
-    python3 backfill_exchange.py --source cse --since 2026-01-01 --apply --max-ingest 25
+    python3 backfill_exchange.py --source tmx --since 2026-01-01 --apply --no-classify
     python3 backfill_exchange.py --self-test
     python3 backfill_exchange.py --stats
 """
@@ -96,6 +86,7 @@ import time
 APP_ROOT = "/opt/mnt/app"
 sys.path.insert(0, APP_ROOT)
 
+import backfill_dates as D          # noqa: E402  document -> real release date
 import backfill_titles as T         # noqa: E402  title -> headline rules
 import exchange_news as X           # noqa: E402  the reconcile lives there
 
@@ -124,10 +115,17 @@ def headline_for(rel: dict, body: str) -> tuple[str, str]:
     t = T.clean_title(rel.get("title", ""))
     if not T.title_is_hollow(t):
         return t, ("feed" if t == (rel.get("title") or "").strip() else "feed_cleaned")
-    from_pdf = X.headline_from(body, "") if body else ""
+    from_pdf = D.trim_at_dateline(X.headline_from(body, "")) if body else ""
     if from_pdf and not T.title_is_hollow(from_pdf):
         return from_pdf[:300], "pdf"
     return (t or (rel.get("title") or "").strip() or "News release"), "fallback"
+
+
+def dated(rel: dict, body: str) -> tuple[dt.date, str]:
+    """The date the company issued this release, not the date the exchange
+    received it. See backfill_dates for why that distinction matters."""
+    upload = dt.date.fromisoformat(rel["published_date"][:10])
+    return D.release_date(body, upload)
 
 
 # --------------------------------------------------------------------------
@@ -135,12 +133,7 @@ def headline_for(rel: dict, body: str) -> tuple[str, str]:
 # --------------------------------------------------------------------------
 
 def preflight(want_classifier: bool, need_free_mb: int = 2048) -> dict:
-    """Prove every dependency before a single PDF is fetched.
-
-    Returns the classifier probe result so the caller can report which model is
-    actually going to run — "the classifier is on" is a claim worth checking
-    rather than repeating.
-    """
+    """Prove every dependency before a single PDF is fetched."""
     log("preflight:")
 
     X._pdf_reader()
@@ -148,9 +141,13 @@ def preflight(want_classifier: bool, need_free_mb: int = 2048) -> dict:
 
     if T.self_test(verbose=False) != 0:
         raise SystemExit("ABORT: the title rules failed their own self-test — run "
-                         "`python3 backfill_titles.py` to see which cases. Fix them "
-                         "before publishing headlines.")
+                         "`python3 backfill_titles.py` to see which cases.")
     log(f"  title rules          ok ({len(T.SELF_TEST)} cases)")
+
+    if D.self_test(verbose=False) != 0:
+        raise SystemExit("ABORT: the date rules failed their own self-test — run "
+                         "`python3 backfill_dates.py` to see which cases.")
+    log(f"  date rules           ok ({len(D.SELF_TEST) + len(D.TRIM_TEST)} cases)")
 
     from pipeline.run import HMAC_SECRET, PORTAL_INGEST
     if not HMAC_SECRET:
@@ -162,8 +159,7 @@ def preflight(want_classifier: bool, need_free_mb: int = 2048) -> dict:
     # Reachability is "did something answer", not "did it answer 200". The
     # first version of this check derived a /health URL and treated its 404 as
     # the portal being down — nginx routes by Host header and simply has no
-    # such path on 127.0.0.1. An HTTP status of any kind proves a server
-    # responded; only a transport error means it did not.
+    # such path on 127.0.0.1.
     import urllib.error
     import urllib.request
     try:
@@ -178,8 +174,7 @@ def preflight(want_classifier: bool, need_free_mb: int = 2048) -> dict:
 
     free_mb = shutil.disk_usage("/opt").free // (1024 * 1024)
     if free_mb < need_free_mb:
-        raise SystemExit(f"ABORT: only {free_mb} MB free on /opt, want {need_free_mb} MB. "
-                         "A full 2026 backfill adds roughly 180 MB of body text.")
+        raise SystemExit(f"ABORT: only {free_mb} MB free on /opt, want {need_free_mb} MB.")
     log(f"  disk                 ok ({free_mb} MB free)")
 
     from classify.classifier import classify as classify_event
@@ -203,10 +198,6 @@ def preflight(want_classifier: bool, need_free_mb: int = 2048) -> dict:
                              f"{str(probe.get('error'))[:200]}")
         log(f"  classifier           ok ({model}, probe {dtm:.1f}s, "
             f"returned {probe.get('event_type')} @ {probe.get('classifier_confidence')})")
-        if probe.get("event_type") != "drill_result":
-            log(f"  NOTE: the probe release is plainly a drill result but came back "
-                f"'{probe.get('event_type')}'. Not fatal, but the classification "
-                f"you are paying for may be weaker than expected.")
     else:
         log(f"  classifier           off by request (model would be '{model}') — "
             f"rows are still tagged '{BACKFILL_TAG}' for a later pass")
@@ -218,7 +209,8 @@ def preflight(want_classifier: bool, need_free_mb: int = 2048) -> dict:
 # publish
 # --------------------------------------------------------------------------
 
-def publish_backfill(rel: dict, body: str, headline: str) -> tuple[bool, str, bool]:
+def publish_backfill(rel: dict, body: str, headline: str,
+                     published: dt.date) -> tuple[bool, str, bool]:
     """(ok, note, billed). The only publish path this script has.
 
     There is deliberately no separate unclassified branch: `classify()` already
@@ -227,9 +219,6 @@ def publish_backfill(rel: dict, body: str, headline: str) -> tuple[bool, str, bo
     branch would have been the obvious way to write this and would have quietly
     dropped the tag from every row of the unclassified run — the rows a future
     classification pass has to find.
-
-    `billed` says whether a real API call was made, so the run reports what it
-    actually spent rather than what it was configured to spend.
     """
     from pipeline.run import build_envelope, sign_and_post, archive_envelope
     from classify.classifier import classify as classify_event
@@ -244,7 +233,7 @@ def publish_backfill(rel: dict, body: str, headline: str) -> tuple[bool, str, bo
     cand = {
         "source_url": rel["url"],
         "source_name": rel["source"],
-        "published_at": rel["published_date"] + "T12:00:00Z",
+        "published_at": published.isoformat() + "T12:00:00Z",
         "raw_headline": headline,
         "raw_excerpt": body[:1500],
         "raw_body": body,
@@ -279,25 +268,20 @@ def main() -> int:
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--stats", action="store_true")
     ap.add_argument("--self-test", action="store_true",
-                    help="run the title rules against their known cases and exit")
-    ap.add_argument("--since", default="2026-01-01",
-                    help="earliest publication date to backfill (default 2026-01-01)")
-    ap.add_argument("--source", choices=("cse", "tmx"), default="cse",
-                    help="one exchange at a time: CSE carries its own headlines, "
-                         "TMX needs them extracted from the PDF")
+                    help="run the title and date rules against their cases and exit")
+    ap.add_argument("--since", default="2026-01-01")
+    ap.add_argument("--source", choices=("cse", "tmx"), default="cse")
     ap.add_argument("--only", help="comma-separated bare tickers")
     ap.add_argument("--max-ingest", type=int, default=10_000)
-    ap.add_argument("--max-classify", type=int, default=10_000,
-                    help="hard ceiling on billed classifier calls for this run")
-    ap.add_argument("--sleep", type=float, default=0.4,
-                    help="seconds between releases, to stay polite to the exchange")
+    ap.add_argument("--max-classify", type=int, default=10_000)
+    ap.add_argument("--sleep", type=float, default=0.4)
     ap.add_argument("--no-classify", action="store_true",
                     help="do not require the classifier; releases land as news_item "
                          "and are still tagged for a later classification pass")
     args = ap.parse_args()
 
     if args.self_test:
-        return T.self_test()
+        return T.self_test() | D.self_test()
 
     con = X.db()
 
@@ -325,9 +309,6 @@ def main() -> int:
 
     t0 = time.monotonic()
     if args.source == "cse":
-        # The whole-market feed, read far enough back to cover the window. The
-        # head-only trick the four-hourly job uses reaches ~12 days; a year
-        # needs the whole 43 MB, which still costs one request and ~7 seconds.
         X.CSE_HEAD_BYTES = int(os.environ.get("CSE_HEAD_BYTES", 80_000_000))
         X.FETCH_TIMEOUT_S = max(X.FETCH_TIMEOUT_S, 300)
         releases = X.pull_cse_fast(cse_u, args.since, only)
@@ -379,9 +360,12 @@ def main() -> int:
              rel["published_date"], rel["title"], rel["url"], status,
              kw.get("event"), kw.get("wrong"), kw.get("note"), now))
 
-    # ---- stage 1: what is already on the site -------------------------------
-    # Match on the CLEANED title: a wire's headline never carries the issuer's
-    # "News Release - " prefix, so matching on the raw one misses real matches.
+    # ---- stage 1: cheap elimination ----------------------------------------
+    # Matched on the CLEANED title, and against the FEED date, which is the only
+    # date available before the document is opened. That is a real limitation:
+    # a release the issuer filed late sits far from its wire twin here and will
+    # survive to stage 2. That is the intended division of labour — stage 1 only
+    # decides whether a fetch is worth paying for, never whether to publish.
     cov = X.covered_by_count(pcon, [r for r in fresh if r["source"] == "tmx"])
     candidates, n_covered, n_matched = [], 0, 0
     for rel in fresh:
@@ -414,9 +398,14 @@ def main() -> int:
         log("dry run — nothing fetched, nothing published")
         return 0
 
-    # ---- stage 2: open, classify, publish -----------------------------------
-    n_ing = n_fail = n_late = n_classified = 0
+    # ---- stage 2: open, date, match, publish — in that order ----------------
+    # The ordering is the fix for the 203 duplicates the first run created.
+    # Opening the document yields the date the company actually issued the
+    # release; matching against THAT date is what pairs a late-filed release
+    # with the wire's copy. Matching first, then publishing, was the bug.
+    n_ing = n_fail = n_late = n_classified = n_moved = 0
     prov_counts: dict = {}
+    date_prov: dict = {}
     consecutive_cls_errors = 0
     t1 = time.monotonic()
     for i, rel in enumerate(candidates[:args.max_ingest], 1):
@@ -424,9 +413,6 @@ def main() -> int:
             log(f"stopping: hit --max-classify {args.max_classify}")
             break
 
-        # fetch_release derives a headline from rel["title"]; hand it an empty
-        # one when the title says nothing, so headline_from() reads the document
-        # instead of echoing the boilerplate straight back.
         ct = rel.get("clean_title", "")
         probe_rel = dict(rel, title=("" if T.title_is_hollow(ct) else ct))
         body, _pdf_headline, err = X.fetch_release(probe_rel)
@@ -436,19 +422,27 @@ def main() -> int:
         else:
             headline, prov = headline_for(rel, body)
             prov_counts[prov] = prov_counts.get(prov, 0) + 1
-            eid, wrong = X.find_match(pcon, rel, title=headline)
+
+            published, dprov = dated(rel, body)
+            date_prov[dprov] = date_prov.get(dprov, 0) + 1
+            if published.isoformat() != rel["published_date"][:10]:
+                n_moved += 1
+
+            # Match on the real date, not the feed's.
+            match_rel = dict(rel, published_date=published.isoformat())
+            eid, wrong = X.find_match(pcon, match_rel, title=headline)
             if eid:
                 n_late += 1
                 record(rel, "matched", event=eid, wrong=wrong,
-                       note="matched on the PDF headline")
+                       note=f"already on site under {published} [{dprov}]")
             else:
-                ok, note, billed = publish_backfill(rel, body, headline)
+                ok, note, billed = publish_backfill(rel, body, headline, published)
                 if billed:
                     n_classified += 1
                 if ok:
                     n_ing += 1
                     consecutive_cls_errors = 0
-                    record(rel, "ingested", note=f"{note} [{prov}]")
+                    record(rel, "ingested", note=f"{note} [{prov}/{dprov}]")
                 else:
                     n_fail += 1
                     record(rel, "error", note=note)
@@ -466,14 +460,16 @@ def main() -> int:
             rate = (time.monotonic() - t1) / i
             left = (min(len(candidates), args.max_ingest) - i) * rate
             log(f"  {i}/{min(len(candidates), args.max_ingest)}  "
-                f"ingested={n_ing} matched_late={n_late} failed={n_fail}  "
+                f"ingested={n_ing} already_on_site={n_late} failed={n_fail}  "
                 f"{rate:.1f}s/release, ~{left/3600:.1f}h left")
         time.sleep(args.sleep)
 
     con.commit()
     log(f"done in {(time.monotonic()-t1)/60:.0f}m — ingested={n_ing} "
-        f"matched_late={n_late} failed={n_fail} billed_classifier_calls={n_classified}")
+        f"already_on_site={n_late} failed={n_fail} billed_classifier_calls={n_classified}")
     log(f"headline provenance: {prov_counts}")
+    log(f"date provenance: {date_prov}  ({n_moved} releases dated earlier than the "
+        f"exchange's own date)")
     log("note: the portal's fuzzy-duplicate guard silently drops a release that "
         "already exists under a near-identical headline, so 'ingested' is an "
         "upper bound on rows actually added.")
