@@ -1,0 +1,390 @@
+#!/usr/bin/env python3
+"""BACKFILL_EXCHANGE — fill MNT's historical gaps from the exchanges.
+
+Justin, 2026-09-14: *"is there a way we can start to backfill MNT news
+releases? Can we start by getting all of 2026 onto MNT?"*
+
+**Why this is a separate script.** `exchange_news.py` is the four-hourly
+collector: small windows, small caps, and the site's normal review policy. A
+backfill is a different job with different risks — thousands of releases in one
+run, real money spent on classification, and a decision about the review gate
+that must not leak into the live path. Keeping it separate means the timer job
+stays exactly as reviewed. Everything that *reconciles* is imported from
+`exchange_news`, so there is one implementation of "is this already on the
+site", not two.
+
+**What it measured before it was written** (2026-09-14, read-only):
+
+  * The CSE whole-market feed lists **3,924 releases for our 346 CSE companies
+    in 2026**. MNT already holds 1,843. **2,027 are missing**, and of 40 opened
+    and checked, 40 were genuine gaps — a 100% hit rate, not a matching bug.
+  * The TMX filings store holds **9,129 news releases** for our 697 TSX/TSXV
+    companies in 2026, reaching back to 2024-09-30.
+  * MNT's own 2026 volume — 339, 328, 307, 576 for Jan–Apr against 1301, 1436,
+    1191 for May–Jul — says the collectors came up in May. January to April is
+    where the hole is.
+
+**The review-gate decision, and why it is not a policy change.**
+`AUTO_THRESHOLD` gives `drill_result`, `resource_estimate`, `econ_study` and
+`paid_promotion` a threshold of **1.01**, which no confidence can reach: they
+are always held for review, and `pending_review` is excluded from the news API,
+so such an event appears on no site. With the classifier *off* — how the 9,231
+`disabled` events were ingested — every release is `news_item` at confidence
+1.0 and publishes. So switching classification on would take the most valuable
+third of the backfill *off* the site.
+
+Justin's call: classify for the event types, and auto-approve backfilled items
+regardless of type. These releases would publish today anyway; classification
+naming them must not make them disappear. Every such row is tagged
+`backfill_exchange` so the decision stays visible and reversible.
+**`pipeline/run.py` is untouched: the live pipeline's review policy is exactly
+as it was.**
+
+**Preconditions gate the run, they do not merely precede it.** Twice now this
+system has produced a confident, wrong, zero-exit summary because a missing
+dependency looked like an empty result — the PDF extractor this morning, and
+before that a backup that failed on stderr while the apply proceeded on stdout.
+So every precondition is checked *before the first fetch*, and the classifier is
+proved with one real call rather than assumed:
+
+    extractor · HMAC secret · portal reachable · disk · classifier live
+
+and mid-run, three consecutive classifier errors abort rather than quietly
+filling the site with confidence-0.0 guesses.
+
+Run:
+    python3 backfill_exchange.py --source cse --since 2026-01-01 --dry-run
+    python3 backfill_exchange.py --source cse --since 2026-01-01 --apply
+    python3 backfill_exchange.py --source cse --since 2026-01-01 --apply --max-ingest 25
+    python3 backfill_exchange.py --stats
+"""
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import os
+import shutil
+import sys
+import time
+
+APP_ROOT = "/opt/mnt/app"
+sys.path.insert(0, APP_ROOT)
+
+import exchange_news as X            # noqa: E402  the reconcile lives there
+
+BACKFILL_TAG = "backfill_exchange"
+SAMPLE_HEADLINE = "Example Gold Corp. Reports Drill Results from the Example Project"
+SAMPLE_BODY = (
+    "VANCOUVER, BC - Example Gold Corp. today reported assay results from its "
+    "2026 drill program, including 12.4 metres grading 3.1 g/t gold from 84 "
+    "metres in hole EX-26-001. The program comprised 14 holes totalling 3,200 "
+    "metres. Drilling is ongoing and further results are expected."
+)
+
+
+def log(msg: str) -> None:
+    print(f"[{dt.datetime.now(dt.UTC).isoformat(timespec='seconds')}] {msg}", flush=True)
+
+
+# --------------------------------------------------------------------------
+# preconditions
+# --------------------------------------------------------------------------
+
+def preflight(want_classifier: bool, need_free_mb: int = 2048) -> dict:
+    """Prove every dependency before a single PDF is fetched.
+
+    Returns the classifier probe result so the caller can report which model is
+    actually going to run — "the classifier is on" is a claim worth checking
+    rather than repeating.
+    """
+    log("preflight:")
+
+    X._pdf_reader()
+    log(f"  PDF extractor        ok ({sys.executable})")
+
+    from pipeline.run import HMAC_SECRET, PORTAL_INGEST
+    if not HMAC_SECRET:
+        raise SystemExit("ABORT: MNT_HMAC_SECRET is not configured — every post "
+                         "would be rejected. Check /opt/mnt/app/.env is readable "
+                         "by this user.")
+    log(f"  HMAC secret          ok (configured, {len(HMAC_SECRET)} chars, not shown)")
+
+    import urllib.request
+    health = PORTAL_INGEST.rsplit("/ingest", 1)[0] + "/health"
+    try:
+        with urllib.request.urlopen(health, timeout=10) as r:
+            code = r.status
+    except Exception as e:                       # noqa: BLE001
+        raise SystemExit(f"ABORT: portal not reachable at {health} "
+                         f"({type(e).__name__} {str(e)[:60]})")
+    log(f"  portal               ok ({health} -> {code})")
+
+    free_mb = shutil.disk_usage("/opt").free // (1024 * 1024)
+    if free_mb < need_free_mb:
+        raise SystemExit(f"ABORT: only {free_mb} MB free on /opt, want {need_free_mb} MB. "
+                         "A full 2026 backfill adds roughly 180 MB of body text.")
+    log(f"  disk                 ok ({free_mb} MB free)")
+
+    from classify.classifier import classify as classify_event
+    t0 = time.monotonic()
+    probe = classify_event(SAMPLE_HEADLINE, SAMPLE_BODY)
+    dtm = time.monotonic() - t0
+    model = probe.get("classifier_model")
+    tags = probe.get("tags") or []
+
+    if want_classifier:
+        if model == "disabled":
+            raise SystemExit(
+                "ABORT: classification was requested but the classifier is off. "
+                "It needs BOTH of these in /opt/mnt/app/.env:\n"
+                "    MNT_CLASSIFIER_MODE=on\n"
+                "    ANTHROPIC_API_KEY=<key>\n"
+                "Set them over SSH, never through the relay — every relay "
+                "command and its output is committed to git permanently.")
+        if "classifier_error" in tags:
+            raise SystemExit(f"ABORT: the classifier errored on the probe: "
+                             f"{str(probe.get('error'))[:200]}")
+        log(f"  classifier           ok ({model}, probe {dtm:.1f}s, "
+            f"returned {probe.get('event_type')} @ {probe.get('classifier_confidence')})")
+        if probe.get("event_type") != "drill_result":
+            log(f"  NOTE: the probe release is plainly a drill result but came back "
+                f"'{probe.get('event_type')}'. Not fatal, but the classification "
+                f"you are paying for may be weaker than expected.")
+    else:
+        log(f"  classifier           off by request (model would be '{model}')")
+
+    return probe
+
+
+# --------------------------------------------------------------------------
+# publish
+# --------------------------------------------------------------------------
+
+def publish_backfill(rel: dict, body: str, headline: str) -> tuple[bool, str, str]:
+    """(ok, note, event_type). Classifies, then posts with the review gate
+    lifted for this run only — see the module docstring."""
+    from pipeline.run import build_envelope, sign_and_post, archive_envelope
+    from classify.classifier import classify as classify_event
+
+    cls = classify_event(headline, body)
+    if "classifier_error" in (cls.get("tags") or []):
+        # Confidence 0.0 with the real model name attached: publishing that
+        # would put an unclassified guess on three sites and bill for it.
+        return False, f"classifier_error: {str(cls.get('error'))[:70]}", ""
+
+    cand = {
+        "source_url": rel["url"],
+        "source_name": rel["source"],
+        "published_at": rel["published_date"] + "T12:00:00Z",
+        "raw_headline": headline,
+        "raw_excerpt": body[:1500],
+        "raw_body": body,
+        "raw_html": "",
+        "ticker": rel["ticker"],
+    }
+    cfg = {"ticker": rel["ticker"], "company_id": rel["bare"], "property_id": None}
+    eid = X.uid_for(rel["source"], rel["ticker"], rel["published_date"], headline)
+    env = build_envelope(cand, cls, cfg, eid)
+
+    was = env["review_status"]
+    env["review_status"] = "auto_approved"
+    tags = list(env["payload"].get("tags") or [])
+    if BACKFILL_TAG not in tags:
+        tags.append(BACKFILL_TAG)
+    env["payload"]["tags"] = tags
+
+    archive_envelope(env)
+    code, text = sign_and_post(env)
+    if 200 <= code < 300:
+        held = " [gate lifted]" if was != "auto_approved" else ""
+        return True, (f"{env['event_type']} conf="
+                      f"{cls.get('classifier_confidence')}{held}"), env["event_type"]
+    return False, f"post {code}: {text[:70]}", env["event_type"]
+
+
+# --------------------------------------------------------------------------
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--apply", action="store_true")
+    ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--stats", action="store_true")
+    ap.add_argument("--since", default="2026-01-01",
+                    help="earliest publication date to backfill (default 2026-01-01)")
+    ap.add_argument("--source", choices=("cse", "tmx"), default="cse",
+                    help="one exchange at a time: CSE carries its own headlines, "
+                         "TMX needs them extracted from the PDF")
+    ap.add_argument("--only", help="comma-separated bare tickers")
+    ap.add_argument("--max-ingest", type=int, default=10_000)
+    ap.add_argument("--max-classify", type=int, default=10_000,
+                    help="hard ceiling on billed classifier calls for this run")
+    ap.add_argument("--sleep", type=float, default=0.4,
+                    help="seconds between releases, to stay polite to the exchange")
+    ap.add_argument("--no-classify", action="store_true",
+                    help="ingest without classification (everything lands news_item)")
+    args = ap.parse_args()
+
+    con = X.db()
+
+    if args.stats:
+        print("backfill state, from the shared releases table:")
+        for r in con.execute("SELECT source, status, COUNT(*) FROM releases "
+                             "GROUP BY 1,2 ORDER BY 1,3 DESC"):
+            print(f"  {r[0]:<5} {r[1]:<10} {r[2]:6d}")
+        return 0
+
+    if args.apply == args.dry_run:
+        print("pass exactly one of --apply or --dry-run", file=sys.stderr)
+        return 2
+
+    if args.apply:
+        preflight(want_classifier=not args.no_classify)
+    else:
+        log("dry run — preflight still runs, so a missing dependency is found now "
+            "rather than at the start of a three-hour job")
+        preflight(want_classifier=not args.no_classify)
+
+    only = {X.bare(x) for x in args.only.split(",")} if args.only else None
+    cse_u, tsx_u = X.universe_by_exchange()
+    log(f"BACKFILL_EXCHANGE ({'APPLY' if args.apply else 'DRY RUN'}) "
+        f"source={args.source} since={args.since}")
+    log(f"universe: {len(cse_u)} CSE, {len(tsx_u)} TSX/TSXV")
+
+    t0 = time.monotonic()
+    if args.source == "cse":
+        # The whole-market feed, read far enough back to cover the window. The
+        # head-only trick the four-hourly job uses reaches ~12 days; a year
+        # needs the whole 43 MB, which still costs one request and ~7 seconds.
+        X.CSE_HEAD_BYTES = int(os.environ.get("CSE_HEAD_BYTES", 80_000_000))
+        X.FETCH_TIMEOUT_S = max(X.FETCH_TIMEOUT_S, 300)
+        releases = X.pull_cse_fast(cse_u, args.since, only)
+    else:
+        releases = X.pull_tmx(tsx_u, args.since, only)
+    log(f"the exchange lists {len(releases)} releases since {args.since} "
+        f"({time.monotonic() - t0:.0f}s)")
+    if not releases:
+        log("nothing to do")
+        return 0
+
+    pcon = X.sqlite3.connect(f"file:{X.PORTAL_DB}?mode=ro", uri=True)
+    now = dt.datetime.now(dt.UTC).isoformat()
+
+    settled = {r[0] for r in con.execute(
+        "SELECT uid FROM releases WHERE status IN "
+        "('covered','matched','ingested','skipped')")}
+    fresh = [r for r in releases
+             if X.uid_for(r["source"], r["ticker"], r["published_date"], r["title"])
+             not in settled]
+    log(f"{len(releases) - len(fresh)} settled by an earlier run; {len(fresh)} to look at")
+
+    def record(rel, status, **kw):
+        if not args.apply:
+            return
+        uid = X.uid_for(rel["source"], rel["ticker"], rel["published_date"], rel["title"])
+        con.execute(
+            "INSERT INTO releases (uid,ticker,bare,exchange,source,published_date,"
+            "title,url,status,matched_event,wrong_ticker,note,acted_at) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?) "
+            "ON CONFLICT(uid) DO UPDATE SET status=excluded.status, "
+            "matched_event=excluded.matched_event, note=excluded.note, "
+            "acted_at=excluded.acted_at",
+            (uid, rel["ticker"], rel["bare"], rel["exchange"], rel["source"],
+             rel["published_date"], rel["title"], rel["url"], status,
+             kw.get("event"), kw.get("wrong"), kw.get("note"), now))
+
+    # ---- stage 1: what is already on the site -------------------------------
+    cov = X.covered_by_count(pcon, [r for r in fresh if r["source"] == "tmx"])
+    candidates, n_covered, n_matched = [], 0, 0
+    for rel in fresh:
+        uid = X.uid_for(rel["source"], rel["ticker"], rel["published_date"], rel["title"])
+        if rel["source"] == "tmx":
+            if uid in cov:
+                n_covered += 1
+                record(rel, "covered", note="MNT already had that day's events")
+            else:
+                candidates.append(rel)
+            continue
+        eid, wrong = X.find_match(pcon, rel)
+        if eid:
+            n_matched += 1
+            record(rel, "matched", event=eid, wrong=wrong)
+        else:
+            candidates.append(rel)
+    log(f"stage 1 — {n_covered} covered by count, {n_matched} matched by headline; "
+        f"{len(candidates)} candidates remain")
+
+    if args.dry_run:
+        by_m: dict = {}
+        for r in candidates:
+            by_m[r["published_date"][:7]] = by_m.get(r["published_date"][:7], 0) + 1
+        for m in sorted(by_m):
+            log(f"    {m}  {by_m[m]:5d} to backfill")
+        est_s = len(candidates) * (1.0 + (0.0 if args.no_classify else 3.0))
+        log(f"estimated run time {est_s/3600:.1f}h at {args.sleep}s spacing, "
+            f"{0 if args.no_classify else len(candidates)} billed classifier calls")
+        log("dry run — nothing fetched, nothing published")
+        return 0
+
+    # ---- stage 2: open, classify, publish -----------------------------------
+    n_ing = n_fail = n_late = n_classified = 0
+    consecutive_cls_errors = 0
+    t1 = time.monotonic()
+    for i, rel in enumerate(candidates[:args.max_ingest], 1):
+        if n_classified >= args.max_classify and not args.no_classify:
+            log(f"stopping: hit --max-classify {args.max_classify}")
+            break
+
+        body, headline, err = X.fetch_release(rel)
+        if err:
+            n_fail += 1
+            record(rel, "error", note=err)
+        else:
+            eid, wrong = X.find_match(pcon, rel, title=headline)
+            if eid:
+                n_late += 1
+                record(rel, "matched", event=eid, wrong=wrong,
+                       note="matched on the PDF headline")
+            else:
+                if args.no_classify:
+                    ok, note = X.publish(rel, body, headline)
+                    et = ""
+                else:
+                    ok, note, et = publish_backfill(rel, body, headline)
+                    n_classified += 1
+                if ok:
+                    n_ing += 1
+                    consecutive_cls_errors = 0
+                    record(rel, "ingested", note=note)
+                else:
+                    n_fail += 1
+                    record(rel, "error", note=note)
+                    if note.startswith("classifier_error"):
+                        consecutive_cls_errors += 1
+                        if consecutive_cls_errors >= 3:
+                            con.commit()
+                            raise SystemExit(
+                                "ABORT: three classifier errors in a row — stopping "
+                                "rather than filling the site with unclassified "
+                                f"guesses. Last error: {note[:160]}")
+
+        if i % 25 == 0:
+            con.commit()
+            rate = (time.monotonic() - t1) / i
+            left = (min(len(candidates), args.max_ingest) - i) * rate
+            log(f"  {i}/{min(len(candidates), args.max_ingest)}  "
+                f"ingested={n_ing} matched_late={n_late} failed={n_fail}  "
+                f"{rate:.1f}s/release, ~{left/3600:.1f}h left")
+        time.sleep(args.sleep)
+
+    con.commit()
+    log(f"done in {(time.monotonic()-t1)/60:.0f}m — ingested={n_ing} "
+        f"matched_late={n_late} failed={n_fail} classified={n_classified}")
+    log("note: the portal's fuzzy-duplicate guard silently drops a release that "
+        "already exists under a near-identical headline, so 'ingested' is an "
+        "upper bound on rows actually added.")
+    con.close()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
