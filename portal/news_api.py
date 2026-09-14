@@ -170,7 +170,7 @@ def register(app) -> None:
 
     @app.get("/api/v1/news/by-ticker/{ticker}")
     def news_by_ticker(ticker: str, limit: int = 20, offset: int = 0):
-        limit = max(1, min(int(limit or 20), 200))
+        limit = max(1, min(int(limit or 20), 500))
         offset = max(0, int(offset or 0))
         ticker_u = (ticker or "").strip().upper()
         if not ticker_u:
