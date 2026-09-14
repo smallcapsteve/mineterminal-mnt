@@ -88,7 +88,10 @@ def feed(
     events = db.list_events(
         ticker=ticker,
         status="auto_approved",
-        limit=100,
+        # MNT_TICKER_HISTORY_V1: the front page wants the newest 100; a ticker-filtered
+        # view is being read as a company history, so give it the whole history (the
+        # busiest ticker holds 183). Matches /api/v1/news/by-ticker, which caps at 500.
+        limit=500 if ticker else 100,
         categories=selected_cat_names or None,
         columns=db.LIST_EVENT_COLUMNS,  # PERF_A14: skip the raw_* blobs
     )
