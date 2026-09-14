@@ -15,14 +15,15 @@ site", not two.
 
 **What it measured before it was written** (2026-09-14, read-only):
 
-  * The CSE whole-market feed lists **3,924 releases for our 346 CSE companies
-    in 2026**. MNT already holds 1,843. **2,027 are missing**, and of 40 opened
+  * The CSE whole-market feed lists **3,856 releases for our 346 CSE companies
+    in 2026**. MNT already holds 1,861. **1,995 are missing**, and of 40 opened
     and checked, 40 were genuine gaps — a 100% hit rate, not a matching bug.
   * The TMX filings store holds **9,129 news releases** for our 697 TSX/TSXV
     companies in 2026, reaching back to 2024-09-30.
-  * MNT's own 2026 volume — 339, 328, 307, 576 for Jan–Apr against 1301, 1436,
-    1191 for May–Jul — says the collectors came up in May. January to April is
-    where the hole is.
+  * The gap is **year-round**: 241, 273, 297, 274 missing for Jan–Apr, and
+    still 203, 192, 209, 207 for May–Aug. MNT's own volume triples in May, so
+    the collectors clearly came up then, but the CSE hole never closes — the
+    wires miss roughly 200 CSE releases every month regardless.
 
 **The review-gate decision, and why it is not a policy change.**
 `AUTO_THRESHOLD` gives `drill_result`, `resource_estimate`, `econ_study` and
@@ -40,6 +41,23 @@ naming them must not make them disappear. Every such row is tagged
 **`pipeline/run.py` is untouched: the live pipeline's review policy is exactly
 as it was.**
 
+--- deferred, same day --------------------------------------------------------
+Justin: *"Can we skip this for right now, please add this as a potential future
+addition (which we will 100% need) but currently would want to skip this part."*
+
+So the backfill runs **unclassified** for now: `--no-classify` needs no API key,
+costs nothing, and lands every release as `news_item` at confidence 1.0 —
+exactly how the 9,231 existing `disabled` events reached the sites. The content
+is on MNT and MTP either way; what is missing is only the *type*, so drill
+results are not yet filterable as drill results.
+
+**Deferring costs nothing later, and that is deliberate.** `raw_body` is stored
+with every event, so a future classification pass reads the text back out of
+`portal.db` and never re-fetches a single PDF. The only thing that makes that
+pass possible is being able to find these rows afterwards — which is why the
+`backfill_exchange` tag is applied **whether or not the classifier ran**. That
+is the one thing that would have been expensive to add in hindsight.
+
 **Preconditions gate the run, they do not merely precede it.** Twice now this
 system has produced a confident, wrong, zero-exit summary because a missing
 dependency looked like an empty result — the PDF extractor this morning, and
@@ -53,8 +71,8 @@ and mid-run, three consecutive classifier errors abort rather than quietly
 filling the site with confidence-0.0 guesses.
 
 Run:
-    python3 backfill_exchange.py --source cse --since 2026-01-01 --dry-run
-    python3 backfill_exchange.py --source cse --since 2026-01-01 --apply
+    python3 backfill_exchange.py --source cse --since 2026-01-01 --dry-run --no-classify
+    python3 backfill_exchange.py --source cse --since 2026-01-01 --apply --no-classify
     python3 backfill_exchange.py --source cse --since 2026-01-01 --apply --max-ingest 25
     python3 backfill_exchange.py --stats
 """
@@ -158,7 +176,8 @@ def preflight(want_classifier: bool, need_free_mb: int = 2048) -> dict:
                 f"'{probe.get('event_type')}'. Not fatal, but the classification "
                 f"you are paying for may be weaker than expected.")
     else:
-        log(f"  classifier           off by request (model would be '{model}')")
+        log(f"  classifier           off by request (model would be '{model}') — "
+            f"rows are still tagged '{BACKFILL_TAG}' for a later pass")
 
     return probe
 
@@ -167,17 +186,28 @@ def preflight(want_classifier: bool, need_free_mb: int = 2048) -> dict:
 # publish
 # --------------------------------------------------------------------------
 
-def publish_backfill(rel: dict, body: str, headline: str) -> tuple[bool, str, str]:
-    """(ok, note, event_type). Classifies, then posts with the review gate
-    lifted for this run only — see the module docstring."""
+def publish_backfill(rel: dict, body: str, headline: str) -> tuple[bool, str, bool]:
+    """(ok, note, billed). The only publish path this script has.
+
+    There is deliberately no separate unclassified branch: `classify()` already
+    returns a `disabled` result when the classifier is off, so the same code
+    covers both, and the `backfill_exchange` tag is applied either way. A second
+    branch would have been the obvious way to write this and would have quietly
+    dropped the tag from every row of the unclassified run — the rows a future
+    classification pass has to find.
+
+    `billed` says whether a real API call was made, so the run reports what it
+    actually spent rather than what it was configured to spend.
+    """
     from pipeline.run import build_envelope, sign_and_post, archive_envelope
     from classify.classifier import classify as classify_event
 
     cls = classify_event(headline, body)
+    billed = cls.get("classifier_model") not in (None, "", "disabled")
     if "classifier_error" in (cls.get("tags") or []):
         # Confidence 0.0 with the real model name attached: publishing that
         # would put an unclassified guess on three sites and bill for it.
-        return False, f"classifier_error: {str(cls.get('error'))[:70]}", ""
+        return False, f"classifier_error: {str(cls.get('error'))[:70]}", billed
 
     cand = {
         "source_url": rel["url"],
@@ -205,8 +235,8 @@ def publish_backfill(rel: dict, body: str, headline: str) -> tuple[bool, str, st
     if 200 <= code < 300:
         held = " [gate lifted]" if was != "auto_approved" else ""
         return True, (f"{env['event_type']} conf="
-                      f"{cls.get('classifier_confidence')}{held}"), env["event_type"]
-    return False, f"post {code}: {text[:70]}", env["event_type"]
+                      f"{cls.get('classifier_confidence')}{held}"), billed
+    return False, f"post {code}: {text[:70]}", billed
 
 
 # --------------------------------------------------------------------------
@@ -228,7 +258,8 @@ def main() -> int:
     ap.add_argument("--sleep", type=float, default=0.4,
                     help="seconds between releases, to stay polite to the exchange")
     ap.add_argument("--no-classify", action="store_true",
-                    help="ingest without classification (everything lands news_item)")
+                    help="do not require the classifier; releases land as news_item "
+                         "and are still tagged for a later classification pass")
     args = ap.parse_args()
 
     con = X.db()
@@ -337,7 +368,7 @@ def main() -> int:
     consecutive_cls_errors = 0
     t1 = time.monotonic()
     for i, rel in enumerate(candidates[:args.max_ingest], 1):
-        if n_classified >= args.max_classify and not args.no_classify:
+        if not args.no_classify and n_classified >= args.max_classify:
             log(f"stopping: hit --max-classify {args.max_classify}")
             break
 
@@ -352,11 +383,8 @@ def main() -> int:
                 record(rel, "matched", event=eid, wrong=wrong,
                        note="matched on the PDF headline")
             else:
-                if args.no_classify:
-                    ok, note = X.publish(rel, body, headline)
-                    et = ""
-                else:
-                    ok, note, et = publish_backfill(rel, body, headline)
+                ok, note, billed = publish_backfill(rel, body, headline)
+                if billed:
                     n_classified += 1
                 if ok:
                     n_ing += 1
@@ -385,7 +413,7 @@ def main() -> int:
 
     con.commit()
     log(f"done in {(time.monotonic()-t1)/60:.0f}m — ingested={n_ing} "
-        f"matched_late={n_late} failed={n_fail} classified={n_classified}")
+        f"matched_late={n_late} failed={n_fail} billed_classifier_calls={n_classified}")
     log("note: the portal's fuzzy-duplicate guard silently drops a release that "
         "already exists under a near-identical headline, so 'ingested' is an "
         "upper bound on rows actually added.")
