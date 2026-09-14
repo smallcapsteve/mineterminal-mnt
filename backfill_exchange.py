@@ -57,9 +57,12 @@ publishes.** Matching before opening the document is precisely the bug, and it
 is why stage 1 cannot be made to catch these — stage 1 exists to decide whether
 a fetch is worth paying for, not whether to publish.
 
-Regression-tested against the 203 duplicates the first run created: the date
-fix alone accounts for 155 of them, and `find_twin`'s similarity fallback for
-another 36. The remaining 12 turn out not to be duplicates at all.
+**A correct date is necessary but not sufficient**, which the regression test
+against those 203 duplicates showed plainly: 155 fall out from the date alone,
+36 more need a similarity comparison because the wire reworded slightly, and a
+further set need a wider window because *the wire itself* is days late. Hence
+the two tiers in `find_twin`. The thresholds are not guesses; each was chosen
+against the near-misses that would break it.
 
 **Preconditions gate the run, they do not merely precede it.** Twice this system
 has produced a confident, wrong, zero-exit summary because a missing dependency
@@ -96,8 +99,15 @@ import backfill_titles as T         # noqa: E402  title -> headline rules
 import exchange_news as X           # noqa: E402  the reconcile lives there
 
 BACKFILL_TAG = "backfill_exchange"
-TWIN_SIMILARITY = 0.90
-TWIN_WINDOW_DAYS = 3
+
+# Two tiers, because two different things go wrong. Close in time, the headline
+# may be reworded by the wire, so 0.90 is right. Further out, only a
+# near-identical headline is safe, because "Upsize of Bought Deal Equity
+# Offering" and "Closing of Bought Deal Equity Offering" are 13 days apart and
+# genuinely different releases — they score below 0.97 and must stay separate.
+TWIN_WINDOW_DAYS, TWIN_SIMILARITY = 3, 0.90
+TWIN_WIDE_DAYS, TWIN_WIDE_SIMILARITY = 21, 0.97
+
 SAMPLE_HEADLINE = "Example Gold Corp. Reports Drill Results from the Example Project"
 SAMPLE_BODY = (
     "VANCOUVER, BC - Example Gold Corp. today reported assay results from its "
@@ -138,16 +148,24 @@ def dated(rel: dict, body: str) -> tuple[dt.date, str]:
 def find_twin(pcon, rel: dict, headline: str, published: dt.date):
     """(event_id, wrong_ticker) — is this release already on the site?
 
-    `X.find_match` first, which compares headline prefixes. That misses a wire
-    that reworded slightly: 36 of the 203 duplicates the first run created
-    differed only as "Norsemont Appoints Ariel Tepperman to Its Board" differs
-    from "Norsemont Mining Appoints Ariel Tepperman to Its Board" — one extra
-    word at the front, and a prefix comparison is defeated.
+    `X.find_match` first, which compares headline prefixes against the date the
+    document gives. Then two similarity tiers, because a correct date turned out
+    to be necessary and not sufficient:
 
-    Now that the date comes from the document rather than the feed it can be
-    trusted, so a release from the same company within three days whose headline
-    is 90% similar is the same release. The date is doing the discriminating
-    here; without it this threshold would be far too loose.
+      **±3 days at 0.90.** The wire rewords. 36 of the 203 duplicates the first
+      run created differed only as "Norsemont Appoints Ariel Tepperman to Its
+      Board" differs from "Norsemont Mining Appoints Ariel Tepperman to Its
+      Board" — one extra word at the front defeats a prefix comparison.
+
+      **±21 days at 0.97.** The wire is late, or our own date is off. Appia's
+      appointment is dated 2026-08-18 in the document and 2026-09-01 by the
+      wire. Prismo's release announces a webinar *on* February 26th and says so
+      in the headline, so the date extractor took the webinar date rather than
+      the release date; the wire has it right at the 18th.
+
+    The tighter threshold is what makes the wider window safe. Annual
+    recurrences — an AGM, a repeated placement — sit 180+ days out and are
+    untouched by either tier.
     """
     match_rel = dict(rel, published_date=published.isoformat())
     eid, wrong = X.find_match(pcon, match_rel, title=headline)
@@ -159,16 +177,22 @@ def find_twin(pcon, rel: dict, headline: str, published: dt.date):
         return None, None
     iso = published.isoformat()
     rows = pcon.execute(
-        "SELECT event_id, raw_headline FROM events "
-        "WHERE ticker LIKE ? AND date(published_at) "
-        "BETWEEN date(?,?) AND date(?,?)",
-        (rel["bare"] + "%", iso, f"-{TWIN_WINDOW_DAYS} day", iso, f"+{TWIN_WINDOW_DAYS} day"),
+        "SELECT event_id, raw_headline, date(published_at) FROM events "
+        "WHERE ticker LIKE ? AND date(published_at) BETWEEN date(?,?) AND date(?,?)",
+        (rel["bare"] + "%", iso, f"-{TWIN_WIDE_DAYS} day", iso, f"+{TWIN_WIDE_DAYS} day"),
     ).fetchall()
-    for eid2, hl in rows:
+    for eid2, hl, other_day in rows:
         n2 = X.norm(hl)
         if len(n2) < 25:
             continue
-        if difflib.SequenceMatcher(None, n1[:90], n2[:90]).ratio() >= TWIN_SIMILARITY:
+        try:
+            gap = abs((dt.date.fromisoformat(other_day) - published).days)
+        except (TypeError, ValueError):
+            continue
+        sim = difflib.SequenceMatcher(None, n1[:90], n2[:90]).ratio()
+        if gap <= TWIN_WINDOW_DAYS and sim >= TWIN_SIMILARITY:
+            return eid2, None
+        if sim >= TWIN_WIDE_SIMILARITY:
             return eid2, None
     return None, None
 
