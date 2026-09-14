@@ -604,14 +604,37 @@ def covered_by_count(pcon: sqlite3.Connection, rels: list[dict]) -> set:
 # ingest what nothing else caught
 # --------------------------------------------------------------------------
 
-def pdf_text(data: bytes, max_pages: int = 8) -> str:
+class NoPdfExtractor(RuntimeError):
+    """No pypdf / PyPDF2 on this interpreter.
+
+    V5c. Until now this returned an empty string, which is exactly what a
+    scanned, image-only PDF returns. The two are indistinguishable downstream:
+    every candidate reports "pdf text too short (0 chars)", stage 2 concludes
+    0% of candidates are genuine gaps, and the run publishes nothing and exits
+    0. A run under the wrong interpreter therefore looked like a clean run with
+    nothing to do — silently, on every timer tick, forever. Found 2026-09-14
+    when a dry run under /usr/bin/python3 (the service uses
+    /opt/mnt/app/.venv/bin/python) read 0 chars from 8 of 8 releases."""
+
+
+def _pdf_reader():
     try:
         from pypdf import PdfReader
+        return PdfReader
     except ImportError:
-        try:
-            from PyPDF2 import PdfReader       # type: ignore
-        except ImportError:
-            return ""
+        pass
+    try:
+        from PyPDF2 import PdfReader           # type: ignore
+        return PdfReader
+    except ImportError:
+        raise NoPdfExtractor(
+            "no PDF text extractor (pypdf / PyPDF2) on "
+            f"{sys.executable}. The service runs "
+            "/opt/mnt/app/.venv/bin/python — use that, or pip install pypdf.")
+
+
+def pdf_text(data: bytes, max_pages: int = 8) -> str:
+    PdfReader = _pdf_reader()
     try:
         rd = PdfReader(io.BytesIO(data))
         out = []
@@ -770,7 +793,10 @@ def fetch_release(rel: dict) -> tuple[str, str, str]:
         return "", "", f"fetch: {type(e).__name__} {str(e)[:60]}"
     if not data[:5].startswith(b"%PDF"):
         return "", "", f"not a pdf ({data[:8]!r})"
-    body = pdf_text(data)
+    try:
+        body = pdf_text(data)
+    except NoPdfExtractor as e:
+        return "", "", f"NO EXTRACTOR: {e}"
     if len(body) < 200:
         return "", "", f"pdf text too short ({len(body)} chars)"
     return body, headline_from(body, rel["title"]), ""
@@ -865,7 +891,19 @@ def main() -> int:
         log("ABORT: the universe is empty and no cache was available")
         return 1
     cse_u, tsx_u = universe_by_exchange()
-    log(f"EXCHANGE_NEWS_V5 ({'APPLY' if args.apply else 'DRY RUN'}) "
+
+    # The extractor is checked up front, not on the first PDF. Stage 2 is the
+    # only thing that decides a candidate is a real gap; without an extractor
+    # it decides "no gaps" about everything, which is a wrong answer wearing a
+    # successful run's clothes.
+    if not args.no_ingest:
+        try:
+            _pdf_reader()
+        except NoPdfExtractor as e:
+            log(f"ABORT: {e}")
+            return 4
+
+    log(f"EXCHANGE_NEWS_V5c ({'APPLY' if args.apply else 'DRY RUN'}) "
         f"{'FAST/cse-lead' if args.fast else args.source} "
         f"window={args.days}d since {cutoff}")
     log(f"universe: {len(cse_u)} CSE, {len(tsx_u)} TSX/TSXV")
