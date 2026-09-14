@@ -54,8 +54,8 @@ _RE_A = re.compile(
     # connector: "at | @ | of | grading | with [.. words ..] of | with grades of"
     r"(?:.{0,80}?(?:at|@|grading|of|with(?:\s+grades)?\s+of)\s*)"
     r"(?P<grade>\d+(?:\.\d+)?)\s*"
-    r"(?P<gunit>g/t|gpt|%|ppm)\s*"
-    rf"(?P<metal>{_METAL_TOKEN})",
+    r"(?P<gunit>g/t|gpt|g/tonne|grams?\s*/\s*t(?:onne)?|grams?\s+per\s+tonne|%|ppm)\s*"
+    rf"(?P<metal>{_METAL_TOKEN})\b",
     re.I | re.S,
 )
 
@@ -67,8 +67,8 @@ _RE_C = re.compile(
     r"(?P<tunit>Mt|Million\s+tonnes?|kt|thousand\s+tonnes?|t\b|tonnes?)\s*"
     r"(?:@|at|grading)\s*"
     r"(?P<grade>\d+(?:\.\d+)?)\s*"
-    r"(?P<gunit>g/t|gpt|%|ppm)\s*"
-    rf"(?P<metal>{_METAL_TOKEN})\s+"
+    r"(?P<gunit>g/t|gpt|g/tonne|grams?\s*/\s*t(?:onne)?|grams?\s+per\s+tonne|%|ppm)\s*"
+    rf"(?P<metal>{_METAL_TOKEN})\b\s+"
     r"(?:for|yielding|containing)\s+"
     r"(?P<count>\d+(?:[.,]\d+)?)\s*"
     r"(?:Moz|Million\s+ounces?|koz|thousand\s+ounces?|Mt|Million\s+tonnes?|kt|thousand\s+tonnes?|tonnes?|ounces?|oz)?\s*"
@@ -87,13 +87,14 @@ _RE_B2 = re.compile(
     rf"(?P<cat>{_CAT_TOKEN})"
     r"\s+(?:ounces|oz|tonnes|t\b)\s+"
     r"(?:of\s+)?"
-    rf"(?P<metal>{_METAL_TOKEN})\s*"
+    rf"(?P<metal>{_METAL_TOKEN})\b\s*"
     r"(?:at|@)\s*"
     r"(?P<grade>\d+(?:\.\d+)?)\s*"
-    r"(?P<gunit>g/t|gpt|%|ppm)\s+"
-    r"(?:contained\s+in\s+)?"
+    r"(?P<gunit>g/t|gpt|g/tonne|grams?\s*/\s*t(?:onne)?|grams?\s+per\s+tonne|%|ppm)"
+    # the contained ounces can BE the headline number, with no tonnage stated
+    r"(?:\s+(?:contained\s+in\s+)?"
     r"(?P<tonnage>\d+(?:[.,]\d+)?)\s*"
-    r"(?P<tunit>Mt|Million\s+tonnes?|kt|thousand\s+tonnes?|t\b|tonnes?)?",
+    r"(?P<tunit>Mt|Million\s+tonnes?|kt|thousand\s+tonnes?|t\b|tonnes?)?)?",
     re.I | re.S,
 )
 
@@ -107,9 +108,32 @@ _SKIP_HEADLINE_RE = re.compile(
     r"work\s+on\s+maiden\s+(?:mineral\s+)?resource|"
     r"congratulates|"
     r"(?:mre\s+)?forthcoming|"
+    # v3: announcing an INTENTION to produce an estimate is not an estimate.
+    # "Emperor Commences Maiden Mineral Resource Estimate" quoted a HISTORICAL
+    # 727,000 oz resource in its body and would otherwise have been stored.
+    r"(?:commenc|initiat|engag|commission|undertak)\w*\s+(?:\w+\s+){0,3}?"
+    r"(?:maiden\s+|updated\s+|initial\s+)?(?:mineral\s+)?resource|"
+    r"work\s+towards?\s+(?:a\s+)?(?:maiden\s+)?(?:mineral\s+)?resource|"
+    r"plans?\s+to\s+(?:complete|upgrade|prepare|deliver)|"
     r"to\s+(?:complete|prepare)\s+(?:a\s+)?(?:maiden|updated|new))",
     re.I,
 )
+
+# A figure the release is quoting rather than reporting: somebody else's
+# estimate, or the company's own superseded one.
+_RE_HISTORICAL = re.compile(
+    r"(?i)\b(historic(?:al|ally)?|predates?|non[\-\s]compliant|past\s+produc"
+    r"|previously\s+(?:report|announc|releas|disclos)|superseded"
+    r"|press\s+release\s+dated|news\s+release\s+dated|technical\s+report\s+dated"
+    r"|reported\s+by\s+[A-Z])\b")
+
+HIST_WINDOW = 250
+
+
+def _quoted_historical(text: str, m) -> bool:
+    """True when this figure sits beside language marking it as not the news."""
+    return bool(_RE_HISTORICAL.search(
+        text[max(0, m.start() - HIST_WINDOW):m.end() + HIST_WINDOW]))
 
 
 # ---------- MRE type (Maiden / Updated / Increase / Filing) ----------
@@ -204,8 +228,8 @@ _RE_D = re.compile(
     rf"(?P<cat>{_CAT_TOKEN})"
     r"\s+(?:grading|grades?\s+of|with\s+grades?\s+of|at|@)\s+"
     r"(?P<grade>\d+(?:\.\d+)?)\s*"
-    r"(?P<gunit>g/t|gpt|%|ppm)\s*"
-    rf"(?P<metal>{_METAL_TOKEN})",
+    r"(?P<gunit>g/t|gpt|g/tonne|grams?\s*/\s*t(?:onne)?|grams?\s+per\s+tonne|%|ppm)\s*"
+    rf"(?P<metal>{_METAL_TOKEN})\b",
     re.I | re.S,
 )
 
@@ -227,6 +251,8 @@ def extract_resources(headline: str, body: str) -> dict:
 
     # Format A/B (cat-first)
     for m in _RE_A.finditer(text):
+        if _quoted_historical(text, m):
+            continue
         try:
             tonnage = float(m.group("tonnage").replace(",", ""))
             grade = float(m.group("grade"))
@@ -260,6 +286,8 @@ def extract_resources(headline: str, body: str) -> dict:
 
     # Format C (tonnage-first, category trailing)
     for m in _RE_C.finditer(text):
+        if _quoted_historical(text, m):
+            continue
         try:
             tonnage = float(m.group("tonnage").replace(",", ""))
             grade = float(m.group("grade"))
@@ -291,6 +319,8 @@ def extract_resources(headline: str, body: str) -> dict:
 
     # Format D (inverted: tonnage UNIT [parenthetical] CATEGORY grading GRADE UNIT METAL)
     for m in _RE_D.finditer(text):
+        if _quoted_historical(text, m):
+            continue
         try:
             tonnage = float(m.group("tonnage").replace(",", ""))
             grade = float(m.group("grade"))
@@ -324,6 +354,8 @@ def extract_resources(headline: str, body: str) -> dict:
 
     # Format B2 (count million ounces of gold at grade contained in tonnage)
     for m in _RE_B2.finditer(text):
+        if _quoted_historical(text, m):
+            continue
         try:
             count = float(m.group("count").replace(",", ""))
             grade = float(m.group("grade"))
@@ -405,7 +437,11 @@ def fmt_category_line(cat_data: dict) -> str:
 # ---------- project name ----------
 
 _RE_PROJECT = re.compile(
-    r"\b(?:at\s+(?:the\s+)?|for\s+(?:the\s+)?|on\s+(?:the\s+)?|of\s+(?:the\s+)?(?:its\s+)?(?:wholly\s+owned\s+)?(?:flagship\s+)?)"
+    # "on its Solar Lithium Project" - the article guard was lowercase-only
+    # and attached to one alternative at a time, so "its" was never skipped.
+    r"\b(?:at|for|on|of|from|within)\s+"
+    r"(?:(?i:the|its|our|a|an)\s+)*"
+    r"(?:(?i:wholly\s+owned|100%\s+owned|flagship)\s+)*"
     r"([A-Z][A-Za-z0-9' \-]{2,50}?)\s+"
     r"(?:Property|Project|Prospect|Deposit|Discovery|Mine)\b",
 )
@@ -421,27 +457,107 @@ _RE_PROJECT_HL = re.compile(
 )
 
 
+_PROJECT_STOP = {
+    "company", "corporation", "corp", "inc", "ltd", "ceo", "press", "release",
+    "joint", "venture", "annual", "mineral", "maiden", "initial", "updated",
+    "independent", "positive", "results", "announces", "reports", "files",
+    "its", "the", "new", "ni", "43-101", "technical", "report", "resource",
+    "estimate", "mre", "filing", "completes", "issues",
+}
+
+
+def _project_ok(name: str) -> bool:
+    """7 of 29 stored project names were not projects: Mineral, Maiden,
+    NI 43-101, Independent, Positive Updated MRE Results at Its Iska Iska."""
+    toks = [t.lower().strip(".,;\u2019'") for t in (name or "").split()]
+    if not 1 <= len(toks) <= 4:
+        return False
+    if any(t in _PROJECT_STOP for t in toks):
+        return False
+    return 3 <= len(name) <= 60
+
+
 def find_project(headline: str, body: str) -> str | None:
     # 1) Existing strategy: "at/for/on/of <NAME> Property|Project|Mine|..."
     for src in (headline or "", (body or "")[:1500]):
         m = _RE_PROJECT.search(src)
         if m:
             name = m.group(1).strip().rstrip(",;.")
-            if any(w in name.lower() for w in (
-                "company", "corporation", "ceo", "press release",
-                "joint venture", "annual",
-            )):
-                continue
-            if 3 <= len(name) <= 60:
+            if _project_ok(name):
                 return name
     # 2) Headline strategy: "Announces <NAME> NI 43-101 / Technical Report / MRE"
     m = _RE_PROJECT_HL.search(headline or "")
     if m:
         name = m.group(1).strip().rstrip(",;.")
-        if any(w in name.lower() for w in (
-            "company", "corporation", "ceo", "press release", "joint venture",
-        )):
-            return None
-        if 3 <= len(name) <= 60:
+        if _project_ok(name):
             return name
     return None
+
+
+# ---------------------------------------------------------------- self-test --
+# Every case below is real, from the stored corpus.
+
+EXTRACT_TEST = [
+    # "Co" must not match the "co" in "copper": Ivanhoe's copper discovery was
+    # stored as cobalt
+    ("Ivanhoe Mines increases the size of the Western Forelands copper discovery",
+     "Inferred Mineral Resource of 612.0 Mt at 1.80% copper", "Inferred"),
+    ("McFarlane Issues NI 43-101 Mineral Resource Estimate on Its Juby Gold Project",
+     "Highlights of Mineral Resource estimate 3.17 million inferred ounces gold "
+     "at 0.89 gram per tonne (gpt or g/t) gold", "Inferred"),
+    ("Galloper Delivers New 2026 Mineral Resource Estimate for LPSE Deposit",
+     "Indicated Mineral Resource of 3.124 Mt at 1.20 g/t Au", "Indicated"),
+]
+
+REJECT_TEST = [
+    ("Emperor Commences Maiden Mineral Resource Estimate for Duquesne West Gold",
+     "The Property currently hosts a historical inferred mineral resource estimate "
+     "of 727,000 ounces of gold at a grade of 5.42 g/t Au. The historical mineral "
+     "resource estimate predates modern standards."),
+    ("Pan American Energy Initiates Work Toward Mineral Resource Estimate",
+     "Indicated Mineral Resource of 3.0 Mt at 1.1 g/t Au was reported historically."),
+    ("Getchell Gold Corp. Plans to Upgrade Mineral Resource Estimate at Fondaway",
+     "Inferred Mineral Resource of 2.0 Mt at 1.5 g/t Au"),
+    ("Star Copper Congratulates Doubleview Gold Mineral Resource Estimate",
+     "Indicated Mineral Resource of 9.0 Mt at 0.5 g/t Au"),
+]
+
+PROJECT_TEST = [
+    ("Galloper Delivers New 2026 Mineral Resource Estimate for LPSE Deposit", "LPSE"),
+    ("Cruz Battery Metals Announces Maiden Mineral Resource Estimate on its "
+     "Solar Lithium Project in Nevada", "Solar Lithium"),
+    ("NexMetals Files NI 43-101 Technical Report for 2026 Selkirk Mineral "
+     "Resource Estimate", None),
+]
+
+
+def self_test(verbose: bool = True) -> int:
+    bad = 0
+    for hl, body, want in EXTRACT_TEST:
+        got = extract_resources(hl, body).get("categories") or {}
+        cats = {c.get("category") for c in got.values()}
+        ok = want in cats
+        bad += not ok
+        if verbose or not ok:
+            print(f"  {'ok  ' if ok else 'FAIL'}  extract {sorted(cats)!s:<26} (wanted {want}) | {hl[:42]}")
+    for hl, body in REJECT_TEST:
+        got = extract_resources(hl, body).get("categories") or {}
+        ok = not got
+        bad += not ok
+        if verbose or not ok:
+            print(f"  {'ok  ' if ok else 'FAIL'}  reject  {hl[:62]}")
+    for hl, want in PROJECT_TEST:
+        got = find_project(hl, "")
+        ok = got == want
+        bad += not ok
+        if verbose or not ok:
+            print(f"  {'ok  ' if ok else 'FAIL'}  project {str(got)!r:<22} (wanted {want!r})")
+    total = len(EXTRACT_TEST) + len(REJECT_TEST) + len(PROJECT_TEST)
+    if verbose:
+        print(f"\n{total - bad}/{total} passed")
+    return 1 if bad else 0
+
+
+if __name__ == "__main__":
+    import sys as _s
+    _s.exit(self_test())

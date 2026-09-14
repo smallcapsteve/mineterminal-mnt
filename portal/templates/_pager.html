@@ -1,0 +1,15 @@
+{# Shared pager. Included by drills, resources, financings and management so
+   no page silently truncates at 500 rows again. #}
+{% if pages and pages > 1 %}
+  <nav class="pager fin-state-tabs">
+    {% if page_no > 1 %}
+      <a class="fin-state-tab" href="{{ pager_url }}?page={{ page_no - 1 }}{{ pager_qs }}">&laquo; Newer</a>
+    {% endif %}
+    <span class="muted">Page {{ page_no }} of {{ pages }} &middot; {{ total_filtered }} matching</span>
+    {% if page_no < pages %}
+      <a class="fin-state-tab" href="{{ pager_url }}?page={{ page_no + 1 }}{{ pager_qs }}">Older &raquo;</a>
+    {% endif %}
+  </nav>
+{% elif total_filtered %}
+  <p class="muted">{{ total_filtered }} matching</p>
+{% endif %}

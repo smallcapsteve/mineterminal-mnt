@@ -38,3 +38,7 @@ data/events.bak*/
 # logs
 *.log
 logs/
+
+# rotating local backups
+data/tickers-backups/
+portal/categorize_v3.py

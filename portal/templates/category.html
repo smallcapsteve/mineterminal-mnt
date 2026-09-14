@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}{{ cat_name }} — MiningNewsTerminal{% endblock %}
+{% block content %}
+  {# Generic category page. Everything on it comes from events.categories, so
+     the count here and the count on the front-page chip are the same number by
+     construction. No default date window and no extra status filter -- those
+     are what made /drills show 508 of 4,644 without saying so. #}
+  <h2 class="page-title">{{ cat_name }}</h2>
+
+  <section class="filters fin-filters">
+    <form method="get" action="{{ cat_url }}">
+      <label for="ticker">Company:</label>
+      <select name="ticker" id="ticker" onchange="this.form.submit()">
+        <option value="">All companies</option>
+        {% for t in tickers %}
+          <option value="{{ t }}" {% if t == selected_ticker %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+      {% if selected_ticker %}
+        <a class="cat-clear" href="{{ cat_url }}">Clear</a>
+      {% endif %}
+      <span class="muted">
+        {% if total %}
+          Showing {{ first_n }}&ndash;{{ last_n }} of {{ total }} releases
+        {% else %}
+          0 releases
+        {% endif %}
+      </span>
+    </form>
+  </section>
+
+  {% if not events %}
+    <p class="empty">
+      No {{ cat_name | lower }} releases{% if selected_ticker %} for {{ selected_ticker }}{% endif %} yet.
+    </p>
+  {% else %}
+    <ul class="events">
+      {% for e in events %}
+        <li class="event">
+          <div class="event-meta">
+            {% if e["ticker"] %}
+              <a class="ticker" href="/company/{{ e['ticker'].lower() }}">{{ e["ticker"] }}</a>
+            {% else %}
+              <span class="ticker">—</span>
+            {% endif %}
+            {% set _cn = e["ticker"] | company_name %}
+            {% if _cn %}
+              <a class="source" href="/company/{{ e['ticker'].lower() }}">{{ _cn }}</a>
+            {% endif %}
+            <span class="date">{{ (e["published_at"] or e["classified_at"] or "")[:10] }}</span>
+          </div>
+          <h3>
+            <a href="/event/{{ e['event_id'] }}">
+              {{ (e["raw_headline"] or "(no headline)") | smart_title }}
+            </a>
+          </h3>
+          {% set cats = (e["categories"] or "") %}
+          {% if cats %}
+            <div class="event-cats">
+              {% for code, name in (cats | cat_chips) %}
+                <span class="cat-badge cat-{{ code }}">{{ name }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+
+    {% if pages > 1 %}
+      <nav class="pager fin-state-tabs">
+        {% if page_no > 1 %}
+          <a class="fin-state-tab"
+             href="{{ cat_url }}?page={{ page_no - 1 }}{% if selected_ticker %}&amp;ticker={{ selected_ticker }}{% endif %}">&laquo; Newer</a>
+        {% endif %}
+        <span class="muted">Page {{ page_no }} of {{ pages }}</span>
+        {% if page_no < pages %}
+          <a class="fin-state-tab"
+             href="{{ cat_url }}?page={{ page_no + 1 }}{% if selected_ticker %}&amp;ticker={{ selected_ticker }}{% endif %}">Older &raquo;</a>
+        {% endif %}
+      </nav>
+    {% endif %}
+  {% endif %}
+{% endblock %}

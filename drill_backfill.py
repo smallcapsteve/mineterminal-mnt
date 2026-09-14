@@ -6,7 +6,7 @@ import sys
 sys.path.insert(0, "/opt/mnt/app")
 sys.path.insert(0, "/opt/mnt/app/portal")
 
-from drill_extract import extract  # type: ignore
+from drill_extract import extract, score_intercept, format_intercept  # type: ignore
 
 DB = "/opt/mnt/app/portal/portal.db"
 
@@ -39,14 +39,17 @@ def main() -> int:
     con.execute("DELETE FROM drill_results")
     con.commit()
 
+    # Oldest first, so the release that FIRST reported an intercept keeps it.
     rows = list(con.execute(
         "SELECT event_id, ticker, raw_headline, raw_body, published_at "
-        "FROM events WHERE categories LIKE ? AND review_status='auto_approved'",
+        "FROM events WHERE categories LIKE ? AND review_status='auto_approved' "
+        "ORDER BY COALESCE(published_at, '') ASC, event_id ASC",
         ("%Drill Results%",),
     ))
     print(f"[drill_backfill] events to scan: {len(rows)}")
 
-    inserted = no_intercept = 0
+    inserted = no_intercept = all_repeats = 0
+    seen_by_ticker = {}
     cur = con.cursor()
     for r in rows:
         eid, ticker, hl, body, pub = r
@@ -54,6 +57,28 @@ def main() -> int:
         if not x.get("intercepts"):
             no_intercept += 1
             continue
+
+        seen = seen_by_ticker.setdefault(ticker or "", set())
+        fresh = [it for it in x["intercepts"]
+                 if (round(it["length_m"], 1), round(it["grade"], 2), it["metal"]) not in seen]
+        if not fresh:
+            # every number here has already been reported by this company:
+            # a recap, not new results
+            all_repeats += 1
+            continue
+        for it in fresh:
+            seen.add((round(it["length_m"], 1), round(it["grade"], 2), it["metal"]))
+
+        fresh.sort(key=score_intercept, reverse=True)
+        top = fresh[0]
+        x = dict(x)
+        x["intercepts"] = fresh
+        x["top_grade"] = top.get("grade")
+        x["top_length_m"] = top.get("length_m")
+        x["top_unit"] = top.get("unit")
+        x["top_metal"] = top.get("metal")
+        x["top_summary"] = format_intercept(top)
+
         cur.execute(
             "INSERT INTO drill_results("
             " event_id, ticker, project, top_hole_id, top_grade, top_unit, top_metal,"
@@ -72,6 +97,7 @@ def main() -> int:
 
     print(f"[drill_backfill] inserted: {inserted}")
     print(f"[drill_backfill] skipped (no intercept): {no_intercept}")
+    print(f"[drill_backfill] skipped (only repeats of earlier intercepts): {all_repeats}")
 
     print("\n=== top 10 by grade*length ===")
     for r in con.execute(

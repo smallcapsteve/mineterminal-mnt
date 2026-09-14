@@ -173,9 +173,13 @@ def _list_categories_uncached() -> list[tuple[str, int]]:
     try:
         from portal.categorize import CATEGORIES
     except Exception:
+        # Kept in sync with portal.categorize.CATEGORIES. This copy is only
+        # reached if that import fails; it was missing Management Changes and
+        # Mergers & Acquisitions, so a failed import silently hid two chips.
         CATEGORIES = (
             "Financings", "Drill Results", "Resource Estimates",
-            "Economic Studies", "Production Results", "Financials",
+            "Management Changes", "Economic Studies", "Production Results",
+            "Financials", "Mergers & Acquisitions",
             "Marketing Announcement", "Corporate Updates",
         )
     c = get_conn()

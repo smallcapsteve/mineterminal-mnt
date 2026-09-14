@@ -68,6 +68,9 @@
       <a href="/drills" {% if page == 'drills' %}class="active"{% endif %}>Drill Results</a>
       <a href="/resources" {% if page == 'resources' %}class="active"{% endif %}>Resource Estimates</a>
       <a href="/management-changes" {% if page == 'management' %}class="active"{% endif %}>Management Changes</a>
+      <a href="/economic-studies" {% if page == 'economic' %}class="active"{% endif %}>Economic Studies</a>
+      <a href="/production-results" {% if page == 'production' %}class="active"{% endif %}>Production Results</a>
+      <a href="/mergers-acquisitions" {% if page == 'mna' %}class="active"{% endif %}>Mergers &amp; Acquisitions</a>
       {% if is_admin %}<a href="/admin/analytics" {% if page == 'admin' %}class="active"{% endif %}>Analytics</a>{% endif %}
       </div>
       <form class="primary-nav-search" method="get" action="/search" data-typeahead data-suggest="/api/search">

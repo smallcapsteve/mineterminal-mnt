@@ -275,7 +275,8 @@ def financings_page(
     request: Request,
     ticker: str | None = None,
     status: str | None = None,
-    state: str | None = "open",
+    state: str | None = "all",
+    page: int = 1,
 ):
     conn = db.get_conn()
     where, args = [], []
@@ -285,9 +286,8 @@ def financings_page(
     if status:
         where.append("status = ?")
         args.append(status)
-    else:
-        where.append("status != ?")
-        args.append("mention")
+    # No implicit "status != 'mention'". It quietly removed 889 financings that
+    # the Financings chip counts.
     # state = open | closed | all (mining lifecycle filter)
     from datetime import datetime as _dt_state, timedelta as _td_state
     cutoff_60d = (_dt_state.utcnow() - _td_state(days=60)).strftime("%Y-%m-%d")
@@ -303,8 +303,13 @@ def financings_page(
     sql = "SELECT * FROM financings"
     if where:
         sql += " WHERE " + " AND ".join(where)
-    sql += " ORDER BY last_update_at DESC, financing_id DESC LIMIT 500"
-    rows = list(conn.execute(sql, args))
+    _cnt = "SELECT COUNT(*) FROM financings"
+    if where:
+        _cnt += " WHERE " + " AND ".join(where)
+    total_filtered = conn.execute(_cnt, args).fetchone()[0]
+    pages, page_no, _off = _paginate(total_filtered, page)
+    sql += " ORDER BY last_update_at DESC, financing_id DESC LIMIT ? OFFSET ?"
+    rows = list(conn.execute(sql, args + [_PAGE_SIZE, _off]))
 
     # Decorate rows with formatted amounts
     decorated = []
@@ -335,7 +340,16 @@ def financings_page(
         "status_counts": status_counts,
         "selected_ticker": ticker or "",
         "selected_status": status or "",
-        "state": status or "open",
+        # was `status or "open"` -- the wrong variable, so the state tabs
+        # highlighted according to the status filter
+        "state": state or "all",
+        "total_filtered": total_filtered,
+        "pages": pages,
+        "page_no": page_no,
+        "pager_url": "/financings",
+        "pager_qs": (("&ticker=" + ticker) if ticker else "")
+                    + (("&status=" + status) if status else "")
+                    + (("&state=" + state) if state else ""),
         "is_admin": auth.is_logged_in(request),
     })
 
@@ -852,9 +866,12 @@ app.get("/", response_class=HTMLResponse)(feed)
 
 # Wrap financings_page
 _orig_fin = financings_page
-def financings_page(request: Request, ticker: str | None = None, status: str | None = None, state: str | None = "open"):  # noqa: F811
+def financings_page(request: Request, ticker: str | None = None, status: str | None = None, state: str | None = "all", page: int = 1):  # noqa: F811
+    # state defaults to "all" and page is forwarded: this wrapper is the
+    # route FastAPI actually serves, so its defaults are the real ones.
     _log_pageview(request, ticker=ticker)
-    return _orig_fin(request, ticker=ticker, status=status, state=state)
+    return _orig_fin(request, ticker=ticker, status=status, state=state,
+                     page=page)
 app.routes[:] = [r for r in app.routes if not (
     getattr(r, "path", None) == "/financings" and getattr(r, "endpoint", None) is _orig_fin
 )]
@@ -1471,7 +1488,8 @@ templates.env.filters['company_name'] = _ticker_to_name
 def drills_page(
     request: Request,
     ticker: str | None = None,
-    days: int = 90,
+    days: int = 0,
+    page: int = 1,
 ):
     """Drill results lifecycle table — top intercepts grouped by company."""
     conn = db.get_conn()
@@ -1489,8 +1507,13 @@ def drills_page(
     )
     if where:
         sql += " WHERE " + " AND ".join(where)
-    sql += " ORDER BY dr.published_at DESC LIMIT 500"
-    rows = list(conn.execute(sql, args))
+    _cnt = "SELECT COUNT(*) FROM drill_results dr"
+    if where:
+        _cnt += " WHERE " + " AND ".join(where)
+    total_filtered = conn.execute(_cnt, args).fetchone()[0]
+    pages, page_no, _off = _paginate(total_filtered, page)
+    sql += " ORDER BY dr.published_at DESC LIMIT ? OFFSET ?"
+    rows = list(conn.execute(sql, args + [_PAGE_SIZE, _off]))
 
     decorated = []
     for r in rows:
@@ -1521,6 +1544,12 @@ def drills_page(
         "tickers": tickers_list,
         "selected_ticker": ticker or "",
         "days": days,
+        "total_filtered": total_filtered,
+        "pages": pages,
+        "page_no": page_no,
+        "pager_url": "/drills",
+        "pager_qs": (("&ticker=" + ticker) if ticker else "")
+                    + (("&days=" + str(days)) if days else ""),
     })
 # ====== end drills route ======
 
@@ -1530,7 +1559,8 @@ def drills_page(
 def resources_page(
     request: Request,
     ticker: str | None = None,
-    days: int = 365,
+    days: int = 0,
+    page: int = 1,
 ):
     conn = db.get_conn()
     where, args = [], []
@@ -1548,8 +1578,13 @@ def resources_page(
     )
     if where:
         sql += " WHERE " + " AND ".join(where)
-    sql += " ORDER BY re.published_at DESC LIMIT 500"
-    rows = list(conn.execute(sql, args))
+    _cnt = "SELECT COUNT(*) FROM resource_estimates re"
+    if where:
+        _cnt += " WHERE " + " AND ".join(where)
+    total_filtered = conn.execute(_cnt, args).fetchone()[0]
+    pages, page_no, _off = _paginate(total_filtered, page)
+    sql += " ORDER BY re.published_at DESC LIMIT ? OFFSET ?"
+    rows = list(conn.execute(sql, args + [_PAGE_SIZE, _off]))
 
     decorated = []
     for r in rows:
@@ -1577,6 +1612,12 @@ def resources_page(
         "tickers": [r[0] for r in distinct_tickers],
         "selected_ticker": ticker or "",
         "days": days,
+        "total_filtered": total_filtered,
+        "pages": pages,
+        "page_no": page_no,
+        "pager_url": "/resources",
+        "pager_qs": (("&ticker=" + ticker) if ticker else "")
+                    + (("&days=" + str(days)) if days else ""),
     })
 # ====== end /resources route ======
 
@@ -2013,6 +2054,7 @@ def management_changes_page(
     ticker: str = None,
     scope: str = None,
     action: str = None,
+    page: int = 1,
 ):
     conn = db.get_conn()
     where, args = [], []
@@ -2028,9 +2070,14 @@ def management_changes_page(
     sql = "SELECT * FROM management_changes"
     if where:
         sql += " WHERE " + " AND ".join(where)
-    sql += " ORDER BY published_at DESC, mgmt_id DESC LIMIT 500"
     try:
-        rows = list(conn.execute(sql, args))
+        _cnt = "SELECT COUNT(*) FROM management_changes"
+        if where:
+            _cnt += " WHERE " + " AND ".join(where)
+        total_filtered = conn.execute(_cnt, args).fetchone()[0]
+        pages, page_no, _off = _paginate(total_filtered, page)
+        sql += " ORDER BY published_at DESC, mgmt_id DESC LIMIT ? OFFSET ?"
+        rows = list(conn.execute(sql, args + [_PAGE_SIZE, _off]))
         total = conn.execute("SELECT COUNT(*) FROM management_changes").fetchone()[0]
         tickers = [r[0] for r in conn.execute(
             "SELECT DISTINCT ticker FROM management_changes "
@@ -2039,6 +2086,7 @@ def management_changes_page(
         # the table is created by management_backfill.py; an empty page is a
         # better answer than a 500 if the first run has not happened yet
         rows, total, tickers = [], 0, []
+        total_filtered, pages, page_no = 0, 1, 1
 
     return templates.TemplateResponse(request, "management.html", {
         "request": request,
@@ -2049,5 +2097,106 @@ def management_changes_page(
         "selected_ticker": ticker,
         "selected_action": action,
         "scope": scope,
+        "total_filtered": total_filtered,
+        "pages": pages,
+        "page_no": page_no,
+        "pager_url": "/management-changes",
+        "pager_qs": (("&ticker=" + ticker) if ticker else "")
+                    + (("&scope=" + scope) if scope else "")
+                    + (("&action=" + action) if action else ""),
     })
 
+
+
+# ====== generic category pages (appended 2026-09-15) ======
+# One list page per category, driven entirely by events.categories. The count
+# shown here and the count on the front-page chip are the same query, so they
+# cannot disagree. No default date window, no extra status filter, and the true
+# total is always stated rather than silently truncated.
+_CATEGORY_PAGES = [
+    ("/economic-studies",     "Economic Studies",       "economic"),
+    ("/production-results",   "Production Results",     "production"),
+    ("/mergers-acquisitions", "Mergers & Acquisitions", "mna"),
+]
+_CAT_PAGE_SIZE = 100
+
+
+def _cat_where(cat, ticker=None):
+    """WHERE clause matching one category as a pipe-delimited token."""
+    where = [
+        "review_status = 'auto_approved'",
+        "(categories = ? OR categories LIKE ? OR categories LIKE ? "
+        " OR categories LIKE ?)",
+    ]
+    args = [cat, cat + "|%", "%|" + cat, "%|" + cat + "|%"]
+    if ticker:
+        where.append(
+            "(ticker = ? OR ('|' || COALESCE(additional_tickers, '') || '|') LIKE ?)"
+        )
+        args.extend([ticker, "%|" + ticker + "|%"])
+    return " AND ".join(where), args
+
+
+def _make_category_page(url, cat_name, page_key):
+    def _page(request: Request, ticker: str = None, page: int = 1):
+        conn = db.get_conn()
+        clause, args = _cat_where(cat_name, ticker)
+        total = conn.execute(
+            "SELECT COUNT(*) FROM events WHERE " + clause, args
+        ).fetchone()[0]
+        pages = max(1, (total + _CAT_PAGE_SIZE - 1) // _CAT_PAGE_SIZE)
+        page_no = min(max(1, page), pages)
+        offset = (page_no - 1) * _CAT_PAGE_SIZE
+        events = list(conn.execute(
+            "SELECT " + db.LIST_EVENT_COLUMNS + " FROM events WHERE " + clause
+            + " ORDER BY COALESCE(published_at, classified_at) DESC "
+              "LIMIT ? OFFSET ?",
+            args + [_CAT_PAGE_SIZE, offset],
+        ))
+        tclause, targs = _cat_where(cat_name)
+        tickers = [r[0] for r in conn.execute(
+            "SELECT DISTINCT ticker FROM events WHERE " + tclause
+            + " AND ticker IS NOT NULL ORDER BY ticker", targs)]
+        return templates.TemplateResponse(request, "category.html", {
+            "request": request,
+            "page": page_key,
+            "cat_name": cat_name,
+            "cat_url": url,
+            "events": events,
+            "total": total,
+            "pages": pages,
+            "page_no": page_no,
+            "first_n": offset + 1 if total else 0,
+            "last_n": offset + len(events),
+            "tickers": tickers,
+            "selected_ticker": ticker,
+            "is_admin": auth.is_logged_in(request),
+        })
+
+    _page.__name__ = "category_page_" + page_key
+    return _page
+
+
+for _cat_url, _cat_name, _cat_key in _CATEGORY_PAGES:
+    app.get(_cat_url, response_class=HTMLResponse)(
+        _make_category_page(_cat_url, _cat_name, _cat_key)
+    )
+# ====== end generic category pages ======
+
+
+# ====== pagination helper (appended 2026-09-15) ======
+# Shared by /financings, /drills, /resources and /management-changes, which all
+# used to end in "LIMIT 500" and say nothing when they hit it.
+_PAGE_SIZE = 200
+
+
+def _paginate(total, page):
+    """-> (pages, clamped page number, offset)."""
+    try:
+        page = int(page or 1)
+    except (TypeError, ValueError):
+        page = 1
+    pages = max(1, (int(total or 0) + _PAGE_SIZE - 1) // _PAGE_SIZE)
+    page_no = min(max(1, page), pages)
+    return pages, page_no, (page_no - 1) * _PAGE_SIZE
+# ====== end pagination helper ======
