@@ -109,15 +109,22 @@ def preflight(want_classifier: bool, need_free_mb: int = 2048) -> dict:
                          "by this user.")
     log(f"  HMAC secret          ok (configured, {len(HMAC_SECRET)} chars, not shown)")
 
+    # Reachability is "did something answer", not "did it answer 200". The
+    # first version of this check derived a /health URL and treated its 404 as
+    # the portal being down — nginx routes by Host header and simply has no
+    # such path on 127.0.0.1. An HTTP status of any kind proves a server
+    # responded; only a transport error means it did not.
+    import urllib.error
     import urllib.request
-    health = PORTAL_INGEST.rsplit("/ingest", 1)[0] + "/health"
     try:
-        with urllib.request.urlopen(health, timeout=10) as r:
+        with urllib.request.urlopen(PORTAL_INGEST, timeout=10) as r:
             code = r.status
+    except urllib.error.HTTPError as e:
+        code = e.code
     except Exception as e:                       # noqa: BLE001
-        raise SystemExit(f"ABORT: portal not reachable at {health} "
+        raise SystemExit(f"ABORT: portal not reachable at {PORTAL_INGEST} "
                          f"({type(e).__name__} {str(e)[:60]})")
-    log(f"  portal               ok ({health} -> {code})")
+    log(f"  portal               ok ({PORTAL_INGEST} answered {code})")
 
     free_mb = shutil.disk_usage("/opt").free // (1024 * 1024)
     if free_mb < need_free_mb:
