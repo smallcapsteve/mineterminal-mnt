@@ -58,6 +58,17 @@ pass possible is being able to find these rows afterwards — which is why the
 `backfill_exchange` tag is applied **whether or not the classifier ran**. That
 is the one thing that would have been expensive to add in hindsight.
 
+**Titles are not headlines.** The CSE feed states the ticker authoritatively but
+its `title` is whatever the issuer typed. Measured across all 3,856 of our 2026
+titles: **497 (12.9%)** are prefixed `News Release - ` / `Press Release (date)`
+or are placeholders outright, and **87 more** are under 28 characters. The first
+capped run published *"ESGold Corp. - Press Release (September 10, 2026)"*,
+which tells a reader nothing. So a title is cleaned before it becomes a
+headline, and where nothing survives, the headline is taken from the document
+with `headline_from()` — the extractor already checked at 44/45 on real
+releases. The **raw** feed title remains what `uid_for()` hashes, so cleaning
+can never orphan a release already recorded as settled and publish it twice.
+
 **Preconditions gate the run, they do not merely precede it.** Twice now this
 system has produced a confident, wrong, zero-exit summary because a missing
 dependency looked like an empty result — the PDF extractor this morning, and
@@ -74,6 +85,7 @@ Run:
     python3 backfill_exchange.py --source cse --since 2026-01-01 --dry-run --no-classify
     python3 backfill_exchange.py --source cse --since 2026-01-01 --apply --no-classify
     python3 backfill_exchange.py --source cse --since 2026-01-01 --apply --max-ingest 25
+    python3 backfill_exchange.py --self-test
     python3 backfill_exchange.py --stats
 """
 from __future__ import annotations
@@ -81,6 +93,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import os
+import re
 import shutil
 import sys
 import time
@@ -105,6 +118,117 @@ def log(msg: str) -> None:
 
 
 # --------------------------------------------------------------------------
+# the exchange's title is not necessarily a headline
+# --------------------------------------------------------------------------
+
+# "News Release - ", "Press Release: ", "NR — ", "News Release dated Sept 4, 2026 - ",
+# "News release re ", "ESGold Corp. - Press Release ". Applied repeatedly, because
+# a few carry two of them.
+_TITLE_PREFIX = re.compile(
+    r"^\s*(?:[\w'&.,()\- ]{2,40}?\s*[-–—|]\s*)?"          # leading company name
+    r"(?:news|press|media)\s*release"
+    r"(?:\s*dated\s+[A-Za-z]+\.?\s+\d{1,2},?\s*20\d{2})?"           # ...dated Sept 4, 2026
+    r"\s*(?:re\b:?|[-–—|:,])\s*", re.I)
+
+# What is left once you take the words "news release" and a date out: nothing.
+_TITLE_HOLLOW = re.compile(
+    r"^\s*(?:[\w'&.,()\- ]{0,40}?\s*[-–—|]\s*)?"
+    r"(?:(?:news|press|media)\s*release|nr|pr)?\s*"
+    r"(?:[-–—|(,]?\s*(?:dated\s+)?[A-Za-z]*\.?\s*\d{0,2},?\s*20\d{2}\s*\)?)?\s*$",
+    re.I)
+
+# A real headline says what happened. This is the vocabulary of a mining
+# release doing that; a title with none of it and little length is a label.
+_HAS_VERB = re.compile(
+    r"\b(announc\w*|report\w*|clos\w*|complet\w*|commenc\w*|acquir\w*|intersect\w*"
+    r"|grant\w*|receiv\w*|provid\w*|file[sd]?\b|enter\w*|expand\w*|sign[s|ed]*\b"
+    r"|updat\w*|result\w*|assay\w*|drill\w*|appoint\w*|resign\w*|extend\w*"
+    r"|raise[sd]?\b|rais\w*|start\w*|begin\w*|discover\w*|confirm\w*|increas\w*"
+    r"|launch\w*|secur\w*|option\w*|amend\w*|list\w*|trad\w*|present\w*|def\w*"
+    r"|approv\w*|terminat\w*|settl\w*|issu\w*|stak\w*|sampl\w*|survey\w*)", re.I)
+
+MIN_TITLE_CHARS = 28
+
+
+def clean_title(raw: str) -> str:
+    """Strip the boilerplate an issuer puts in front of its own headline."""
+    t = (raw or "").strip()
+    for _ in range(3):
+        stripped = _TITLE_PREFIX.sub("", t, count=1).strip(" -–—|:,")
+        if stripped == t or not stripped:
+            break
+        t = stripped
+    return t.strip()
+
+
+def title_is_hollow(t: str) -> bool:
+    """True when the cleaned title would tell a reader nothing.
+
+    Deliberately conservative: a short title that still names an action
+    ("Stock Options Granted", "Gold Rock Assay Results") is kept. Only a title
+    with no action word AND no length is replaced, because the replacement
+    costs a PDF parse and can itself be wrong.
+    """
+    if not t:
+        return True
+    if _TITLE_HOLLOW.match(t):
+        return True
+    return len(t) < MIN_TITLE_CHARS and not _HAS_VERB.search(t)
+
+
+def headline_for(rel: dict, body: str, pdf_headline: str) -> tuple[str, str]:
+    """(headline, provenance). The feed title when it says something, the
+    document when it does not."""
+    t = clean_title(rel.get("title", ""))
+    if not title_is_hollow(t):
+        return t, ("feed" if t == (rel.get("title") or "").strip() else "feed_cleaned")
+    from_pdf = X.headline_from(body, "") if body else ""
+    if from_pdf and not title_is_hollow(from_pdf):
+        return from_pdf[:300], "pdf"
+    return (t or (rel.get("title") or "").strip() or "News release"), "fallback"
+
+
+SELF_TEST = [
+    # (raw title, expected cleaned, expected hollow?)
+    ("ESGold Corp. - Press Release (September 10, 2026)", "", True),
+    ("News Release", "", True),
+    ("HML PR August 26, 2026", "HML PR August 26, 2026", True),
+    ("AREE | Press Release", "", True),
+    ("News Release - Krait Commences Trading on Frankfurt Stock Exchange",
+     "Krait Commences Trading on Frankfurt Stock Exchange", False),
+    ("News Release dated September 4, 2026 - Announcing Definitive Agreement Signing",
+     "Announcing Definitive Agreement Signing", False),
+    ("News release re Williams 2026 Exploration Update",
+     "Williams 2026 Exploration Update", False),
+    ("Stock Options Granted", "Stock Options Granted", False),
+    ("Gold Rock Assay Results", "Gold Rock Assay Results", False),
+    ("Private Placement - Tranche 2 Closes", "Private Placement - Tranche 2 Closes", False),
+    ("TARGA CLOSES FINAL TRANCHE OF NON-BROKERED PRIVATE PLACEMENT",
+     "TARGA CLOSES FINAL TRANCHE OF NON-BROKERED PRIVATE PLACEMENT", False),
+    ("Riverside Resources Expands British Columbia Mineral Tenures",
+     "Riverside Resources Expands British Columbia Mineral Tenures", False),
+]
+
+
+def self_test() -> int:
+    """Run the title rules against the real examples they were written from.
+
+    Cheap to run, and the only thing standing between a bad regex and 1,995
+    headlines on three public sites."""
+    bad = 0
+    for raw, want_clean, want_hollow in SELF_TEST:
+        got = clean_title(raw)
+        hollow = title_is_hollow(got)
+        ok = (got == want_clean) and (hollow == want_hollow)
+        if not ok:
+            bad += 1
+        print(f"  {'ok  ' if ok else 'FAIL'}  {raw[:58]:<58} -> {got[:44]!r:<46} "
+              f"hollow={hollow}{'' if ok else f'  (wanted {want_clean!r}, {want_hollow})'}")
+    print(f"\n{len(SELF_TEST) - bad}/{len(SELF_TEST)} passed")
+    return 1 if bad else 0
+
+
+# --------------------------------------------------------------------------
 # preconditions
 # --------------------------------------------------------------------------
 
@@ -119,6 +243,11 @@ def preflight(want_classifier: bool, need_free_mb: int = 2048) -> dict:
 
     X._pdf_reader()
     log(f"  PDF extractor        ok ({sys.executable})")
+
+    if self_test() != 0:
+        raise SystemExit("ABORT: the title rules failed their own self-test. "
+                         "Fix them before publishing headlines.")
+    log(f"  title rules          ok ({len(SELF_TEST)} cases)")
 
     from pipeline.run import HMAC_SECRET, PORTAL_INGEST
     if not HMAC_SECRET:
@@ -246,6 +375,8 @@ def main() -> int:
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--stats", action="store_true")
+    ap.add_argument("--self-test", action="store_true",
+                    help="run the title rules against their known cases and exit")
     ap.add_argument("--since", default="2026-01-01",
                     help="earliest publication date to backfill (default 2026-01-01)")
     ap.add_argument("--source", choices=("cse", "tmx"), default="cse",
@@ -262,6 +393,9 @@ def main() -> int:
                          "and are still tagged for a later classification pass")
     args = ap.parse_args()
 
+    if args.self_test:
+        return self_test()
+
     con = X.db()
 
     if args.stats:
@@ -275,12 +409,10 @@ def main() -> int:
         print("pass exactly one of --apply or --dry-run", file=sys.stderr)
         return 2
 
-    if args.apply:
-        preflight(want_classifier=not args.no_classify)
-    else:
+    if not args.apply:
         log("dry run — preflight still runs, so a missing dependency is found now "
             "rather than at the start of a three-hour job")
-        preflight(want_classifier=not args.no_classify)
+    preflight(want_classifier=not args.no_classify)
 
     only = {X.bare(x) for x in args.only.split(",")} if args.only else None
     cse_u, tsx_u = X.universe_by_exchange()
@@ -303,6 +435,19 @@ def main() -> int:
     if not releases:
         log("nothing to do")
         return 0
+
+    # The cleaned title rides alongside the raw one. uid_for() keeps hashing the
+    # raw title, so cleaning can never orphan an already-settled release.
+    n_cleaned = n_hollow = 0
+    for rel in releases:
+        ct = clean_title(rel.get("title", ""))
+        rel["clean_title"] = ct
+        if ct != (rel.get("title") or "").strip():
+            n_cleaned += 1
+        if title_is_hollow(ct):
+            n_hollow += 1
+    log(f"titles: {n_cleaned} had boilerplate stripped, {n_hollow} say nothing and "
+        f"will take their headline from the document")
 
     pcon = X.sqlite3.connect(f"file:{X.PORTAL_DB}?mode=ro", uri=True)
     now = dt.datetime.now(dt.UTC).isoformat()
@@ -331,6 +476,8 @@ def main() -> int:
              kw.get("event"), kw.get("wrong"), kw.get("note"), now))
 
     # ---- stage 1: what is already on the site -------------------------------
+    # Match on the CLEANED title: a wire's headline never carries the issuer's
+    # "News Release - " prefix, so matching on the raw one misses real matches.
     cov = X.covered_by_count(pcon, [r for r in fresh if r["source"] == "tmx"])
     candidates, n_covered, n_matched = [], 0, 0
     for rel in fresh:
@@ -342,7 +489,7 @@ def main() -> int:
             else:
                 candidates.append(rel)
             continue
-        eid, wrong = X.find_match(pcon, rel)
+        eid, wrong = X.find_match(pcon, rel, title=rel.get("clean_title") or rel["title"])
         if eid:
             n_matched += 1
             record(rel, "matched", event=eid, wrong=wrong)
@@ -365,6 +512,7 @@ def main() -> int:
 
     # ---- stage 2: open, classify, publish -----------------------------------
     n_ing = n_fail = n_late = n_classified = 0
+    prov_counts: dict = {}
     consecutive_cls_errors = 0
     t1 = time.monotonic()
     for i, rel in enumerate(candidates[:args.max_ingest], 1):
@@ -372,11 +520,18 @@ def main() -> int:
             log(f"stopping: hit --max-classify {args.max_classify}")
             break
 
-        body, headline, err = X.fetch_release(rel)
+        # fetch_release derives its own headline from rel["title"]; hand it the
+        # cleaned one, and an empty string when the title says nothing, so that
+        # headline_from() reads the document instead of echoing boilerplate.
+        ct = rel.get("clean_title", "")
+        probe_rel = dict(rel, title=("" if title_is_hollow(ct) else ct))
+        body, pdf_headline, err = X.fetch_release(probe_rel)
         if err:
             n_fail += 1
             record(rel, "error", note=err)
         else:
+            headline, prov = headline_for(rel, body, pdf_headline)
+            prov_counts[prov] = prov_counts.get(prov, 0) + 1
             eid, wrong = X.find_match(pcon, rel, title=headline)
             if eid:
                 n_late += 1
@@ -389,7 +544,7 @@ def main() -> int:
                 if ok:
                     n_ing += 1
                     consecutive_cls_errors = 0
-                    record(rel, "ingested", note=note)
+                    record(rel, "ingested", note=f"{note} [{prov}]")
                 else:
                     n_fail += 1
                     record(rel, "error", note=note)
@@ -414,6 +569,7 @@ def main() -> int:
     con.commit()
     log(f"done in {(time.monotonic()-t1)/60:.0f}m — ingested={n_ing} "
         f"matched_late={n_late} failed={n_fail} billed_classifier_calls={n_classified}")
+    log(f"headline provenance: {prov_counts}")
     log("note: the portal's fuzzy-duplicate guard silently drops a release that "
         "already exists under a near-identical headline, so 'ingested' is an "
         "upper bound on rows actually added.")
