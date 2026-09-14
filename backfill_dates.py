@@ -16,7 +16,7 @@ published twice.
 and the wire's date is the real one:
 
     feed date       within 1 day of truth:   56/260  (22%),  median error 16 days
-    extracted date  within 1 day of truth:  170/247  (69%),  median error  0 days
+    extracted date  within 1 day of truth:  177/260  (68%),  median error  0 days
 
 **The window was measured, not guessed.** Four windows against two strategies:
 
@@ -40,6 +40,10 @@ The 21-day bound is the whole safety margin, and it is there for Etruscus: its
 genuinely year-old filings sit 399 days before upload and would land 34 days
 before it after "correction", so they are left alone. Widen that bound and real
 history gets silently shifted forward a year.
+
+Applied to the 1,675 backfilled rows: 1,563 dates from the dateline, 16 with a
+mistyped year corrected, 96 with no readable date falling back to the upload
+date. **465 dates moved.**
 
     python3 backfill_dates.py          # run the self-test
 """
@@ -65,10 +69,30 @@ _PATTERNS = [
     re.compile(r"\b(20\d{2})-(\d{2})-(\d{2})\b"),
 ]
 
+# A dateline that ran into the headline. `headline_from()` splits on lines, so
+# when a PDF puts both on one extracted line the date comes along:
+#   "OPTIONS GRANTED July 17th, 2026 – Muskoka - Ontario – Steadright..."
+_DATELINE_RUN = re.compile(
+    rf"\s*[-–—(,]?\s*\b(?:{_MONTH})\.?\s+\d{{1,2}}(?:st|nd|rd|th)?,?\s*20\d{{2}}\b.*$",
+    re.I)
+
 WINDOW = 1800          # characters of the document to consider; measured, see above
 MAX_BACKDATE_DAYS = 1100
 YEAR_TYPO_MIN, YEAR_TYPO_MAX = 330, 400
 YEAR_TYPO_TOLERANCE_DAYS = 21
+MIN_HEADLINE_AFTER_TRIM = 12
+
+
+def trim_at_dateline(headline: str) -> str:
+    """Cut a headline at the point its document's dateline begins.
+
+    Only when enough headline survives: a release whose headline legitimately
+    opens with a date would otherwise be erased. Measured at 16 of ~130
+    document-derived headlines during the 2026 repair pass.
+    """
+    h = (headline or "").strip()
+    t = _DATELINE_RUN.sub("", h).strip(" -–—|:,")
+    return t if len(t) >= MIN_HEADLINE_AFTER_TRIM else h
 
 
 def _candidates(text: str) -> list[tuple[int, dt.date]]:
@@ -162,6 +186,20 @@ SELF_TEST = [
     ("Scanned image, no text layer worth reading.", "2026-05-05", "2026-05-05", "upload"),
 ]
 
+TRIM_TEST = [
+    ("OPTIONS GRANTED July 17th, 2026 – Muskoka - Ontario – Steadright Critical",
+     "OPTIONS GRANTED"),
+    ("Westward Gold Drills 12.0 Metres of 8.06 g Au/t within 27.0 Metres",
+     "Westward Gold Drills 12.0 Metres of 8.06 g Au/t within 27.0 Metres"),
+    ("Irving Resources Announces Results of AGM",
+     "Irving Resources Announces Results of AGM"),
+    # a month with no day and year is not a dateline
+    ("August Drilling Update at the Example Project",
+     "August Drilling Update at the Example Project"),
+    # too little would survive, so leave it whole
+    ("July 17, 2026 - Muskoka", "July 17, 2026 - Muskoka"),
+]
+
 
 def self_test(verbose: bool = True) -> int:
     bad = 0
@@ -174,8 +212,17 @@ def self_test(verbose: bool = True) -> int:
         if verbose or not ok:
             print(f"  {'ok  ' if ok else 'FAIL'}  upload={up}  -> {got_d} ({got_p})"
                   f"{'' if ok else f'   WANTED {want_d} ({want_p})'}")
+    for raw, want in TRIM_TEST:
+        got = trim_at_dateline(raw)
+        ok = got == want
+        if not ok:
+            bad += 1
+        if verbose or not ok:
+            print(f"  {'ok  ' if ok else 'FAIL'}  trim {raw[:46]!r} -> {got[:46]!r}"
+                  f"{'' if ok else f'   WANTED {want!r}'}")
+    total = len(SELF_TEST) + len(TRIM_TEST)
     if verbose:
-        print(f"\n{len(SELF_TEST) - bad}/{len(SELF_TEST)} passed")
+        print(f"\n{total - bad}/{total} passed")
     return 1 if bad else 0
 
 
