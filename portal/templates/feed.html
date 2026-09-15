@@ -23,7 +23,12 @@
     <section class="category-filter">
       <form method="get" action="/" id="catform">
         {% if selected_ticker %}<input type="hidden" name="ticker" value="{{ selected_ticker }}">{% endif %}
-        <span class="cat-filter-label">Category</span>
+        <details class="cat-collapse"{% if selected_cats %} open{% endif %}>
+        <summary class="cat-summary">
+          <span class="cat-filter-label">Category</span>
+          <span class="cat-summary-hint">{% if selected_cats %}{{ selected_cats|length }} selected{% else %}filter the feed by tag{% endif %}</span>
+        </summary>
+        <div class="cat-chip-row">
         {% for code, name, count in category_counts %}
           <label class="cat-chip cat-chip-{{ code }}{% if code in selected_cats %} cat-chip-on{% endif %}">
             <input type="checkbox" name="cat" value="{{ code }}"
@@ -36,6 +41,8 @@
         {% if selected_cats %}
           <a class="cat-clear" href="/{% if selected_ticker %}?ticker={{ selected_ticker }}{% endif %}">Clear</a>
         {% endif %}
+        </div>
+        </details>
         <noscript><button type="submit">Apply</button></noscript>
       </form>
     </section>
