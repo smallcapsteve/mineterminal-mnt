@@ -77,7 +77,7 @@
             </td>
             <td class="mgmt-person">{{ r["person"] or "—" }}</td>
             <td class="mgmt-role">{{ r["role"] or "—" }}</td>
-            <td class="fin-kind">{{ r["scope"] }}</td>
+            <td class="fin-kind">{{ (r["scope"] or "—")|title }}</td>
             <td class="mgmt-headline">
               <a href="/event/{{ r['event_id'] }}">{{ (r["raw_headline"] or "")[:95] }}</a>
               {% if (r["n_changes"] or 1) > 1 %}

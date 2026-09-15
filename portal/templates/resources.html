@@ -37,7 +37,16 @@
     <p class="empty">No resource estimates in this window.</p>
   {% else %}
     <div class="table-scroll">
-    <table class="fin-table">
+    <table class="fin-table res-table">
+      <colgroup>
+        <col style="width: 8%">   <!-- Ticker            -->
+        <col style="width: 16%">  <!-- Company           -->
+        <col style="width: 8%">   <!-- Date              -->
+        <col style="width: 9%">   <!-- Type              -->
+        <col style="width: 15%">  <!-- Project           -->
+        <col style="width: 36%">  <!-- Resource Estimate -->
+        <col style="width: 8%">   <!-- View              -->
+      </colgroup>
       <thead>
         <tr>
           <th>Ticker</th>
@@ -46,7 +55,7 @@
           <th>Type</th>
           <th>Project</th>
           <th>Resource Estimate</th>
-          <th>Release</th>
+          <th>View</th>
         </tr>
       </thead>
       <tbody>
