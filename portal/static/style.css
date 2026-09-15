@@ -896,13 +896,13 @@ main {
 
 /* === Financings open/closed tabs === */
 .fin-state-tabs {
-  display: flex; gap: 0; margin: 0 0 1rem;
+  display: flex; gap: 0; margin: 0.4rem 0 1.25rem;
   border-bottom: 2px solid var(--ink);
   background: #fff;
 }
 .fin-state-tab {
   display: inline-flex; align-items: center; gap: 0.45rem;
-  padding: 0.7rem 1.4rem;
+  padding: 0.7rem 1.4rem 0.95rem;
   font-weight: 700; font-size: 0.95rem;
   text-transform: uppercase; letter-spacing: 0.06em;
   color: var(--ink-mute);
@@ -1215,4 +1215,43 @@ main {
 .primary-nav-search { margin-left: auto; }
 @media (max-width: 1250px) {
   .primary-nav-links a { font-size: 0.86rem; }
+}
+
+
+/* ===== 2026-09-15: the six requested changes =====================
+   Drill Results measured 1086px and Resource Estimates 1449px inside a
+   984px wrapper, so the last column -- the link to the release -- sat off
+   the right edge. max-width on a <td> is ignored under table-layout: auto;
+   fixed + a colgroup is the form the browser honours. .fin-table sets
+   nowrap on every cell, which has to be undone or fixed columns overflow. */
+.drill-table, .res-table { table-layout: fixed; width: 100%; }
+.drill-table th, .drill-table td,
+.res-table th,   .res-table td { white-space: normal; vertical-align: top; }
+.drill-table .fin-date, .res-table .fin-date { white-space: nowrap; }
+.drill-table .fin-ticker, .res-table .fin-ticker { white-space: nowrap; }
+/* Break inside a word only where words are genuinely long. */
+.drill-table .drill-intercept, .res-table .resource-summary { overflow-wrap: anywhere; }
+
+/* Collapsible category filter on the news feed. <details> so it works with
+   JavaScript off, and it opens itself when a filter is active. */
+.category-filter { display: block; }
+.cat-collapse { width: 100%; }
+.cat-summary {
+  list-style: none; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.3rem 0;
+}
+.cat-summary::-webkit-details-marker { display: none; }
+.cat-summary::before {
+  content: "\25B8"; color: var(--ink-mute); font-size: 0.75rem;
+}
+.cat-collapse[open] .cat-summary::before { content: "\25BE"; }
+.cat-summary:hover .cat-filter-label { color: var(--brand-red); }
+.cat-summary-hint {
+  font-size: 0.78rem; color: var(--ink-mute);
+  text-transform: none; letter-spacing: 0;
+}
+.cat-chip-row {
+  display: flex; flex-wrap: wrap; gap: 0.4rem 0.5rem;
+  align-items: center; padding: 0.55rem 0 0.3rem;
 }
