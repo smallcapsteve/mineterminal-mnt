@@ -43,3 +43,4 @@ logs/
 data/tickers-backups/
 portal/categorize_v3.py
 portal/categorize_v4.py
+portal/categorize_v5.py

@@ -393,6 +393,20 @@ _DRILL_RESULT_HEAD = re.compile(
     r"\bvisible\s+gold\b|"
     r"\bextends?\s+(?:the\s+)?[\w\-]+\s+zone\s+by\s+\d|"
     r"\b\d[\d.,]*\s*%\s*(?:cu|zn|pb|ni|sb|li2o|reo|treo|fe2o3|u3o8)\b|"
+    # v5: a grade with a unit AND a metal, spelled out or abbreviated. The "%"
+    # branch refuses of/interest/ownership/in-the, because "acquires 100% of the
+    # Gold Project" is an ownership stake, not an assay.
+    r"(?:(?:100(?:\.\d+)?|\d{1,2}(?:\.\d+)?)\s*"
+    r"%(?!\s*(?:of\b|interest|own\w*|option|stake|holding|in\s+the))"
+    r"|\d[\d.,]*\s*(?:g\s*/\s*t|gpt|ppm|ppb|oz\s*/\s*t|opt))\s*"
+    r"(?:[\w\-]+\s+){0,2}?"
+    r"(?:au|ag|cu|pb|zn|ni|co|sb|mo|sn|u3o8|li2o|reo|treo|pgm|nb2o5|ga2o3|"
+    r"gold|silver|copper|lead|zinc|nickel|cobalt|antimony|molybdenum|tin|"
+    r"tungsten|uranium|lithium|graphite|hydrogen|potash|platinum|palladium|"
+    r"rare\s+earth)\b(?!\s+recover)|"
+    # v5: extending a zone or mineralisation is a result
+    r"\b(?:extends?|expands?|grows?)\s+(?:[\w\-]+\s+){0,3}?"
+    r"(?:mineraliz\w+|strike\s+length|high[-\s]?grade\s+zone|zones?)\b|"
     # v3e: a result reported without a number in the headline
     r"\bdrills\s+(?:[\w.,%’\-]+\s+){0,4}?(?:\d[\d.,]*\s*"
     r"(?:m\b|metres?|meters?|g\s*/\s*t|%)|mineraliz\w+|sulphides?|sulfides?|"
@@ -409,6 +423,21 @@ _DRILL_RESULT_HEAD = re.compile(
 # drill_extract is allowed to RESCUE a release whose headline is vague, but
 # only when the lede also declares results. On its own it adds 401 false
 # positives (financings, surveys, technical-report filings).
+# Historical results are not new results -- but most headlines containing
+# "historic" ARE new work on historic ground, so the veto only fires when there
+# is no new-work language at all. Measured: 51 of 1,474 mention "historic";
+# only a handful are pure historical reporting.
+_DRILL_HISTORICAL = re.compile(
+    r"(?i)\bhistoric(?:al)?\s+(?:[\w\-]+\s+){0,2}?"
+    r"(?:results?|intersections?|intercepts?|assays?|grades?|drill\w*|data)\b"
+)
+_DRILL_NEW_WORK = re.compile(
+    r"(?i)\b(?:confirms?|confirmed|validat\w+|verif\w+|twin\w+|re-?assay\w*|"
+    r"new\s+(?:drill|assay|result|discover)|intersects?|intersected|drills\b|"
+    r"maiden|infill\s+(?:drill|sampl)|extends?|continues?\s+to)\b"
+)
+
+
 _DRILL_LEDE = re.compile(
     rf"(?i)\b{_ANN}\b[^.\n]{{0,90}}?\b(?:"
     r"drill(?:ing)?\s+results?|assay\s+results?|intercept\w*|"
@@ -580,9 +609,9 @@ _MA_HEAD = re.compile(
     r"\b(?:asset|property|share|claim)?\s*purchase\s+agreement|"
     r"\bjoint\s+ventures?\b|"
     r"\bexercis\w+\s+(?![^.\n]{0,40}over[-\s]?allot)"
-    r"(?:[\w’\-]+\s+){0,4}?options?\b|"
+    r"(?:[\w.,'’\-%$&/]+\s+){0,5}?options?\b|"
     r"\bproperty\s+transaction\b|"
-    r"\bsale\s+of\s+(?:[\w’\-]+\s+){0,4}?"
+    r"\bsale\s+of\s+(?:[\w.,'’\-%$&/]+\s+){0,5}?"
     r"(?:projects?|propert(?:y|ies)|claims?|interest|assets?|subsidiary)|"
     r"\bconsolidates?\s+(?:land|claims?|district|holdings|position)|"
     r"\boptions?\s+(?:the\s+|its\s+|a\s+)?[A-Z][A-Za-z\s\-]{2,40}\s*"
@@ -767,6 +796,12 @@ _EXPLORATION = re.compile(
     r"\b(?:advances?|advanced|expands?|expanded)\s+" + _V4_GAP +
     r"(?:drill(?:ing)?\s+programs?|exploration\s+programs?|field\s+programs?|"
     r"work\s+programs?|drill\s+campaigns?)|"
+    # v5: defining targets from geochem/geophysics. Measured at 8% drill data,
+    # so this is exploration work product, not a drill result.
+    r"\b(?:identifies?|identified|outlines?|outlined|defines?|defined|"
+    r"delineates?|delineated)\s+" + _V4_GAP +
+    r"(?:drill\s+targets?|drill\s+plans?|targets?|anomal\w+|"
+    r"geochemical\s+zone|corridor)\b|"
     r"\b(?:phase\s+(?:[IVX]+|\d+|one|two|three|four|five)|\d[\d,]*\s*"
     r"(?:m\b|metre|meter)\w*)\s+" + _V4_GAP + r"(?:drill(?:ing)?\s+program|"
     r"exploration\s+program)|"
@@ -800,7 +835,9 @@ _METALLURGY = re.compile(
     r"\bflotation\b|\bleach(?:ing)?\s+test\w*\b|\bheap\s+leach\b|"
     r"\bbulk\s+sample\b|\bpilot\s+plant\b|\bprocess(?:ing)?\s+plant\b|"
     r"\bmill\s+(?:restart|commission\w*|expansion|throughput)\b|"
-    r"\brecover(?:y|ies)\s+(?:test|rate)s?\b|"
+    r"\brecover(?:y|ies)\s+(?:test|rate|result)s?\b|"
+    r"\b\d[\d.,]*\s*%\s*(?:[\w\-]+\s+){0,3}?recover(?:y|ies)\b|"
+    r"\brecovers?\s+\d[\d.,]*\s*%|"
     r"\bconcentrate\s+(?:grade|production|shipment)\b|"
     r"\bgravity\s+circuit\b|\bcomminution\b|\bassay\s+lab\b"
     r")"
@@ -957,9 +994,10 @@ def categorize(headline: str | None, body: str | None) -> list[str]:
 
     # --- Drill Results: headline reports results, or intercepts + a lede
     #     that declares them --------------------------------------------
-    if _DRILL_RESULT_HEAD.search(h) or (
-        _DRILL_LEDE.search(subj) and _has_intercepts(h, b)
-    ):
+    if (_DRILL_RESULT_HEAD.search(h) or (
+            _DRILL_LEDE.search(subj) and _has_intercepts(h, b))
+            ) and not (_DRILL_HISTORICAL.search(h)
+                       and not _DRILL_NEW_WORK.search(h)):
         cats.append("Drill Results")
 
     # --- Resource Estimates: an estimate delivered, not commissioned -------
@@ -1018,6 +1056,13 @@ def categorize(headline: str | None, body: str | None) -> list[str]:
     if _CORP.search(subj):
         cats.append("Corporate Updates")
 
+    # --- Corporate Updates is the bucket of last resort --------------------
+    # If anything more specific matched, drop it. It means "nothing else fits";
+    # carrying it alongside a real category made the chip a duplicate of the
+    # whole feed instead of a filter.
+    if len(cats) > 1 and "Corporate Updates" in cats:
+        cats = [c for c in cats if c != "Corporate Updates"]
+
     # --- ...or the bucket for everything that matched nothing -------------
     if FALLBACK_TO_CORPORATE and not cats:
         cats.append("Corporate Updates")
@@ -1054,7 +1099,7 @@ SELF_TEST: list[tuple[str, str, list[str], list[str]]] = [
     ("American Copper Development Corporation Grants Stock Options",
      "The Company has granted stock options. American Copper holds an option "
      "to acquire a 100% interest in the Lordsburg property.",
-     ["Corporate Updates"], ["Mergers & Acquisitions", "Financings"]),
+     ["Share Capital & Compensation"], ["Mergers & Acquisitions", "Financings"]),
     ("Alma Gold Closes Private Placement",
      "Alma Gold Corp. announces it has closed its private placement. The "
      "Company retains an option to acquire the remaining 20% interest.",
@@ -1078,15 +1123,15 @@ SELF_TEST: list[tuple[str, str, list[str], list[str]]] = [
 
     # --- drill programs are not drill results ---------------------------
     ("Cascada Mobilizes for Phase II Angie Diamond Drill Program", "",
-     ["Corporate Updates"], ["Drill Results", "Financings"]),
+     ["Exploration Programs"], ["Drill Results", "Financings"]),
     ("American Copper Initiates a 5,000m Drill Program at its Flagship Lordsburg Project",
-     "", ["Corporate Updates"], ["Drill Results", "Marketing Announcement"]),
+     "", ["Exploration Programs"], ["Drill Results", "Marketing Announcement"]),
     ("Anteros Metals Commences Drilling at Seagull Critical Minerals Project", "",
-     ["Corporate Updates"], ["Drill Results"]),
+     ["Exploration Programs"], ["Drill Results"]),
     ("Appia Completes SPARTAN MT Survey at its Otherside Uranium Property", "",
      ["Corporate Updates"], ["Drill Results"]),
     ("Emperor Metals Mobilizes Drill Rig to Advance Duquesne West Exploration",
-     "", ["Corporate Updates"], ["Drill Results"]),
+     "", ["Exploration Programs"], ["Drill Results"]),
     # ...but real results are
     ("Acme Gold Intersects 12.5 m grading 4.30 g/t Au at the Bell Zone", "",
      ["Drill Results"], []),
@@ -1190,12 +1235,12 @@ SELF_TEST: list[tuple[str, str, list[str], list[str]]] = [
      "STATEMENTS: this release contains statements about the Company's "
      "intention to acquire additional claims, complete a private placement, "
      "and commence a drill program at the Foo project.",
-     ["Corporate Updates"],
+     ["Corporate Actions"],
      ["Mergers & Acquisitions", "Financings", "Drill Results"]),
     ("Athena Gold Announces Share Consolidation", "",
-     ["Corporate Updates"], ["Mergers & Acquisitions", "Drill Results"]),
+     ["Corporate Actions"], ["Mergers & Acquisitions", "Drill Results"]),
     ("Cascada Announces Grant of Options", "",
-     ["Corporate Updates"], ["Mergers & Acquisitions", "Drill Results"]),
+     ["Share Capital & Compensation"], ["Mergers & Acquisitions", "Drill Results"]),
 
     # ===== v3b: the regressions the corpus diff found =====
     # 1. a veto must be scoped like the claim it vetoes
@@ -1224,7 +1269,7 @@ SELF_TEST: list[tuple[str, str, list[str], list[str]]] = [
     # 4. a company called Sun Summit is not a conference
     ("Sun Summit Minerals Commences Fieldwork at the Orbit Copper-Gold "
      "Project, Toodoggone Mining District", "",
-     ["Corporate Updates"], ["Marketing Announcement"]),
+     ["Exploration Programs"], ["Marketing Announcement"]),
     ("Norsemont Mining to Host Webinar", "",
      ["Marketing Announcement"], []),
     ("Avalon Advanced Materials to Participate in Sidoti's Micro-Cap Virtual "
@@ -1246,11 +1291,11 @@ SELF_TEST: list[tuple[str, str, list[str], list[str]]] = [
      "Mineral Resource Estimate", "", ["Resource Estimates"], []),
 
     # ===== v3d: routine news that fell through to no category at all =====
-    ("Alma Gold Closes Debt Settlement", "", ["Corporate Updates"], []),
+    ("Alma Gold Closes Debt Settlement", "", ["Share Capital & Compensation"], []),
     ("Affinity Metals Corp. Announces Cancellation of Incentive Stock Options",
-     "", ["Corporate Updates"], []),
+     "", ["Share Capital & Compensation"], []),
     ("Affinity Metals Corp. Announces Proposed Extension of Warrants", "",
-     ["Corporate Updates"], []),
+     ["Share Capital & Compensation"], []),
     ("Appia Completes SPARTAN MT Survey at its Otherside Uranium Property", "",
      ["Corporate Updates"], ["Drill Results"]),
     ("American Copper Development Corporation Completes 134 line-km Titan 160 "
@@ -1266,8 +1311,8 @@ SELF_TEST: list[tuple[str, str, list[str], list[str]]] = [
     ("Emperor Commences Maiden Mineral Resource Estimate for Duquesne West "
      "Gold Project", "", ["Corporate Updates"], ["Resource Estimates"]),
     ("Affinity Metals Completes Shares for Services Agreement", "",
-     ["Corporate Updates"], []),
-    ("IIROC Trade Resumption - BLLG", "", ["Corporate Updates"], []),
+     ["Share Capital & Compensation"], []),
+    ("IIROC Trade Resumption - BLLG", "", ["Listings & Exchange"], []),
 
     # ===== v3d: the specific misses the diff showed =====
     ("Inflection Resources Drilling Intercepts New Zone of Alteration", "",
@@ -1301,7 +1346,7 @@ SELF_TEST: list[tuple[str, str, list[str], list[str]]] = [
     ("Alma Gold Announces Acquisition of Exploration Licences in Dialakoro "
      "Region", "", ["Mergers & Acquisitions"], []),
     ("Cosa Resources Issues Deferred Payment Shares to Denison Mines", "",
-     ["Corporate Updates"], []),
+     ["Share Capital & Compensation"], []),
 
     # ===== v3e: transaction types with no rule at all =====
     ("AUXICO ANNOUNCES JOINT VENTURE FOR A RARE EARTH PROPERTY", "",
@@ -1327,10 +1372,10 @@ SELF_TEST: list[tuple[str, str, list[str], list[str]]] = [
 
     # ===== v3f: the regressions v3e introduced =====
     ("Abitibi Metals Launches Large-Scale Phase 4 Drill Program Targeting Up "
-     "to 40,000 Metres", "", ["Corporate Updates"], ["Drill Results"]),
+     "to 40,000 Metres", "", ["Exploration Programs"], ["Drill Results"]),
     ("Newfoundland Discovery Commences Winter Drilling of up to 10,000 metres "
      "at the Chubb Lithium Project", "",
-     ["Corporate Updates"], ["Drill Results"]),
+     ["Exploration Programs"], ["Drill Results"]),
     # ...the verb form still reports a result
     ("Apex Drills 4.02% REO over 23.7 m at the Cap Project", "",
      ["Drill Results"], []),
@@ -1417,6 +1462,77 @@ SELF_TEST: list[tuple[str, str, list[str], list[str]]] = [
      "Continuity", "", ["Drill Results"], []),
     ("SAGA Metals Reports Assays from R-0055 to R-0057", "",
      ["Drill Results"], []),
+    # ===== v5: grades in the headline are results =====
+    ("Live Energy Minerals Corp. Reports Initial Samples Returning up to 1907 "
+     "ppm Lithium at McDermitt", "", ["Drill Results"], []),
+    ("Vital Battery Metals Field Program Returns 9.5 ppm Gold, 4.84% Copper "
+     "and 1.97% Zinc in Outcrop", "", ["Drill Results"], []),
+    ("Green River Gold Corp. Achieves XRF Results Averaging 0.197% Nickel "
+     "Beginning at Surface", "", ["Drill Results"], []),
+    ("POWR Lithium Discovers up to 1,735 ppm Lithium in Maiden Drilling "
+     "Campaign", "", ["Drill Results"], []),
+    ("Spark's Maiden Drilling Delivers 78-Meters Rare Earth Intercept Grading "
+     "2,430 ppm TREO", "", ["Drill Results"], []),
+    ("Gander Gold Expands Golden Horseshoe Zone at Mount Peyton Project", "",
+     ["Drill Results"], []),
+
+    # ===== v5d: a percentage that is not a grade at all =====
+    ("Lion Situated To Take Advantage Of The EV Boom Creating a 500% Increase "
+     "In Graphite Demand", "", [], ["Drill Results"]),
+    ("ESGold Reports over 90.9% Gold Recovery Using Dundee Sustainable "
+     "Technologies Non-Cyanide Process", "",
+     ["Metallurgy & Processing"], ["Drill Results"]),
+    # ...while real grades still read
+    ("Magna Mining Intersects 29.7% Copper Equivalent over 3.4 metres", "",
+     ["Drill Results"], []),
+    ("Rio Grande Resources Reports Gold up to 41.2 g/t and Silver up to 1,435 "
+     "g/t at Its Winston Project", "", ["Drill Results"], []),
+
+    # ===== v5: a percentage of a company is not a grade =====
+    ("Red Canyon Outlines Drill Plans for Its 100% Owned Osiris Copper-Gold "
+     "Project", "", ["Exploration Programs"], ["Drill Results"]),
+    ("Headwater Gold Commences Drilling Its 100% Owned Mahogany Gold Project",
+     "", ["Exploration Programs"], ["Drill Results"]),
+    ("Golden Arrow Resources Announces US$25 Million Sale of 75% Owned Copper "
+     "Assets at San Pietro", "", ["Mergers & Acquisitions"], ["Drill Results"]),
+    ("Myriad Exercises Initial 50% Option on Copper Mountain", "",
+     ["Mergers & Acquisitions"], ["Drill Results"]),
+    ("Golden Spike Acquires 100% of Golden Horizon Exploration Corp.", "",
+     ["Mergers & Acquisitions"], ["Drill Results"]),
+    ("Pegmatite One Confirms 100% Interest in Golden Scheelite Tungsten "
+     "Project, Humboldt County, Nevada", "", [], ["Drill Results"]),
+    ("Myriad Uranium to Sell Red Basin Uranium Project for US$2.5 Million, "
+     "Retain 10% Free Carried Interest", "", [], ["Drill Results"]),
+
+    # ===== v5: historical numbers are not new results... =====
+    ("Molten Metals Corp. Announces Results of West Gore Digitization, "
+     "Including Historical Intersections", "", [], ["Drill Results"]),
+    ("Maxus Mining Expands Hurley West Antimony Project to Cover Historic "
+     "Stibnite Prospect with Historical Results up to 16.9% Sb", "",
+     [], ["Drill Results"]),
+    # ...but new work ON historic ground is
+    ("Myriad Uranium's Drilling at Copper Mountain Continues to Validate "
+     "Historic Drill Results", "", ["Drill Results"], []),
+    ("Nova Pacific Drilling Confirms Significance of High-Grade Historical "
+     "Trench Results", "", ["Drill Results"], []),
+    ("Big Gold Announces Results from Infill Sampling of Historic Core, "
+     "including 1.46 metres of 1.2 g/t gold", "", ["Drill Results"], []),
+
+    # ===== v5: target definition is exploration, not results =====
+    ("Gander Gold Identifies Multiple Gold Targets Across 25-Km-Long Trend at "
+     "Gander North", "", ["Exploration Programs"], []),
+    ("Goldrea's 3DIP Survey Identifies Second Porphyry Copper Target at "
+     "Cannonball Property", "", ["Exploration Programs"], []),
+    ("MANNING VENTURES OUTLINES 800-METER COPPER GEOCHEMICAL ZONE AT THE "
+     "COPPER HILL PROJECT", "", ["Exploration Programs"], []),
+
+    # ===== v5: "Discovery" in a company name is still not a discovery =====
+    ("Exploits Discovery Announces Leadership Transition", "",
+     [], ["Drill Results"]),
+    ("Newfoundland Discovery Announces Change of Officer", "",
+     [], ["Drill Results"]),
+    ("Discovery Lithium Inc. Announces Name Change", "",
+     ["Corporate Actions"], ["Drill Results"]),
 ]
 
 
