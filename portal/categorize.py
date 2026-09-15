@@ -90,7 +90,7 @@ from typing import Iterable
 #          bucket and grows.
 # False -> tighter chips, but N releases carry no category at all and are
 #          invisible on the front page (3,502 are in that state today).
-FALLBACK_TO_CORPORATE = False
+FALLBACK_TO_CORPORATE = True
 
 # How much of the body counts as "the subject of the release".
 LEDE_CHARS = 900
@@ -920,6 +920,132 @@ _PARTNERSHIPS = re.compile(
 
 
 # ===========================================================================
+# v6 recall pass (2026-09-15). Parallel constants, OR-ed in at the call site,
+# so no existing pattern is edited. Every one of these was derived from a
+# measured bucket in the Corporate-Updates-only corpus, not from imagination.
+# ===========================================================================
+
+# The gap class needs the LEFT curly quote too. U+2018 opens "Acquires the
+# 'South-Advocate Hydrogen Project'" and the class only had U+2019.
+_V6_GAP = r"(?:[\w.,'’‘\"“”\-%$&/]+\s+){0,6}?"
+
+# --- Management Changes without a parseable person ------------------------
+# management_extract answers "who moved into what role". When the headline
+# names nobody it returns nothing, and 194 releases fell through.
+_MGMT_ROLE = (r"(?:CEO|CFO|COO|CTO|President|Chair(?:man|person|woman)?|"
+              r"Directors?|Board|Officers?|VP|Vice[-\s]President|"
+              r"General\s+Counsel|Treasurer|Secretary|Managers?|Advisors?|"
+              r"Advisory\s+(?:Board|Council)|Geologist|Executive)")
+
+_MGMT_HEAD = re.compile(
+    r"(?i)(?:"
+    r"\b(?:appoints?|appointed|appointments?\s+of|names?)\s+" + _V6_GAP +
+    _MGMT_ROLE + r"\b|"
+    r"\bappoints?\s+(?:new\s+)?(?:[\w.\-]+\s+){1,3}(?:as|to)\b|"
+    r"\b(?:resignations?|resigns?|resigned|steps?\s+down|stepping\s+down|"
+    r"departure\s+of|retires?\s+as|retirement\s+of)\b|"
+    r"\bleadership\s+(?:changes?|transition|appointments?)\b|"
+    r"\b(?:senior\s+)?management\s+(?:changes?|transition)\b|"
+    r"\bboard\s+(?:changes?|appointments?|refresh\w*|renewal)\b|"
+    r"\bchange\s+of\s+(?:officer|director|management)\b|"
+    r"\b(?:strengthens?|bolsters?|expands?|adds?\s+to)\s+" + _V6_GAP +
+    r"(?:board\b|management\s+team|leadership\s+team|"
+    r"advisory\s+(?:board|council))|"
+    r"\b(?:joins?|joining)\s+(?:the\s+)?(?:board|advisory\s+board|"
+    r"management\s+team)\b"
+    r")"
+)
+# Hiring a service provider is not a management change. Without this,
+# "Appoints New Auditor" and "Appoints Red Cloud as IR Advisor" both land in
+# Management Changes.
+_MGMT_NOT = re.compile(
+    r"(?i)\b(?:auditors?|transfer\s+agent|market\s+makers?|"
+    r"investor\s+relations|IR\s+(?:firm|advisor|provider)|"
+    r"marketing\s+(?:firm|agency|services)|"
+    r"communications\s+(?:firm|agency)|"
+    r"(?:legal|financial)\s+advisors?\s+(?:firm|to\s+the))\b"
+)
+
+# --- Corporate Actions: dividends, buybacks, consolidations ---------------
+_CORP_ACTIONS_V6 = re.compile(
+    r"(?i)(?:"
+    r"\b(?:declares?|declaration\s+of|announces?|initiates?|increases?|"
+    r"reinstates?|suspends?)\s+" + _V6_GAP + r"dividends?\b|"
+    r"\b(?:quarterly|semi-?annual|annual|special|inaugural|regular|monthly)\s+"
+    r"(?:cash\s+)?dividends?\b|"
+    r"\bdividend\s+(?:policy|declaration|payment|record\s+date|of\s+)|"
+    r"\bnormal\s+course\s+issuer\s+bid\b|\bNCIB\b|"
+    r"\bsubstantial\s+issuer\s+bid\b|"
+    r"\bshare\s+(?:buy-?back|repurchase)\s+program\b|"
+    r"\bproposed\s+consolidation\b|"
+    r"\bannounces?\s+(?:a\s+)?(?:proposed\s+)?(?:share\s+)?consolidation\b|"
+    r"\bconsolidation\s+of\s+" + _V6_GAP + r"shares?\b|"
+    r"\bearly\s+warning\s+report\b|"
+    r"\b(?:adopts?|adoption\s+of)\s+" + _V6_GAP +
+    r"(?:semi-?annual|quarterly)\s+(?:financial\s+)?reporting\b|"
+    r"\breporting\s+exemption\b"
+    r")"
+)
+
+# --- Share Capital: the reverse noun order ---------------------------------
+_SHARE_CAPITAL_V6 = re.compile(
+    r"(?i)(?:"
+    r"\boptions?\s+grants?\b|\boption\s+grants?\b|"
+    r"\bgrant\s+of\s+(?:stock\s+|incentive\s+)?options?\b|"
+    r"\b(?:equity\s+)?incentive\s+plan\b|"
+    r"\bshare\s+issuances?\b|"
+    r"\brestricted\s+share\s+unit\s+grants?\b"
+    r")"
+)
+
+# --- Listings: the venue is there, the verb is a noun ----------------------
+_LISTINGS_V6 = re.compile(
+    r"(?i)(?:"
+    r"\bcommencement\s+of\s+" + _V6_GAP + r"trading\b|"
+    r"\b(?:OTCQB|OTCQX|OTC\s+Markets)\b[^.\n]{0,30}\btrading\b|"
+    r"\btrading\b[^.\n]{0,30}\b(?:OTCQB|OTCQX)\b|"
+    r"\bwelcomes?\b[^\n]{0,60}?\bto\s+(?:the\s+)?(?:OTCQX|OTCQB)\b|"
+    r"\b(?:begins?|commences?|commenced)\s+trading\s+(?:on|under|as)\b|"
+    r"\bgraduat\w+\s+to\s+(?:the\s+)?(?:TSX|TSXV|CSE|NYSE|NASDAQ|"
+    r"Toronto\s+Stock\s+Exchange)\b|"
+    r"\buplist\w+\b"
+    r")"
+)
+
+# --- M&A: the word-boundary defect and the curly quote --------------------
+_MA_V6 = re.compile(
+    r"(?i)\b(?:acquires?|acquisition\s+of|to\s+acquire)\s+" + _V6_GAP +
+    r"(?:minerals?|prospects?|concessions?|tenements?|projects?|propert\w+|"
+    r"claims?|leases?|licen[cs]es?|royalt\w+|interests?|assets?|deposits?|"
+    r"mines?|stakes?|land\s+package|compan(?:y|ies)|corp\w*|\binc\b|\bltd\b|"
+    r"limited|resources?|metals?|holdings?)"
+)
+
+# --- Exploration: surveys that do not say "survey" next, and progress -----
+# Justin's call, 2026-09-15: a drilling progress report with no assays is part
+# of the PROGRAM, not a result. Drill Results keeps meaning "there are numbers
+# in this release".
+_EXPLORATION_V6 = re.compile(
+    r"(?i)(?:"
+    r"\bgeophysic\w+|"
+    r"\b(?:MT|IP|DCIP|3DIP|ZTEM|VTEM|EM|CSAMT)\s+surveys?\b|"
+    r"\b(?:magnetotelluric|radiometric|aeromagnetic|induced[-\s]polarization)\b|"
+    r"\b(?:soil|rock|channel|surface|grab|till|stream\s+sediment)\s+"
+    r"sampl\w+|"
+    r"\bsampling\s+(?:program|campaign|underway|commenc\w+)\b|"
+    r"\b(?:commences?|commenced|begins?|initiates?|completes?|completed)\s+" +
+    _V6_GAP + r"sampling\b|"
+    r"\b(?:drilling|exploration|fieldwork|field\s+work|work\s+program)\s+"
+    r"(?:progress\s+)?updates?\b|"
+    r"\bdrilling\s+progress\b|"
+    r"\bauger\s+drilling\b|\btrench(?:es|ing)\b|"
+    r"\bfield\s+(?:work|program|reconnaissance)\b|"
+    r"\bdownhole\s+survey\b|\bopticals?\s+televiewer\b"
+    r")"
+)
+
+
+# ===========================================================================
 # Delegation. management_extract is the authority on what a management change
 # IS, so the category asks it. Imported lazily and guarded: if it is ever
 # missing, categorisation degrades rather than raising on every ingest.
@@ -1006,7 +1132,8 @@ def categorize(headline: str | None, body: str | None) -> list[str]:
         cats.append("Resource Estimates")
 
     # --- Management Changes: unchanged, already delegated ------------------
-    if _is_management_change(h):
+    if _is_management_change(h) or (_MGMT_HEAD.search(h)
+                                    and not _MGMT_NOT.search(h)):
         cats.append("Management Changes")
 
     # --- Economic Studies: a delivered study, not a commissioned one -------
@@ -1027,23 +1154,24 @@ def categorize(headline: str | None, body: str | None) -> list[str]:
         cats.append("Financials")
 
     # --- M&A: headline says so, or the lede DECLARES a transaction --------
-    if (_MA_HEAD.search(h) or _MA_DECLARE.search(subj)) and not third_party:
+    if (_MA_HEAD.search(h) or _MA_V6.search(h)
+            or _MA_DECLARE.search(subj)) and not third_party:
         cats.append("Mergers & Acquisitions")
 
     # --- v4 categories: headline-scoped, additive -------------------------
-    if _EXPLORATION.search(h):
+    if _EXPLORATION.search(h) or _EXPLORATION_V6.search(h):
         cats.append("Exploration Programs")
     if _PERMITS.search(h) and not third_party:
         cats.append("Permits & Approvals")
     if _METALLURGY.search(h):
         cats.append("Metallurgy & Processing")
-    if _SHARE_CAPITAL.search(h):
+    if _SHARE_CAPITAL.search(h) or _SHARE_CAPITAL_V6.search(h):
         cats.append("Share Capital & Compensation")
-    if _LISTINGS.search(h):
+    if _LISTINGS.search(h) or _LISTINGS_V6.search(h):
         cats.append("Listings & Exchange")
     if _MEETINGS.search(h):
         cats.append("Shareholder Meetings")
-    if _CORP_ACTIONS.search(h):
+    if _CORP_ACTIONS.search(h) or _CORP_ACTIONS_V6.search(h):
         cats.append("Corporate Actions")
     if _PARTNERSHIPS.search(h):
         cats.append("Partnerships & JV")
@@ -1533,6 +1661,120 @@ SELF_TEST: list[tuple[str, str, list[str], list[str]]] = [
      [], ["Drill Results"]),
     ("Discovery Lithium Inc. Announces Name Change", "",
      ["Corporate Actions"], ["Drill Results"]),
+]
+
+
+# --- v6: expectations changed by decisions taken 2026-09-15 ---------------
+# A survey and a drilling progress report are exploration work, not "nothing
+# else fits". A leadership change with no named person is still a management
+# change. These four were written when those cases had nowhere to go.
+_V6_OVERRIDES = {
+    "Appia Completes SPARTAN MT Survey at its Otherside Uranium Property":
+        (["Exploration Programs"], ["Drill Results"]),
+    "American Copper Development Corporation Completes 134 line-km Titan 160 "
+    "DCIP and MT Survey":
+        (["Exploration Programs"], ["Drill Results"]),
+    "Anteros Metals Reports Drilling Update at Seagull Critical Minerals "
+    "Project, Ontario":
+        (["Exploration Programs"], ["Drill Results"]),
+    "Cascada Announces Senior Leadership Changes":
+        (["Management Changes"], []),
+}
+SELF_TEST = [
+    ((h, b) + _V6_OVERRIDES[h]) if h in _V6_OVERRIDES else (h, b, mi, me)
+    for (h, b, mi, me) in SELF_TEST
+]
+
+SELF_TEST += [
+    # --- Corporate Actions had no dividend rule at all -------------------
+    ("Centerra Gold Announces Quarterly Dividend of C$0.07 per Common Share",
+     "", ["Corporate Actions"], []),
+    ("Lundin Mining Announces Declaration of Regular Dividend", "",
+     ["Corporate Actions"], []),
+    ("LUNDIN GOLD DECLARES QUARTERLY DIVIDENDS OF US$1.08 PER SHARE", "",
+     ["Corporate Actions"], []),
+    ("Advanced Gold Announces Proposed Consolidation", "",
+     ["Corporate Actions"], []),
+    ("Silver Tiger Announces Normal Course Issuer Bid", "",
+     ["Corporate Actions"], []),
+
+    # --- Share Capital: "Option Grants" is the common noun order ---------
+    ("Auric Minerals Corp. Announces Option Grants", "",
+     ["Share Capital & Compensation"], []),
+    ("Class 1 Nickel Announces Option Grant", "",
+     ["Share Capital & Compensation"], []),
+    ("Refined Energy Corp. Announces Option Grant to Advisory Board Members",
+     "", ["Share Capital & Compensation"], []),
+
+    # --- Listings: venue present, verb is a noun -------------------------
+    ("KO Gold Announces Commencement of OTCQB Trading", "",
+     ["Listings & Exchange"], []),
+    ("OTC Markets Group Welcomes Tartisan Nickel Corp. to OTCQX", "",
+     ["Listings & Exchange"], []),
+    ("North Atlantic Titanium Corp commences trading under its new Canadian "
+     "Stock Exchange ticker", "", ["Listings & Exchange"], []),
+
+    # --- Management Changes with nobody named ----------------------------
+    ("American Copper Development Corp. Announces Leadership Transition and "
+     "Strategic Refocus", "", ["Management Changes"], []),
+    ("Exploits Discovery Announces Leadership Transition", "",
+     ["Management Changes"], ["Drill Results"]),
+    ("Bayridge Forms Advisory Council and Appoints Timothy Henneberry as "
+     "Inaugural Member", "", ["Management Changes"], []),
+    ("Frontier Lithium Bolsters Executive Advisory Council to Drive Execution "
+     "Readiness", "", ["Management Changes"], []),
+    ("Goldsky appoints Carl Danielsson as Manager of Communications and "
+     "Public Affairs", "", ["Management Changes"], []),
+    # ...but hiring a service provider is not one
+    ("Peloton Minerals Appoints New Auditor", "", [], ["Management Changes"]),
+    ("Alma Gold Engages Investing News Network", "",
+     ["Marketing Announcement"], ["Management Changes"]),
+    ("Advanced Gold Exploration Retains Market Maker Services", "",
+     [], ["Management Changes", "Exploration Programs"]),
+
+    # --- M&A: the word boundary after "mineral", and the left curly quote -
+    ("United Lithium Acquires Swedish Minerals AB Expanding Its Nordic "
+     "Critical Minerals Platform", "", ["Mergers & Acquisitions"], []),
+    ("Cruz Battery Metals Acquires the ‘South-Advocate Hydrogen "
+     "Project’ in Nova Scotia", "", ["Mergers & Acquisitions"], []),
+    ("Green River Gold Corp. Acquires Lithium Prospect in Central British "
+     "Columbia", "", ["Mergers & Acquisitions"], []),
+
+    # --- Exploration: surveys, sampling, progress ------------------------
+    ("Bayridge Resources Commences Advanced Geophysical Re-interpretation at "
+     "the Baker Lake Project", "", ["Exploration Programs"], []),
+    ("Anteros Metals Provides Phase 1 Drilling Update at Seagull Critical "
+     "Minerals Project", "", ["Exploration Programs"], ["Drill Results"]),
+    ("Inflection Resources Provides Drilling Update From Northern New South "
+     "Wales", "", ["Exploration Programs"], ["Drill Results"]),
+    ("Athena Gold Provides Exploration Update From Nevada and Ontario", "",
+     ["Exploration Programs"], []),
+    ("QIMC Commences Hydrogen-Helium Soil Gas Sampling at Ville Marie", "",
+     ["Exploration Programs"], []),
+    ("Exploits Commences Optical Televiewer Downhole Survey at Bullseye "
+     "Property", "", ["Exploration Programs"], []),
+    # ...and a company name containing a verb is still not a program
+    ("Advanced Gold Copper, Gold, Silver VMS Drilling, Buck Lake, Ontario",
+     "", [], ["Exploration Programs"]),
+]
+
+
+
+SELF_TEST += [
+    # --- v6b: a bulk sample is process work, not a soil survey -----------
+    ("Honey Badger Silver Provides Bulk Sample Update at the PC Silver Mine",
+     "", ["Metallurgy & Processing"], ["Exploration Programs"]),
+    # --- v6b: an acquisition that already happened is not this release ---
+    # "Announces <x> Program" is a known recall gap, deliberately left for the
+    # next measured pass. What matters here is that a past acquisition
+    # mentioned in passing does not make this release M&A.
+    ("Big Gold Announces Spring Exploration Program for Newly Acquired Tabor "
+     "Project in Shebandowan", "", [], ["Mergers & Acquisitions"]),
+    ("FATHOM ANNOUNCES COMPLETION OF SURFACE PROGRAM AT THE RECENTLY ACQUIRED "
+     "TREMBLAY-OLSON AREA CLAIMS", "", [], ["Mergers & Acquisitions"]),
+    # ...while the present tense is still a transaction
+    ("Mosaic Minerals Acquires 6,600 Hectares With Critical Minerals "
+     "Potential in Nunavik", "", ["Mergers & Acquisitions"], []),
 ]
 
 

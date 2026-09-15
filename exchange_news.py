@@ -276,6 +276,14 @@ def cse_company_ids() -> dict:
 # pull
 # --------------------------------------------------------------------------
 
+
+def _unescape_title(s: str | None) -> str:
+    """Feed titles are HTML-escaped. "Fe &amp; 112.6 Metres" is a headline the
+    site would otherwise publish with the entity still in it."""
+    import html as _html
+    return _html.unescape((s or "")).strip()
+
+
 def pull_cse(cse_universe: dict, ids: dict, cutoff: str, only: set | None) -> list[dict]:
     rows, n_err = [], 0
     targets = [(b, ids[b]) for b in sorted(cse_universe) if b in ids]
@@ -309,7 +317,7 @@ def pull_cse(cse_universe: dict, ids: dict, cutoff: str, only: set | None) -> li
                 "source": "cse", "bare": b,
                 "ticker": cse_universe[b].get("symbol") or b,
                 "exchange": "CSE", "published_date": date,
-                "title": (x.get("title") or "").strip(),
+                "title": _unescape_title(x.get("title")),
                 "url": x.get("fileUrl") or "",
             })
     if n_err:
@@ -373,7 +381,7 @@ def pull_cse_fast(cse_universe: dict, cutoff: str, only: set | None) -> list[dic
             "source": "cse", "bare": b,
             "ticker": cse_universe[b].get("symbol") or b,
             "exchange": "CSE", "published_date": date,
-            "title": (obj.get("title") or "").strip(),
+            "title": _unescape_title(obj.get("title")),
             "url": obj.get("fileUrl") or "",
         })
     log(f"CSE fast feed: read {seen} releases, {len(rows)} are ours since {cutoff}")
@@ -521,6 +529,24 @@ def pull_tmx(tsx_universe: dict, cutoff: str, only: set | None) -> list[dict]:
 # reconcile
 # --------------------------------------------------------------------------
 
+def _win(d: str, back: int, fwd: int):
+    """Half-open [lo, hi) date window as plain ISO strings, or None.
+
+    published_at is 'YYYY-MM-DDT12:00:00Z', so string comparison is equivalent
+    to date() comparison and, unlike date(), can use idx_events_published_at.
+    Returns None if the date will not parse; the caller then falls back to the
+    original date() form, so behaviour is never worse than before.
+    """
+    import datetime as _dt
+    try:
+        base = _dt.date.fromisoformat((d or "")[:10])
+    except Exception:                                # noqa: BLE001
+        return None
+    return ((base - _dt.timedelta(days=back)).isoformat(),
+            (base + _dt.timedelta(days=fwd + 1)).isoformat())
+
+
+
 def find_match(pcon: sqlite3.Connection, rel: dict,
                title: str | None = None) -> tuple[str | None, str | None]:
     """(event_id, ticker_it_was_filed_under). Looks for this release among the
@@ -546,20 +572,36 @@ def find_match(pcon: sqlite3.Connection, rel: dict,
                 return eid, tk
         return None, None
 
-    own = pcon.execute(
-        "SELECT event_id, raw_headline, ticker FROM events "
-        "WHERE ticker LIKE ? AND date(published_at) BETWEEN date(?,'-3 day') AND date(?,'+3 day')",
-        (rel["bare"] + "%", d, d),
-    ).fetchall()
+    _w = _win(d, 3, 3)
+    if _w:
+        own = pcon.execute(
+            "SELECT event_id, raw_headline, ticker FROM events "
+            "WHERE ticker LIKE ? AND published_at >= ? AND published_at < ?",
+            (rel["bare"] + "%", _w[0], _w[1]),
+        ).fetchall()
+    else:
+        own = pcon.execute(
+            "SELECT event_id, raw_headline, ticker FROM events "
+            "WHERE ticker LIKE ? AND date(published_at) BETWEEN date(?,'-3 day') AND date(?,'+3 day')",
+            (rel["bare"] + "%", d, d),
+        ).fetchall()
     eid, tk = scan(own)
     if eid:
         return eid, None
 
-    other = pcon.execute(
-        "SELECT event_id, raw_headline, ticker FROM events "
-        "WHERE date(published_at) BETWEEN date(?,'-2 day') AND date(?,'+2 day')",
-        (d, d),
-    ).fetchall()
+    _w = _win(d, 2, 2)
+    if _w:
+        other = pcon.execute(
+            "SELECT event_id, raw_headline, ticker FROM events "
+            "WHERE published_at >= ? AND published_at < ?",
+            (_w[0], _w[1]),
+        ).fetchall()
+    else:
+        other = pcon.execute(
+            "SELECT event_id, raw_headline, ticker FROM events "
+            "WHERE date(published_at) BETWEEN date(?,'-2 day') AND date(?,'+2 day')",
+            (d, d),
+        ).fetchall()
     eid, tk = scan(other)
     if eid:
         return eid, tk           # found, but filed under the wrong company
@@ -588,11 +630,19 @@ def covered_by_count(pcon: sqlite3.Connection, rels: list[dict]) -> set:
         by_day.setdefault((r["bare"], r["published_date"]), []).append(r)
     out = set()
     for (b, d), group in by_day.items():
-        have = pcon.execute(
-            "SELECT COUNT(*) FROM events WHERE ticker LIKE ? "
-            "AND date(published_at) BETWEEN date(?,'-1 day') AND date(?,'+1 day')",
-            (b + "%", d, d),
-        ).fetchone()[0]
+        _w = _win(d, 1, 1)
+        if _w:
+            have = pcon.execute(
+                "SELECT COUNT(*) FROM events WHERE ticker LIKE ? "
+                "AND published_at >= ? AND published_at < ?",
+                (b + "%", _w[0], _w[1]),
+            ).fetchone()[0]
+        else:
+            have = pcon.execute(
+                "SELECT COUNT(*) FROM events WHERE ticker LIKE ? "
+                "AND date(published_at) BETWEEN date(?,'-1 day') AND date(?,'+1 day')",
+                (b + "%", d, d),
+            ).fetchone()[0]
         if have >= len(group):
             for r in group:
                 out.add(uid_for(r["source"], r["ticker"], r["published_date"],
@@ -780,6 +830,109 @@ def headline_from(body: str, fallback: str) -> str:
     return out[:300] or fallback
 
 
+
+# --------------------------------------------------------------------------
+# .docx
+#
+# The CSE stores a slice of its filings as Word documents -- 137 of 179
+# failures on 2026-09-15, 76.5% of them. A .docx is XML in a zip, so this
+# needs no dependency beyond the standard library.
+#
+# Runs inside a paragraph are joined with NOTHING. Word splits a sentence
+# across many <w:t> runs and frequently splits mid-number, because a bold or
+# differently-kerned digit becomes its own run; joining with a space produced
+# "2 7 . 2 %" for "27.2%". Only paragraph ends become newlines, so the output
+# has the same shape as pdf_text() -- which headline_from() and the dateline
+# date extractor both depend on.
+# --------------------------------------------------------------------------
+
+_DOCX_P   = re.compile(r"</w:p\s*>", re.I)
+_DOCX_BR  = re.compile(r"<w:(?:br|cr)\b[^>]*/?>", re.I)
+_DOCX_TAB = re.compile(r"<w:tab\b[^>]*/?>", re.I)
+_DOCX_RUN = re.compile(r"<w:t(?:\s[^>]*)?>(.*?)</w:t>", re.I | re.S)
+
+
+def is_docx(data: bytes) -> bool:
+    """A zip whose listing contains word/document.xml."""
+    if not data[:4] == b"PK\x03\x04":
+        return False
+    import zipfile
+    try:
+        return "word/document.xml" in zipfile.ZipFile(io.BytesIO(data)).namelist()
+    except Exception:                            # noqa: BLE001
+        return False
+
+
+def docx_text(data: bytes, max_chars: int = 400_000) -> str:
+    """Body text of a .docx, one paragraph per line. '' if unreadable."""
+    import html as _html
+    import zipfile
+    try:
+        z = zipfile.ZipFile(io.BytesIO(data))
+        if "word/document.xml" not in z.namelist():
+            return ""
+        xml = z.read("word/document.xml").decode("utf-8", "ignore")
+    except Exception:                            # noqa: BLE001
+        return ""
+    xml = _DOCX_TAB.sub(" ", xml)
+    xml = _DOCX_BR.sub("</w:p>", xml)            # a manual break ends a line too
+    lines = []
+    for chunk in _DOCX_P.split(xml):
+        text = "".join(_DOCX_RUN.findall(chunk))
+        if not text:
+            continue
+        text = _html.unescape(text)
+        text = re.sub(r"[ \t\u00a0]+", " ", text).strip()
+        if text:
+            lines.append(text)
+    return re.sub(r"\n{3,}", "\n\n", "\n".join(lines)).strip()[:max_chars]
+
+
+def docx_self_test(verbose: bool = False) -> int:
+    """Build a .docx in memory and prove the run-joining rule.
+
+    The failure this guards against is silent: a reader that joins runs with a
+    space still returns plausible-looking text, and every grade and length in
+    it is corrupted.
+    """
+    import zipfile
+    body = (
+        '<?xml version="1.0"?><w:document xmlns:w="x"><w:body>'
+        '<w:p><w:r><w:t>High Tide Reports </w:t></w:r>'
+        '<w:r><w:t>91.</w:t></w:r><w:r><w:t>4</w:t></w:r>'
+        '<w:r><w:t> Metres of </w:t></w:r>'
+        '<w:r><w:t>2</w:t></w:r><w:r><w:t>8</w:t></w:r>'
+        '<w:r><w:t>.7</w:t></w:r><w:r><w:t>% Fe</w:t></w:r></w:p>'
+        '<w:p><w:r><w:t>Vancouver, B.C. &amp; Toronto</w:t></w:r></w:p>'
+        '<w:p><w:r><w:t>Line<w:tab/>after tab</w:t></w:r></w:p>'
+        '</w:body></w:document>'
+    )
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as z:
+        z.writestr("word/document.xml", body)
+    raw = buf.getvalue()
+
+    got = docx_text(raw)
+    fails = []
+    if not is_docx(raw):
+        fails.append("is_docx did not recognise a real docx")
+    if "91.4 Metres of 28.7% Fe" not in got:
+        fails.append(f"runs were not joined cleanly: {got[:80]!r}")
+    if "Vancouver, B.C. & Toronto" not in got:
+        fails.append("xml entities were not unescaped")
+    if len(got.splitlines()) != 3:
+        fails.append(f"expected 3 paragraphs, got {len(got.splitlines())}")
+    if is_docx(b"%PDF-1.4 not a zip"):
+        fails.append("is_docx accepted a PDF")
+    if docx_text(b"garbage") != "":
+        fails.append("docx_text did not return '' for garbage")
+
+    if verbose or fails:
+        for f in fails:
+            print("  docx FAIL:", f)
+    return 1 if fails else 0
+
+
 def fetch_release(rel: dict) -> tuple[str, str, str]:
     """(body, headline, error). Fetches the PDF and reads it; publishes nothing.
 
@@ -791,6 +944,11 @@ def fetch_release(rel: dict) -> tuple[str, str, str]:
         data = http_get(rel["url"])
     except Exception as e:                       # noqa: BLE001
         return "", "", f"fetch: {type(e).__name__} {str(e)[:60]}"
+    if is_docx(data):
+        body = docx_text(data)
+        if len(body) < 200:
+            return "", "", f"docx text too short ({len(body)} chars)"
+        return body, headline_from(body, rel["title"]), ""
     if not data[:5].startswith(b"%PDF"):
         return "", "", f"not a pdf ({data[:8]!r})"
     try:
