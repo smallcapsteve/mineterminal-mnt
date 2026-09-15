@@ -1159,3 +1159,60 @@ main {
   .mtp-hero-title { font-size: 2.5rem; }
   .mtp-hero-lede { font-size: 1.1rem; }
 }
+
+
+/* ============== Wide-table handling (2026-09-15) ==============
+   .fin-table sets white-space: nowrap on every cell, which is right for
+   tickers, dates and amounts and wrong for free text. These three columns hold
+   names, job titles and headlines; without a width they pushed the Management
+   Changes table about 600px past the 1100px content column. Same treatment as
+   .fin-warrant, which already did this. */
+/* max-width on a <td> is ignored under table-layout: auto -- the browser sizes
+   columns from content. Measured after the first attempt: Role was still 408px
+   and Release 813px, the table 1828px inside a 1060px wrapper, and the document
+   2018px wide at a 1440px viewport. table-layout: fixed + a colgroup is the
+   form the browser must honour. */
+.mgmt-table { table-layout: fixed; width: 100%; }
+.mgmt-table th,
+.mgmt-table td { white-space: normal; }
+/* Break inside a word only where words are genuinely long: job titles and
+   headlines. On the short columns it split "CHANGED" and "management". */
+.mgmt-person, .mgmt-role, .mgmt-headline { overflow-wrap: anywhere; }
+.mgmt-table .fin-status { white-space: nowrap; }
+.mgmt-table .fin-kind   { white-space: nowrap; }
+.mgmt-role { color: var(--ink-soft); }
+
+/* Backstop: if a table still cannot fit, it scrolls inside the page rather
+   than running off it. */
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.table-scroll > .fin-table { min-width: 720px; }
+
+
+/* ===== v4 category chips (2026-09-15) =====
+   feed.html renders `cat-chip cat-chip-<code>` and `cat-badge cat-<code>`, so
+   every new code needs a rule or its chip renders unstyled. */
+.cat-chip-exp, .cat-exp { background: #e8f1e6; border-color: #b8d4b0; color: #2f5d34; }
+.cat-chip-per, .cat-per { background: #eaf0f7; border-color: #b6c9e0; color: #2b4a70; }
+.cat-chip-met, .cat-met { background: #f2eef7; border-color: #cfc0e0; color: #543a73; }
+.cat-chip-cap, .cat-cap { background: #fdf0e6; border-color: #e8c8a8; color: #7a4a1c; }
+.cat-chip-lst, .cat-lst { background: #e6f4f6; border-color: #aed4da; color: #1f5a63; }
+.cat-chip-mtg, .cat-mtg { background: #f6f1e6; border-color: #ddd0ab; color: #6b5720; }
+.cat-chip-act, .cat-act { background: #f7eef1; border-color: #e0c0cb; color: #733a4c; }
+.cat-chip-jv,  .cat-jv  { background: #eef3ee; border-color: #c2d5c2; color: #3c5a3f; }
+
+
+/* ===== nav wrapping (2026-09-15) =====
+   Eleven nav items plus the search box need ~1417px inside a 1100px container,
+   so the document scrolled to 1587px at a 1440px viewport -- the header ran off
+   the page exactly like the management table did. Measured, not guessed. Let
+   the bar wrap instead of pushing the document wider. */
+.primary-nav-inner { flex-wrap: wrap; row-gap: 0.3rem; }
+.primary-nav-links { flex-wrap: wrap; row-gap: 0.15rem; }
+.primary-nav-search { margin-left: auto; }
+@media (max-width: 1250px) {
+  .primary-nav-links a { font-size: 0.86rem; }
+}

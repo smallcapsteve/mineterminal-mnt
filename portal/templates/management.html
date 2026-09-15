@@ -43,7 +43,17 @@
   {% if not rows %}
     <p class="empty">No management changes yet.</p>
   {% else %}
-    <table class="fin-table">
+    <div class="table-scroll">
+    <table class="fin-table mgmt-table">
+      <colgroup>
+        <col style="width: 8%">   <!-- Ticker  -->
+        <col style="width: 9%">   <!-- Date    -->
+        <col style="width: 9%">   <!-- Change  -->
+        <col style="width: 13%">  <!-- Person  -->
+        <col style="width: 18%">  <!-- Role    -->
+        <col style="width: 10%">  <!-- Where   -->
+        <col style="width: 33%">  <!-- Release -->
+      </colgroup>
       <thead>
         <tr>
           <th>Ticker</th>
@@ -69,7 +79,7 @@
             <td class="mgmt-role">{{ r["role"] or "—" }}</td>
             <td class="fin-kind">{{ r["scope"] }}</td>
             <td class="mgmt-headline">
-              <a href="/event/{{ r['event_id'] }}">{{ (r["raw_headline"] or "")[:110] }}</a>
+              <a href="/event/{{ r['event_id'] }}">{{ (r["raw_headline"] or "")[:95] }}</a>
               {% if (r["n_changes"] or 1) > 1 %}
                 <span class="fin-tranches">· {{ r["n_changes"] }} people</span>
               {% endif %}
@@ -78,6 +88,7 @@
         {% endfor %}
       </tbody>
     </table>
+    </div>
   {% endif %}
   {% include "_pager.html" %}
 {% endblock %}

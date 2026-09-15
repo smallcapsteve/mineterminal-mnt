@@ -1490,30 +1490,42 @@ def drills_page(
     ticker: str | None = None,
     days: int = 0,
     page: int = 1,
+    has: str = "all",
 ):
     """Drill results lifecycle table — top intercepts grouped by company."""
     conn = db.get_conn()
-    where, args = [], []
-    if ticker:
-        where.append("dr.ticker = ?")
-        args.append(ticker)
+    # Driven by the TAG, not by drill_results: 376 tagged releases have no
+    # parseable intercept and used to be invisible here. has=data brings back
+    # the old extracted-only view.
+    where, args = _cat_where("Drill Results", ticker)
+    where = [where]
     if days and days > 0:
         cutoff = (_dt_drill.utcnow() - _td_drill(days=days)).strftime("%Y-%m-%d")
-        where.append("substr(dr.published_at, 1, 10) >= ?")
+        where.append("substr(COALESCE(e.published_at, e.classified_at), 1, 10) >= ?")
         args.append(cutoff)
-    sql = (
-        "SELECT dr.*, e.slug FROM drill_results dr "
-        "LEFT JOIN events e ON e.event_id = dr.event_id "
-    )
-    if where:
-        sql += " WHERE " + " AND ".join(where)
-    _cnt = "SELECT COUNT(*) FROM drill_results dr"
-    if where:
-        _cnt += " WHERE " + " AND ".join(where)
+    if has == "data":
+        where.append("dr.event_id IS NOT NULL")
+    clause = " AND ".join(where)
+    _cnt = ("SELECT COUNT(*) FROM events e "
+            "LEFT JOIN drill_results dr ON dr.event_id = e.event_id "
+            "WHERE " + clause)
     total_filtered = conn.execute(_cnt, args).fetchone()[0]
     pages, page_no, _off = _paginate(total_filtered, page)
-    sql += " ORDER BY dr.published_at DESC LIMIT ? OFFSET ?"
+    sql = (
+        "SELECT e.event_id, e.ticker, e.slug, e.raw_headline, "
+        "       COALESCE(e.published_at, e.classified_at) AS published_at, "
+        "       dr.project, dr.top_hole_id, dr.top_summary, dr.top_grade, "
+        "       dr.top_unit, dr.top_metal, dr.top_length_m, dr.n_intercepts "
+        "FROM events e "
+        "LEFT JOIN drill_results dr ON dr.event_id = e.event_id "
+        "WHERE " + clause +
+        " ORDER BY published_at DESC LIMIT ? OFFSET ?"
+    )
     rows = list(conn.execute(sql, args + [_PAGE_SIZE, _off]))
+    with_data = conn.execute(
+        "SELECT COUNT(*) FROM events e "
+        "JOIN drill_results dr ON dr.event_id = e.event_id "
+        "WHERE " + clause, args).fetchone()[0]
 
     decorated = []
     for r in rows:
@@ -1549,7 +1561,10 @@ def drills_page(
         "page_no": page_no,
         "pager_url": "/drills",
         "pager_qs": (("&ticker=" + ticker) if ticker else "")
-                    + (("&days=" + str(days)) if days else ""),
+                    + (("&days=" + str(days)) if days else "")
+                    + (("&has=" + has) if has and has != "all" else ""),
+        "has": has,
+        "with_data": with_data,
     })
 # ====== end drills route ======
 
@@ -1561,30 +1576,40 @@ def resources_page(
     ticker: str | None = None,
     days: int = 0,
     page: int = 1,
+    has: str = "all",
 ):
     conn = db.get_conn()
-    where, args = [], []
-    if ticker:
-        where.append("re.ticker = ?")
-        args.append(ticker)
+    # Driven by the TAG: 185 tagged releases have no parseable tonnage.
+    where, args = _cat_where("Resource Estimates", ticker)
+    where = [where]
     if days and days > 0:
         from datetime import datetime as _dt_res, timedelta as _td_res
         cutoff = (_dt_res.utcnow() - _td_res(days=days)).strftime("%Y-%m-%d")
-        where.append("substr(re.published_at, 1, 10) >= ?")
+        where.append("substr(COALESCE(e.published_at, e.classified_at), 1, 10) >= ?")
         args.append(cutoff)
-    sql = (
-        "SELECT re.*, e.slug FROM resource_estimates re "
-        "LEFT JOIN events e ON e.event_id = re.event_id "
-    )
-    if where:
-        sql += " WHERE " + " AND ".join(where)
-    _cnt = "SELECT COUNT(*) FROM resource_estimates re"
-    if where:
-        _cnt += " WHERE " + " AND ".join(where)
+    if has == "data":
+        where.append("re.event_id IS NOT NULL")
+    clause = " AND ".join(where)
+    _cnt = ("SELECT COUNT(*) FROM events e "
+            "LEFT JOIN resource_estimates re ON re.event_id = e.event_id "
+            "WHERE " + clause)
     total_filtered = conn.execute(_cnt, args).fetchone()[0]
     pages, page_no, _off = _paginate(total_filtered, page)
-    sql += " ORDER BY re.published_at DESC LIMIT ? OFFSET ?"
+    sql = (
+        "SELECT e.event_id, e.ticker, e.slug, e.raw_headline, "
+        "       COALESCE(e.published_at, e.classified_at) AS published_at, "
+        "       re.project, re.summary, re.mre_type, re.categories_json, "
+        "       re.metal_focus, re.headline_oz_au "
+        "FROM events e "
+        "LEFT JOIN resource_estimates re ON re.event_id = e.event_id "
+        "WHERE " + clause +
+        " ORDER BY published_at DESC LIMIT ? OFFSET ?"
+    )
     rows = list(conn.execute(sql, args + [_PAGE_SIZE, _off]))
+    with_data = conn.execute(
+        "SELECT COUNT(*) FROM events e "
+        "JOIN resource_estimates re ON re.event_id = e.event_id "
+        "WHERE " + clause, args).fetchone()[0]
 
     decorated = []
     for r in rows:
@@ -1617,7 +1642,10 @@ def resources_page(
         "page_no": page_no,
         "pager_url": "/resources",
         "pager_qs": (("&ticker=" + ticker) if ticker else "")
-                    + (("&days=" + str(days)) if days else ""),
+                    + (("&days=" + str(days)) if days else "")
+                    + (("&has=" + has) if has and has != "all" else ""),
+        "has": has,
+        "with_data": with_data,
     })
 # ====== end /resources route ======
 
@@ -2117,6 +2145,9 @@ _CATEGORY_PAGES = [
     ("/economic-studies",     "Economic Studies",       "economic"),
     ("/production-results",   "Production Results",     "production"),
     ("/mergers-acquisitions", "Mergers & Acquisitions", "mna"),
+    ("/exploration-programs", "Exploration Programs", "exploration"),
+    ("/permits-approvals", "Permits & Approvals", "permits"),
+    ("/share-capital", "Share Capital & Compensation", "sharecap"),
 ]
 _CAT_PAGE_SIZE = 100
 

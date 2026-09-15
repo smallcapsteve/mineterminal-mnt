@@ -15,21 +15,28 @@
 
       <label for="days">Window:</label>
       <select name="days" id="days" onchange="this.form.submit()">
-        {% for d, label in [(7, 'Last 7 days'), (30, 'Last 30 days'), (90, 'Last 90 days'), (365, 'Last year'), (3650, 'All time')] %}
+        {% for d, label in [(0, 'All time'), (7, 'Last 7 days'), (30, 'Last 30 days'), (90, 'Last 90 days'), (365, 'Last year')] %}
           <option value="{{ d }}" {% if d == days %}selected{% endif %}>{{ label }}</option>
         {% endfor %}
       </select>
 
-      {% if selected_ticker or days != 90 %}
+      <label for="has">Show:</label>
+      <select name="has" id="has" onchange="this.form.submit()">
+        <option value="all" {% if has != 'data' %}selected{% endif %}>All tagged releases</option>
+        <option value="data" {% if has == 'data' %}selected{% endif %}>With extracted data only</option>
+      </select>
+
+      {% if selected_ticker or days or has == 'data' %}
         <a class="cat-clear" href="/drills">Reset</a>
       {% endif %}
-      <span class="muted">{{ rows|length }} shown · {{ total }} total</span>
+      <span class="muted">{{ rows|length }} shown · {{ total_filtered }} matching{% if has != 'data' and with_data is defined %} · {{ with_data }} with extracted data{% endif %}</span>
     </form>
   </section>
 
   {% if not rows %}
     <p class="empty">No drill results in this window.</p>
   {% else %}
+    <div class="table-scroll">
     <table class="fin-table">
       <thead>
         <tr>
@@ -58,6 +65,7 @@
         {% endfor %}
       </tbody>
     </table>
+    </div>
   {% endif %}
   {% include "_pager.html" %}
 {% endblock %}

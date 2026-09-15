@@ -104,6 +104,14 @@ CATEGORIES: tuple[str, ...] = (
     "Production Results",
     "Financials",
     "Mergers & Acquisitions",
+    "Exploration Programs",
+    "Permits & Approvals",
+    "Metallurgy & Processing",
+    "Share Capital & Compensation",
+    "Listings & Exchange",
+    "Shareholder Meetings",
+    "Corporate Actions",
+    "Partnerships & JV",
     "Marketing Announcement",
     "Corporate Updates",
 )
@@ -117,6 +125,14 @@ CODE_TO_CAT = {
     "prd": "Production Results",
     "fns": "Financials",
     "mna": "Mergers & Acquisitions",
+    "exp": "Exploration Programs",
+    "per": "Permits & Approvals",
+    "met": "Metallurgy & Processing",
+    "cap": "Share Capital & Compensation",
+    "lst": "Listings & Exchange",
+    "mtg": "Shareholder Meetings",
+    "act": "Corporate Actions",
+    "jv": "Partnerships & JV",
     "mkt": "Marketing Announcement",
     "cor": "Corporate Updates",
 }
@@ -368,6 +384,15 @@ _DRILL_RESULT_HEAD = re.compile(
     r"hole\s+\S{0,14}\s*(?:returns?|intersects?|grades?)|"
     r"(?:grab|channel|surface|soil|chip|rock|trench)\s+sampl(?:e|es|ing)\s+"
     r"(?:results?|returns?)|"
+    # v4 recall, from the residual of the new-tag measurement
+    r"\bsamples?\s+up\s+to\s+[\d.,]+\s*(?:%|g\s*/\s*t|ppm|ppb|opt)|"
+    r"\b(?:provides?|reports?|announces?|delivers?)\s+(?:[\w\-]+\s+){0,3}?"
+    r"results?\s+(?:for|from)\s+(?:the\s+)?(?:[\w\-]+\s+){0,3}?drill|"
+    r"\breports?\s+assays?\b|\bassays?\s+from\s+(?:hole|drill|the)\b|"
+    r"\bintercepts?\s+includ\w+|"
+    r"\bvisible\s+gold\b|"
+    r"\bextends?\s+(?:the\s+)?[\w\-]+\s+zone\s+by\s+\d|"
+    r"\b\d[\d.,]*\s*%\s*(?:cu|zn|pb|ni|sb|li2o|reo|treo|fe2o3|u3o8)\b|"
     # v3e: a result reported without a number in the headline
     r"\bdrills\s+(?:[\w.,%’\-]+\s+){0,4}?(?:\d[\d.,]*\s*"
     r"(?:m\b|metres?|meters?|g\s*/\s*t|%)|mineraliz\w+|sulphides?|sulfides?|"
@@ -521,12 +546,23 @@ _MA_HEAD = re.compile(
     r"share\s+(?:exchange|swap)(?:\s+agreement)?|"
     r"business\s+combination|"
     r"\bamalgamat\w+|\bmerger\b|\bmerges?\s+with\b|"
-    r"acquisition\s+of\s+(?:[\w.,'’\-]+\s+){0,5}?(?:propert(?:y|ies)|"
+    # the gap must be able to cross "100%" and "US$2.5M" -- it could not, so
+    # "Acquisition of 100% Interest in ..." never matched
+    r"acquisition\s+of\s+(?:[\w.,'’\-%$&/]+\s+){0,6}?(?:propert(?:y|ies)|"
     r"projects?|claims?|leases?|mineral|royalt(?:y|ies)|licen[cs]es?|compan(?:y|ies)|"
-    r"entity|interest|additional|assets?|deposits?|mines?|\d+%)|"
-    r"acquires?\s+(?:[\w.,'’\-]+\s+){0,5}?(?:propert(?:y|ies)|projects?|"
-    r"claims?|leases?|mineral|royalt(?:y|ies)|licen[cs]es?|interest\s+in|"
-    r"company|deposits?|mines?|stake)|"
+    r"entity|interest|additional|assets?|deposits?|mines?|corp\b|corporation|"
+    r"\binc\b|\bltd\b|limited|\d+%)|"
+    r"acquires?\s+(?:[\w.,'’\-%$&/]+\s+){0,6}?(?:propert(?:y|ies)|projects?|"
+    r"claims?|leases?|mineral|royalt(?:y|ies)|licen[cs]es?|interest(?:\s+in)?|"
+    r"compan(?:y|ies)|corp\b|corporation|\binc\b|\bltd\b|limited|deposits?|"
+    r"mines?|stake)|"
+    # takeover mechanics, and arrangements without the words "plan of"
+    r"\b(?:take[-\s]?over\s+bid|unsolicited\s+(?:offer|bid|take[-\s]?over)|"
+    r"hostile\s+(?:bid|offer)|tender\s+offer|superior\s+proposal|"
+    r"combination\s+transaction)\b|"
+    r"\b(?:completes?|completed|terminates?|confirms?)\s+(?:the\s+)?arrangement\b|"
+    r"\bstakes?\s+(?:the\s+)?[A-Z][\w\-]*(?:\s+[A-Z][\w\-]*){0,3}\s+"
+    r"(?:mine|claims?|propert(?:y|ies))\b|"
     r"letter\s+of\s+intent\s+(?:to\s+)?(?:acquire|purchase|option|earn|"
     r"amalgamate|merge)|"
     r"(?:completes?|completed|closes?|closed)\s+(?:the\s+)?(?:acquisition|merger|"
@@ -706,6 +742,146 @@ _CORP = re.compile(
 )
 
 
+
+
+# ===========================================================================
+# v4 categories, carved out of the Corporate Updates bucket. Every one is
+# HEADLINE-scoped for the reason v3 established: a phrase in the body is not
+# what the release is about.
+# ===========================================================================
+
+_V4_GAP = r"(?:[\w.,'’\-%$&/]+\s+){0,6}?"
+
+# Exploration Programs. The verb list is SPLIT: `advance`/`expand` also live
+# inside company names -- "Advanced Gold Exploration" is a company, and with a
+# broad noun list its own name parsed as "<verb> <stuff> <exploration>", 13
+# times. Those two verbs may only reach an explicit "<x> program".
+_EXPLORATION = re.compile(
+    r"(?i)(?:"
+    r"\b(?:commences?|commenced|begins?|began|starts?|started|resumes?|resumed|"
+    r"launch(?:es|ed)?|mobiliz\w+|initiates?|initiated|completes?|completed|"
+    r"conducts?|conducted|undertakes?|kicks?\s+off|prepares?\s+for)\s+" + _V4_GAP +
+    r"(?:drill(?:ing)?\s+programs?|exploration\s+programs?|field\s+programs?|"
+    r"work\s+programs?|drill\s+campaigns?|drilling\b|exploration\b|fieldwork|"
+    r"trenching|geological\s+mapping|sampling\s+programs?)|"
+    r"\b(?:advances?|advanced|expands?|expanded)\s+" + _V4_GAP +
+    r"(?:drill(?:ing)?\s+programs?|exploration\s+programs?|field\s+programs?|"
+    r"work\s+programs?|drill\s+campaigns?)|"
+    r"\b(?:phase\s+(?:[IVX]+|\d+|one|two|three|four|five)|\d[\d,]*\s*"
+    r"(?:m\b|metre|meter)\w*)\s+" + _V4_GAP + r"(?:drill(?:ing)?\s+program|"
+    r"exploration\s+program)|"
+    r"\b(?:drill(?:ing)?|exploration|field|work)\s+program\s+"
+    r"(?:underway|commenc\w+|begins?|update|planned|expanded)|"
+    r"\b(?:IP|induced[-\s]polarization|geophysical|airborne|magnetic|gravity|"
+    r"electromagnetic|ZTEM|VTEM|magnetotelluric|seismic|LiDAR|radiometric|"
+    r"DCIP|soil\s+geochem\w*)\s+(?:survey|program|data)|"
+    r"\bsurvey\s+(?:commenc\w+|underway|completed|results?)"
+    r")"
+)
+
+_PERMITS = re.compile(
+    r"(?i)(?:"
+    r"\b(?:receives?|received|is\s+granted|grants?|granted|obtains?|obtained|"
+    r"secures?|secured|awarded|submits?|submitted|applies\s+for|applied\s+for|"
+    r"files?\s+for|approved\s+for|renew(?:s|ed)?)\s+" + _V4_GAP +
+    r"(?:permits?|licen[cs]es?|approvals?|authorization|certificate)|"
+    r"\b(?:drill(?:ing)?|exploration|mining|environmental|water|operating|"
+    r"blasting|land[-\s]use)\s+permits?\b|"
+    r"\bpermit\s+(?:application|approval|granted|received|amendment|renewal|receipt)|"
+    r"\benvironmental\s+(?:assessment|approval|permit|authorization)|"
+    r"\bnotice\s+of\s+work\b|"
+    r"\b(?:regulatory|government|ministerial)\s+approval"
+    r")"
+)
+
+_METALLURGY = re.compile(
+    r"(?i)(?:"
+    r"\bmetallurg\w+|\bmet\s+(?:test|work)\w*\b|"
+    r"\bflotation\b|\bleach(?:ing)?\s+test\w*\b|\bheap\s+leach\b|"
+    r"\bbulk\s+sample\b|\bpilot\s+plant\b|\bprocess(?:ing)?\s+plant\b|"
+    r"\bmill\s+(?:restart|commission\w*|expansion|throughput)\b|"
+    r"\brecover(?:y|ies)\s+(?:test|rate)s?\b|"
+    r"\bconcentrate\s+(?:grade|production|shipment)\b|"
+    r"\bgravity\s+circuit\b|\bcomminution\b|\bassay\s+lab\b"
+    r")"
+)
+
+# Share Capital & Compensation. Warrants need an ACTION word: the bare noun is
+# in nearly every financing headline.
+_SHARE_CAPITAL = re.compile(
+    r"(?i)(?:"
+    r"\b(?:stock\s+options?|incentive\s+(?:stock\s+)?options?|RSUs?|DSUs?|"
+    r"restricted\s+(?:share|stock)\s+units?|deferred\s+share\s+units?|"
+    r"performance\s+share\s+units?)\b|"
+    r"\b(?:grants?|granted|awards?|awarded|issuance\s+of|repric\w+|"
+    r"cancellation\s+of|amendment\s+to)\s+" + _V4_GAP + r"options?\b|"
+    r"\b(?:extension|amendment|repricing|acceleration|exercise|expiry|"
+    r"early\s+exercise)\s+of\s+" + _V4_GAP + r"warrants?\b|"
+    r"\bwarrant\s+(?:extension|repricing|exercise|acceleration|expiry|amendment)|"
+    r"\b(?:extends?|extended|reprices?|amends?)\s+(?:[\w\-]+\s+){0,2}?warrants?\b|"
+    r"\b(?:investors?|holders?)\s+exercise\s+" + _V4_GAP + r"warrants?|"
+    r"\bdebt\s+settlement|\bshares?\s+for\s+(?:debt|services)|"
+    r"\bsettlement\s+of\s+(?:outstanding\s+)?(?:debt|indebtedness|payables)|"
+    r"\brepurchase\s+and\s+cancellation\s+of\s+" + _V4_GAP + r"shares?\b|"
+    r"\bissues?\s+" + _V4_GAP +
+    r"shares?\s+(?:to|for|in\s+settlement|pursuant|as\s+consideration)"
+    r")"
+)
+
+_LISTINGS = re.compile(
+    r"(?i)(?:"
+    r"\b(?:lists?|listing|listed|uplist\w+|commence[sd]?\s+trading|"
+    r"begins?\s+trading|approved\s+for\s+(?:listing|trading)|graduat\w+\s+to|"
+    r"admitted\s+to\s+trading)\b[^.\n]{0,40}"
+    r"\b(?:OTCQB|OTCQX|OTC\s+Markets|Frankfurt|FSE|NASDAQ|NYSE|TSX|TSXV|CSE|"
+    r"LSE|AQSE|Canadian\s+Securities\s+Exchange|Venture\s+Exchange)\b|"
+    r"\b(?:OTCQB|OTCQX|Frankfurt|NASDAQ|NYSE|TSXV?|CSE)\b[^.\n]{0,40}"
+    r"\b(?:listing|uplisting|dual\s+list\w+|de[-\s]?listing)\b|"
+    r"\bDTC\s+eligib\w+|\bCUSIP\b|"
+    r"\b(?:inclusion\s+(?:in|into)\s+the\s+[A-Z]{2,6}\b|index\s+inclusion|"
+    r"added\s+to\s+the\s+[\w\s]{0,20}index)\b|"
+    r"\b(?:cease\s+trade|trading\s+halt|halt(?:ed)?\s+trading|"
+    r"trade\s+resumption|resumption\s+of\s+trading|reinstatement\s+of\s+trading)"
+    r")"
+)
+
+_MEETINGS = re.compile(
+    r"(?i)(?:"
+    r"\bannual\s+(?:and\s+special\s+)?(?:general\s+)?meeting\b|"
+    r"\bannual\s+general\s+and\s+special\s+meeting\b|"
+    r"\bAGM\b|\bAGSM\b|"
+    r"\bspecial\s+meeting\s+of\s+(?:the\s+)?(?:shareholders|securityholders|"
+    r"security\s*holders)\b|"
+    r"\bshareholder\s+meeting\b|\bmeeting\s+of\s+shareholders\b|"
+    r"\bresults?\s+of\s+(?:the\s+)?(?:annual|special)\b|"
+    r"\b(?:proxy|information)\s+circular\b|\bvoting\s+results?\b"
+    r")"
+)
+
+_CORP_ACTIONS = re.compile(
+    r"(?i)(?:"
+    r"\bname\s+change\b|\bchanges?\s+(?:its\s+)?(?:corporate\s+)?name\b|"
+    r"\bchange\s+its\s+name\b|\bchanges?\s+name\s+to\b|"
+    r"\bsymbol\s+change\b|\bticker\s+(?:symbol\s+)?change\b|\bnew\s+ticker\b|"
+    r"\bshare\s+consolidation\b|\bconsolidat\w+\s+of\s+(?:its\s+)?"
+    r"(?:common\s+)?shares\b|"
+    r"\breverse\s+split\b|\bforward\s+split\b|\bstock\s+split\b|\brebrand\w+"
+    r")"
+)
+
+_PARTNERSHIPS = re.compile(
+    r"(?i)(?:"
+    r"\bjoint\s+ventures?\b|\bJV\s+(?:agreement|partner)\b|"
+    r"\bstrategic\s+(?:partnership|alliance|collaboration)\b|"
+    r"\bpartnership\s+(?:with|agreement)\b|"
+    r"\bcollaboration\s+agreement\b|\bcooperation\s+agreement\b|"
+    r"\boff[-\s]?take\s+agreement\b|\btoll\s+mill\w+\b|"
+    r"\bmemorandum\s+of\s+understanding\b|\bMOU\b|"
+    r"\bteams?\s+up\s+with\b|\bpartners\s+with\b"
+    r")"
+)
+
+
 # ===========================================================================
 # Delegation. management_extract is the authority on what a management change
 # IS, so the category asks it. Imported lazily and guarded: if it is ever
@@ -815,6 +991,24 @@ def categorize(headline: str | None, body: str | None) -> list[str]:
     # --- M&A: headline says so, or the lede DECLARES a transaction --------
     if (_MA_HEAD.search(h) or _MA_DECLARE.search(subj)) and not third_party:
         cats.append("Mergers & Acquisitions")
+
+    # --- v4 categories: headline-scoped, additive -------------------------
+    if _EXPLORATION.search(h):
+        cats.append("Exploration Programs")
+    if _PERMITS.search(h) and not third_party:
+        cats.append("Permits & Approvals")
+    if _METALLURGY.search(h):
+        cats.append("Metallurgy & Processing")
+    if _SHARE_CAPITAL.search(h):
+        cats.append("Share Capital & Compensation")
+    if _LISTINGS.search(h):
+        cats.append("Listings & Exchange")
+    if _MEETINGS.search(h):
+        cats.append("Shareholder Meetings")
+    if _CORP_ACTIONS.search(h):
+        cats.append("Corporate Actions")
+    if _PARTNERSHIPS.search(h):
+        cats.append("Partnerships & JV")
 
     # --- Marketing: subject scope; booths and trade shows headline only ---
     if _MKT.search(subj) or _MKT_HEAD_ONLY.search(h):
@@ -1151,6 +1345,78 @@ SELF_TEST: list[tuple[str, str, list[str], list[str]]] = [
     # ...and a genuine option exercise is still M&A
     ("Oakley Ventures Announces Exercise of Koster Dam Property Option", "",
      ["Mergers & Acquisitions"], []),
+    # ===== v4: the eight new categories =====
+    ("Anteros Metals Commences Drilling at Seagull Critical Minerals Project",
+     "", ["Exploration Programs"], ["Drill Results"]),
+    ("Cascada Mobilizes for Phase II Angie Diamond Drill Program", "",
+     ["Exploration Programs"], ["Drill Results"]),
+    ("Myriad Uranium Completes Large-Scale Radiometric and Magnetic "
+     "Geophysical Survey", "", ["Exploration Programs"], []),
+    # ...but a company whose NAME contains a verb is not a program
+    ("Advanced Gold Exploration Retains Market Maker Services", "",
+     [], ["Exploration Programs"]),
+    ("Advanced Gold Copper, Gold, Silver VMS Drilling, Buck Lake, Ontario", "",
+     [], ["Exploration Programs"]),
+
+    ("Green River Gold Corp. Receives Drill Permit for 6000 Meters of Drilling",
+     "", ["Permits & Approvals"], []),
+    ("GLENSTAR MINERALS SUBMITS PERMIT APPLICATION FOR EXTENSIVE DRILL PROGRAM",
+     "", ["Permits & Approvals"], []),
+
+    ("Carlyle Recovers 80% Gold in Preliminary Newton Metallurgical Testing",
+     "", ["Metallurgy & Processing"], []),
+    ("Lithium Pilot Plant Commissioning Update and Processing Progress", "",
+     ["Metallurgy & Processing"], []),
+
+    ("American Copper Development Corporation Grants Stock Options", "",
+     ["Share Capital & Compensation"], []),
+    ("Alma Gold Closes Debt Settlement", "",
+     ["Share Capital & Compensation"], []),
+    ("Peloton Extends Warrants", "", ["Share Capital & Compensation"], []),
+    ("Gold Strike Awards Options", "", ["Share Capital & Compensation"], []),
+    # a financing that merely mentions warrants is NOT a share-capital event
+    ("Alma Gold Announces Private Placement of Units Each Comprising One Share "
+     "and One Warrant", "", ["Financings"], ["Share Capital & Compensation"]),
+
+    ("Inflection Resources Commences Trading on the OTCQB", "",
+     ["Listings & Exchange"], []),
+    ("American Copper Receives DTC Eligibility for U.S Trading", "",
+     ["Listings & Exchange"], []),
+    ("SNOWLINE GOLD ANNOUNCES INCLUSION INTO THE GDXJ", "",
+     ["Listings & Exchange"], []),
+
+    ("Alma Gold Inc. Announces Results of Annual General and Special Meeting",
+     "", ["Shareholder Meetings"], []),
+    ("MAX POWER ANNOUNCES AGSM RESULTS AND APPOINTMENT OF NEW DIRECTOR", "",
+     ["Shareholder Meetings", "Management Changes"], []),
+
+    ("Athena Gold Announces Share Consolidation", "",
+     ["Corporate Actions"], []),
+    ("Exploits Changes Name to Epic Gold Corp.", "",
+     ["Corporate Actions"], []),
+
+    ("Cruz Battery Metals Enters into Joint Venture Agreement for Deep Basin "
+     "Lithium Brine Exploration", "", ["Partnerships & JV"], []),
+    ("Canadian Copper Signs Offtake Agreement and Credit Facility with Ocean "
+     "Partners", "", ["Partnerships & JV"], []),
+
+    # ===== v4: recall gaps the residual exposed in EXISTING categories =====
+    ("Advanced Gold Acquires 100% Interest in Silver Belle Nevada CRD Claims",
+     "", ["Mergers & Acquisitions"], []),
+    ("CARLYLE ACQUIRES OWL LAKE RESOURCES CORP. BECOMING ONE OF THE LARGEST "
+     "CONTIGUOUS LANDHOLDERS", "", ["Mergers & Acquisitions"], []),
+    ("Fox River Completes Arrangement with Avenir Minerals Limited", "",
+     ["Mergers & Acquisitions"], []),
+    ("Pacific Booker Minerals Inc. Confirms Termination of Unsolicited "
+     "Take-Over Bid", "", ["Mergers & Acquisitions"], []),
+    ("MANNING VENTURES SAMPLES UP TO 4.77% Cu AT THE COPPER HILL PROJECT", "",
+     ["Drill Results"], []),
+    ("Beyond Minerals Provides Results for the Drill Program at the "
+     "Fabie-eastchester Project", "", ["Drill Results"], []),
+    ("Exploits: Visible Gold at Saddle Zone Extends Strike and Lateral "
+     "Continuity", "", ["Drill Results"], []),
+    ("SAGA Metals Reports Assays from R-0055 to R-0057", "",
+     ["Drill Results"], []),
 ]
 
 
