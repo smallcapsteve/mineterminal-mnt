@@ -53,9 +53,18 @@ def get_conn() -> sqlite3.Connection:
     conn = getattr(_LOCAL, "conn", None)
     if conn is None:
         DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-        conn = sqlite3.connect(DB_PATH, check_same_thread=False, timeout=30)
+        # isolation_level=None -> autocommit. Without it a plain SELECT
+        # opens a deferred read transaction that these long-lived
+        # thread-local connections never close, which pins a WAL
+        # snapshot forever: the WAL cannot be checkpointed, it grew to
+        # 516MB, and writers started exceeding the busy timeout and
+        # returning 500 from /ingest (915 dropped writes on 2026-09-15).
+        # Safe because every write path here is one statement + commit.
+        conn = sqlite3.connect(DB_PATH, check_same_thread=False,
+                               timeout=30, isolation_level=None)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA busy_timeout=30000")
         conn.execute("PRAGMA foreign_keys=ON")
         _LOCAL.conn = conn
     return conn
