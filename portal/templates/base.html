@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/style.css?v=v39">
+  <link rel="stylesheet" href="/static/style.css?v=v40">
   <!-- TYPEAHEAD_V1: the search dropdown only. Shared with SediTracker through
        the static symlink; kept out of style.css so it can be reverted by
        deleting two lines. -->
@@ -64,16 +64,16 @@
     <div class="primary-nav-inner">
       <div class="primary-nav-links">
       <a href="/" {% if page == 'news' %}class="active"{% endif %}>News</a>
-      <a href="/financings" {% if page == 'financings' %}class="active"{% endif %}>Financings</a>
       <a href="/drills" {% if page == 'drills' %}class="active"{% endif %}>Drill Results</a>
       <a href="/resources" {% if page == 'resources' %}class="active"{% endif %}>Resource Estimates</a>
-      <a href="/management-changes" {% if page == 'management' %}class="active"{% endif %}>Management Changes</a>
-      <a href="/economic-studies" {% if page == 'economic' %}class="active"{% endif %}>Economic Studies</a>
       <a href="/production-results" {% if page == 'production' %}class="active"{% endif %}>Production Results</a>
-      <a href="/mergers-acquisitions" {% if page == 'mna' %}class="active"{% endif %}>Mergers &amp; Acquisitions</a>
+      <a href="/economic-studies" {% if page == 'economic' %}class="active"{% endif %}>Economic Studies</a>
       <a href="/exploration-programs" {% if page == 'exploration' %}class="active"{% endif %}>Exploration</a>
       <a href="/permits-approvals" {% if page == 'permits' %}class="active"{% endif %}>Permits</a>
+      <a href="/financings" {% if page == 'financings' %}class="active"{% endif %}>Financings</a>
       <a href="/share-capital" {% if page == 'sharecap' %}class="active"{% endif %}>Share Capital</a>
+      <a href="/management-changes" {% if page == 'management' %}class="active"{% endif %}>Management Changes</a>
+      <a href="/mergers-acquisitions" {% if page == 'mna' %}class="active"{% endif %}>Mergers &amp; Acquisitions</a>
       {% if is_admin %}<a href="/admin/analytics" {% if page == 'admin' %}class="active"{% endif %}>Analytics</a>{% endif %}
       </div>
       <form class="primary-nav-search" method="get" action="/search" data-typeahead data-suggest="/api/search">
