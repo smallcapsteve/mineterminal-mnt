@@ -205,12 +205,48 @@ def find_twin(pcon, rel: dict, headline: str, published: dt.date):
 # preconditions
 # --------------------------------------------------------------------------
 
+# The ledger mnt-exchange.service runs with. Only used to tell the operator
+# when this process resolved a different one.
+SERVICE_LEDGER = "/var/lib/mnt-exchange/exchange_news.db"
+
+
 def preflight(want_classifier: bool, need_free_mb: int = 2048) -> dict:
     """Prove every dependency before a single PDF is fetched."""
     log("preflight:")
 
+    # The ledger is the dependency that silently forked the bookkeeping on
+    # 2026-09-15. DB_PATH is env-or-default, and a transient systemd-run unit
+    # inherits no environment, so a 272-minute run wrote its record of what it
+    # had settled to a file the live service never reads. Nothing was lost and
+    # nothing was duplicated -- stage 1 checks the portal, not this table --
+    # but the run could not skip work an earlier run had already done, and the
+    # next one would not have skipped this run's. Name the file, and say where
+    # the name came from, so a split is visible in the first ten lines of the
+    # log instead of four hours later.
+    _from_env = "EXCHANGE_NEWS_DB" in os.environ
+    _rows = "new file"
+    if os.path.exists(X.DB_PATH):
+        try:
+            _c = X.sqlite3.connect(f"file:{X.DB_PATH}?mode=ro", uri=True)
+            _n = _c.execute("SELECT count(*) FROM releases").fetchone()[0]
+            _c.close()
+            _rows = f"{_n} rows"
+        except Exception as _e:                      # noqa: BLE001
+            _rows = f"unreadable ({type(_e).__name__})"
+    log(f"  ledger               {X.DB_PATH} ({_rows}, from "
+        f"{'EXCHANGE_NEWS_DB' if _from_env else 'the APP_ROOT default'})")
+    if not _from_env and X.DB_PATH != SERVICE_LEDGER:
+        log(f"  ledger               WARNING: mnt-exchange.service uses "
+            f"{SERVICE_LEDGER}. This run will not see what that ledger has "
+            f"settled, and that service will not see what this run settles. "
+            f"Set EXCHANGE_NEWS_DB to share one ledger.")
+
     X._pdf_reader()
     log(f"  PDF extractor        ok ({sys.executable})")
+
+    if X.docx_self_test(verbose=True) != 0:
+        raise SystemExit("ABORT: the .docx reader failed its own self-test.")
+    log("  DOCX extractor       ok")
 
     if T.self_test(verbose=False) != 0:
         raise SystemExit("ABORT: the title rules failed their own self-test — run "
@@ -345,7 +381,8 @@ def main() -> int:
     ap.add_argument("--since", default="2026-01-01")
     ap.add_argument("--source", choices=("cse", "tmx"), default="cse")
     ap.add_argument("--only", help="comma-separated bare tickers")
-    ap.add_argument("--max-ingest", type=int, default=10_000)
+    ap.add_argument("--max-ingest", type=int, default=250_000,
+                    help="safety brake against a mistyped --since; a run that hits it says so, loudly, at both ends")
     ap.add_argument("--max-classify", type=int, default=10_000)
     ap.add_argument("--sleep", type=float, default=0.4)
     ap.add_argument("--no-classify", action="store_true",
@@ -478,6 +515,11 @@ def main() -> int:
     date_prov: dict = {}
     consecutive_cls_errors = 0
     t1 = time.monotonic()
+    n_capped = max(0, len(candidates) - args.max_ingest)
+    if n_capped:
+        log(f"WARNING: {len(candidates)} candidates but --max-ingest is "
+            f"{args.max_ingest} - {n_capped} will NOT be attempted in this "
+            f"run. Re-run to pick them up, or raise --max-ingest.")
     for i, rel in enumerate(candidates[:args.max_ingest], 1):
         if not args.no_classify and n_classified >= args.max_classify:
             log(f"stopping: hit --max-classify {args.max_classify}")
@@ -535,6 +577,10 @@ def main() -> int:
     con.commit()
     log(f"done in {(time.monotonic()-t1)/60:.0f}m — ingested={n_ing} "
         f"already_on_site={n_late} failed={n_fail} billed_classifier_calls={n_classified}")
+    if n_capped:
+        log(f"NOTE: this run STOPPED AT THE --max-ingest CAP of "
+            f"{args.max_ingest}; {n_capped} candidates were never "
+            f"attempted. This is not a finished backfill - re-run it.")
     log(f"headline provenance: {prov_counts}")
     log(f"date provenance: {date_prov}  ({n_moved} releases dated earlier than the "
         f"exchange's own date)")
