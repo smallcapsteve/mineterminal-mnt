@@ -143,14 +143,28 @@ _DOC_LABEL = re.compile(
     r"^\s*[\W_]*(?:press|news|media)\s*release\b|^\s*for\s+immediate\s+release"
     r"|^\s*item\s+\d", re.I)
 
+# Every alternative here was taken from a real document in the corpus, not
+# imagined. The group used to be `not\s+(?:intended\s+for\s+)?(...)`, so the
+# commonest form of all -- "NOT FOR DISTRIBUTION" -- never matched, because the
+# optional part was "intended for" rather than "for".
+#
+# The last two alternatives are WRAPPED TAILS. A PDF breaks the disclaimer
+# across lines, leaving "UNITED STATES" or "STATES OR FOR DISTRIBUTION TO U.S.
+# NEWSWIRE SERVICES" standing alone, and each of those was being read as the
+# start of a headline.
 _DOC_DISCLAIMER = re.compile(
     r"^\s*(?:this\s+(?:news|press)\s+release\s+is\s+not"
-    r"|not\s+(?:intended\s+for\s+)?(?:distribution|dissemination|release)"
+    r"|not\s+(?:intended\s+)?(?:for\s+)?"
+    r"(?:distribution|dissemination|release|publication)"
     r"|no\s+securities\s+regulatory\s+authority"
     r"|newswire\s+services?\b"
     r"|material\s+change\s+report\b"
-    r"|or\s+for\s+(?:distribution|dissemination)"
-    r"|for\s+dissemination)", re.I)
+    r"|(?:or\s+)?for\s+(?:distribution|dissemination|release|publication)\b"
+    r"|for\s+dissemination"
+    r"|(?:the\s+)?united\s+states\s*[.,]?\s*$"
+    r"|the\s+united\s+states\s+(?!\w*\s+(?:corporation|corp|inc|antimony))"
+    r"|states\s+or\s+for\s+(?:distribution|dissemination|release|publication)"
+    r"|(?:in|into)\s+the\s+united\s+states\b[^a-z]*$)", re.I)
 
 _DOC_DISCLAIMER_RUN = re.compile(
     r"^.{0,150}?(?:u\.?s\.?\s+newswire\s+services?|newswire\s+services?"
@@ -249,7 +263,7 @@ def _starts_headline(s: str) -> bool:
     # A headline does not begin in the middle of a sentence. Judged on the
     # whole first word, so "iMetal Resources ..." keeps its capital and
     # "contrary is an offence ..." does not.
-    first = (s.split()[0] if s.split() else "").strip(".,;:!?)(\"'\u201c\u201d\u2018\u2019")
+    first = (s.split()[0] if s.split() else "").strip(".,;:!?)(\"'“”‘’")
     if first.isalpha() and first.islower():
         return False
     if _DOC_SECTION.match(s) or s.count("|") >= 2:
@@ -462,7 +476,7 @@ DOC_TEST = [
     # A headline may name a website without being letterhead.
     ("Super Copper Founder Discusses High-Grade Results and Strategic Growth in\n"
      "CEO.ca Interview\n"
-     "Vancouver, British Columbia \u2013 January 21, 2026 \u2013 Super Copper Corp.\n",
+     "Vancouver, British Columbia – January 21, 2026 – Super Copper Corp.\n",
      "Super Copper Founder Discusses High-Grade Results and Strategic Growth in "
      "CEO.ca Interview"),
 
@@ -490,7 +504,7 @@ DOC_TEST = [
     # "stock symbol" in a headline is a headline; a line that OPENS with a
     # domain is letterhead.
     ("Hi-VIEW RESOURCES INC. ANNOUNCES CHANGE OF STOCK SYMBOL TO GXLD\n"
-     "Vancouver, British Columbia \u2013 January 7, 2026 \u2013 Hi-View Resources Inc.\n",
+     "Vancouver, British Columbia – January 7, 2026 – Hi-View Resources Inc.\n",
      "Hi-VIEW RESOURCES INC. ANNOUNCES CHANGE OF STOCK SYMBOL TO GXLD"),
 
     # an ISO date is a run of digits and dashes, but it is not a phone number
@@ -507,18 +521,18 @@ DOC_TEST = [
     # a bare company name, with or without its defined term, is not a headline
     ("Material Change Report\n"
      "Item 2. Date of Material Change\n"
-     "Nevada Organic Phosphate Inc. (the \u201cCompany\u201d)\n"
+     "Nevada Organic Phosphate Inc. (the “Company”)\n"
      "Nevada Organic Phosphate Reports Drill Results at Pine Valley\n",
      "Nevada Organic Phosphate Reports Drill Results at Pine Valley"),
 
     # The text layer split the digits of the year, so the dateline was
     # invisible and ran into the headline. Seen live in the TMX backfill.
     ("Metalero Announces $3.0M Private Placement\n"
-     "Edmonton, AB, May 27, 202 6 \u2013 Metalero Mining Corp. (TSXV: MLO)\n",
+     "Edmonton, AB, May 27, 202 6 – Metalero Mining Corp. (TSXV: MLO)\n",
      "Metalero Announces $3.0M Private Placement"),
 
     ("One Step Closer to Cash Flow: Average grades of 3.72g/t Au from 1930s Rockpiles\n"
-     "VANCOUVER, BC, February 1 7, 2026 \u2013 Heritage Mining Ltd. (CSE: HML)\n",
+     "VANCOUVER, BC, February 1 7, 2026 – Heritage Mining Ltd. (CSE: HML)\n",
      "One Step Closer to Cash Flow: Average grades of 3.72g/t Au from 1930s Rockpiles"),
 
     # a company whose name contains a street word must keep its headline
