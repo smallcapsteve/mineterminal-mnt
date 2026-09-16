@@ -24,7 +24,8 @@ CREATE TABLE IF NOT EXISTS drill_results (
     top_summary   TEXT,
     n_intercepts  INTEGER,
     raw_headline  TEXT,
-    published_at  TEXT
+    published_at  TEXT,
+    sample_type   TEXT
 );
 CREATE INDEX IF NOT EXISTS ix_drill_ticker      ON drill_results(ticker);
 CREATE INDEX IF NOT EXISTS ix_drill_published   ON drill_results(published_at);
@@ -35,8 +36,12 @@ CREATE INDEX IF NOT EXISTS ix_drill_topscore    ON drill_results(top_grade, top_
 def main() -> int:
     con = sqlite3.connect(DB); con.execute("PRAGMA busy_timeout = 30000")
     con.executescript(SCHEMA)
-    con.commit()
-    con.execute("DELETE FROM drill_results")
+    # v2.4: "drill" | "surface" | NULL. A flag, not a filter: the Drill Results
+    # category deliberately includes surface sampling. Tables created before
+    # v2.4 lack the column; add it rather than recreate the table.
+    cols = {r[1] for r in con.execute("PRAGMA table_info(drill_results)")}
+    if "sample_type" not in cols:
+        con.execute("ALTER TABLE drill_results ADD COLUMN sample_type TEXT")
     con.commit()
 
     # Oldest first, so the release that FIRST reported an intercept keeps it.
@@ -50,7 +55,7 @@ def main() -> int:
 
     inserted = no_intercept = all_repeats = 0
     seen_by_ticker = {}
-    cur = con.cursor()
+    out = []
     for r in rows:
         eid, ticker, hl, body, pub = r
         x = extract(hl or "", body or "")
@@ -79,20 +84,30 @@ def main() -> int:
         x["top_metal"] = top.get("metal")
         x["top_summary"] = format_intercept(top)
 
-        cur.execute(
-            "INSERT INTO drill_results("
-            " event_id, ticker, project, top_hole_id, top_grade, top_unit, top_metal,"
-            " top_length_m, top_summary, n_intercepts, raw_headline, published_at"
-            ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+        out.append(
             (
                 eid, ticker, x.get("project"), x.get("top_hole_id"),
                 x.get("top_grade"), x.get("top_unit"), x.get("top_metal"),
                 x.get("top_length_m"), x.get("top_summary"),
                 len(x.get("intercepts") or []),
                 (hl or "")[:500], pub,
+                top.get("sample_type"),
             ),
         )
         inserted += 1
+
+    # Extract first, then DELETE and re-INSERT in ONE short transaction. The
+    # old order (DELETE, commit, then ~20 s of extraction) showed an empty
+    # /drills page for the whole run, and an exception mid-run left it empty.
+    con.execute("DELETE FROM drill_results")
+    con.executemany(
+        "INSERT INTO drill_results("
+        " event_id, ticker, project, top_hole_id, top_grade, top_unit, top_metal,"
+        " top_length_m, top_summary, n_intercepts, raw_headline, published_at,"
+        " sample_type"
+        ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        out,
+    )
     con.commit()
 
     print(f"[drill_backfill] inserted: {inserted}")

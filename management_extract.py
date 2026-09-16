@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 """Who joined, who left, and what job they took.
 
+v9 (2026-09-15, offline audit -- see extract/management/FINDINGS.md). Since v6
+the categoriser DOES have a Management Changes category, and it delegates to
+this module OR its own headline rules, so the chip and the /management-changes
+page disagreed. v9 keeps extract()'s return shape and adds infer_from_tag(),
+which the v9 backfill uses to write a person-less row for tagged releases that
+extract() cannot parse. The history below is kept as written.
+
 There is no "Management Changes" category — `categorize.py` has nine and none of
 them is this — so appointments and resignations sit inside Corporate Updates
 (8,851 releases). This module is therefore a **detector as well as an
@@ -99,29 +106,61 @@ _ROLES = [
     r"Chief\s+Operating\s+Officer", r"Chief\s+Technical\s+Officer",
     r"Chief\s+Geologist", r"Chief\s+Exploration\s+Officer",
     r"Chief\s+Development\s+Officer", r"Chief\s+Legal\s+Officer",
+    # v9: "Chief Psychedelic Officer", "Chief Sustainability Officer" -- any
+    # one or two words between Chief and Officer is still a C-suite title.
+    r"Chief\s+[A-Za-z]+(?:\s+[A-Za-z]+)?\s+Officer",
+    # v9: an advisory body's chair is advisory, not board. Before this,
+    # "Chair of Its New Technical Advisory Board" was cut to "Chair" (board).
+    r"Chair(?:man|woman|person)?\s+of\s+(?:the\s+|its\s+)?(?:new(?:ly\s+\w+)?\s+)?"
+    r"(?:\w+\s+){0,2}?Advisory\s+(?:Board|Committee|Council)",
     r"Executive\s+Chair(?:man|woman|person)?",
     r"Non[\-\s]Executive\s+Chair(?:man|woman|person)?",
     r"Chair(?:man|woman|person)?\s+of\s+the\s+Board",
     r"Lead\s+Director", r"Independent\s+Director", r"Managing\s+Director",
-    r"Executive\s+Vice[\-\s]President(?:\s+[A-Za-z&]+(?:\s+[A-Za-z&]+){0,4})?",
-    r"Senior\s+Vice[\-\s]President(?:\s+[A-Za-z&]+(?:\s+[A-Za-z&]+){0,4})?",
-    r"Vice[\-\s]President(?:\s+of)?(?:\s+[A-Za-z&]+(?:\s+[A-Za-z&]+){0,4})?",
+    # v9: "Project Director", "Director of Operations" are jobs, not board
+    # seats. _scope() reads them as management.
+    r"(?:Project|Operations|Technical|Exploration|Sales|Marketing|Commercial|"
+    r"Finance|Communications|Mine|Site)\s+Director",
+    r"Director\s+of\s+(?!the\s+Board)[A-Za-z&]+(?:\s+[A-Za-z&]+){0,4}",
+    # v9: ", Exploration" continues a VP title. _trim_role_tail decides whether
+    # what follows the comma is a function ("Exploration") or a second role.
+    r"Executive\s+Vice[\-\s]President(?:,?\s+[A-Za-z&]+(?:\s+[A-Za-z&]+){0,4})?",
+    r"Senior\s+Vice[\-\s]President(?:,?\s+[A-Za-z&]+(?:\s+[A-Za-z&]+){0,4})?",
+    r"Vice[\-\s]President(?:,?\s+of)?(?:,?\s+[A-Za-z&]+(?:\s+[A-Za-z&]+){0,4})?",
     r"General\s+Counsel", r"Corporate\s+Secretary", r"Company\s+Secretary",
     r"Country\s+Manager(?:,?\s+[A-Z][A-Za-z]+)?", r"General\s+Manager",
     r"Technical\s+Advis[oe]r", r"Senior\s+Geological\s+Advis[oe]r",
     r"Strategic\s+Advis[oe]r", r"Special\s+Advis[oe]r",
+    # v9: "Board Advisor", "Board of Advisors" were cut to "Board" (board scope)
+    r"Board\s+Advis[oe]rs?", r"Board\s+of\s+Advis[oe]rs",
     r"(?:Scientific|Technical|Strategic)\s+Advisory\s+Board", r"Advisory\s+Board",
+    r"(?:Scientific|Technical|Strategic)\s+Advisory\s+(?:Committee|Council)",
+    r"Advisory\s+(?:Committee|Council)",
     r"Technical\s+Manager", r"Exploration\s+Manager", r"Project\s+Manager",
     r"Head\s+of\s+[A-Z][A-Za-z]+(?:\s+[A-Za-z]+){0,3}",
     r"President\s+and\s+CEO", r"President\s+&\s+CEO",
     r"Interim\s+C[EFO]O", r"Interim\s+Chief\s+[A-Za-z]+\s+Officer",
     r"Board\s+of\s+Directors",
+    r"(?:Principal|Senior|Project|Exploration|Chief)\s+Geologist",
     r"CEO", r"CFO", r"COO", r"CTO",
-    r"V\.?P\.?\s+[A-Za-z&]+(?:\s+[A-Za-z&]+){0,3}", r"V\.?P\.?",
+    r"S\.?V\.?P\.?(?:,?\s+[A-Za-z&]+(?:\s+[A-Za-z&]+){0,3})?",
+    r"E\.?V\.?P\.?(?:,?\s+[A-Za-z&]+(?:\s+[A-Za-z&]+){0,3})?",
+    r"V\.?P\.?(?:,?\s+|-)[A-Za-z&]+(?:\s+[A-Za-z&]+){0,3}", r"V\.?P\.?",
     r"President", r"Chair(?:man|woman|person)?", r"Directors?",
     r"Treasurer", r"Secretary", r"Geologist", r"Advis[oe]r", r"Board",
 ]
 _ROLE = "(?:" + "|".join(_ROLES) + ")"
+
+# v9: words that qualify a title and belong to it: "as Non-Executive Director",
+# "as Incoming CEO", "as Permanent Full Time CEO", "as Industry Advisor".
+# Enumerated, never arbitrary words, and tried lazily so a title that already
+# starts with one ("Senior Vice President", "Independent Director") matches as
+# itself first.
+_ROLE_MOD = (r"(?:(?:non[\-\s]?executive|incoming|permanent|full[\-\s]time|acting|"
+             r"interim|senior|principal|lead|industry|innovation|exploration|esg|"
+             r"independent|executive|technical|strategic|corporate|founding|"
+             r"inaugural|co-?)[\s\-]+)*?")
+_ROLE_Q = rf"(?i:{_ROLE_MOD}{_ROLE})"
 
 # An appointee that is a company, not a person.
 _COMPANY_TAIL = re.compile(
@@ -131,10 +170,18 @@ _COMPANY_TAIL = re.compile(
     re.I)
 
 # A role belonging to a service provider, not an officer of the company.
+# v9: a financial / capital-markets advisor is a bank or an IR shop in every
+# corpus headline that names one ("McEwen Copper Appoints Societe Generale as
+# Financial Advisor", "Avalon Appoints SCP Resource Finance as Strategic Capital
+# Advisor", "Military Metals Appoints DGWA as European Financial Markets Advisor").
 _SERVICE_ROLE = re.compile(
     r"\b(?:auditor|transfer\s+agent|market\s+maker|market[\-\s]mak(?:ing|er)|"
     r"investor\s+relations|IR\s+firm|registrar|trustee|escrow\s+agent|"
-    r"underwriter|sponsor|promotional\s+services)\b", re.I)
+    r"underwriter|sponsor|promotional\s+services|"
+    r"(?:financial|capital)(?:\s+markets)?\s+advis[oe]rs?|"
+    # First North (Nasdaq Nordic) listing sponsor: "Announces Change of Swedish
+    # Certified Adviser to Svensk Kapitalmarknadsgranskning"
+    r"certified\s+advis[oe]r)\b", re.I)
 
 # "joins" is deliberately absent: in "Thompson Hickey Joins Canadian Copper's
 # Board" the person comes BEFORE the verb, and treating it like "appoints" made
@@ -144,52 +191,113 @@ APPOINT = (r"appoint(?:s|ed|ments?\s+of|ment\s+of)?|names?|welcom(?:es|ed)|"
            r"nominat(?:es|ed|ions?\s+of)|expand(?:s|ed)")
 DEPART = (r"(?:resign(?:s|ed|ation)?|retir(?:es|ed|ement)?|step(?:s|ped)\s+down|"
           r"depart(?:s|ure)?)\b")
+# v9: articles between "as" and the title. "a"/"an" were missing from the
+# departure patterns, so "Resignation of Julio Arce as a Director" lost its role.
+_ART = r"(?i:its\s+|our\s+|the\s+|a\s+|an\s+|new\s+|company['’]s\s+|corporation['’]s\s+)*"
 
 _PATTERNS = [
     # "... Appoints Harold Gibson as Technical Advisor"
     ("appointed", re.compile(
         rf"\b(?i:{APPOINT})\s+(?P<person>{_NAME})\s*,?\s+"
         rf"(?i:as|to\s+(?:the\s+)?(?:position\s+of\s+)?)\s*"
-        rf"(?i:its\s+|our\s+|the\s+|a\s+|an\s+|new\s+)*(?P<role>(?i:{_ROLE}))")),
+        rf"{_ART}(?P<role>{_ROLE_Q})")),
 
     # "... Appointment of Pierre-Philippe Dupont as Senior Vice President ..."
+    # v9: also "Addition of", "Announces NAME as" -- "Loyalist Announces Len
+    # Mackenzie as Vice-President Exploration", "Integral Metals Announces the
+    # Addition of John David Clark as an Advisor to the Company".
     ("appointed", re.compile(
         rf"\b(?i:appointment\s+of)\s+(?P<person>{_NAME})\s*,?\s+(?i:as|to)\s+"
-        rf"(?i:its\s+|our\s+|the\s+|a\s+|an\s+|new\s+)*(?P<role>(?i:{_ROLE}))")),
+        rf"{_ART}(?P<role>{_ROLE_Q})")),
 
     # "... Appoints Garland Scott to the Board of Directors"
     ("appointed", re.compile(
         rf"\b(?i:{APPOINT})\s+(?P<person>{_NAME})\s+(?i:to)\s+(?i:its\s+|the\s+)?"
         rf"(?P<role>(?i:Board\s+of\s+Directors|Board|Advisory\s+Board))")),
 
+    # v9: two or three people, one role -- "Blackrock Silver Announces the
+    # Appointment of Bernard Poznanski and Susan Mathieu to the Board of
+    # Directors". Before v9 these named nobody (role-only) or were silent.
+    ("appointed", re.compile(
+        rf"\b(?i:{APPOINT}|appointments?\s+of|announces?|welcom(?:es|ed)\s+"
+        rf"(?:the\s+addition\s+of\s+)?)\s+(?:(?i:messrs\.?|mr\.|ms\.|dr\.)\s+)?"
+        rf"(?P<person>{_NAME})\s*,\s*(?P<person3>{_NAME})\s*,?\s+(?i:and|&)\s+"
+        rf"(?P<person2>{_NAME})\s*,?\s+(?i:as|to)\s+(?:(?i:join)\s+)?{_ART}"
+        rf"(?P<role>{_ROLE_Q})")),
+    ("appointed", re.compile(
+        rf"\b(?i:{APPOINT}|appointments?\s+of|announces?|welcom(?:es|ed)\s+"
+        rf"(?:the\s+addition\s+of\s+)?)\s+"
+        rf"(?P<person>{_NAME})\s+(?i:and|&)\s+(?P<person2>{_NAME})\s*,?\s+"
+        rf"(?i:as|to)\s+(?:(?i:join)\s+)?{_ART}(?P<role>{_ROLE_Q})")),
+
     # "... Appoints Duranya Sebabili Director and Country Manager"  (no "as").
     # The name is lazy so the shortest name that still leaves a role wins;
     # greedy matching made the person "Duranya Sebabili Director".
     ("appointed", re.compile(
-        rf"\b(?i:{APPOINT})\s+(?P<person>{_NAME_LAZY})\s+(?P<role>(?i:{_ROLE}))\b")),
+        rf"\b(?P<verb>(?i:{APPOINT}))\s+(?P<person>{_NAME_LAZY})\s+(?P<role>(?i:{_ROLE}))\b")),
 
     # "... announces the resignation of Jane Smith as CFO"
+    # v9: "Resignation of Director Kai Hoffmann" -- the title in front of the
+    # name is the role (it used to be discarded as leading junk).
     ("departed", re.compile(
-        rf"\b(?i:resignation|retirement|departure)\s+(?i:of)\s+(?P<person>{_NAME})"
-        rf"(?:\s*,?\s+(?i:as|from)\s+(?i:its\s+|the\s+)?(?P<role>(?i:{_ROLE})))?")),
+        rf"\b(?i:resignation|retirement|departure)\s+(?i:of)\s+"
+        rf"(?:(?i:its\s+|the\s+|our\s+)?(?P<prole>(?i:{_ROLE}))\s*,?\s+)?(?P<person>{_NAME})"
+        rf"(?:\s*,?\s+(?i:as|from)\s+{_ART}(?P<role>{_ROLE_Q}))?")),
 
     # "Jane Smith resigns as CFO"
     ("departed", re.compile(
         rf"(?P<person>{_NAME})\s+(?i:has\s+)?(?i:{DEPART})"
-        rf"(?:\s*,?\s+(?i:as|from)\s+(?i:its\s+|the\s+)?(?P<role>(?i:{_ROLE})))?")),
+        rf"(?:\s*,?\s+(?i:as|from)\s+{_ART}(?P<role>{_ROLE_Q}))?")),
+
+    # v9: a death is a departure. "BacTech Announces the Passing of Director Jay
+    # Richardson", "Xtra-Gold Director James Schweitzer Passes Away". v7 tags
+    # these Management Changes; the extractor had no word for them.
+    ("departed", re.compile(
+        rf"\b(?i:passing\s+of|loss\s+of|tribute\s+to\s+(?:its\s+|our\s+)?late)\s+"
+        rf"(?:(?i:its\s+|the\s+|our\s+)?(?i:former\s+|long-?time\s+)?"
+        rf"(?P<prole>(?i:(?:co-?)?founder|{_ROLE}))\s*,?\s+)?(?P<person>{_NAME})")),
+    ("departed", re.compile(
+        rf"(?P<person>{_NAME})\s+(?i:passes\s+away|has\s+passed\s+away|passed\s+away)")),
 
     # "Thompson Hickey Joins Canadian Copper's Board of Directors"
     # "Miguel Paucar Joins Lancaster Resources Advisory Board"
+    # v9: "to Join" -- "Bam Bam Announces Yari Nieken to Join the Board of Directors"
     ("appointed", re.compile(
-        rf"(?P<person>{_NAME})\s+(?i:joins)\s+(?:[^,]{{0,44}}?\s+)?"
+        rf"(?P<person>{_NAME})\s+(?i:joins|to\s+join)\s+(?:[^,]{{0,44}}?\s+)??"
         rf"(?P<role>(?i:{_ROLE}))\b")),
 
     # "Jane Smith has been appointed Chief Financial Officer"
     ("appointed", re.compile(
         rf"(?P<person>{_NAME})\s+(?i:has\s+been\s+|was\s+|is\s+)?"
         rf"(?i:appointed|named|promoted)\s+(?i:as\s+|to\s+)?"
-        rf"(?i:its\s+|our\s+|the\s+|a\s+|an\s+|new\s+)*(?P<role>(?i:{_ROLE}))")),
+        rf"{_ART}(?P<role>{_ROLE_Q})")),
+
+    # v9: "Loyalist Announces Len Mackenzie as Vice-President Exploration",
+    # "Integral Metals Announces the Addition of John David Clark as an Advisor",
+    # "Supreme Announces Ron Shenton to Advisory Board". Last in the list so a
+    # headline that also resigns or appoints someone keeps that as its top
+    # change. "to" is accepted only in front of a board -- "Announces Stock
+    # Option Grants to Directors" is not an appointment.
+    ("appointed", re.compile(
+        rf"\b(?i:(?:strategic\s+)?addition\s+of|announces?)\s+"
+        rf"(?:(?i:mr\.|ms\.|mrs\.|dr\.)\s+)?(?P<person>{_NAME})\s*,?\s+"
+        rf"(?:(?i:as)\s+{_ART}(?P<role>{_ROLE_Q})|"
+        rf"(?i:to\s+(?:join\s+)?(?:the\s+|its\s+|the\s+company['’]s\s+)?)"
+        rf"(?P<role2>(?i:(?:Scientific\s+|Technical\s+|Strategic\s+)?Advisory\s+"
+        rf"(?:Board|Committee|Council)|Board(?:\s+of\s+(?:Directors|Advisors))?)))")),
 ]
+
+# v9: a capitalised name straight after a title means the words BEFORE the
+# title were an employer, not the appointee: "QIMC Appoints Enbridge Gaz Québec
+# President Jean-Benoît Trahan to Board of Directors", "Goldera Appoints IAMGOLD
+# Founding Director Mahendra Naik to its Board". The real person follows.
+_AFTER_TITLE_NAME = re.compile(
+    rf"\s*,?\s+(?:(?i:Dr|Mr|Ms|Mrs)\.?\s+)?(?P<person>{_NAME})"
+    rf"(?:\s*,?\s+(?i:as|to)\s+{_ART}(?P<role>{_ROLE_Q}))?")
+
+# the same, with no comma: "Joins U.S. President Donald J. Trump" -- but not
+# "Joins Lancaster Resources Board of Directors, Bolstering Expertise"
+_NAME_AFTER_ROLE = re.compile(rf"\s+(?:(?i:Dr|Mr|Ms|Mrs)\.?\s+)?(?P<person>{_NAME})")
 
 # A role-only announcement with nobody named: "ANNOUNCES APPOINTMENT OF INTERIM CFO"
 # The verb and the role are often separated by the description of the person,
@@ -205,23 +313,44 @@ _ROLE_ONLY = re.compile(
     rf"elect(?:s|ed)|add(?:s|ed)|nominat(?:es|ed|ions?\s+of)|expand(?:s|ed))\s*"
     rf"(?:[A-Za-z'’\-]+\s+){{0,6}}?(?P<role>(?i:{_ROLE}))\b")
 
+# v9: "Appoints Former OPG CEO Ken Hartwick to its Board of Directors" -- the
+# first title after the verb describes the person; where the headline also says
+# where they are going, that destination is the role.
+_DESTINATION = re.compile(
+    r"\b(?i:to|joins?)\s+(?i:the\s+|its\s+|their\s+)?(?:[A-Z][\w'’\-]*\s+){0,2}?"
+    r"(?P<role>(?i:Board\s+of\s+Directors|(?:Scientific\s+|Technical\s+|Strategic\s+)?"
+    r"Advisory\s+(?:Board|Committee|Council)|Board\s+of\s+Advisors|Board))\b")
+
+# v9: a departure with nobody named: "Announces Resignation of Non-Executive
+# Director", "Announces the Passing of Director", "Announces Retirement of
+# Chairman". _ROLE_THEN_VERB had only the noun-after-title order.
+_ROLE_DEPART = re.compile(
+    rf"\b(?i:resignations?\s+of|retirement\s+of|departure\s+of|passing\s+of|"
+    rf"termination\s+of)\s+(?:(?i:its|the|a|an|our|former|long-?standing|"
+    rf"two|one)\s+){{0,2}}(?P<role>{_ROLE_Q})\b")
+
 # A reshuffle with nobody named: "Announces Changes to Board of Directors".
 # Neither a joining nor a leaving. v3 folded these into the appointment verbs,
 # which reported 23 board shuffles as appointments. _ROLE_ONLY is tried first,
 # so "Changes To The Board - Appoints New Interim CEO" is still an appointment.
+# v9: "Change of CFO", "Change in Board Leadership".
 _ROLE_CHANGED = re.compile(
-    rf"\b(?i:changes?\s+to|restructur(?:es|ed|ing))\s*"
-    rf"(?:[A-Za-z'’\-]+\s+){{0,6}}?(?P<role>(?i:{_ROLE}))\b")
-
+    rf"\b(?i:changes?\s+(?:to|of|in)|restructur(?:es|ed|ing))\s*"
+    rf"(?:[A-Za-z'’\-]+\s+){{0,6}}?(?P<role>(?i:{_ROLE}))\b(?!['’]s)")
+# ... the possessive guard is v9: "Change of Director's Interest Notice" (ASX
+# Appendix 3Y) is a share-holding filing, and there are seven of them.
 
 _BOARD_ROLE = re.compile(r"\b(?:board|director|chair)", re.I)
 _ADVISORY_ROLE = re.compile(r"\badvis", re.I)
 # "Alma Gold Inc. Announces Director Resignation" / "Appoints New Director" --
 # a bare role with an appointment or departure verb beside it is a management
 # change even with nobody named. Rejecting these cost 453 real releases.
+# v9: a left boundary -- "Norsemont Announces Update on MCTO Application
+# Material Change Report" was a CTO change. Also "Retirement", "Succession".
 _ROLE_THEN_VERB = re.compile(
-    rf"(?P<role>(?i:{_ROLE}))\s+(?:[A-Za-z&]+\s+){{0,3}}?"
-    rf"(?i:resignation|appointment|change|transition|departure|nomination)s?\b")
+    rf"(?<![A-Za-z])(?P<role>(?i:{_ROLE}))\s+(?:[A-Za-z&]+\s+){{0,3}}?"
+    rf"(?i:resignation|appointment|change|transition|departure|nomination|"
+    rf"retirement|succession)s?\b")
 
 _TITLE_WORDS = {
     # rank
@@ -248,12 +377,28 @@ _TITLE_WORDS = {
     "permitting", "land", "lands", "tenements", "indigenous", "government",
     "public", "stakeholder", "people", "culture", "talent", "human",
     "sales", "country", "regional", "special", "scientific", "geotechnical",
+    # v9: an advisory body and the qualifiers _ROLE_MOD lets into a title --
+    # "Advisory Committee" was trimmed to "Advisory", "Permanent Full Time CEO"
+    # to "Permanent"
+    "committee", "council", "member", "members", "permanent", "full", "time",
+    "full-time", "incoming", "industry", "inaugural", "independent", "co-ceo",
 }
 # A connector survives only when a title word follows it. "to" is absent on
 # purpose: it let "VP of Exploration To Head Up Exploration at Bleasdell"
 # through, because "Head" is a real title word and the connector skipped past
 # the word that actually ended the title.
 _TITLE_JOIN = {"of", "and", "&", "the", "its", "for", ",", "-"}
+
+
+_RANK_WORDS = {
+    "chief", "senior", "executive", "vice", "president", "vice-president",
+    "non-executive", "deputy", "assistant", "interim", "acting", "lead",
+    "managing", "general", "principal", "chair", "chairman", "chairwoman",
+    "chairperson", "director", "directors", "officer", "manager", "head",
+    "advisor", "adviser", "advisory", "board", "counsel", "secretary",
+    "treasurer", "controller", "partner", "vp", "v.p.", "evp", "svp", "ceo",
+    "cfo", "coo", "cto", "cio", "cso", "geologist",
+}
 
 
 def _trim_role_tail(role: str) -> str:
@@ -274,6 +419,11 @@ def _trim_role_tail(role: str) -> str:
         w = toks[i].lower().strip(".,;:()&")
         if not w:
             continue
+        # v9: after a comma only a FUNCTION continues the title ("Vice
+        # President, Exploration"); a rank starts a second role ("President,
+        # CEO and Director") and the first role ends at the comma.
+        if toks[i - 1].endswith(",") and (w in _RANK_WORDS or w not in _TITLE_WORDS):
+            break
         if w in _TITLE_WORDS or all(
                 p in _TITLE_WORDS for p in w.split("-") if p):
             last_kept = i
@@ -298,6 +448,11 @@ _TRAILING_CRED = {
     "peng", "p.eng", "msc", "m.sc", "bsc", "b.sc", "meng", "m.eng",
     "icdd", "icd.d", "llb", "ll.b", "cpg", "c.p.g", "ausimm", "fausimm",
     "jr", "sr", "ii", "iii", "iv",
+    # v9: "Robert Penczak QP", "Carlos Espinosa Officially Joins RooGold"
+    "qp", "officially", "formally",
+    # a dateline run into a headline: "Pays Tribute to Its Late Founder,
+    # Richard Hughes Vancouver, British Columbia"
+    "vancouver", "toronto", "calgary", "montreal", "perth",
 }
 
 
@@ -311,6 +466,47 @@ _LEADING_JUNK = _DESCRIPTOR | _TITLE_WORDS | {
     "mayor", "specialist", "strategist", "entrepreneur", "financier",
     "major", "colonel", "captain", "general", "hon", "honourable", "honorable",
     "sir", "former", "retired", "outgoing", "incoming", "current", "longtime",
+    # v9: "Retired Federal Minister Seamus O'Regan", "Mining Innovator Michelle
+    # Ash", "Executive Management Transition Mirco Wojnarowicz appointed"
+    "federal", "provincial", "innovator", "pioneer", "transition", "founding",
+    "member", "leadership", "reporting", "operator", "shareholder", "alumnus",
+}
+
+# v9: a token no person's name contains. The departure patterns read "Retirement
+# of Certain Legacy Debt Obligations", "Retirement of Beedie Facility" and "Oil &
+# Gas Geoscientists Depart Canada" as people; "Appoints Energy Leader as New
+# CEO" made a person called ENERGY LEADER.
+_NOT_NAME = {
+    "debt", "debts", "obligations", "facility", "facilities", "loan", "loans",
+    "notes", "debentures", "credit", "legacy", "certain", "geoscientists",
+    "geologists", "leader", "leaders", "minister", "specialist", "strategist",
+    "entrepreneur", "financier", "innovator", "veteran", "builder", "expert",
+    "experts", "professor", "scientist", "emeritus", "founding", "officially",
+    # verbs a capitalised headline puts right after a name: "Asa East Appointed
+    # as", "Mark Reischman Joins as", "Mr. Roy Resigns as Director"
+    "appointed", "appoints", "joins", "joined", "resigns", "resigned", "named",
+    "retires", "retired", "promoted", "welcomes", "grants", "announces",
+    "provides", "closes", "completes", "reports", "extends", "commences",
+    # things a headline announces "to Directors" / "as" that are not people
+    # ("Grant" and "Key" are left out: Grant Tanaka, Nicky Grant, Katy Grant)
+    "option", "options", "grants", "stock", "shares", "rsus", "warrants",
+    "units", "additions", "addition", "million", "equity", "financing",
+    "listing", "geoscientist", "member", "members", "operator", "shareholder",
+    "alumnus", "alumna",
+    # a commodity company is not a person: "Cruz Cobalt Joins the Clayton
+    # Valley Lithium Advisory Committee". Gold, Silver, Nickel and Copper are
+    # left out -- "Steven Gold", "Jason Nickel" are real appointees.
+    "cobalt", "lithium", "uranium", "graphite", "metals",
+    "minerals", "resources", "mining", "energy", "royalties", "ventures",
+    "explorations", "battery",
+}
+
+
+# words that end a description placed in front of a name: "Wall Street Veteran
+# Michael Moen", "Xtra-Gold Director James Schweitzer"
+_TAIL_MARKERS = _TITLE_WORDS | _DESCRIPTOR | {
+    "veteran", "leader", "minister", "specialist", "strategist", "entrepreneur",
+    "financier", "innovator", "builder", "geoscientist", "professor", "scientist",
 }
 
 
@@ -336,6 +532,8 @@ def _is_person(name: str) -> bool:
     # person called "SCIENTIFIC ADVISORY".
     if any(t in _TITLE_WORDS for t in toks):
         return False
+    if any(t in _NOT_NAME for t in toks):
+        return False
     if _COMPANY_TAIL.search(name):
         return False
     # "Canadian Copper's Board" -- a possessive is a company, not a person
@@ -345,16 +543,62 @@ def _is_person(name: str) -> bool:
 def _clean_role(s: str) -> str:
     s = re.sub(r"\s+", " ", (s or "").strip())
     s = re.sub(r"\s+(?i:and|&)\s+(?i:announces|provides|begins|commences|reports).*$", "", s)
+    # v9: "Chief Psychedelic Officer" -- the word in the middle is whatever the
+    # company calls it, and the title is complete as matched
+    c = re.match(r"(?i:chief\s+[a-z]+(?:\s+[a-z]+)?\s+officer)\b", s)
+    if c:
+        return c.group(0)[:MAX_ROLE_CHARS]
     s = _trim_role_tail(s)
     return s.strip(" ,;–—-")[:MAX_ROLE_CHARS]
+
+
+# v9: a director of a function is staff: "Project Director", "Director of
+# Operations", "Executive Technical Director".
+_STAFF_DIRECTOR = re.compile(
+    r"\b(?:project|operations?|technical|exploration|sales|marketing|commercial|"
+    r"finance|communications|mine|site)\s+director\b|\bdirector\s+of\b(?!\s+the\s+board)",
+    re.I)
+
+
+_RANK_LEAD = re.compile(r"(?i:vice|v\.?p|s\.?v\.?p|e\.?v\.?p|senior|executive|director|"
+                        r"head|chief|manager)\b")
+
+
+def _service_text(m, text: str) -> str:
+    """The part of a match the service-provider test is judged on.
+
+    v9: "Appoints Farid Mammadov as Vice President, Investor Relations" is an
+    officer whose portfolio happens to be IR. When the captured title starts
+    with a rank, the words inside the title are its function, not a hired firm,
+    so only the text before the title is tested. "Engages X as Investor
+    Relations Manager" still starts its title with "Investor" and is rejected.
+    """
+    try:
+        rs = m.start("role")
+        role = m.group("role") or ""
+    except IndexError:  # a pattern with no role group
+        return m.group(0)
+    if rs >= 0 and _RANK_LEAD.match(role):
+        return text[m.start():rs]
+    return m.group(0)
 
 
 def _scope(role: str) -> str:
     if _ADVISORY_ROLE.search(role or ""):
         return "advisory"
+    if _STAFF_DIRECTOR.search(role or ""):
+        return "management"
     if _BOARD_ROLE.search(role or ""):
         return "board"
     return "management"
+
+
+# Diagnostics only (measure.py): when TRACE is a list, extract() appends the
+# name of the rule that produced each change. Never part of the return value.
+TRACE = None
+_PATTERN_NAMES = ["as", "appointment_of", "to_board", "two_names_3", "two_names",
+                  "no_as", "departure_of", "resigns", "passing_of", "passes_away",
+                  "joins", "was_appointed", "announces_as"]
 
 
 def extract(headline: str, body: str = "") -> dict:
@@ -372,49 +616,131 @@ def extract(headline: str, body: str = "") -> dict:
 
     seen: set[str] = set()
     changes = []
-    for action, pat in _PATTERNS:
+
+    def _add(action, raw_person, role, prole=""):
+        if _PRIOR_AFFILIATION.match(raw_person or ""):
+            # "Former Gold Fields", "Former Electronic Arts", "Former Las
+            # Bambas" -- a previous employer, not the appointee.
+            # v9: unless a title closes the description and a name follows it:
+            # "FORMER SASKPOWER MINISTER ROB NORRIS JOINS MAX POWER BOARD".
+            toks = raw_person.split()
+            last = max((i for i, t in enumerate(toks)
+                        if t.lower().strip(".,") in _LEADING_JUNK and i > 0), default=-1)
+            if last < 1 or len(toks) - last - 1 < 2:
+                return
+            raw_person = " ".join(toks[last + 1:])
+        person = _clean_person(raw_person)
+        if person and not _is_person(person):
+            # v9: "Xtra-Gold Director James Schweitzer Passes Away" -- the name
+            # regex starts at the company. When a title word sits inside the
+            # capture and a full name follows it, the name is what follows and
+            # the title is its role.
+            toks = person.split()
+            last = max((i for i, t in enumerate(toks)
+                        if t.lower().strip(".,") in _TAIL_MARKERS), default=-1)
+            tail = " ".join(toks[last + 1:]) if last >= 0 else ""
+            if tail and len(toks) - last - 1 >= 2 and _is_person(tail):
+                prole = prole or toks[last]
+                person = tail
+            else:
+                return
+        if not person:
+            return
+        role = _clean_role(role or "")
+        if not role and prole:
+            # v9: "Resignation of Director Kai Hoffmann" -- the title in front
+            # of the name is the only role the headline gives.
+            role = _clean_role(prole)
+        key = person.lower()
+        if key in seen:
+            return
+        seen.add(key)
+        changes.append({"action": action, "person": person,
+                        "role": role or None, "scope": _scope(role)})
+
+    for pi, (action, pat) in enumerate(_PATTERNS):
         for m in pat.finditer(text):
-            if _SERVICE_ROLE.search(m.group(0)):
+            n_before = len(changes)
+            if _SERVICE_ROLE.search(_service_text(m, text)):
                 # "engages X as market maker" and friends are not management
                 # changes, however identical the grammar. Judged on the match,
                 # not on the whole headline.
                 continue
-            raw_person = m.groupdict().get("person") or ""
-            if _PRIOR_AFFILIATION.match(raw_person):
-                # "Former Gold Fields", "Former Electronic Arts", "Former Las
-                # Bambas" -- a previous employer, not the appointee.
+            g = m.groupdict()
+            raw_person, role = g.get("person") or "", g.get("role") or g.get("role2") or ""
+            verb = g.get("verb")
+            nxt = _NAME_AFTER_ROLE.match(text, m.end("role")) if (
+                _PATTERN_NAMES[pi] == "joins" and g.get("role")) else None
+            if nxt and _is_person(_clean_person(nxt.group("person"))):
+                # v9: "Robert Friedland Joins U.S. President Donald J. Trump at
+                # the White House" -- the title belongs to the next name
                 continue
-            person = _clean_person(raw_person)
-            role = _clean_role(m.groupdict().get("role") or "")
-            if not person or not _is_person(person):
-                continue
-            key = person.lower()
-            if key in seen:
-                continue
-            seen.add(key)
-            changes.append({"action": action, "person": person,
-                            "role": role or None, "scope": _scope(role)})
+            if verb is not None:
+                # the no-"as" pattern: "Appoints NAME ROLE"
+                if re.search(r"(?i:ed)$", verb) and re.search(
+                        r"[A-Z][\w'’.\-]*\s*$", text[:m.start()]):
+                    # v9: "John F. O'Donnell Appointed Montana Gold Chairman of
+                    # the Board" -- a past-tense verb straight after a name is
+                    # passive; what follows it is the company, not the person.
+                    continue
+                # where the TRIMMED title ends, not where the regex stopped:
+                # "Appoints Martin Demers VP of Exploration and Completes Final
+                # Closing" must not read "Completes Final Closing" as a name
+                ntok = len(_clean_role(role).split())
+                toks = list(re.finditer(r"\S+", role))
+                end = m.start("role") + (toks[ntok - 1].end() if 0 < ntok <= len(toks) else len(role))
+                after = _AFTER_TITLE_NAME.match(text, end)
+                if after and _is_person(_clean_person(after.group("person"))):
+                    # v9: "Appoints Enbridge Gaz Québec President Jean-Benoît
+                    # Trahan to Board" -- the capture was an employer.
+                    raw_person, role = after.group("person"), after.group("role") or ""
+            _add(action, raw_person, role, g.get("prole") or "")
+            if len(changes) > n_before:
+                # only when the first name was a person: in "Appoints Proven
+                # Mine Builder and Operator David Bernier" the "and" joins two
+                # descriptions of one man, not two appointees
+                for extra in ("person3", "person2"):
+                    if g.get(extra):
+                        _add(action, g[extra], role)
+            if TRACE is not None:
+                TRACE.extend([_PATTERN_NAMES[pi]] * (len(changes) - n_before))
 
     if not changes:
         for pat, action in ((_ROLE_ONLY, "appointed"),
+                            (_ROLE_DEPART, "departed"),
                             (_ROLE_CHANGED, "changed"),
                             (_ROLE_THEN_VERB, None)):
+            rule = {id(_ROLE_ONLY): "role_only", id(_ROLE_DEPART): "role_depart",
+                    id(_ROLE_CHANGED): "role_changed", id(_ROLE_THEN_VERB): "role_then_verb"}[id(pat)]
             m = pat.search(text)
-            if not m or _SERVICE_ROLE.search(m.group(0)):
+            if not m or _SERVICE_ROLE.search(_service_text(m, text)):
                 continue
             role = _clean_role(m.group("role"))
             if not role or len(role) < 3:
                 continue
+            if action == "appointed" and (
+                    re.search(r"(?i:\bformer\b)", m.group(0))
+                    or re.search(r"(?i:geologist)$", role)):
+                # v9: "Appoints Former OPG CEO Ken Hartwick to its Board of
+                # Directors", "Appoints Veteran Geologist X to the Board" -- a
+                # former title or a profession describes the person; where the
+                # headline names a destination, that is the role. Only then:
+                # "Appointment of CEO and Changes to Board" keeps CEO.
+                d = _DESTINATION.search(text, m.end())
+                if d and not _BOARD_ROLE.search(role) and not _ADVISORY_ROLE.search(role):
+                    role = _clean_role(d.group("role"))
             if action:
                 act = action
             elif re.search(r"(?i:resignation|departure|retirement)", m.group(0)):
                 act = "departed"
-            elif re.search(r"(?i:changes?|transition)", m.group(0)):
+            elif re.search(r"(?i:changes?|transition|succession)", m.group(0)):
                 act = "changed"
             else:
                 act = "appointed"
             changes.append({"action": act, "person": None,
                             "role": role, "scope": _scope(role)})
+            if TRACE is not None:
+                TRACE.append(rule)
             break
 
     if not changes:
@@ -423,6 +749,113 @@ def extract(headline: str, body: str = "") -> dict:
     return {"changes": changes, "top_person": top["person"],
             "top_role": top["role"], "top_action": top["action"],
             "top_scope": top["scope"]}
+
+
+# ---------------------------------------------------------------------------
+# v9: rows for releases the categoriser tagged but extract() cannot parse
+# ---------------------------------------------------------------------------
+# The Management Changes chip is built by the categoriser, which accepts a
+# leadership headline that names nobody and no parseable role ("Announces
+# Leadership Transition", "Strengthens Board", "Announces Passing of Mark
+# Gasson"). The page is built from extract(). infer_from_tag() lets the page
+# follow the tag: for a TAGGED release it returns a person-less change with the
+# action and scope read from the headline's words -- and returns None when the
+# headline carries no management evidence at all, because then the tag itself
+# is wrong ("News release", "Board Approval of 2026 Budget").
+
+_INF_SUBJECT = re.compile(
+    rf"(?i:\b(?:{_ROLE}|officers?|executives?|leadership|leaders|management|team|"
+    rf"(?:co-?)?founder|board\s+members?|advis[oe]rs|nominees?|managers?|BOD|"
+    rf"organizational|(?:technical|advisory|geological)\s+commit+ee|C[EFOT]O|SVP|EVP)\b)")
+_INF_DEPART = re.compile(
+    # "retired" is left out: "Appoints Retired U.S. Army Colonel" is an adjective
+    r"(?i:\b(?:resign\w*|retire|retires|retirements?|retiring|steps?\s+down|"
+    r"stepping\s+down|stepped\s+down|"
+    r"depart\w*|passing|passes\s+away|passed\s+away|mourns?|tribute|late|"
+    # a termination is a departure only next to a title: "CEO TERMINATION",
+    # not "Management Changes and Termination of RSU Plan"
+    r"(?:C[EFOT]O|officer|director|president|chair\w*)\s+terminat\w*|"
+    r"terminates\s+(?:[A-Z][\w'’\-]*\s+){1,3}as|"
+    r"terminat\w*\s+of\s+(?:the\s+|its\s+)?(?:C[EFOT]O|officer|director|president|chair\w*)|"
+    r"loss\s+of)\b)")
+_INF_CHANGE = re.compile(
+    r"(?i:\b(?:changes?|transitions?|succession|updates?|restructur\w*|renewal|"
+    r"refresh\w*|evolution|reorganiz\w*|reshuffle)\b)")
+_INF_APPOINT = re.compile(
+    r"(?i:\b(?:appoint\w*|names?|named|welcom\w*|joins?|joining|adds?|added|"
+    r"additions?|new|strengthen\w*|bolster\w*|expan\w*|builds?\s+out|enhanc\w*|"
+    r"forms?|formation|establish\w*|creat\w*|hires?|elect\w*|nominat\w*|"
+    r"promot\w*|engages?|commences\s+role|assumes|agrees\s+to\s+(?:act|serve|join)|"
+    r"streamlin\w*|moves\s+to|attracts|nominees?)\b)")
+# "RAIN CITY ANNOUNCES INTERIM CEO", "Steadright Announces Board Chair",
+# "FORTY PILLARS ANNOUNCES REYNOLDS AS DIRECTOR" -- "announces" is only an
+# appointment when the title closes the clause; "Announces CEO Controlled
+# Entity Debt Acquisition" is not one.
+_INF_ANNOUNCES = re.compile(
+    rf"\b(?i:announces?)\s+(?:(?i:(?:the\s+)?(?:new|interim|acting))\s+)?"
+    rf"(?:[A-Z][\w'’\-]*\s+(?:(?i:as)\s+)?){{0,3}}?(?i:{_ROLE})"
+    rf"(?=\s*$|\s*[,;.(]|\s+(?i:and)\b)")
+# Tagged releases that are not a change in who runs the company. Each is a
+# bucket read in the corpus (see FINDINGS.md), not a guess.
+_INF_NOT = re.compile(
+    r"(?i:\bboard\s+approv\w*|\bapproved\s+by\s+(?:the\s+)?board|"
+    r"\bexpert\s+panel\b|\bcourt[\-\s]appointed\b|\bexecutive\s+order\b|"
+    r"\bsite\s+visit\b|\bmanagement\s+cease\s+trade|\bMCTO\b|"
+    r"\bmanagement['’]?s\s+discussion|\bmanagement\s+information\s+circular\b|"
+    r"\bdirector['’]s\s+interest\b|\bPDMR\b|\bPMDR\b|\bdealing\b)")
+
+
+def infer_from_tag(headline: str) -> dict | None:
+    """A person-less change for a release tagged Management Changes, or None.
+
+    Never used as a detector: an untagged release is not rescued by this.
+    """
+    h = _CRED_RE.sub("", (headline or "").strip())
+    if not h or _INF_NOT.search(h) or _SERVICE_ROLE.search(h):
+        return None
+    subj = _INF_SUBJECT.search(h)
+    dep, chg = _INF_DEPART.search(h), _INF_CHANGE.search(h)
+    app = _INF_APPOINT.search(h) or _INF_ANNOUNCES.search(h)
+    # a death or a resignation names a person and often no role: "Announces
+    # Passing of Mark Gasson", "ROCKLAND RESOURCES SUTCLIFFE RESIGNS",
+    # "Announces the Resignations of David Drinkwater and Stephen Lewin"
+    death = re.search(r"(?i:\bpassing\s+of|passes\s+away|passed\s+away|mourns?|"
+                      r"tribute\s+to)", h)
+    resign = re.search(r"(?i:\bresigns\b|\bresignations?\s+of\s+(?:mr\.?\s+|ms\.?\s+)?[A-Z])", h)
+    if not (dep or chg or app) or not (subj or death or resign):
+        return None
+    if dep and app and not death:
+        action = "changed"        # "Resignation and Appointment of Directors"
+    elif dep:                     # "Corporate Update - Alford resigns"
+        action = "departed"
+    elif chg:
+        action = "changed"
+    else:
+        action = "appointed"
+    role = None
+    d = _DESTINATION.search(h)
+    if d:
+        role = _clean_role(d.group("role"))
+    else:
+        for rm in re.finditer(rf"(?<![A-Za-z])(?P<role>(?i:{_ROLE}))\b", h):
+            # "Appoints Former U.S. Secretary of Homeland Security ... as a
+            # Director" -- a title after "former" is the person's past
+            if re.search(r"(?i:\bformer\b(?:\s+\S+){0,3}\s*)$", h[:rm.start()]):
+                continue
+            role = _clean_role(rm.group("role"))
+            break
+    if role and len(role) < 3:
+        role = None
+    low = h.lower()
+    if role:
+        scope = _scope(role)
+    elif re.search(r"\badvis", low):
+        scope = "advisory"
+    elif re.search(r"\b(?:board|director|chair)", low):
+        scope = "board"
+    else:
+        scope = "management"
+    return {"action": action, "person": None, "role": role, "scope": scope}
 
 
 SELF_TEST = [
@@ -575,6 +1008,206 @@ REJECT_TEST = [
 ]
 
 
+# --- v9: every case below was found by reading all 2,068 v8 rows and the 1,020
+# --- tagged releases v8 was silent on. (headline, person, role, action, scope)
+# --- role is compared EXACTLY (None = no role); person None = nobody named.
+V9_TEST = [
+    # a former employer's title in front of the name, not fatal any more
+    ("<br>FORMER SASKPOWER MINISTER ROB NORRIS JOINS MAX POWER BOARD OF DIRECTORS",
+     "ROB NORRIS", "BOARD OF DIRECTORS", "appointed", "board"),
+    ("Denison Announces Appointment of Former OPG CEO Ken Hartwick to its Board of "
+     "Directors", "Ken Hartwick", "Board of Directors", "appointed", "board"),
+    # an employer with no "former": the name after the title is the person
+    ("QIMC Appoints Enbridge Gaz Québec President Jean-Benoît Trahan to Board of "
+     "Directors", "Jean-Benoît Trahan", "Board of Directors", "appointed", "board"),
+    ("Goldera Appoints IAMGOLD Founding Director Mahendra Naik to its Board of "
+     "Directors Veteran mining executive and investor", "Mahendra Naik",
+     "Board of Directors", "appointed", "board"),
+    ("Wall Street Veteran Michael Moen Joins Carmanah Board Of Directors",
+     "Michael Moen", "Board Of Directors", "appointed", "board"),
+    # passive verb: the words after it are the company
+    ("John F. O’Donnell Appointed Montana Gold Chairman of the Board", None,
+     "Chairman of the Board", "appointed", "board"),
+    # a description is not a name
+    ("<br>MAX POWER APPOINTS ENERGY LEADER AS NEW CEO TO DRIVE NEXT PHASE OF "
+     "NATURAL HYDROGEN GROWTH", None, "CEO", "appointed", "management"),
+    ("Great Eagle Gold Corp. Appoints Mining Innovator Michelle Ash as a Director "
+     "and Chairwoman of the Board", "Michelle Ash", "Director", "appointed", "board"),
+    ("Carlos Espinosa Officially Joins RooGold as Chief Executive Officer",
+     "Carlos Espinosa", "Chief Executive Officer", "appointed", "management"),
+    ("Power Metallic Appoints Retired Federal Minister Seamus O'Regan to Board",
+     "Seamus O'Regan", "Board", "appointed", "board"),
+    # surnames that are also words the name filter knows
+    ("Interra Copper Corp. Appoints Mr. Jason Nickel, P.Eng., as Chief Executive "
+     "Officer & Extends Drill Program", "Jason Nickel", "Chief Executive Officer",
+     "appointed", "management"),
+    ("Corcel Exploration Appoints Grant Tanaka as Chief Financial Officer",
+     "Grant Tanaka", "Chief Financial Officer", "appointed", "management"),
+    ("Carolina Rush Appoints Patrick Quigley Vice President of Exploration, Grants "
+     "RSUs and Options, Extends Warrants", "Patrick Quigley",
+     "Vice President of Exploration", "appointed", "management"),
+    # a title continues past a comma only with a function
+    ("Athena Gold Appoints Farid Mammadov as Vice President, Investor Relations",
+     "Farid Mammadov", "Vice President, Investor Relations", "appointed", "management"),
+    ("Canamera Energy Metals Appoints Warren Robb as Vice President, Exploration",
+     "Warren Robb", "Vice President, Exploration", "appointed", "management"),
+    ("SIXTY NORTH GOLD APPOINTS GAVIN KIRK AS PRESIDENT, CEO AND A DIRECTOR",
+     "GAVIN KIRK", "PRESIDENT", "appointed", "management"),
+    ("Sanu Gold Appoints Constant Tia as Non-Executive Director", "Constant Tia",
+     "Non-Executive Director", "appointed", "board"),
+    ("Yukon Metals Appoints Jim Coates as Permanent Full Time CEO", "Jim Coates",
+     "Permanent Full Time CEO", "appointed", "management"),
+    ("NeonMind Appoints Trevor Millar as Chief Psychedelic Officer", "Trevor Millar",
+     "Chief Psychedelic Officer", "appointed", "management"),
+    # scope: a director of a function is staff; a board's advisor is advisory
+    ("Avalon Advanced Materials Appoints Glen Smith as Project Director for Lake "
+     "Superior Lithium Refinery Feasibility & Construction", "Glen Smith",
+     "Project Director", "appointed", "management"),
+    ("Canadian Goldfields Appoints Harp Gosal as Director of Capital Markets and "
+     "Communications", "Harp Gosal", "Director of Capital Markets and Communications",
+     "appointed", "management"),
+    ("Hi-View Appoints Terry Krepiakevich as Board Advisor", "Terry Krepiakevich",
+     "Board Advisor", "appointed", "advisory"),
+    ("Gold Strike Resources Corp. Appoints Jim Gowans as Chairman of Advisory Board",
+     "Jim Gowans", "Chairman of Advisory Board", "appointed", "advisory"),
+    ("Abitibi Metals Announces Appointment of Victor Cantore to Advisory Committee",
+     "Victor Cantore", "Advisory Committee", "appointed", "advisory"),
+    # departures: the title before the name, "as a", and deaths
+    ("LABRADOR GOLD ANNOUNCES RESIGNATION OF DIRECTOR KAI HOFFMANN", "KAI HOFFMANN",
+     "DIRECTOR", "departed", "board"),
+    ("SILVER MOUNTAIN ANNOUNCES RESIGNATION OF JULIO ARCE AS A DIRECTOR",
+     "JULIO ARCE", "DIRECTOR", "departed", "board"),
+    ("BacTech Announces the Passing of Director Jay Richardson", "Jay Richardson",
+     "Director", "departed", "board"),
+    ("Xtra-Gold Director James Schweitzer Passes Away", "James Schweitzer", "Director",
+     "departed", "board"),
+    # the capture started at the company; the title inside it is the role
+    ("<br>MAX Power Director Thomas Clarke Resigns", "Thomas Clarke", "Director",
+     "departed", "board"),
+    ("Royal Road Minerals Announces Resignation of Non-Executive Director", None,
+     "Non-Executive Director", "departed", "board"),
+    ("Fuerte Metals Announces CFO Retirement", None, "CFO", "departed", "management"),
+    ("Hertz Energy Announces Change of Chief Financial Officer", None,
+     "Chief Financial Officer", "changed", "management"),
+    # new verbs
+    ("Loyalist Announces Len Mackenzie as Vice-President Exploration",
+     "Len Mackenzie", "Vice-President Exploration", "appointed", "management"),
+    ("Bam Bam Announces Yari Nieken to Join the Board of Directors", "Yari Nieken",
+     "Board of Directors", "appointed", "board"),
+    ("Crestview Exploration Inc. Announces Brian Brewer to Join Advisory Board",
+     "Brian Brewer", "Advisory Board", "appointed", "advisory"),
+    ("Vincent Chen Joins Lancaster Resources Board of Directors, Bolstering Expertise "
+     "in Corporate Development", "Vincent Chen", "Board of Directors", "appointed",
+     "board"),
+    # a destination beats a profession or a former title -- but not "Changes to"
+    ("Noble Plains Uranium Appoints Veteran Uranium Geologist Chris Healey to Board "
+     "of Directors", "Chris Healey", "Board of Directors", "appointed", "board"),
+    ("Tintina Announces Appointment of CEO and Changes to Board of Directors", None,
+     "CEO", "appointed", "management"),
+]
+
+# two or three people named for one role
+N_CHANGES_TEST = [
+    ("Blackrock Silver Announces the Appointment of Bernard Poznanski and Susan "
+     "Mathieu to the Board of Directors", ["Bernard Poznanski", "Susan Mathieu"]),
+    ("Fuerte Welcomes Chris Beer, Dawson Proudfoot and Sandip Rana to Its Board of "
+     "Directors", ["Chris Beer", "Dawson Proudfoot", "Sandip Rana"]),
+    # "and" joining two descriptions of one man is not two people
+    ("Abitibi Metals Appoints Proven Mine Builder and Operator David Bernier as Chief "
+     "Operating Officer", []),
+]
+
+V9_REJECT_TEST = [
+    # a departure verb whose object is a loan, not a person
+    "i-80 Gold Closes $250 Million Royalty Financing with Franco-Nevada and Completes "
+    "Retirement of Certain Legacy Debt Obligations",
+    "METALLA ANNOUNCES REVOLVING CREDIT FACILITY OF UP TO $75 MILLION AND RETIREMENT "
+    "OF BEEDIE FACILITY",
+    "ANGKOR RESOURCES’ OIL & GAS GEOSCIENTISTS DEPART CANADA TO PHNOM PENH TO DEVELOP "
+    "ENERCAM’S ONSHORE OIL AND GAS PROJECT, CAMBODIA",
+    # CTO inside MCTO
+    "Norsemont Mining Inc. Announces Update on MCTO Application Material Change Report",
+    # banks and IR shops hired as advisors
+    "McEwen Copper Appoints Societe Generale as Financial Advisor for Project Debt "
+    "Financing of Los Azules",
+    "Avalon Advanced Materials Appoints SCP Resource Finance as Strategic Capital "
+    "Advisor for Rare Earth and Lithium Projects",
+    "LEADING EDGE MATERIALS ANNOUNCES CHANGE OF SWEDISH CERTIFIED ADVISER TO SVENSK "
+    "KAPITALMARKADSGRANSKNING",
+    # ASX Appendix 3Y share-holding notice
+    "Change of Director’s Interest Notice + See chapter 19 for defined terms.",
+    # options granted to directors are not directors appointed
+    "Silver Sands Announces Stock Option Grants to Directors and Consultants",
+    # joining a person, not a board
+    "Ivanhoe Electric Executive Chairman Robert Friedland Joins U.S. President Donald "
+    "J. Trump at the White House for Minerals Stockpile Announcement",
+]
+
+# (headline, action or None) -- infer_from_tag() on real tagged releases that
+# extract() cannot parse. None means the TAG is wrong and no row is written.
+INFER_TEST = [
+    ("Cascada Announces Senior Leadership Changes", "changed"),
+    ("B2Gold Announces Leadership Transition", "changed"),
+    ("TEMAS STRENGTHENS BOARD TO SUPPORT GROWTH STRATEGY AND CRITICAL MINERALS "
+     "ADVANCEMENT", "appointed"),
+    ("Arizona Gold & Silver Continues to Strengthen Advisory Board", "appointed"),
+    ("ROCKLAND RESOURCES SUTCLIFFE RESIGNS", "departed"),
+    ("Don Whalen - BacTech Mourns the passing", "departed"),
+    ("RAIN CITY ANNOUNCES INTERIM CEO", "appointed"),
+    ("Corporate Update - Alford resigns", "departed"),
+    ("GOLD’N FUTURES ANNOUNCES CEO TERMINATION", "departed"),
+    ("CREST ANNOUNCES MANAGEMENT CHANGES AND TERMINATION OF RSU PLAN", "changed"),
+    ("MONTEGO - Terminates Cegielski as CEO", "departed"),
+    ("BLACK TUSK RESOURCES INC. CREATES GEOLOGICAL ADVISORY COMMITEE", "appointed"),
+    ("NovaRed Mining Appoints Retired U.S. Army Colonel Mark A. Calabrese to Advisory "
+     "Board", "appointed"),
+    ("News release", None),
+    ("Gold Reserve Announces Board Approval of Spin-Out Transactions", None),
+    ("FREEMAN APPOINTS AUSENCO TO LEAD LEHMI GOLD PROJECT FEASIBILITY STUDY", None),
+    ("Marimaca Appoints Stantec to Progress PEA for the Integration of the Pampa "
+     "Medina Project", None),
+    ("Talent Infinity Announces CEO Controlled Entity Debt Acquisition and Plans for "
+     "Consolidation", None),
+    ("Thor Explorations Ltd: Announces Director & PMDR Dealing", None),
+    ("Military Metals Appoints DGWA as European Financial Markets Advisor", None),
+]
+
+
+def self_test_v9(verbose: bool = True) -> int:
+    bad = 0
+    for hl, want_p, want_r, want_a, want_s in V9_TEST:
+        out = extract(hl)
+        got = (out.get("top_person"), out.get("top_role"), out.get("top_action"),
+               out.get("top_scope"))
+        ok = got == (want_p, want_r, want_a, want_s)
+        bad += not ok
+        if verbose or not ok:
+            print(f"  {'ok  ' if ok else 'FAIL'}  v9 {str(got)[:90]}"
+                  f"{'' if ok else chr(10) + '        WANTED ' + str((want_p, want_r, want_a, want_s))}")
+    for hl, want in N_CHANGES_TEST:
+        got = [c["person"] for c in extract(hl).get("changes", []) if c["person"]]
+        ok = got == want
+        bad += not ok
+        if verbose or not ok:
+            print(f"  {'ok  ' if ok else 'FAIL'}  people {got}")
+    for hl in V9_REJECT_TEST:
+        ok = not extract(hl).get("changes")
+        bad += not ok
+        if verbose or not ok:
+            print(f"  {'ok  ' if ok else 'FAIL'}  reject {hl[:60]!r}")
+    for hl, want in INFER_TEST:
+        y = infer_from_tag(hl)
+        got = y["action"] if y else None
+        ok = got == want and not extract(hl).get("changes") if want is not None else got is None
+        bad += not ok
+        if verbose or not ok:
+            print(f"  {'ok  ' if ok else 'FAIL'}  infer {got!s:<9} {hl[:52]!r}")
+    total = len(V9_TEST) + len(N_CHANGES_TEST) + len(V9_REJECT_TEST) + len(INFER_TEST)
+    if verbose:
+        print(f"\nv9: {total - bad}/{total} passed")
+    return 1 if bad else 0
+
+
 def self_test(verbose: bool = True) -> int:
     bad = 0
     for hl, want_p, want_r, want_a in SELF_TEST:
@@ -614,4 +1247,4 @@ def self_test(verbose: bool = True) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(self_test())
+    sys.exit(self_test() | self_test_v9())

@@ -18,7 +18,7 @@ DB = "/opt/mnt/app/portal/portal.db"
 SIG_WINDOW_DAYS = 365
 # Which copy of a duplicated estimate to keep. "latest" is the v3.2 behaviour
 # (the filing); "earliest" keeps the release that announced the estimate.
-KEEP = "latest"
+KEEP = "earliest"
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS resource_estimates (
