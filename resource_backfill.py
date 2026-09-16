@@ -1,7 +1,7 @@
 """resource_backfill.py — re-extract MREs from events and populate resource_estimates."""
 from __future__ import annotations
 import json as _json, re, sqlite3, sys
-from datetime import datetime
+from datetime import datetime, timezone
 
 sys.path.insert(0, "/opt/mnt/app")
 sys.path.insert(0, "/opt/mnt/app/portal")
@@ -9,6 +9,16 @@ sys.path.insert(0, "/opt/mnt/app/portal")
 from resource_extract import extract_resources, find_project, fmt_category_line  # type: ignore
 
 DB = "/opt/mnt/app/portal/portal.db"
+
+# Signature dedup (same ticker + same headline figures = same estimate) now has
+# a date window. Measured 2026-09-15: every one of the 14 merges on the stored
+# tags was an announcement + its technical-report filing 1-6 months later, so
+# a 365-day window changes nothing today but stops a re-statement years later
+# from hiding a new row.
+SIG_WINDOW_DAYS = 365
+# Which copy of a duplicated estimate to keep. "latest" is the v3.2 behaviour
+# (the filing); "earliest" keeps the release that announced the estimate.
+KEEP = "latest"
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS resource_estimates (
@@ -52,8 +62,6 @@ def main() -> int:
     if "categories_json" not in cols:
         con.execute("ALTER TABLE resource_estimates ADD COLUMN categories_json TEXT")
     con.commit()
-    con.execute("DELETE FROM resource_estimates")
-    con.commit()
 
     rows = list(con.execute(
         "SELECT event_id, ticker, raw_headline, raw_body, published_at "
@@ -69,10 +77,17 @@ def main() -> int:
             continue
         try:
             d = datetime.fromisoformat((pub or "").replace("Z", "+00:00"))
+            # published_at is stored both with and without an offset
+            # ("2026-04-27T11:00:00" next to "...+00:00"); subtracting the two
+            # raised TypeError AFTER the DELETE was committed, leaving the
+            # table empty.
+            if d.tzinfo is None:
+                d = d.replace(tzinfo=timezone.utc)
         except Exception:
             d = None
         cats = list(x["categories"].values())
-        order = {"Measured": 0, "Indicated": 1, "M&I": 2, "Inferred": 3, "Total": 4}
+        order = {"Measured": 0, "Indicated": 1, "M&I": 2, "Inferred": 3, "Total": 4,
+                 "Proven": 5, "Probable": 6, "P&P": 7}
         cats.sort(key=lambda c: order.get(c.get("category"), 5))
         summary = "  ·  ".join(fmt_category_line(c) for c in cats)
         cats_json = _json.dumps([
@@ -110,7 +125,8 @@ def main() -> int:
         })
 
     # Dedup by (ticker, normalized_headline_prefix) within ±30 days
-    candidates.sort(key=lambda c: (c["ticker"] or "", -(c["_dt"].timestamp() if c["_dt"] else 0)))
+    sign = 1 if KEEP == "earliest" else -1
+    candidates.sort(key=lambda c: (c["ticker"] or "", sign * (c["_dt"].timestamp() if c["_dt"] else 0), c["event_id"]))
     kept = []
     seen = {}
     for c in candidates:
@@ -146,13 +162,21 @@ def main() -> int:
                round(c.get("headline_oz_au") or 0, 0),
                round(c.get("headline_t_metal") or 0, 0),
                c.get("metal_focus") or "")
-        if sig in sig_signatures:
-            continue
-        sig_signatures[sig] = True
+        prev = sig_signatures.get(sig)
+        if prev is not None:
+            dts = [x for x in prev if x is not None]
+            if c["_dt"] is None or not dts or any(
+                    abs((c["_dt"] - x).days) <= SIG_WINDOW_DAYS for x in dts):
+                continue
+        sig_signatures.setdefault(sig, []).append(c["_dt"])
         final_kept.append(c)
     kept = final_kept
     print(f"after signature dedup: {len(kept)}")
 
+    # DELETE and re-INSERT in ONE transaction: readers (the portal, under WAL)
+    # keep seeing the previous table until COMMIT, and an exception anywhere
+    # above leaves the live table untouched instead of empty.
+    con.execute("DELETE FROM resource_estimates")
     for c in kept:
         con.execute(
             "INSERT INTO resource_estimates("
