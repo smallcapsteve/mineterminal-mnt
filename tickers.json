@@ -9833,7 +9833,7 @@
     "source": "thenewswire",
     "source_params": {},
     "discovery_confidence": "wire_auto",
-    "discovered_at": "2026-09-15",
+    "discovered_at": "2026-09-16",
     "exchange": "TSXV"
   },
   {
@@ -9842,7 +9842,7 @@
     "source": "thenewswire",
     "source_params": {},
     "discovery_confidence": "wire_auto",
-    "discovered_at": "2026-09-15",
+    "discovered_at": "2026-09-16",
     "exchange": "TSXV"
   },
   {
@@ -9851,16 +9851,7 @@
     "source": "thenewswire",
     "source_params": {},
     "discovery_confidence": "wire_auto",
-    "discovered_at": "2026-09-15",
+    "discovered_at": "2026-09-16",
     "exchange": "CSE"
-  },
-  {
-    "ticker": "PEY.TO",
-    "name": "Peyto Exploration & Development Corp",
-    "source": "globenewswire_gnews",
-    "source_params": {},
-    "discovery_confidence": "globenewswire_auto",
-    "discovered_at": "2026-09-15",
-    "exchange": "TSX"
   }
 ]
