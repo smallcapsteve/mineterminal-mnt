@@ -11,6 +11,8 @@ scripts = [
     ('/opt/mnt/app/drill_backfill.py',      'drill_results'),
     ('/opt/mnt/app/resource_backfill.py',   'resource_estimates'),
     ('/opt/mnt/app/management_backfill.py', 'management_changes'),
+    # FACTS_V1 (2026-09-16): incremental facts-store extraction; a no-op until an extractor is registered
+    ('/opt/mnt/app/facts_sync.py',          'facts'),
 ]
 for path, label in scripts:
     print(f'[sync_structured] running {label} backfill')
