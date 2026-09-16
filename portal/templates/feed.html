@@ -1,5 +1,6 @@
 {% extends "base.html" %}
-{% block title %}News — MiningNewsTerminal{% endblock %}
+{% block title %}{% if selected_ticker %}{{ selected_ticker }} News{% else %}News{% endif %} — MiningNewsTerminal{% endblock %}
+{% block meta_description %}{% if selected_ticker %}Latest news releases from {{ selected_ticker }}: drill results, resource estimates, financings, M&A and management changes.{% else %}{{ LP_DEFAULT_DESC }}{% endif %}{% endblock %}
 {% block content %}
   <h2 class="page-title">News</h2>
 

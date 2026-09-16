@@ -16,9 +16,13 @@ site still runs, unchanged, minus the search dropdown — /api/search 404s and
 the box falls back to the plain text search it was before. Nothing else in the
 application depends on this file.
 """
-from portal.app import app
+from portal.app import app, templates
 from portal import typeahead
 
 typeahead.register(app)
+
+# LINK_PREVIEW_V1 (2026-09-16): share-card tags on every page + root icons.
+from portal import link_preview
+link_preview.register(app, templates)
 
 __all__ = ["app"]

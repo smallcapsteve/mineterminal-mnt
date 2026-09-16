@@ -1,5 +1,6 @@
 {% extends "base.html" %}
-{% block title %}{{ cat_name }} — MiningNewsTerminal{% endblock %}
+{% block title %}{{ cat_name }}{% if selected_ticker %} — {{ selected_ticker }}{% endif %} — MiningNewsTerminal{% endblock %}
+{% block meta_description %}Latest {{ cat_name }} news releases from {% if selected_ticker %}{{ selected_ticker }}{% else %}CSE, TSXV and TSX junior mining companies{% endif %}.{% endblock %}
 {% block content %}
   {# Generic category page. Everything on it comes from events.categories, so
      the count here and the count on the front-page chip are the same number by

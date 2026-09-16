@@ -3,6 +3,7 @@
    driven by a PageSpec in portal/pages.py. First page on it: /drills. The
    route still runs its own queries; this template only lays them out. #}
 {% block title %}{{ spec.title }} — MiningNewsTerminal{% endblock %}
+{% block meta_description %}{{ (spec.describe or LP_DEFAULT_DESC) | truncate(158, false, "…", 0) }}{% endblock %}
 {% block content %}
   <h2 class="page-title">{{ spec.title }}</h2>
 

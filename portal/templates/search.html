@@ -1,5 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Search: {{ q }} — MiningNewsTerminal{% endblock %}
+{% block title %}{% if q %}Search: {{ q }}{% else %}Search{% endif %} — MiningNewsTerminal{% endblock %}
+{% block meta_description %}{% if q %}Junior mining news releases matching “{{ q }}” on MiningNewsTerminal.{% else %}Search junior mining news releases on MiningNewsTerminal.{% endif %}{% endblock %}
 {% block content %}
   <h2 class="page-title">
     Search results

@@ -4,6 +4,30 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}MiningNewsTerminal{% endblock %}</title>
+  {# LINK_PREVIEW_V1 (2026-09-16): link preview tags on every page, same set and
+     order as MineTerminal Pro's seo.js. Pages override `meta_description` and
+     `og_type`; og:title is always the page <title>. Globals come from
+     portal/link_preview.py; without them this block is skipped. #}
+  {% if false %}{% block meta_description %}{{ meta_description or LP_DEFAULT_DESC }}{% endblock %}{% block og_type %}website{% endblock %}{% endif %}
+  {% if lp_canonical is defined %}
+  {% set _lp_url = canonical_url or lp_canonical(request if request is defined else none) %}
+  {% set _lp_desc = self.meta_description() | trim %}
+  <meta name="description" content="{{ _lp_desc }}">
+  <link rel="canonical" href="{{ _lp_url }}">
+  <meta property="og:type" content="{{ self.og_type() | trim }}">
+  <meta property="og:title" content="{{ self.title() | trim }}">
+  <meta property="og:description" content="{{ _lp_desc }}">
+  <meta property="og:url" content="{{ _lp_url }}">
+  <meta property="og:site_name" content="MiningNewsTerminal">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="og:image" content="{{ LP_IMAGE }}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="{{ LP_IMAGE_ALT }}">
+  <meta name="twitter:image" content="{{ LP_IMAGE }}">
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  {% endif %}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -14,7 +38,7 @@
   <link rel="stylesheet" href="/static/typeahead.css?v=v1">
   <!-- MNT_NAV_V2 (2026-09-16): two-row nav + data page template. -->
   <link rel="stylesheet" href="/static/mnt-nav.css?v=v1">
-  <link rel="icon" type="image/png" href="/static/mnt-logo.svg?v=v10">
+  <link rel="icon" type="image/svg+xml" href="/static/mnt-logo.svg?v=v10">
   <style id="mnt-mtp-ticker-links">
   /* MNT_MTP_TICKER_LINKS_V1_BEGIN */
   /* Ticker -> MineTerminalPro company Overview. Defined once here rather than
