@@ -2,11 +2,11 @@
  "schema": 1,
  "name": "drill_results",
  "tag": "Drill Results",
- "status": "draft",
+ "status": "confirmed",
  "created": "2026-09-16",
  "drafted_by": "Claude (from headline + lede, without extractor output)",
- "reviewer": null,
- "reviewed_at": null,
+ "reviewer": "Justin",
+ "reviewed_at": "2026-09-16",
  "sampling": "seed 20260916; approved, tagged Drill Results, body >= 400 chars; 36 with a stored row (Au 13, Cu/CuEq 6, Ag/AgEq 5, AuEq 3, other 9) + 14 without",
  "items": [
   {
@@ -16,7 +16,7 @@
    "published_at": "2025-03-20T12:00:00Z",
    "stratum": "no_row",
    "body_sha1": "570dd81982b351ae01530e8f0c0c78250e8bf68d",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": false,
     "sample_type": "none",
@@ -37,7 +37,7 @@
    "published_at": "2025-12-15T12:00:00Z",
    "stratum": "row:other",
    "body_sha1": "2b3cdf030cdf65f81405d10d7e0e7298a3437182",
-   "review": "draft",
+   "review": "excluded",
    "expect": {
     "is_result": true,
     "sample_type": "drill",
@@ -332,7 +332,8 @@
     ],
     "confidence": "medium"
    },
-   "note": "Final JR Zone and Tetra Zone assays incl. Table 1; PLN25-200 highlight 8.5m composite plus table sub-rows 2.0m@0.27 and 4.0m@0.76 (inside it, marked including); 26.5m composite has no grade; PLN25-205 not reported here."
+   "note": "Final JR Zone and Tetra Zone assays incl. Table 1; PLN25-200 highlight 8.5m composite plus table sub-rows 2.0m@0.27 and 4.0m@0.76 (inside it, marked including); 26.5m composite has no grade; PLN25-205 not reported here.",
+   "review_note": "Headline intercept is also described as returned in an earlier release (NR March 18, 2025); unclear whether new."
   },
   {
    "n": 2,
@@ -341,7 +342,7 @@
    "published_at": "2026-01-06T12:00:00Z",
    "stratum": "row:Ag|AgEq",
    "body_sha1": "7323864ecdb77e94eeafba968c8651fc94a3bf5f",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": true,
     "sample_type": "drill",
@@ -684,7 +685,7 @@
    "published_at": "2022-02-17T12:00:00Z",
    "stratum": "row:other",
    "body_sha1": "4401290d1275839378809f165807ac936d5acee9",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": true,
     "sample_type": "drill",
@@ -1027,7 +1028,7 @@
    "published_at": "2024-02-12T12:00:00Z",
    "stratum": "row:Ag|AgEq",
    "body_sha1": "e5f8bef6240f7def16ba71f142a1856061fc441c",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": true,
     "sample_type": "drill",
@@ -1065,7 +1066,7 @@
    "published_at": "2026-05-27T10:30:00",
    "stratum": "row:Au",
    "body_sha1": "063b15fa25e7ca669ce3a59b499954fc847432bc",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": true,
     "sample_type": "drill",
@@ -1375,7 +1376,7 @@
    "published_at": "2022-02-01T04:00:00+00:00",
    "stratum": "row:Ag|AgEq",
    "body_sha1": "774cf83d6855e95f052d235d7888fa86bfd8f35c",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": true,
     "sample_type": "drill",
@@ -1422,7 +1423,7 @@
    "published_at": "2026-09-02T12:00:00Z",
    "stratum": "row:Cu|CuEq",
    "body_sha1": "f425ea08734bad5c2f4660acb5732b5299bcb26c",
-   "review": "draft",
+   "review": "corrected",
    "expect": {
     "is_result": true,
     "sample_type": "drill",
@@ -1599,12 +1600,12 @@
     "complete": true,
     "projects": [
      "Getty Project",
-     "Getty",
-     "Getty South"
+     "Getty"
     ],
     "confidence": "medium"
    },
-   "note": "First Getty South holes; Mo and Au (ppm) taken from Table 1; 1m sample of 9.87% Cu at 45.2m (figure caption) included as inner interval of GS26-02; historical intercepts not quantified."
+   "note": "First Getty South holes; Mo and Au (ppm) taken from Table 1; 1m sample of 9.87% Cu at 45.2m (figure caption) included as inner interval of GS26-02; historical intercepts not quantified.",
+   "review_note": "Getty South is a target within the Getty project, not a project name."
   },
   {
    "n": 8,
@@ -1613,7 +1614,7 @@
    "published_at": "2026-03-03T12:00:00Z",
    "stratum": "row:Au",
    "body_sha1": "c74d0bb568d07400f8d07dba38d9a5869f10f80b",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": true,
     "sample_type": "drill",
@@ -1757,7 +1758,7 @@
    "published_at": "2025-07-23T15:12:40+00:00",
    "stratum": "no_row",
    "body_sha1": "05a32db951ded90f7f3a790fcd71d51ee7c82c83",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": false,
     "sample_type": "grab",
@@ -1779,7 +1780,7 @@
    "published_at": "2022-11-15T12:00:00Z",
    "stratum": "row:Au",
    "body_sha1": "5c732e852ed9d8cd5c6c931dd86f013bfc7387f3",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": true,
     "sample_type": "drill",
@@ -1853,7 +1854,7 @@
    "published_at": "2022-11-02T13:17:02+00:00",
    "stratum": "row:other",
    "body_sha1": "72ddcca6fc7ce60a051461e4794f86d6c72d9ed8",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": false,
     "sample_type": "drill",
@@ -1874,7 +1875,7 @@
    "published_at": "2023-04-11T13:20:56+00:00",
    "stratum": "row:other",
    "body_sha1": "765c5aa836ee4380c68c3b123b5d2421be489c4e",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": true,
     "sample_type": "drill",
@@ -1960,7 +1961,7 @@
    "published_at": "2026-03-11T12:00:00Z",
    "stratum": "row:other",
    "body_sha1": "046311eaff6fe51358407bb83c99ec250e97be01",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": true,
     "sample_type": "drill",
@@ -2303,7 +2304,7 @@
    "published_at": "2025-01-15T12:00:00Z",
    "stratum": "row:other",
    "body_sha1": "ab1c4ee0a7b820d33bec004100945ab6d29833d1",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": true,
     "sample_type": "mixed",
@@ -2359,7 +2360,7 @@
    "published_at": "2026-06-15T11:30:00",
    "stratum": "row:Cu|CuEq",
    "body_sha1": "f14a305ae5e7cd9b84829a6b2f8eecece9d24acb",
-   "review": "draft",
+   "review": "corrected",
    "expect": {
     "is_result": true,
     "sample_type": "drill",
@@ -2370,7 +2371,10 @@
       "grade": 0.69,
       "unit": "%",
       "metal": "Cu",
-      "including": false
+      "including": false,
+      "alt_lengths": [
+       748.0
+      ]
      },
      {
       "hole": "DDH-LC26-010",
@@ -2378,7 +2382,10 @@
       "grade": 0.06,
       "unit": "g/t",
       "metal": "Au",
-      "including": false
+      "including": false,
+      "alt_lengths": [
+       748.0
+      ]
      },
      {
       "hole": "DDH-LC26-010",
@@ -2386,7 +2393,10 @@
       "grade": 142.0,
       "unit": "ppm",
       "metal": "Mo",
-      "including": false
+      "including": false,
+      "alt_lengths": [
+       748.0
+      ]
      },
      {
       "hole": "DDH-LC26-010",
@@ -2394,7 +2404,10 @@
       "grade": 3.0,
       "unit": "g/t",
       "metal": "Ag",
-      "including": false
+      "including": false,
+      "alt_lengths": [
+       748.0
+      ]
      },
      {
       "hole": "DDH-LC26-010",
@@ -2692,7 +2705,8 @@
     ],
     "confidence": "medium"
    },
-   "note": "15 table intervals x Cu/Au/Mo/Ag = 60 entries, capped at 40 by Cu grade x length; headline 748 m is rounded 747.5 m; holes written DDH-LC26-010 in text but DDH-LC26-10 in table."
+   "note": "15 table intervals x Cu/Au/Mo/Ag = 60 entries, capped at 40 by Cu grade x length; headline 748 m is rounded 747.5 m; holes written DDH-LC26-010 in text but DDH-LC26-10 in table.",
+   "review_note": "Headline states 748 m for the 747.5 m interval."
   },
   {
    "n": 16,
@@ -2701,7 +2715,7 @@
    "published_at": "2026-09-08T12:00:00Z",
    "stratum": "no_row",
    "body_sha1": "6cc32faa20308d46aea3063a6486916468caaa7f",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": true,
     "sample_type": "drill",
@@ -2739,7 +2753,7 @@
    "published_at": "2023-01-23T12:00:00Z",
    "stratum": "row:Cu|CuEq",
    "body_sha1": "f1f213b4ea692f0413a73a5715cfa360a3c32021",
-   "review": "draft",
+   "review": "corrected",
    "expect": {
     "is_result": true,
     "sample_type": "drill",
@@ -2782,7 +2796,10 @@
       "grade": 0.23,
       "unit": "%",
       "metal": "Cu",
-      "including": true
+      "including": true,
+      "alt_lengths": [
+       173.6
+      ]
      },
      {
       "hole": "IN22-82",
@@ -2790,7 +2807,10 @@
       "grade": 0.47,
       "unit": "%",
       "metal": "Cu",
-      "including": true
+      "including": true,
+      "alt_lengths": [
+       28.9
+      ]
      },
      {
       "hole": "IN22-82",
@@ -2872,7 +2892,8 @@
     ],
     "confidence": "medium"
    },
-   "note": "Highlights say 173.6 m @ 0.23% Cu and 28.9 m @ 0.47% Cu but table gives 170.7 m and 26.0 m (173.6/28.9 are 'To' depths), table lengths used; MoS2 eq entered as MoS2Eq."
+   "note": "Highlights say 173.6 m @ 0.23% Cu and 28.9 m @ 0.47% Cu but table gives 170.7 m and 26.0 m (173.6/28.9 are 'To' depths), table lengths used; MoS2 eq entered as MoS2Eq.",
+   "review_note": "Text states 173.6 m and 28.9 m for the 170.7 m and 26.0 m table intervals."
   },
   {
    "n": 18,
@@ -2881,7 +2902,7 @@
    "published_at": "2023-10-19T12:00:00Z",
    "stratum": "row:Au",
    "body_sha1": "7c42cb28fe7fbcfa5972eb9263b140195d3dcbbe",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": true,
     "sample_type": "drill",
@@ -2968,7 +2989,7 @@
    "published_at": "2026-01-22T12:00:00Z",
    "stratum": "row:Au",
    "body_sha1": "fe82a73a4bb952b0c7f42459780f35f106d4bf6c",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": true,
     "sample_type": "drill",
@@ -3014,7 +3035,7 @@
    "published_at": "2025-12-16T12:00:00Z",
    "stratum": "no_row",
    "body_sha1": "6bd596ed30a8a73e4934831e5a8dcff0217fe268",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": false,
     "sample_type": "none",
@@ -3037,7 +3058,7 @@
    "published_at": "2025-05-15T12:00:00Z",
    "stratum": "row:Au",
    "body_sha1": "1e2076d2a0bb5a9c2634d7d1e6b38531d540d579",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": true,
     "sample_type": "drill",
@@ -3212,7 +3233,7 @@
    "published_at": "2021-12-08T12:00:00Z",
    "stratum": "row:AuEq",
    "body_sha1": "9c260484a0cd5b3258d12614b9e21c8aed417284",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": false,
     "sample_type": "channel",
@@ -3233,7 +3254,7 @@
    "published_at": "2021-09-22T16:59:57",
    "stratum": "row:AuEq",
    "body_sha1": "a4ead0d5a96366d3461359eadf6f7e49576a5340",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": true,
     "sample_type": "drill",
@@ -3335,7 +3356,7 @@
    "published_at": "2026-04-29T23:17:12",
    "stratum": "row:Cu|CuEq",
    "body_sha1": "bdf030c226cd151e2d520f074974201646959375",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": false,
     "sample_type": "drill",
@@ -3357,7 +3378,7 @@
    "published_at": "2026-01-22T12:00:00Z",
    "stratum": "row:Au",
    "body_sha1": "67284d46f45a5854579607f2bbd8b1a720379292",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": true,
     "sample_type": "drill",
@@ -3675,7 +3696,7 @@
    "published_at": "2024-07-24T12:00:00Z",
    "stratum": "no_row",
    "body_sha1": "f402442c3b68a837ccf6d2741d4e6715b5a01c1d",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": false,
     "sample_type": "grab",
@@ -3697,7 +3718,7 @@
    "published_at": "2024-09-20T12:00:00Z",
    "stratum": "no_row",
    "body_sha1": "48f00e22541bca4fe82607df282c95b408bfdf7f",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": false,
     "sample_type": "none",
@@ -3719,7 +3740,7 @@
    "published_at": "2026-08-17T12:00:00Z",
    "stratum": "no_row",
    "body_sha1": "f16c7b379a964e6b413d8750f74227d0456bdff1",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": false,
     "sample_type": "grab",
@@ -3741,7 +3762,7 @@
    "published_at": "2026-01-06T12:00:00Z",
    "stratum": "no_row",
    "body_sha1": "38fc1312bb61a1a79eddc4f8065278f0ff5b8cf8",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": false,
     "sample_type": "drill",
@@ -3762,7 +3783,7 @@
    "published_at": "2021-06-15T12:00:00Z",
    "stratum": "row:AuEq",
    "body_sha1": "648cff3efe17ec7dda3e26286f90d0a5b8bc17f0",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": true,
     "sample_type": "drill",
@@ -3985,7 +4006,7 @@
    "published_at": "2026-07-22T12:00:00Z",
    "stratum": "row:Ag|AgEq",
    "body_sha1": "0e08634ed9f88bbc7d7a9935ed40b988c5d71d15",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": true,
     "sample_type": "drill",
@@ -4120,7 +4141,7 @@
    "published_at": "2025-08-18T12:00:00Z",
    "stratum": "row:Au",
    "body_sha1": "d4ee3e0e046b046ef0a66602e95b66768be57259",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": true,
     "sample_type": "drill",
@@ -4334,7 +4355,7 @@
    "published_at": "2020-12-15T12:00:00Z",
    "stratum": "row:Au",
    "body_sha1": "26c370a725d99f57f09463a57cae64104936176e",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": false,
     "sample_type": "drill",
@@ -4355,7 +4376,7 @@
    "published_at": "2025-12-01T12:00:00Z",
    "stratum": "row:Au",
    "body_sha1": "f5a59d5115ebe6723c990221ca5b74dc7bd93072",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": false,
     "sample_type": "grab",
@@ -4377,7 +4398,7 @@
    "published_at": "2025-02-05T12:00:00Z",
    "stratum": "row:Au",
    "body_sha1": "c84745d127acbf1f259c802d67d35a019b9f841b",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": true,
     "sample_type": "mixed",
@@ -4428,7 +4449,7 @@
    "published_at": "2026-03-03T04:00:00+00:00",
    "stratum": "row:other",
    "body_sha1": "a0f1eb732c30434c9315478aa35f77ee6d78fd60",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": false,
     "sample_type": "none",
@@ -4449,7 +4470,7 @@
    "published_at": "2025-07-03T12:00:00Z",
    "stratum": "row:Cu|CuEq",
    "body_sha1": "1beebe1e57d395efdf66233e75aa4f456dfe4ec0",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": true,
     "sample_type": "drill",
@@ -4535,7 +4556,7 @@
    "published_at": "2026-01-26T12:00:00Z",
    "stratum": "row:Cu|CuEq",
    "body_sha1": "e6849f95b8aeacd00705b4279743c45daafa0d59",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": false,
     "sample_type": "surface",
@@ -4557,7 +4578,7 @@
    "published_at": "2025-06-16T04:00:00+00:00",
    "stratum": "no_row",
    "body_sha1": "5d085c192ba04212a24e435d9b9f7aa7e5dc8087",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": false,
     "sample_type": "none",
@@ -4578,7 +4599,7 @@
    "published_at": "2026-05-04T09:00:00",
    "stratum": "no_row",
    "body_sha1": "b47854e4db53f9235a03b5df64b33b1faed76fdf",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": false,
     "sample_type": "grab",
@@ -4599,7 +4620,7 @@
    "published_at": "2026-02-26T12:00:00Z",
    "stratum": "no_row",
    "body_sha1": "7638721753762dfefa28d9f0ed2b76a03b963dd1",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": false,
     "sample_type": "none",
@@ -4620,7 +4641,7 @@
    "published_at": "2011-10-17",
    "stratum": "no_row",
    "body_sha1": "1583bfab2e8b6c196b4611ed34ba3c63edbd90dd",
-   "review": "draft",
+   "review": "excluded",
    "expect": {
     "is_result": true,
     "sample_type": "drill",
@@ -4633,7 +4654,8 @@
     ],
     "confidence": "low"
    },
-   "note": "Headline announces final Phase 1 drill hole results but the lede is cut off after the disclaimer, so no intercepts are available."
+   "note": "Headline announces final Phase 1 drill hole results but the lede is cut off after the disclaimer, so no intercepts are available.",
+   "review_note": "Stored text is only the headline and a cut-off disclaimer; cannot be checked."
   },
   {
    "n": 43,
@@ -4642,7 +4664,7 @@
    "published_at": "2020-02-07T12:00:00Z",
    "stratum": "row:Au",
    "body_sha1": "4f65ddb743b3d6b84ee1e4bfb8c4f56477629170",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": true,
     "sample_type": "drill",
@@ -4986,7 +5008,7 @@
    "published_at": "2025-08-22T12:00:00Z",
    "stratum": "row:Ag|AgEq",
    "body_sha1": "6d44d9fb2688222fc17da32b5243892028900dc1",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": true,
     "sample_type": "drill",
@@ -5064,7 +5086,7 @@
    "published_at": "2022-03-02T12:00:00Z",
    "stratum": "no_row",
    "body_sha1": "4a597e39e9fda98f606211dc61102fe396b338d3",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": false,
     "sample_type": "none",
@@ -5086,7 +5108,7 @@
    "published_at": "2020-09-29T12:00:00Z",
    "stratum": "row:other",
    "body_sha1": "9b9a167ad3fe0f47aa2846453f6e7b89dff122ff",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": true,
     "sample_type": "drill",
@@ -5428,7 +5450,7 @@
    "published_at": "2025-09-16T12:00:00Z",
    "stratum": "row:other",
    "body_sha1": "9489a00d589579b2aef9e8217b5d5e0bc9f86a9d",
-   "review": "draft",
+   "review": "excluded",
    "expect": {
     "is_result": true,
     "sample_type": "drill",
@@ -5577,7 +5599,8 @@
     ],
     "confidence": "medium"
    },
-   "note": "Cycle intervals (Table 1) plus 13% cut-off seams (Table 2) as including; cumulative sums (220.25 m @ 10.4%, 112.46 m @ 15.92% KCl) excluded as non-contiguous; Cycle IV/III seams duplicate Table 1."
+   "note": "Cycle intervals (Table 1) plus 13% cut-off seams (Table 2) as including; cumulative sums (220.25 m @ 10.4%, 112.46 m @ 15.92% KCl) excluded as non-contiguous; Cycle IV/III seams duplicate Table 1.",
+   "review_note": "Headline 220 m is a cumulative total of five separate intervals; fair either way."
   },
   {
    "n": 48,
@@ -5586,7 +5609,7 @@
    "published_at": "2021-06-16T12:00:00Z",
    "stratum": "row:Au",
    "body_sha1": "3adb15e3dae2d24210921f9330a5ce7370f214e8",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": true,
     "sample_type": "drill",
@@ -5864,7 +5887,7 @@
    "published_at": "2019-12-17T12:00:00Z",
    "stratum": "no_row",
    "body_sha1": "1e317fe10f8cf1b777cf55322e956ad869415c2f",
-   "review": "draft",
+   "review": "confirmed",
    "expect": {
     "is_result": true,
     "sample_type": "drill",
@@ -6073,5 +6096,6 @@
    },
    "note": "First assays for 19OMI-001/-002 (8 rows x Au/Ag/AuEq); deep hole 19OMI-010 only visually logged, assays pending."
   }
- ]
+ ],
+ "review_process": "Justin marked all 50 items correct in the review page (17:12-17:17Z). Claude then re-read the release text for the 28 items where the live page disagreed with the label; Justin approved 3 corrections (#7, #15, #17) and 3 exclusions (#1, #42, #47)."
 }
