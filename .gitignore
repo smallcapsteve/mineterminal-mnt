@@ -44,3 +44,13 @@ data/tickers-backups/
 portal/categorize_v3.py
 portal/categorize_v4.py
 portal/categorize_v5.py
+
+# Regenerable run state: rebuilt on first run, rewritten by every run.
+# Tracking these buried real diffs under thousands of churned lines.
+# Safe to omit -- load_seen() checks .exists(), load_cursor() catches, and
+# every save does mkdir(parents=True), so a fresh clone recreates them. The
+# portal dedupes on event_id, so it re-discovers rather than duplicating.
+# tickers.json is deliberately NOT here: that is configuration.
+data/seen_events.json
+data/seen_newswire_ca.json
+data/pipeline_cursor.json
