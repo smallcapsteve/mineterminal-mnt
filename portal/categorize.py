@@ -1,4 +1,4 @@
-"""News release categorizer (v3).
+"""News release categorizer (v7; v3 design notes below).
 
 WHY v3
 ------
@@ -97,13 +97,17 @@ LEDE_CHARS = 900
 
 CATEGORIES: tuple[str, ...] = (
     "Financings",
+    "Debt & Credit Facilities",
     "Drill Results",
     "Resource Estimates",
+    "Technical Reports (NI 43-101)",
     "Management Changes",
     "Economic Studies",
     "Production Results",
     "Financials",
     "Mergers & Acquisitions",
+    "Royalties & Streams",
+    "Property Options & Staking",
     "Exploration Programs",
     "Permits & Approvals",
     "Metallurgy & Processing",
@@ -111,6 +115,7 @@ CATEGORIES: tuple[str, ...] = (
     "Listings & Exchange",
     "Shareholder Meetings",
     "Corporate Actions",
+    "Regulatory & Compliance",
     "Partnerships & JV",
     "Marketing Announcement",
     "Corporate Updates",
@@ -135,6 +140,11 @@ CODE_TO_CAT = {
     "jv": "Partnerships & JV",
     "mkt": "Marketing Announcement",
     "cor": "Corporate Updates",
+    "dbt": "Debt & Credit Facilities",
+    "tec": "Technical Reports (NI 43-101)",
+    "roy": "Royalties & Streams",
+    "opt": "Property Options & Staking",
+    "reg": "Regulatory & Compliance",
 }
 CAT_TO_CODE = {v: k for k, v in CODE_TO_CAT.items()}
 
@@ -1101,7 +1111,7 @@ def _has_intercepts(headline: str | None, body: str | None) -> bool:
 # The categoriser
 # ===========================================================================
 
-def categorize(headline: str | None, body: str | None) -> list[str]:
+def _categorize_v6(headline: str | None, body: str | None) -> list[str]:
     """Return the categories this release belongs to, in CATEGORIES order.
 
     Nothing is matched against the full body. Every rule sees either the
@@ -1196,6 +1206,921 @@ def categorize(headline: str | None, body: str | None) -> list[str]:
         cats.append("Corporate Updates")
 
     return cats
+
+
+# ===========================================================================
+# v7 -- pipeline review, 2026-09-15. Justin: "look at Corporate Updates, the
+# catch-all, for anything that should have landed in a real tag".
+#
+# 14,687 of 43,505 approved releases (34%) carried Corporate Updates alone.
+# Three reading rounds (a 450-release random sample, then 450 and 380 more of
+# what was still left) found misses in all 17 real categories. The rules
+# below are ADDITIVE: v6 runs unchanged as _categorize_v6(), and v7 only adds
+# categories, then re-applies "Corporate Updates is the bucket of last resort".
+# Measured on the whole corpus in both directions before shipping -- see
+# claude/MNT_PIPELINE_REVIEW_2026-09-15.md in the project.
+#
+# A HOLLOW headline ("News release", a disclaimer line, a trading-symbol line)
+# is categorised twice -- once as stored, once with the real title recovered
+# from the first lines of the document -- and the union is kept, so recovery
+# can add a category but never take one away. The stored headline is not
+# touched.
+#
+# Every gap between two anchors is a character gap over [^\n]: inside a
+# headline there is no sentence to run past, and a gap must be able to cross a
+# period ("H.C. Wainwright"), a percent sign, a curly quote and a ">".
+# ===========================================================================
+
+G = lambda n: r"[^\n]{0," + str(n) + r"}?"
+
+# ---------------------------------------------------------------- helpers
+_PERIOD = (r"(?:(?:Q|q)\s?[1-4]|[1-4]Q|(?:first|second|third|fourth)\s+(?:fiscal\s+)?quarter|"
+           r"(?:full|half|fiscal)[-\s]year|year[-\s]end(?:ed)?|annual|interim|"
+           r"(?:first|second)\s+half|H[12]|(?:three|six|nine|twelve)\s+months|fiscal\s+(?:20)?\d\d|FY\s?(?:20)?\d\d)")
+_NOT_FIN_RESULTS_UNUSED = r"(?:exploration|drill\w*|assay|sampling|metallurg\w*|test\w*|survey|program\w*|geophysic\w*|soil|trench\w*|study|PEA|PFS|feasibility|resource)"
+
+# ---------------------------------------------------------------- Financials
+FINL_V7 = re.compile(
+    r"(?i)(?:"
+    r"\b(?:financial|operating|operational)\s+(?:and|&)\s+(?:financial|operating|operational)\s+results?\b|"
+    r"\b" + _PERIOD + r"\b(?:[\s,\-]+(?:and|&|of|for|the|ended|ending|to|(?:20)?\d\d|FY\s?(?:20)?\d\d|fiscal|full[-\s]year|year[-\s]end|"
+    r"quarter|months|june|march|september|december|\d{1,2},?|unaudited|audited|preliminary|interim|record|solid|strong|robust|positive|"
+    r"consolidated|financial|annual)){0,7}[\s,\-]+(?:financial\s+)?(?:(?:and|&)\s+(?:operating|operational)\s+)?(?:results?|earnings|financials)\b|"
+    r"\b(?:results?|earnings)\s+(?:for\s+(?:the\s+)?)?" + _PERIOD + r"\b|"
+    r"\bearnings\s+(?:results?|release|call|conference\s+call)\b|"
+    r"\b(?:notice\s+of|to\s+(?:release|report|announce|issue|host)|will\s+(?:release|report|announce)|"
+    r"schedules?|release\s+date|call\s+details|details\s+of)\b" + G(40) + r"\b(?:" + _PERIOD + r"|financial|earnings)\b" + G(40) + r"\b(?:results?|earnings|financials|call)\b|"
+    r"\b" + _PERIOD + r"\b" + G(40) + r"\bconference\s+call\b|"
+    r"\bconference\s+call\s+(?:and\s+webcast\s+)?details\b|"
+    r"\b(?:record|quarterly|annual)\s+(?:\w+\s+)?(?:revenues?|net\s+income|net\s+profit|free\s+cash\s+flow|EBITDA)\b|"
+    r"\b(?:revenues?|net\s+profit|net\s+income)\s+(?:of|up|increase\w*|grow\w*|rises?)\b|"
+    r"\breports?\s+(?:record\s+)?sales\s+of\s+(?:US|C|CA)?\$|"
+    r"\b(?:files?|filed|filing\s+of)\b" + G(40) + r"\b(?:annual\s+information\s+form|AIF|40-F|20-F|10-K|"
+    r"(?:audited\s+|annual\s+|interim\s+)?financial\s+statements|annual\s+report|MD&A)\b|"
+    r"\b(?:40-F|20-F)\b" + G(30) + r"\bfiled\b"
+    r")"
+)
+
+FINL_V7_NOT = re.compile(r"(?i)\b(?:meeting|AGM|voting|vote|shareholders?|production\s+results?|exploration\s+results?|assay|drill\w*)\b")
+
+# ---------------------------------------------------------------- Production
+PROD_V7 = re.compile(
+    r"(?i)(?:"
+    r"\b" + _PERIOD + r"\b" + G(40) + r"\b(?:operating|operational|production)\s+(?:results?|update|highlights)\b|"
+    r"\b" + _PERIOD + r"\b" + G(30) + r"\b(?<!financial\sand\s)(?<!financial\s&\s)(?:operating|operational)\s+results?\b|"
+    r"\bproduc(?:es|ed|tion\s+of|ing)\b" + G(30) + r"\b(?:ounces|oz|GEOs?|AgEq|AuEq|CuEq|tonnes|pounds|lbs|carats|dmt|wmt)\b|"
+    r"\bproduction\s+guidance\b|\b(?:record|quarterly|annual|full[-\s]year)\s+(?:gold\s+|silver\s+|copper\s+|uranium\s+|attributable\s+)?production\b|"
+    r"\b(?:first|initial)\s+(?:gold\s+pour|gold\s+(?:bar|dor[eé])|dor[eé]|concentrate|cathode|anode|shipment|production)\b" + G(30) + r"\b(?:produced|poured|shipped|achieved|at|from)\b|"
+    r"\b(?:delivers?|achieves?|pours?|produces?|celebrates?)\s+(?:its\s+)?first\s+gold\b|"
+    r"\bfirst\s+(?:gold\s+)?pour\b|"
+    r"(?<!P\.)(?-i:\bGEOs?\b)|\bgold\s+equivalent\s+ounces\b|"
+    r"\brecover(?:y|s|ed)\s+(?:of\s+)?" + G(30) + r"\bcarat\b"
+    r")"
+)
+
+PROD_V7_NOT = re.compile(r"(?i)\b(?:notice\s+of|to\s+(?:release|report|announce|host)|will\s+(?:release|report)|conference\s+call|webcast|call\s+details)\b")
+
+# ---------------------------------------------------------------- Resources
+MRE_V7 = re.compile(
+    r"(?i)(?:"
+    r"\bmineral\s+reserves?\b|\breserves?\s+(?:and|&)\s+(?:mineral\s+)?resources?\b|"
+    r"\bresources?\s+(?:and|&)\s+reserves?\b|\bMRMR\b|"
+    r"\bM\s?&\s?I\b" + G(40) + r"\b(?:resources?|ounces|oz|tonnes|lbs|pounds)\b|"
+    r"\b(?:doubl|tripl|increas|grow|expand|upgrad)\w*\b" + G(40) +
+    r"\b(?:measured|indicated|inferred|mineral\s+resource)\b|"
+    r"\b(?:files?|filed|filing\s+of|completes?|completion\s+of|releases?|publishes?)\b" + G(40) +
+    r"\btechnical\s+reports?\b"
+    r")"
+)
+
+# ---------------------------------------------------------------- Econ
+ECON_V7 = re.compile(
+    r"(?i)(?:"
+    r"\bpreliminary\s+economic\b|\bscoping\s+study\b|\bproject\s+economics\b|"
+    r"\blife[-\s]of[-\s]mine\s+plan\b|\bLOM\s+plan\b|"
+    r"\b(?:NPV|IRR)\b"
+    r")"
+)
+
+# ---------------------------------------------------------------- Drill Results
+_METAL = (r"(?:au|ag|cu|pb|zn|ni|co|sb|mo|sn|w|u3o8|li2o|reo|treo|pgm|pge|p2o5|v2o5|wo3|"
+          r"gold|silver|copper|lead|zinc|nickel|cobalt|antimony|molybdenum|tin|tungsten|li20|"
+          r"gallium|germanium|rubidium|cesium|caesium|scandium|niobium|tantalum|indium|tellurium|bismuth|rhodium|iridium|"
+          r"uranium|lithium|graphite|platinum|palladium|rare\s+earths?|phosphate|vanadium|"
+          r"AuEq|AgEq|CuEq|NiEq|ZnEq|gold\s+equivalent|copper\s+equivalent|silver\s+equivalent)")
+DRILL_V7 = re.compile(
+    r"(?i)(?:"
+    r"\b\d[\d.,]*\s*(?:grams?\s+per\s+tonne|grams?\s*/\s*tonne|g\s*/\s*tonne|oz\s*/\s*ton|ounces?\s+per\s+ton)\s+" + G(15) + _METAL + r"\b|"
+    r"\b(?:intersects?|intercepts?|drills|drilled|returns?|cuts?|hits?|encounters?)\b" + G(50) +
+    r"\b\d[\d.,]*\s*(?:m|metres?|meters?|ft|feet)\b" + G(40) + r"\b(?:of|at|grading|averaging|@)\b" + G(10) + r"\d|"
+    r"\bdrill[-\s]?holes?\s+(?:assay\s+)?results?\b|\bassays?\s+(?:returned|received|confirm\w*)\b|"
+    r"\b\d[\d.,]*\s*%\s*" + _METAL + r"\b\s+(?:over|across)\s+\d[\d.,]*\s*(?:m\b|metres?|meters?|ft\b|feet)"
+    r")"
+)
+# grade-less intersections and progress: Exploration Programs per Justin 2026-09-15
+
+# ---------------------------------------------------------------- Exploration
+_PROG = r"(?:programs?|programmes?|plans?(?!\s+of\s+operations)|campaigns?|budgets?|season|strategy|activities)"
+EXPLORATION_V7 = re.compile(
+    r"(?i)(?:"
+    r"\b(?:drill(?:ing)?|exploration|field|work|diamond\s+drill(?:ing)?|core\s+drill(?:ing)?|RC\s+drill(?:ing)?|"
+    r"geophysical|geochemical|sampling|prospecting|mapping|summer|winter|fall|spring|maiden\s+drill|inaugural\s+drill|"
+    r"follow[-\s]up|step[-\s]out|infill|phase\s+(?:[IVX]+|\d|one|two|three))\s+" + _PROG + r"\b|"
+    r"\b(?:drilling|drill\s+rigs?|second\s+drill|drill\s+crews?|diamond\s+drill\w*|core\s+drilling|RC\s+drilling|fieldwork|field\s+work|field\s+crews?|field\s+activities)\b"
+    + G(40) + r"\b(?:underway|commenc\w+|begins?|began|resum\w+|starts?|started|mobiliz\w+|mobilis\w+|arriv\w+|conclud\w+|"
+    r"completed?|ramps?\s+up|progress\w*|continues?|expan\w+|planned|nearing)\b|"
+    r"\b(?:mobiliz\w+|mobilis\w+|commence\w*|commencement\s+of|begins?|resum\w+|resumption\s+of|starts?|launch\w*|initiat\w+|"
+    r"secures?\s+(?:a\s+)?contractor|engages?|contracts?|completes?|completion\s+of|conclud\w+|expands?|accelerat\w+)\b" + G(50) +
+    r"\b(?:drilling|drill\s+rigs?|drill\s+crews?|drill\s+contractor|drill\s+hole|fieldwork|field\s+(?:work|crews?|season|activities|campaign)|"
+    r"prospecting|exploration\s+activities|sampling|mapping)\b|"
+    r"\b(?:mag|magnetic|aeromagnetic|drone|UAV|TDEM|AMT|MobileMT|gravity|seismic|hyperspectral|LiDAR|ambient\s+noise|tomography|"
+    r"borehole\s+EM|BHEM|ground\s+EM|HLEM|VLF|FLEM|TEM|radon|biogeochemical|till)\s+surveys?\b|"
+    r"\bsurveys?\b" + G(40) + r"\b(?:completed?|results?|commenc\w+|underway|identif\w+|discovers?|defines?|outlines?|reveals?)\b|"
+    r"\b(?:completes?|commences?|launches?|begins?|conducts?|initiates?)\b" + G(50) + r"\bsurveys?\b|"
+    r"\b(?:identif\w+|defines?|defined|delineat\w+|outlines?|finds?|discovers?|models?|generates?|refines?|develops?|highlights?|reports?)\b"
+    + G(60) + r"\b(?:anomal(?:y|ies)|conductors?|conductive|chargeability|drill\s+targets?|exploration\s+targets?|new\s+targets?|"
+    r"targets?\s+(?:at|on|for)|pegmatites?|gossans?|mineralized\s+boulders?|soil\s+anomal\w+|trends?\s+(?:at|on))\b|"
+    r"\bexploration\s+(?:update|results?|strategy|budget|activities|season)\b|"
+    r"\b(?:program|campaign)\s+(?:and|&)\s+budget\b|\b(?:increased|approved|expanded)\s+(?:exploration\s+)?budget\b|"
+    r"\b(?:structural|geological)\s+(?:mapping|model\w*|interpretation|study)\b|\b3D\s+(?:geological\s+)?model\w*\b|"
+    r"\bgrade[-\s]block\s+model\w*\b|\bre-?logging\b|\bcore\s+(?:logging|re-?sampling)\b|\bassays?\s+pending\b|"
+    r"\b(?:submits?|shipped|ships)\b" + G(40) + r"\b(?:core|samples)\b" + G(30) + r"\b(?:assay|lab\w*)\b|"
+    r"\b(?:intersects?|intercepts?|encounters?)\b" + G(50) + r"\b(?:mineraliz\w+|mineralis\w+|sulphides?|sulfides?|veins?|pegmatites?|"
+    r"zones?|system|structures?|formation)\b"
+    r")"
+)
+
+# ---------------------------------------------------------------- M&A
+MA_V7 = re.compile(
+    r"(?i)(?:"
+    r"\b(?:expands?|expanded|expansion\s+of|increases?|grows?|doubles?|doubling|triples?|quadruples?|enlarges?|adds?|added|"
+    r"consolidates?)\b" + G(40) +
+    r"\b(?:land\s+(?:package|position|holdings?|base)|claims?|claim\s+(?:block|package)|mineral\s+tenures?|tenures?|concessions?|"
+    r"land\s+footprint|acreage|hectares|mineral\s+rights|size\s+of\s+(?:the\s+|its\s+)?" + G(30) + r"(?:propert\w+|projects?))\b|"
+    r"\b(?:completes?|completion\s+of)\s+(?:claim\s+)?staking\b|\bannounces?\s+staking\b|\bstaking\s+(?:of|at|in)\b|"
+    r"\b(?:completes?|completion\s+of|closes?|closing\s+of|announces?|enters?\s+into|signs?|executes?)\b" + G(30) +
+    r"\b(?<!debt\s)(?<!loan\s)(?:proposed\s+)?(?:transaction|definitive\s+agreement|binding\s+agreement|securities\s+exchange\s+agreement|"
+    r"share\s+purchase(?!\s+(?:warrants?|plan))|asset\s+purchase|purchase\s+and\s+sale|sale\s+agreement(?!\s+for\s+(?:concentrate|product|material))|arrangement\s+agreement)\b|"
+    r"\bproposed\s+transaction\b|"
+    r"\b(?:sells?|sold|disposes?|disposition\s+of|divests?|to\s+sell|agreement\s+to\s+sell)\b" + G(60) +
+    r"\b(?:claims?|propert\w+|projects?|interest|stake|royalt\w+|assets?|subsidiary|mines?|shares\s+of|portfolio)\b|"
+    r"\boption\s+agreement\b|"
+    r"\boptions?\b" + G(50) + r"\b(?:mines?|projects?|propert\w+|claims?)\b(?![^\n]{0,3}\bgrant)|"
+    r"\broyalty\s+(?:purchase|sale|buy[-\s]?back|acquisition)\b|\b(?:buys?\s+back|repurchases?)\b" + G(20) + r"\broyalty\b|"
+    r"\bacqui(?:res?|sition\s+of)\b(?!\s+(?:of\s+)?(?:new\s+|additional\s+|historical\s+|extensive\s+)*(?:data|dataset|drill\b|rigs?|equipment|core|software|LiDAR))"
+    + G(90) + r"\b(?:propert\w+|projects?|claims?|mines?|deposits?|concessions?|licen[cs]es?|interest|stake|ownership)\b|"
+    r"\b(?:approves?|approval\s+of|approved)\b" + G(30) + r"\barrangement\b|\barrangement\s+(?:agreement|with|resolution)\b|"
+    r"\bspin[-\s]?(?:out|off)\b|\bspinout\b|"
+    r"\b(?:secures?|obtains?)\s+(?:exclusive\s+)?(?:mineral|mining|exploration)\s+rights\b|"
+    r"\bcombine\b" + G(30) + r"\b(?:to\s+create|forces)\b"
+    r")"
+)
+
+MA_V7_NOT = re.compile(r"(?i)\bshares?\s+for\s+debt\b|\bdebt\s+settlement\b|\bloan\s+transaction\b|\bfinancing\s+transaction\b")
+
+# ---------------------------------------------------------------- Management
+_ROLE7 = (r"(?:CEO|CFO|COO|CTO|CSO|CIO|President|Chair(?:man|person|woman)?|Directors?|Board|Officers?|VP|SVP|EVP|"
+          r"Vice[-\s]President|Chief\s+[A-Z]\w+(?:\s+[A-Z]\w+)?\s+Officer|General\s+Counsel|Treasurer|"
+          r"Corporate\s+Secretary|Country\s+Manager|General\s+Manager|Mine\s+Manager|Exploration\s+Manager|"
+          r"Advisors?|Advisers?|Advisory\s+(?:Board|Council|Committee)|Executive\s+(?:Chair\w*|Director|Officer|Vice[-\s]President|Team|Appointments?)|Senior\s+Executives?|Geologist)")
+MGMT_V7 = re.compile(
+    r"(?:"
+    r"(?i:\bpassing\s+of\b|\bpassed\s+away\b|\bin\s+memoriam\b|\bmourns?\b|\btribute\s+to\b" + G(20) + r"\blate\b)|"
+    r"(?i:\b(?:strengthens?|bolsters?|expands?|adds?\s+to|builds?\s+out|enhances?|streamlines?|restructures?|reorganiz\w+)\b)" + G(30) +
+    r"(?i:\b(?:team|board|leadership|management|executive\s+team|technical\s+team|advisory\s+(?:board|team|group|council)))\b|"
+    r"(?i:\b(?:announces?|welcomes?|names?|introduces?|confirms?|engages?|hires?)\s+(?:the\s+)?(?:new\s+|interim\s+|acting\s+|key\s+)?)"
+    r"(?:(?:[A-Z][\w.'\-]+\s+){1,4}(?i:as\s+(?:the\s+)?(?:new\s+|interim\s+)?))?" + r"(?i:" + _ROLE7 + r")\b|"
+    r"(?i:\b(?:change|changes)\s+(?:of|in|to)\s+(?:the\s+)?(?:its\s+)?)(?i:" + _ROLE7 + r")\b|"
+    r"(?i:\b(?:CEO|CFO|COO|President|Chair\w*|Board|Officer|Director|Executive|Management|Leadership)\s+"
+    r"(?:update|transition|succession|changes?|appointments?|additions?)\b)|"
+    r"(?i:\bappoint\w*\b)" + G(80) + r"(?i:\b(?:as|to)\s+(?:the\s+|a\s+|an\s+|its\s+|interim\s+|new\s+|independent\s+|non-executive\s+)*)(?i:" + _ROLE7 + r")\b|"
+    r"(?i:\badditions?\b)" + G(60) + r"(?i:\bto\s+(?:its\s+|the\s+)?(?:\w+\s+)?(?:management|board|advisory|leadership|technical|executive|senior)\b)|"
+    r"(?i:\b(?:management|board|advisory|leadership|team)\s+additions?\b)|"
+    r"(?i:\bagrees?\s+to\s+(?:act|serve|join)\s+as\b)|"
+    r"(?i:\b(?:appointed|resigns?|resigned|steps?\s+down|retires?)\b)"
+    r")"
+)
+MGMT_V7_NOT = re.compile(
+    r"(?i)\b(?:auditors?|transfer\s+agent|market\s+mak\w+|investor\s+relations|IR\s+(?:firm|advisor|provider)|"
+    r"marketing|communications\s+(?:firm|agency)|financial\s+advisors?|legal\s+counsel|drill(?:ing)?\s+contractor|"
+    r"contractor|consultants?\s+(?:firm|group)|qualified\s+person|index|executive\s+orders?|receivers?|trustees?|monitor|underwriters?)\b|"
+    r"\bjoins\s+the\b" + G(40) + r"\badvisory\s+committee\b|\bsocial\s+monitoring\b"
+)
+
+# ---------------------------------------------------------------- Financings
+FIN_V7 = re.compile(
+    r"(?i)(?:"
+    r"\b(?:clos\w+|complet\w+)\b" + G(50) + r"\b(?:financings?|placements?|offerings?|tranches?|debentures?|raises?|financing\s+round)\b|"
+    r"\b(?:oversubscribed|fully\s+subscribed|upsized)\b" + G(30) + r"\b(?:financings?|placements?|offerings?|round)\b|"
+    r"\b(?:total|gross|aggregate)\s+proceeds\b|\bproceeds\s+of\s+(?:approximately\s+)?(?:US|C|CA|A)?\$|"
+    r"(?:US|C|CA|A)?\$\s?[\d,.]+\s*(?:million|M|k|thousand)?\s+" + G(15) + r"\btranches?\b|"
+    r"\b(?:debt\s+financing|project\s+financ\w+|credit\s+(?:agreement|facility)|term\s+loan|bridge\s+loan|loan\s+(?:facility|agreement)|"
+    r"gold\s+prepay\w*|prepay(?:ment)?\s+(?:facility|arrangements?|agreement)|(?:gold|silver|copper|precious\s+metals?)\s+stream|"
+    r"stream(?:ing)?\s+(?:transaction|financing|deal)|multi-facility|debt\s+facility|financing\s+package|green\s+bonds?|"
+    r"convertible\s+(?:notes?|debentures?|loans?|facility)|royalty\s+financing|equity\s+financing|financing\s+round)\b|"
+    r"\b(?:announces?|secures?|arranges?|obtains?|receives?)\s+" + G(20) + r"\bloans?\b|"
+    r"\bstrategic\s+(?:equity\s+)?investment\b|\b(?:announces?|makes?|completes?|closes?)\s+(?:an?\s+)?(?:additional\s+)?(?:equity\s+)?investment\s+(?:in|into)\s+[A-Z]|\binvestment\s+(?:by|from)\s+[A-Z]|"
+    r"\b(?:ATM|at[-\s]the[-\s]market)\s+(?:program|equity|offering|sales|facility)\b|"
+    r"\btop[-\s]up\s+rights?\b|\bparticipation\s+rights?\b|"
+    r"\b(?:financing|placement|offering)\s+(?:is\s+)?(?:fully\s+subscribed|oversubscribed|upsized|increased|extended|amended|terminated|priced)\b"
+    r")"
+)
+
+FIN_V7_NOT = re.compile(r"(?i)\b(?:disposition|dispos\w+|sale\s+of|sells?|sold)\b" + G(60) + r"\bproceeds\b")
+
+# ---------------------------------------------------------------- Share Capital
+CAP_V7 = re.compile(
+    r"(?i)(?:"
+    r"\b(?:share[-\s]based|equity|long[-\s]term\s+incentive|LTI)\s+(?:compensation\s+|incentive\s+)?(?:grants?|awards?)\b|"
+    r"\bgrants?\s+of\s+(?:long[-\s]term\s+)?(?:incentive|equity)\s+(?:awards?|compensation)\b|"
+    r"\b(?:amend\w*|extend\w*|extension\w*|repric\w*|expir\w+|exercis\w+|accelerat\w+|expedit\w+)\b" + G(50) + r"\bwarrants?\b|"
+    r"\bwarrants?\b" + G(30) + r"\b(?:exercised|exercises?|extension|amendment|repricing|expiry|term)\b|"
+    r"\bsets?\s+options\b|\bissu\w+\s+of\s+(?:common\s+|bonus\s+)?shares\b|\b(?:securities|shares)\s+for\s+services\b|"
+    r"\bappendix\s+(?:2A|3B|3G|3H|3Y)\b|\bproposed\s+issue\s+of\s+securities\b|\bcessation\s+of\s+securities\b|"
+    r"\bescrow\s+release\b|\bbonus\s+shares\b"
+    r")"
+)
+
+# ---------------------------------------------------------------- Listings
+LIST_V7 = re.compile(
+    r"(?i)(?:"
+    r"\btrade\s+halt\b|\btrading\s+halt\w*\b|\bhalts?\s+trading\b|\bhalted\b|\bIIROC\b|\bCIRO\b|"
+    r"\b(?:upgrades?|upgraded|moves?\s+to|graduat\w+|approv\w+)\b" + G(40) + r"\b(?:OTCQX|OTCQB|Best\s+Market|Venture\s+Market)\b|"
+    r"\bapproval\s+to\s+trade\b|\b(?:to|will)\s+(?:begin\s+|commence\s+|start\s+)?trade\s+on\b|\bbegins?\s+(?:active\s+)?trading\b|"
+    r"\blisting\s+(?:process|application)\b|"
+    r"\bunaware\s+of\s+any\s+(?:material\s+)?(?:change|undisclosed|corporate\s+developments?)\b|"
+    r"\b(?:MCTO|management\s+cease\s+trade|default\s+status\s+report|cease\s+trade\s+order)\b|"
+    r"\b(?:addition|added|inclusion|included|joins?)\b" + G(50) + r"\bindex\b"
+    r")"
+)
+
+# ---------------------------------------------------------------- Meetings
+MTG_V7 = re.compile(
+    r"(?i)(?:"
+    r"\bshareholders'?\s+(?:meeting|approv\w+|vote[sd]?)\b|\bsecurity\s*holders?\s+approv\w+\b|"
+    r"\bmeeting\s+materials\b|\bproxy\s+advisory\b|\bvote\s+(?:for|in\s+favou?r)\b|\bgeneral\s+meeting\b|"
+    r"\b(?:annual|special)\s+(?:and\s+special\s+)?meeting\b"
+    r")"
+)
+
+# ---------------------------------------------------------------- Corporate Actions
+ACT_V7 = re.compile(
+    r"(?i)(?:"
+    r"\bto\s+become\s+(?-i:[A-Z][\w&'.\-]*)(?:\s+(?-i:[A-Z][\w&'.\-]*)){0,5}\s+(?:inc|corp|corporation|ltd|limited)\b\.?|\bnew\s+name\b|"
+    r"\bchanges?\s+(?:its\s+)?(?:financial\s+|fiscal\s+)?year[-\s]end\b|"
+    r"\b(?:intention\s+to|intends\s+to|proposes?\s+to)\s+(?:complete|effect|implement)\s+(?:a\s+)?(?:share\s+)?consolidation\b|"
+    r"\bconsolidation\s+(?:ratio|effective|of\s+common)\b|\bpost[-\s]consolidation\b|"
+    r"\bcontinuance\b|\bredomicil\w*|\bdomesticat\w+\b"
+    r")"
+)
+
+# ---------------------------------------------------------------- Partnerships
+JV_V7 = re.compile(
+    r"(?i)(?:"
+    r"\bJV\b|"
+    r"\b(?:signs?|signed|enters?\s+into|executes?|announces?|establish\w*|reach\w*|forms?|renews?|extends?)\b" + G(50) +
+    r"\b(?:collaboration|cooperation|partnership|alliance|agreement\s+in\s+principle|milestone\s+agreement|community\s+agreement|"
+    r"benefits?\s+agreement|exploration\s+agreement|accommodation\s+agreement|relationship\s+agreement|investor\s+rights\s+agreement|"
+    r"framework\s+agreement|collaboration\s+framework|strategic\s+agreement)\b|"
+    r"\b(?:First\s+Nations?|Indigenous|M[ée]tis|Inuit)\b" + G(60) + r"\b(?:agreement|partnership|MOU|LOI)\b|"
+    r"\bconsortium\b|\boff[-\s]?take\b|\bsupply\s+agreement\b"
+    r")"
+)
+
+# ---------------------------------------------------------------- Permits
+PER_V7 = re.compile(
+    r"(?i)(?:"
+    r"\b(?:receives?|received|granted|obtains?|obtained|secures?|secured|awarded|submits?|submitted|files?\s+for)\b"
+    + G(90) + r"\b(?:permits?|licen[cs]es?|authorization|authorisation|(?<!shareholder\s)(?<!securityholder\s)(?<!stockholder\s)approvals?)\b|"
+    r"\bplan\s+of\s+operations\b|\brecord\s+of\s+decision\b|\bterms\s+of\s+reference\b|\b(?:EIS|ESIA)\b|"
+    r"\bimpact\s+assessment\b|\bmining\s+lease\s+(?:application|granted|approv\w+|renew\w+)|\bgrant\w*\s+(?:of\s+)?(?:a\s+|the\s+)?mining\s+lease\b|\bexploitation\s+(?:licen[cs]e|concession)\b|"
+    r"\bwater\s+(?:licen[cs]e|use\s+permit)\b|\bvested\s+rights?\b|\bpriority\s+project\b|\bnational\s+interest\s+designation\b|"
+    r"\bFAST-?41\b|\bgreen\s+light\b|\b(?:receives?|gets?|given|secures?)\s+(?:the\s+)?(?:regulatory\s+)?greenlight\b|"
+    r"\b(?:initiates?|advances?|submits?|completes?|commences?|begins?)\b" + G(40) + r"\bpermitting\b|\bpermitting\s+(?:process|timeline|schedule|milestone)\b|"
+    r"\b(?:exploration|mineral|mining)\s+licen[cs]es?\s+(?:granted|approved|issued|renewed)\b"
+    r")"
+)
+
+# ---------------------------------------------------------------- Metallurgy
+MET_V7 = re.compile(
+    r"(?i)(?:"
+    r"\bpatent\w*\b" + G(50) + r"\b(?:recovery|process\w*|extraction|leach\w*|refin\w+|separation)\b|"
+    r"\b(?:recovery|processing|extraction|refining|separation)\s+(?:technology|process|patent|facility)\b|"
+    r"\bmagnetic\s+concentrate\b|\b(?:test\s?work|bench[-\s]scale|pilot[-\s]scale|scale[-\s]up|flowsheet|mineralog\w+|beneficiation|"
+    r"ore\s+sorting|sorting\s+test|hydrometallurg\w+|pyrometallurg\w+|(?<!net\s)smelter|refinery)\b"
+    r")"
+)
+
+# ---------------------------------------------------------------- Marketing
+MKT_V7 = re.compile(
+    r"(?i)(?:"
+    r"\b(?:attend\w*|present\w*|participat\w*|exhibit\w*|sponsor\w*|speak\w*|host\w*|showcas\w*|invited|featured|feature)\b" + G(90) +
+    r"\b(?:conferences?(?!\s+call)|conventions?|summits?|symposi\w+|expos?|webinars?|PDAC|roadshows?|investor\s+(?:forum|day|events?)|"
+    r"metals\s+investor\s+forum|mining\s+showcase|podcast|investment\s+(?:conference|forum|summit))\b|"
+    r"\b(?:PDAC)\b" + G(20) + r"\b(?:convention|booth|20\d\d)\b|"
+    r"\b(?:investor|corporate|company)\s+presentation\b|\blive\s+presentation\b|\bwebinar\b|\bpodcast\b|\binterview\b|"
+    r"\bInside\s+the\s+Boardroom\b|\bBTV\b|\bnew\s+canadian\s+stocks\b|\bAGORACOM\b|\broadshow\b|"
+    r"\bmarket[-\s]?mak\w+\b|\bliquidity\s+provider\w*\b|\bautomated\s+market\b|"
+    r"\b(?:marketing|awareness|advertising|communications|investor\s+relations|digital\s+media|media|IR)\s+"
+    r"(?:programs?|campaigns?|agreements?|services|consulting|firm|contracts?|engagements?|extension)\b|"
+    r"\b(?:engages?|retains?|hires?)\b" + G(50) + r"\b(?:research|analyst\s+coverage|equity\s+research)\b|"
+    r"\binitiat\w+\s+(?:of\s+)?(?:analyst\s+|research\s+)?coverage\b"
+    r")"
+)
+MKT_V7_NOT = re.compile(r"(?i)\b(?:results?|earnings)\b" + G(60) + r"\b(?:conference\s+call|webcast)\b|\b(?:conference\s+call|webcast)\b" + G(60) + r"\b(?:results?|earnings|Q[1-4])\b")
+
+
+# =====================================================================
+# Round 2 -- from reading 450 releases still left in Corporate Updates
+# after round 1. OR-ed with the round-1 constant of the same category.
+# =====================================================================
+FIN_V7B = re.compile(
+    r"(?i)(?:"
+    r"\b(?:non[-\s])?(?:brokered\s+)?private\s+placements\b|\bcapital\s+raise\b|\bbridge\s+financing\b|\bfinancing\s+offer\b|"
+    r"\bbest[-\s]efforts\s+(?:private\s+)?(?:offering|placement)\b|\b(?:bought\s+deal\s+)?public\s+offering\b|"
+    r"\bsecondary\s+offering\b|\b(?:convertible\s+)?senior\s+(?:secured\s+)?notes\b|\bdebt\s+agreement\b|"
+    r"\b(?:equity|standby|share\s+subscription|convertible\s+securities)\s+(?:facility|agreement)\b|"
+    r"\bdraws?\s+(?:down\s+)?(?:from|on|under|of)\b|\bdrawdowns?\b|\bplacement\s+priv[ée]\b|\bfinancements?\b|"
+    r"\bupfront\s+capital\s+funding\b|\bletter\s+of\s+interest\b" + G(40) + r"\b(?:bank|EXIM|export|financ\w+)\b|"
+    r"\b(?:base\s+)?shelf\s+prospectus\b|\bprospectus\s+supplement\b"
+    r")"
+)
+DRILL_V7B = re.compile(
+    r"(?i)(?:"
+    r"\b\d[\d.,]*\s*(?:m|metres?|meters?)\s+(?:of|at|grading)\s+\d[\d.,]*\s*(?:g\s*/\s*t|gpt|%|ppm)\s*" + _METAL + r"\b|"
+    r"\b\d[\d.,]*\s*(?:grams?\s+per\s+tonne|g\s*/\s*t|gpt)\b\s+(?:\w+\s+){0,2}?(?:over|across)\s+\d[\d.,]*\s*(?:m\b|metres?|meters?|ft\b|feet)|"
+    r"\b\d[\d.,]*\s*(?:g\s*/\s*t|gpt|%|ppm)\s*(?:Pd\s*\+\s*Pt(?:\s*\+\s*Au)?|Pt\s*\+\s*Pd(?:\s*\+\s*Au)?|3E|2PGE|Cg|TGC|Cs2O|Rb2O|BeO)\b"
+    r")"
+)
+EXPLORATION_V7B = re.compile(
+    r"(?i)(?:"
+    r"\b(?:(?:to|will)\s+(?:drill|test)|plans?\s+to\s+drill|gears?\s+up\s+for\s+drilling|in\s+advance\s+of\s+drilling|"
+    r"drill[-\s]ready|test\s+(?:gold\s+)?(?:exploration\s+)?targets)\b|"
+    r"\b(?:mobiliz\w+|mobilis\w+|adds?|doubles?)\s+(?:a\s+|the\s+|its\s+)?(?:second\s+|third\s+|additional\s+|diamond\s+|core\s+|RC\s+)?drill(?:s|\s+rigs?)?\b|"
+    r"\b(?:announces?|plans?|launch\w*|initiat\w+|advanc\w+|outlines?|begins?|commenc\w+|continues?|approves?|designs?)\b" +
+    r"(?:(?!\b(?:marketing|awareness|incentive|outreach|advertising|investor|tokeni[sz]ation|partnership|buy-?back|rights|environmental|baseline|"
+    r"recovery|ESG|sustainability|community|social|training|stock|equity|ATM|loyalty|warrant|option|share|research|digital|media|IR|"
+    r"placement|financing|offering|fund\w*|proceeds|test\w*|metallurg\w*|pilot|certification|compliance|reporting|safety)\b)[^\n]){0,60}?"
+    r"\b(?:program|programme)\b(?!\s+(?:of\s+)?(?:with|for)\s+(?:shareholders|investors))|"
+    r"\bcontinues?\s+(?:to\s+)?(?:drill|explor\w+|exploration)\b|\bcontinu\w+\s+exploration\b|"
+    r"\b(?:new\s+|makes?\s+(?:a\s+)?(?:new\s+)?)(?:gold\s+|copper\s+|silver\s+|lithium\s+|uranium\s+|rare\s+earth\s+)?discover(?:y|ies)\b|"
+    r"\bdiscover(?:s|ed|ies\s+of)\b(?!\s+day)|\bdiscovery\s+(?:of|at|on|work|zone)\b|"
+    r"\b(?:soil|rock|till|lake\s+sediment|stream\s+sediment|biogeochem\w*|geochem\w*|geomicrobial)\s+(?:\w+\s+)?(?:results?|survey|data|anomal\w+)\b|"
+    r"\b(?:preliminary\s+)?geochemical\s+(?:results?|analysis|data)\b|\b(?:IP|VTEM|MT|DCIP|magnetic|gravity)\s+(?:and\s+\w+\s+)?(?:results?|modell?ing|inversions?|target\s+zone)\b|"
+    r"\b(?:magnetometer|satellite|WorldView|ASTER|hyperspectral|LiDAR|AI[-\s]assisted|machine\s+learning)\s+(?:\w+\s+){0,2}(?:survey|study|analysis|imagery|image|targeting|acquisition)\b|"
+    r"\b(?:data\s+compilation|compilation\s+and\s+data\s+review|data\s+review|targeting\s+and\s+model\w+|deposit\s+models?|geologic(?:al)?\s+interpretation|"
+    r"structural\s+geology|zonation|site\s+visit|field\s+investigations?|metallic\s+screen|re-?assay\s+program)\b|"
+    r"\b(?:new|additional|multiple|priority|\d+)\s+(?:\w+\s+){0,2}targets?\s+(?:identified|defined|delineated|generated|at|on)\b|"
+    r"\b(?:identif\w+|defines?|delineat\w+|confirms?|establish\w+|extends?|expands?|reports?|finds?|encounters?|hits?|samples?|unlocks?)\b" + G(60) +
+    r"\b(?:mineraliz\w+|mineralis\w+|pegmatites?|porphyry|intrusion|veins?|(?-i:horizons|Horizons\b(?!\s+[A-Z]))|structures?|alteration|anomalous|showings?|occurrences?|"
+    r"indicators?|trend|target\s+zone|strike\s+length|enrichment)\b|"
+    r"\bstep[-\s]?out\b|\b(?:completes?|drills?)\s+(?:\w+\s+){0,3}(?:holes?|drill\s+holes?)\b|\bdrill\s+holes?\s+(?:indicate|confirm|intersect)\w*\b|"
+    r"\b(?:engages?|retains?|hires?)\b" + G(40) + r"\b(?:geological|exploration|geophysical|geoscience)\s+(?:consult\w+|services|contractor)\b"
+    r")"
+)
+_DISCOVERY_NAME = re.compile(r"(?-i:\bDiscovery\s+(?:Lithium|Silver|Minerals|Metals|Harbour|Gold|Day|Resources|Mines|Ventures))|\b(?:Exploits|Newfoundland|Advanced)\s+Discovery\b")
+PROD_V7B = re.compile(
+    r"(?i)(?:"
+    r"\bproduction\b" + G(40) + r"\b\d[\d,.]*\s*(?:million\s+|thousand\s+)?(?:ounces|oz|koz|Moz|tonnes|t\b|pounds|lbs|carats|GEOs?)\b|"
+    r"\breports?\s+production\b|\b(?:record|strong|solid)\s+(?:\w+\s+){0,2}production\b|\b(?:monthly|quarterly)\s+production\b|"
+    r"\bproduction\s+and\s+sales\b|\boperating\s+(?:performance|progress)\b|\bramps?\s+up\s+production\b|"
+    r"\b(?:shipment|exports?)\s+(?:of\s+)?(?:\w+\s+){0,3}concentrates?\b|\b(?:second|third|first|\d+(?:st|nd|rd|th))\s+shipment\b|"
+    r"\bexports?\s+\d[\d,.]*\s*tonnes\b|\bbegins?\s+(?:placer\s+)?(?:gold\s+)?(?:recovery|sales|processing)\b|"
+    r"\boperations\s+update\s+for\s+(?:january|february|march|april|may|june|july|august|september|october|november|december)\b|"
+    r"\bgenerates?\b" + G(30) + r"\brevenue\s+from\b"
+    r")"
+)
+PROD_V7_OIL = re.compile(r"(?i)\boil\s+production\b|\boil\b|\bgas\s+well\b|\bspud\w*\b|\bwells?\b|\bDuvernay\b|\bboe\b")
+FINL_V7B = re.compile(
+    r"(?i)(?:"
+    r"\breports?\s+results\s+for\s+the\s+(?:year|quarter)\b|\bquarterly\s+(?:financial\s+)?results\b|\bnet\s+earnings\b|\boperating\s+cash\s+flow\b|"
+    r"\brecord\s+financial\s+performance\b|\battributable\s+revenue\b|\brevenue\s+guidance\b|"
+    r"\bquarterly\s+(?:activities\s+)?report\b|\bquarterly\s+report\s+of\s+activities\b|\bForm\s+10-Q\b"
+    r")"
+)
+MGMT_V7B = re.compile(
+    r"(?:"
+    r"(?i:\bstrengthening\s+(?:its\s+)?(?:management|leadership|board|executive|technical)\b)|"
+    r"(?i:\bappointment\s+of\b)" + G(60) + r"(?i:\bas\s+(?:the\s+)?(?:company|corporation)['’]s\s+)(?i:" + _ROLE7 + r")\b|"
+    r"(?i:\bjoins?\s+)(?:[A-Z][\w'’\-]*\s+){0,3}(?i:(?:board|advisory\s+board|management\s+team|leadership\s+team)\b)|"
+    r"(?i:\bannounces?\s+)(?:[A-Z][\w.'’\-]*\s+){1,3}(?:and|&)\s+(?:[A-Z][\w.'’\-]*\s+){1,3}(?i:as\s+(?:\w+\s+)?)(?i:" + _ROLE7 + r")|"
+    r"(?i:\baddition\s+of\b)" + G(60) + r"(?i:\bas\s+(?:the\s+|its\s+|a\s+|an\s+)?(?:[\w\-]+\s+){0,3}?(?:" + _ROLE7 + r"|manager))\b|"
+    r"(?i:\b(?:changes?\s+in\s+management|organizational\s+changes|CFO\s+commences\s+role)\b)|"
+    r"(?i:\b(?:CEO|CFO|COO|President)\s+(?:commences|assumes|begins)\s+(?:role|position|duties)\b)"
+    r")"
+)
+MA_V7B = re.compile(
+    r"(?i)(?:"
+    r"\b(?:completes?\s+)?purchase\s+of\s+\d[\d,.]*\s*(?:square\s+kilomet\w+|km2|hectares|ha\b|acres)\b|"
+    r"\b(?:acquires?|stakes?|adds?)\s+(?:an?\s+)?(?:additional\s+)?\d[\d,.]*\s*(?:additional\s+)?(?:mineral\s+|lode\s+|placer\s+|new\s+)?"
+    r"(?:acres|hectares|ha\b|claims?|square\s+kilomet\w+|km2|licen[cs]es)\b|"
+    r"\bstakes?\s+(?:a\s+)?new\b" + G(40) + r"\b(?:project|property|claims?)\b|\bfiling\s+of\s+\d+\s+(?:mineral\s+|lode\s+)?claims\b|"
+    r"\bclaims?\s+purchase\b|\b(?:property|project|asset|claims?)\s+(?:acquisition|sale)\b|"
+    r"\bincreases?\s+(?:its\s+)?ownership\b|\bconsolidation\s+of\s+ownership\b|\bnow\s+owns\s+100\s*%|"
+    r"\bacquiring\s+(?:prospective\s+|additional\s+|new\s+)?(?:\w+\s+)?(?:projects?|propert\w+|claims)\b|"
+    r"\bacquires\s+(?:a\s+)?(?:cluster|portfolio|package)\s+of\b|\bexpands?\s+(?:its\s+)?(?:\w+\s+){0,2}(?:portfolio|land\s+base)\b|"
+    r"\baddition\s+to\s+the\b" + G(40) + r"\bpropert(?:y|ies)\b|\binks?\s+(?:a\s+)?definitive\b|\bspinning\s+out\b|"
+    r"\b(?:royalty|stream)\s+portfolio\b|\bexclusive\s+right\s+to\s+(?:expand|acquire)\b|\blease\s+termination\b|"
+    r"\bdue\s+diligence\s+agreement\b|\bexclusivity\s+agreement\b|\bnot\s+proceeding\s+with\b|\btransaction\s+update\b|"
+    r"\bamends?\s+agreement\s+for\s+100\s*%"
+    r")"
+)
+MKT_V7B = re.compile(
+    r"(?i)(?:"
+    r"\b(?:mining\s+)?investment\s+event\b|\b121\s+mining\b|\binvitation\s+to\b" + G(30) + r"\b(?:investment|mining|conference|summit|forum)\b|"
+    r"\bconference\s+schedule\b|\bRenmark\b|\bCorpComm\b|\binvestor\s+relations\s+(?:and\s+[\w\s]{0,30})?(?:agreements?|services)\b|"
+    r"\bconsulting\s+services\s+agreement\s+with\b" + G(30) + r"\b(?:media|marketing|communications)\b|"
+    r"(?<!\[)\bvideo\b(?!\s+enhanced)|\bCEO\s+Clips\b|\bfact\s+sheet\b|\bupdated\s+presentation\b|\bfeatured\s+in\b|\bring\s+(?:the\s+)?(?:\w+\s+)?(?:closing|opening)\s+bell\b|"
+    r"\bnew\s+(?:corporate\s+)?website\b|\bcapital\s+markets\s+day\b"
+    r")"
+)
+LIST_V7B = re.compile(
+    r"(?i)(?:"
+    r"\bCSE\s+Bulletin\b|\bnew\s+(?:U\.?S\.?\s+)?(?:stock\s+|trading\s+)?symbol\b|\bexchange\s+listings?\b|\bcommence\s+[àa]\s+n[ée]gocier\b|"
+    r"\badmission\s+of\s+shares\b|\bat\s+(?:the\s+)?request\s+of\s+(?:OTC\s+Markets|CIRO|IIROC|the\s+(?:TSX|CSE))\b|\btrading\s+suspension\b|\bsuspension\s+of\s+trading\b"
+    r")"
+)
+ACT_V7B = re.compile(
+    r"(?i)(?:"
+    r"\bshareholder\s+rights\s+plan\b|\bchange\s+of\s+name\b|\beffective\s+date\s+(?:for|of)\s+(?:the\s+)?(?:share\s+)?consolidation\b|"
+    r"\bcorporate\s+reorganization\b|\breturn\s+of\s+capital\b|\bautomatic\s+share\s+purchase\s+plan\b|\bshare\s+(?:repurchase|buy-?back)\b|\brachat\s+d.actions\b|\bfundamental\s+change\s+of\s+business\b|"
+    r"\bchange\s+of\s+business\b"
+    r")"
+)
+MTG_V7B = re.compile(r"(?i)\belection\s+of\s+directors\b|\bshareholder\s+requisition\b|\brequisition(?:ed)?\s+meeting\b")
+PER_V7B = re.compile(r"(?i)\brenewal\s+of\b" + G(30) + r"\blicen[cs]e\b|\benvironmental\s+baseline\b|\bsurface\s+(?:rights\s+)?(?:access\s+)?agreements?\b")
+JV_V7B = re.compile(
+    r"(?i)(?:"
+    r"\b(?:adds?|add)\b" + G(40) + r"\bto\s+(?:the\s+)?exploration\s+agreement\b|\bshare[-\s]based\s+partnership\b|\bprocessing\s+agreements?\b|"
+    r"\bmining\s+services?\s+agreements?\b|\bprotocole\s+d.entente\b|\bresearch\s+(?:program|collaboration|partnership)\b|"
+    r"\bjoins?\b" + G(40) + r"\b(?:association|institute|alliance)\b|\breceives?\s+(?:an?\s+)?(?:purchase\s+)?order\s+from\b"
+    r")"
+)
+MRE_V7B = re.compile(
+    r"(?i)(?:"
+    r"\b(?:grows?|increases?|expands?|upgrades?|doubles?|boosts?)\b" + G(40) + r"\bresources?\b(?!\s+(?:corp|inc|ltd|limited|sector|industry|nationalism))|"
+    r"\bNI[-\s]?43[-\s‐]?101(?:\s+(?:technical\s+)?report)?\b" + G(20) + r"\b(?:files?|filed|filing|receives?|on\b)|"
+    r"\b(?:files?|filed|filing\s+of|receives?)\b" + G(30) + r"\bNI[-\s]?43[-\s‐]?101\b"
+    r")"
+)
+MET_V7B = re.compile(
+    r"(?i)(?:"
+    r"\bbio-?leach\w*\b|\b(?:tailings|residue)\s+(?:re-?processing|recovery|reprocessing)\b|\b(?:scandium|lithium|metal|gold|cobalt|nickel|rare\s+earth)\s+recovery\b|"
+    r"\b(?:hydroxide|carbonate|sulphate|sulfate)\s+test\w*\b|\bPhotonAssay\b|"
+    r"\b(?:demonstration|pilot|processing|flotation|leach|concentrator)\s+(?:plant|facility|circuit)\b|"
+    r"\bplant\s+(?:refurbishment|relocation|construction|commissioning|restart)\b|\bcommissioning\s+(?:of\s+)?(?:the\s+|its\s+)?(?:[\w\-]+\s+){0,3}(?:plant|mill|facility|circuit|line|concentrator|refinery|smelter|kiln)s?\b|\b(?:plant|mill|facility|circuit|line|concentrator|refinery|smelter)\s+commissioning\b|\bprocessing\s+equipment\b|"
+    r"\bconcentrate\s+potential\b"
+    r")"
+)
+
+MRE_V7_NOT = re.compile(r"(?i)\bpotential\s+to\b|\befforts?\s+to\b|\bto\s+(?:upgrade|expand|grow|increase|update)\b|\bresource[-\s]conversion\b|\bexploration\s+recommendations\b")
+
+
+# =====================================================================
+# Round 3 -- 380 more releases still left in Corporate Updates after round 2.
+# =====================================================================
+FIN_V7C = re.compile(
+    r"(?i)(?:"
+    r"\bterm\s+sheet\b" + G(40) + r"\b(?:facility|financing|loan)\b|\bconstruction\s+loan\b|\bdebt\s+facilit(?:y|ies)\b|"
+    r"\bfacility\s+upsizing\b|\bupsiz\w+\b" + G(20) + r"\bfacility\b|\b(?:increases?|extends?|arranges?)\s+(?:its\s+)?financing\b|"
+    r"\braises?\s+funds\b|\bconcurrent\s+financings?\b|\bproceeds\s+of\b" + G(30) + r"\bfrom\s+(?:the\s+)?(?:warrant\s+|option\s+)?exercises?\b|"
+    r"\bnon-dilutive\s+(?:cash|funding|financing)\b|\bequity\s+swap\b|\bmanagement\s+investment\b|"
+    r"\brepayment\s+of\b" + G(30) + r"\b(?:debt|debentures?|loans?|notes?)\b"
+    r")"
+)
+EXPLORATION_V7C = re.compile(
+    r"(?i)(?:"
+    r"\b(?:secures?|signs?|awards?|selects?|engages?)\s+(?:a\s+)?drill(?:ing)?\s+contract(?:or)?\b|\bdrilling\s+contract\b|"
+    r"\bfirst\s+hole\s+completed\b|\bresults?\s+from\s+(?:the\s+)?(?:\d{4}\s+)?(?:phase\s+\w+\s+)?drilling\b|"
+    r"\bdrills\s+(?:initial|multiple|stacked)\b|\brestarts?\s+drilling\b|\b(?:drilling|exploration)\s+(?:and\s+\w+\s+)?planning\b|"
+    r"\bplanning\s+\d{4}\s+drilling\b|\bcontinues?\s+to\s+discover\b|\bnew\s+targets?\b|\btargets?\s+identified\b|"
+    r"\bexploration\s+(?:goals|division|timeline|success|advances|targets?)\b|\bprospecting\s+update\b|"
+    r"\b(?:AEM|heli-?borne|airborne)\b" + G(20) + r"\bsurvey\b|\bmagneto-?telluric\b|\bgeology\s+map\b|\bhistoric\s+workings\b|"
+    r"\bdrill\s+targeting\b|\bpumping\s+test\b|\btest\s+well\b|\bdoubles?\s+exploration\s+target\b|"
+    r"\bmore\s+than\s+doubles\b" + G(30) + r"\b(?:zone|length|strike)\b|\b\d[\d.,]*\s*(?:m|metres?|meters?)\s+intersection\b|"
+    r"\bdeep-?test\b|\bengages?\b" + G(40) + r"\bfor\s+(?:\d{4}\s+)?exploration\b|\bsurface\s+(?:gold|silver|copper)(?:-\w+)?\s+results\b|"
+    r"\bhigh\s+(?:lithium|gold|copper|uranium)\s+values\b|\bhydrogen[-\s]associated\b|\bhydrogen\s+(?:zone|discovery|data)\b|"
+    r"\bstrike\s+length\b|\bdefines?\b" + G(40) + r"\bzone\s+over\b"
+    r")"
+)
+PROD_V7C = re.compile(
+    r"(?i)(?:"
+    r"\bproduced\s+\d|\b(?:resumes?|restarts?|recommences?)\s+(?:\w+\s+)?(?:production|mining|operations)\b|\bproduction\s+restart\b|"
+    r"\bmining\s+restart\b|\bcommences?\s+mining\b|\b(?:underground|open[-\s]pit|test|trial|placer)\s+mining\s+commences\b|\bcommenced\s+production\b|"
+    r"\b(?:record\s+)?sales\s+in\s+(?:the\s+)?(?:first|second|third|fourth)\s+quarter\b|\bmine\s+operating\s+income\b|\bmined\s+\d|"
+    r"\bquarter\s+of\s+production\b|\broyalty\s+payments?\b|\bsuspends?\s+operations\b|\boperational\s+continuity\b|"
+    r"\boperations\s+continue\b|\bproduction\s+rate\b"
+    r")"
+)
+MRE_V7C = re.compile(r"(?i)\bupdates?\s+(?:in-pit\s+)?resource\b|\bresource\s+summary\b|\bS-K\s+1300\b")
+MA_V7C = re.compile(
+    r"(?i)(?:"
+    r"\banniversary\s+payments?\b|\boption\s+payments?\b|\bscheduled\s+payment\s+for\b|\bearns?\s+(?:a\s+)?(?:further\s+|additional\s+|\d+\s*%\s+)?interest\b|"
+    r"\bdiscontinues?\b" + G(30) + r"\boptions?\b|\breacquires?\b|\btakes?\s+(?:direct\s+)?control\s+of\b|\bdeal\s+closing\b|"
+    r"\bpurchases?\s+(?:an?\s+|the\s+)?NSR\b|\bimplementation\s+agreement\b|\btermination\s+of\b" + G(20) + r"\bsale\b|\bsale\s+process\b|"
+    r"\blargest\s+(?:contiguous\s+)?land\s+package\b|\bincreases?\s+(?:its\s+)?footprint\b|\bconsolidates?\b" + G(30) + r"\bpropert(?:y|ies)\b|"
+    r"\bexpands?\s+(?:its\s+)?holdings\b|\bintroduces?\b" + G(30) + r"\bowned\b" + G(30) + r"\bproject\b|\bstaking\b|"
+    r"\bstrategic\s+review\b|\bfor\s+acquisition\b|\bincreased\s+ownership\s+in\b"
+    r")"
+)
+MGMT_V7C = re.compile(
+    r"(?:"
+    r"(?i:\bpasses\s+away\b|\bterminates?\b" + G(30) + r"\bas\s+(?:CEO|CFO|President)\b|\bappoints?\s+(?:VP|SVP|EVP)\b|"
+    r"\badvisory\s+(?:board|committee|commit\w*)\b|\bappoint\w*\s+(?:dr|mr|ms|mrs)\.?\s|\bappointemnets?\b|"
+    r"\bupdate\s+on\s+(?:its\s+)?board\s+of\s+directors\b|\bsenior\s+leaders\b|\bto\s+(?:its|the)\s+board\b|"
+    r"\bwelcomes?\b" + G(70) + r"\bas\s+(?:senior\s+)?(?:vice\s+president|VP|CFO|CEO|director|advisor|chair\w*)\b|"
+    r"\battracts?\b" + G(40) + r"\bto\s+the\s+board\b)"
+    r")"
+)
+LIST_V7C = re.compile(
+    r"(?i)(?:"
+    r"\bOTCQB\s+quotation\b|\bstarts?\s+trading\s+on\b|\blisting\s+of\s+warrants\b|\bminimum\s+bid\s+price\b|\bextend\s+filing\s+deadline\b|"
+    r"\bdelay\s+in\s+(?:\w+\s+)?filing\b|\bannual\s+filings\s+status\b|\bdefault\s+update\b|\b(?:responds?|comments?)\b" + G(40) + r"\bpromotion(?:al)?\s+activit\w+\b|"
+    r"\bOTC\s+Markets\s+request\b|\bshare\s+price\s+movement\b|\bresponds\s+to\s+market\s+activity\b|\btrading\s+of\s+its\s+common\s+shares\b|"
+    r"\bupdated\s+trading\s+symbols?\b|\bOSC\s+staff\s+review\b|\bpossible\s+delay\s+in\s+filing\b"
+    r")"
+)
+MTG_V7C = re.compile(r"(?i)\badvance\s+notice\s+(?:by-?law|policy)\b|\bISS\s+presentation\b|\bvote\s+(?:green|blue|gold|white)\b|\bdissident\b|\bproxy\s+contest\b")
+ACT_V7C = re.compile(r"(?i)\bsemi-?annual\s+reporting\b|\bto\s+consolidate\s+(?:its\s+)?(?:common\s+)?shares\b|\bevolves?\s+(?:in)?to\s+[A-Z]|\bcash\s+dividend\b|\bdividend\s+for\s+the\b")
+CAP_V7C = re.compile(r"(?i)\bissues?\s+\d[\d,]*\s+(?:common\s+)?shares\b|\bto\s+issue\s+shares\b|\bshare\s+capital\s+and\s+voting\s+rights\b|\brestricted\s+share\s+rights\b|\b(?:security|share)[-\s]based\s+compensation\s+plan\b|\bwarrants\s+extended\b|\block-?up\s+of\b" + G(40) + r"\bwarrants\b|\bblock\s+listing\b")
+PER_V7C = re.compile(
+    r"(?i)(?:"
+    r"\bpermits?\s+(?:renewed|obtained|received|granted|update)\b|\bpermit\s+renewal\b|\blicen[cs]e\s+renewal\b|\bland\s+access\s+agreements?\b|"
+    r"\bsecures?\s+land\s+access\b|\bmining\s+agreement\b|\bproject\s+description\b|\benvironmental\s+(?:impact\s+)?declaration\b|"
+    r"\brecovery\s+of\s+minerals\s+permit\b|\bone\s+project,?\s+one\s+process\b|\bpermitting\s+support\b|\bstate\s+lease\s+lands\b|"
+    r"\bapproval\s+of\s+application\b|\badvancing\s+permitting\b|\bmining\s+lease\b(?=" + G(30) + r"\b(?:grant|new|approv|renew))|\bgrant\s+of\s+new\s+mining\s+lease\b"
+    r")"
+)
+MET_V7C = re.compile(r"(?i)\bore[-\s]sorting\b|\bmetallurg\w*\s+labs?\b|\b5N\s+purity\b|\bbattery[-\s]grade\b|\bproduction\s+run\b|\bcarbonation\s+technology\b|\bprocessing\s+methodology\b|\bnickel\s+sulphate\b")
+MKT_V7C = re.compile(
+    r"(?i)(?:"
+    r"\bmarketing\s+consultant\b|\bEquity\s+Guru\b|\binvestors?\s+update\s+call\b|\bdocumentary\b|\bwebsite\b|\bcorporate\s+communications\b|"
+    r"\bsocial\s+media\b|\bTorrey\s+Hills\b|\bMining\s+Networks\b|\binvestor\s+relations\s+team\b|\bVP\s+of\s+investor\s+relations\b|"
+    r"\bresearch\s+coverage\b|\breports\s+on\b" + G(30) + r"\bconference\b|\bluncheon\s+presentation\b"
+    r")"
+)
+JV_V7C = re.compile(r"(?i)\bjoint\s+development\s+agreement\b|\bjoin\s+forces\b|\bfounding\s+member\b|\bproject\s+partner\b|\bevaluation\s+framework\b|\bcollaboration\b")
+
+
+_SUB = str.maketrans({**{c: str(i) for i, c in enumerate('₀₁₂₃₄₅₆₇₈₉')}, '\u2010': '-', '\u2011': '-'})
+def norm_head(h):
+    h = (h or '').translate(_SUB)
+    if ' ' not in h.strip() and re.search(r'[-_]', h):
+        h = re.sub(r'[-_]+', ' ', h)
+    return re.sub(r'\s+', ' ', h).strip()
+
+_HOLLOW = re.compile(
+    r"(?i)^\W*(?:"
+    r"(?:news|press|media)\s*(?:release|advisory)?(?:\s*(?:no\.?|#)?\s*[\d\-/]+)?|nr\s*[\d\-]*|release|news|"
+    r"for\s+immediate\s+release|"
+    r"(?:trading\s+symbols?|symbol)\s*:.*|"
+    r"(?:not\s+for\s+(?:distribution|dissemination|release)|or\s+for\s+dissemination|neither\s+(?:the\s+)?tsx|"
+    r"this\s+news\s+release|failure\s+to\s+comply|of\s+america\s+or|or\s+through\s+u\.?s\.?).*|"
+    r"(?:tsx|tsxv|tsx-v|cse|otcqb|otcqx|fse|frankfurt)[\s:\-\.A-Z]*"
+    r")\W*$"
+)
+_VERBISH = re.compile(r"(?i)\b(?:announc\w+|reports?|closes?|complet\w+|intersect\w*|drills?|appoint\w*|provides?|receives?|signs?|enters?|acquir\w+|"
+                      r"commenc\w+|launch\w+|files?|grants?|updates?|confirms?|expands?|identif\w+|begins?|secures?|extends?|results?|"
+                      r"private\s+placement|financing|agreement|program|option|update)\b")
+_BAD_LINE = re.compile(r"(?i)(?:^\W*(?:news\s*release|press\s*release)\W*$|not\s+for\s+(?:distribution|dissemination)|dissemination\s+in\s+the|"
+                       r"united\s+states|suite\s+\d|\bstreet\b|\bavenue\b|www\.|@|tel\b|phone|fax|page\s+\d|^\W*\d{1,2}[,/ ]|"
+                       r"^(?:january|february|march|april|may|june|july|august|september|october|november|december)\b|"
+                       r"trading\s+symbol|tsx\s*venture\s*exchange\s*:|^\W*(?:tsx|cse|otc)\w*\s*[:\-])")
+_PROSE = re.compile(r"(?i)\bpleased\s+to\b|\bannounced\s+today\b|[\u201c\x22]\s*(?:company|corporation)|\(the\s|\bis\s+(?:a|an)\s|\bwe\s|\bour\s")
+def recover_headline(body):
+    lines = [l.strip() for l in (body or '')[:1500].split('\n')]
+    lines = [l for l in lines if l]
+    for i, l in enumerate(lines[:14]):
+        if len(l) < 20 or len(l) > 220 or _BAD_LINE.search(l): continue
+        if len(l.split()) < 4 or not _VERBISH.search(l): continue
+        if _PROSE.search(l) or re.match(r"[a-z(\u201c\x22]", l) or re.search(r"(?i)\bthe\s+company\b", l): continue
+        # a wrapped title continues on the next line when this one has no terminal punctuation
+        if i + 1 < len(lines) and not re.search(r"[.!?:]$", l) and len(l) < 120:
+            nxt = lines[i+1]
+            if 3 <= len(nxt.split()) <= 14 and not _BAD_LINE.search(nxt) and not re.search(r"(?i)\b(?:is\s+pleased|announced\s+today|\(the|“)", nxt):
+                l = l + ' ' + nxt
+        return l
+    return None
+
+def is_hollow(h):
+    h = (h or '').strip()
+    return (not h) or (bool(_HOLLOW.match(h)) and not _VERBISH.search(h))
+
+def _DISC_NAME_HIT(h, m):
+    return 'discover' in m.group(0).lower() and any(d.start() <= m.start() + 40 and d.end() >= m.start() for d in _DISCOVERY_NAME.finditer(h))
+
+_PURPOSE = re.compile(r"(?i)(?:ahead\s+of|to\s+fund|to\s+support|to\s+finance|in\s+preparation\s+for|proceeds|in\s+support\s+of|to\s+advance|for\s+(?:the|its|a|an|upcoming))\s+(?:[\w\-]+\s+){0,3}$")
+_TR_EVIDENCE = re.compile(r"(?i)\b(?:resources?|MRE|reserves?)\b")
+_TR_LEDE = re.compile(r"(?i)\b(?:mineral\s+resource|resource\s+estimate|MRE)\b")
+ECON_DELIVERED_V7 = re.compile(r"(?i)\bpositive\s+preliminary\s+economic|\bscoping\s+study\s+(?:results|outlines|demonstrates|confirms|shows)|\bresults\s+of\s+(?:the\s+|its\s+)?scoping")
+
+def categorize_v7(headline, body, trace=None):
+    h0 = norm_head(headline)
+    if is_hollow(h0):
+        rec = recover_headline(body)
+        if rec:
+            a, _ = _categorize_v7(h0, body, trace)
+            bb, _ = _categorize_v7(norm_head(rec), body, trace)
+            u = [c for c in a if c != 'Corporate Updates'] + [c for c in bb if c != 'Corporate Updates' and c not in a]
+            if not u: u = ['Corporate Updates'] if FALLBACK_TO_CORPORATE else []
+            order = {c: i for i, c in enumerate(CATEGORIES)}
+            return sorted(u, key=lambda c: order.get(c, 99)), rec
+    return _categorize_v7(h0, body, trace)
+
+def _categorize_v7(h, body, trace=None):
+    recovered = None
+    b = (body or '').strip()
+    base = _categorize_v6(h, b)
+    cats = [c for c in base if c != 'Corporate Updates']
+    third = bool(_THIRD_PARTY.search(h))
+    def add(cat, why):
+        if cat not in cats:
+            cats.append(cat)
+            if trace is not None: trace.append((cat, why))
+    m = FINL_V7.search(h) or FINL_V7B.search(h)
+    if m and 'Economic Studies' not in cats and not FINL_V7_NOT.search(h) and not third: add('Financials', m.group(0))
+    m = PROD_V7.search(h) or PROD_V7B.search(h) or PROD_V7C.search(h)
+    if m and 'Economic Studies' not in cats and not PROD_V7_NOT.search(h) and not PROD_V7_OIL.search(h) and not third and not _OIL_GAS.search(h) and not _PROD_NOT.search(h): add('Production Results', m.group(0))
+    m = MRE_V7.search(h) or MRE_V7B.search(h) or MRE_V7C.search(h)
+    if m and not third and (_MRE_DELIVERED.search(h) or not _STUDY_PLAN.search(h)):
+        g = m.group(0).lower()
+        if MRE_V7_NOT.search(h):
+            pass
+        elif not re.search(r"technical\s+report|43[-\s]?101", g) or _TR_EVIDENCE.search(h) or _TR_LEDE.search(lede(b)):
+            add('Resource Estimates', m.group(0))
+    m = ECON_V7.search(h)
+    if m and not third and (_STUDY_DELIVERED.search(h) or ECON_DELIVERED_V7.search(h) or not _STUDY_PLAN.search(h)): add('Economic Studies', m.group(0))
+    m = DRILL_V7.search(h) or DRILL_V7B.search(h)
+    if m and not (_DRILL_HISTORICAL.search(h) and not _DRILL_NEW_WORK.search(h)) and 'Resource Estimates' not in cats: add('Drill Results', m.group(0))
+    if not ({'Drill Results', 'Resource Estimates', 'Economic Studies', 'Production Results'} & set(cats)) and not third:
+        import itertools
+        for m in itertools.chain(EXPLORATION_V7.finditer(h), EXPLORATION_V7B.finditer(h), EXPLORATION_V7C.finditer(h)):
+            if _DISC_NAME_HIT(h, m): continue
+            if re.search(r"(?i)\b(?:to\s+fund|to\s+finance|proceeds|placement|financing|offering)\b", m.group(0)): continue
+            if re.search(r"(?i)\b(?:financing|placement|offering|to\s+fund|proceeds)\b", h[max(0, m.start()-40):m.start()]): continue
+            if not _PURPOSE.search(h[max(0, m.start()-45):m.start()]):
+                add('Exploration Programs', m.group(0)); break
+    m = MA_V7.search(h) or MA_V7B.search(h) or MA_V7C.search(h)
+    if m and not MA_V7_NOT.search(h) and not third: add('Mergers & Acquisitions', m.group(0))
+    m = MGMT_V7.search(h) or MGMT_V7B.search(h) or MGMT_V7C.search(h)
+    if m and not MGMT_V7_NOT.search(h) and not _MGMT_NOT.search(h): add('Management Changes', m.group(0))
+    m = FIN_V7.search(h) or FIN_V7B.search(h) or FIN_V7C.search(h)
+    if m and not FIN_V7_NOT.search(h): add('Financings', m.group(0))
+    for rxs, cat in (((CAP_V7, CAP_V7C), 'Share Capital & Compensation'), ((LIST_V7, LIST_V7B, LIST_V7C), 'Listings & Exchange'),
+                    ((MTG_V7, MTG_V7B, MTG_V7C), 'Shareholder Meetings'), ((ACT_V7, ACT_V7B, ACT_V7C), 'Corporate Actions'), ((JV_V7, JV_V7B, JV_V7C), 'Partnerships & JV'),
+                    ((MET_V7, MET_V7B, MET_V7C), 'Metallurgy & Processing')):
+        m = next((x for x in (rx.search(h) for rx in rxs) if x), None)
+        if m: add(cat, m.group(0))
+    m = PER_V7.search(h) or PER_V7B.search(h) or PER_V7C.search(h)
+    if m and not third: add('Permits & Approvals', m.group(0))
+    m = MKT_V7.search(h) or MKT_V7B.search(h) or MKT_V7C.search(h)
+    if m and not MKT_V7_NOT.search(h): add('Marketing Announcement', m.group(0))
+    if not cats:
+        cats = ['Corporate Updates'] if FALLBACK_TO_CORPORATE else []
+    order = {c: i for i, c in enumerate(CATEGORIES)}
+    return sorted(cats, key=lambda c: order.get(c, 99)), recovered
+
+
+# ===========================================================================
+# v8 tags (2026-09-16): five tags carved out of Corporate Updates.
+# Headline-scoped, additive. Measured on the CU-only corpus first:
+#   Royalties & Streams ~142 · Property Options & Staking ~276 ·
+#   Regulatory & Compliance ~208 · Technical Reports (NI 43-101) ~189 ·
+#   Debt & Credit Facilities ~183
+# Standing lesson applied: gaps inside a headline use [^\n], so they can
+# cross a period, a percent sign and a curly quote.
+# ===========================================================================
+
+# --- Royalties & Streams ---------------------------------------------------
+_ROYALTY_V8 = re.compile(
+    r"\broyalt(?:y|ies)\b|\bNSRs?\b|\bnet\s+smelter\s+returns?\b|"
+    r"\bgross\s+(?:revenue|overriding)\s+royalt|"
+    r"\bstream(?:ing)?\s+(?:agreements?|deals?|transactions?|financing|"
+    r"interests?|portfolio|facility|arrangements?|contracts?)\b|"
+    r"\b(?:gold|silver|precious\s+metals?|copper|metals?|cobalt|nickel|"
+    r"platinum|palladium)\s+streams?\b|"
+    r"\bprecious\s+metals?\s+purchase\s+agreements?\b|\bPMPA\b",
+    re.I,
+)
+# A royalty company named at the start of its own headline ("Noranda
+# Royalties Engages...", "Royalties Inc. Reports Yearend Results") is a name,
+# not a royalty. Stripped before matching; the name may not contain a verb,
+# so "ATEX Reduces NSR Royalty" keeps its match.
+_ROYALTY_VERBS_V8 = (
+    r"announces?|provides?|reports?|completes?|closes?|acquires?|receives?|"
+    r"enters?|signs?|sells?|adds?|expands?|highlights?|notes?|debuts?|"
+    r"engages?|appoints?|files?|grants?|declares?|reduces?|purchases?|"
+    r"agrees?|increases?|updates?|comments?|confirms?|welcomes?|launches?|"
+    r"executes?|amends?|terminates?|creates?|buys?|secures?|exercises?|"
+    r"converts?|restructures?|to|of|on|for|with|from|and|the|a|an"
+)
+_ROYALTY_NAME_V8 = re.compile(
+    r"^\s*Royalt(?:y|ies)\s+(?:Corp(?:oration)?|Inc|Ltd|Limited)\b\.?|"
+    r"^\s*(?:[^\s:]+:\s+)?"                       # "Market One: " prefix
+    r"(?:(?!(?:" + _ROYALTY_VERBS_V8 + r")\b)[\w'’.&$()/,-]+\s+){1,4}?"
+    r"(?:Gold\s+|Precious\s+Metals\s+)?Royalt(?:y|ies)\b"
+    r"(?:\s+(?:&|and)\s+Streaming)?"
+    r"(?:\s+(?:Corp(?:oration)?|Inc|Ltd|Limited|Co)\b\.?)?",
+    re.I,
+)
+_ROYALTY_NOT_V8 = re.compile(
+    r"\broyalty\s+(?:rates?|regime|tax(?:es)?|framework|bill|law|review)\b|"
+    r"\bmining\s+royalt(?:y|ies)\s+(?:bill|law|act|regime)\b",
+    re.I,
+)
+
+
+def _is_royalty(h: str) -> bool:
+    if not h:
+        return False
+    stripped = _ROYALTY_NAME_V8.sub(" ", h, count=1)
+    return bool(_ROYALTY_V8.search(stripped)) and not _ROYALTY_NOT_V8.search(h)
+
+
+# --- Property Options & Staking -------------------------------------------
+_OPTION_LAND_V8 = re.compile(
+    r"\boption(?:s|ed)?\s+(?:and\s+[\w-]+\s+)?agreements?\b|"
+    r"\bproperty\s+options?\b|"
+    r"\boption\s+(?:to\s+(?:acquire|earn|purchase)\b|payments?\b|"
+    r"terminations?\b|cancell?ations?\b|amendments?\b|extensions?\b)|"
+    r"\boptions?\s+(?:its\s+|the\s+|an?\s+|\d+\s*%\s+)?[^\n]{0,60}?"
+    r"\b(?:property|project|claims?|interest)\s[^\n]{0,40}?\bto\b|"
+    r"\b(?:terminat\w*|cancel\w*|drops?|dropped|amend\w*|extend\w*)\s+"
+    r"(?:of\s+)?(?:the\s+|its\s+|an?\s+)?(?:[\w'’-]+\s+){0,4}?option\b"
+    r"(?!\s*(?:plan|grant|price|holders?)\b)|"
+    r"\bearn(?:s|ed|ing)?[- ]in\b|"
+    r"\bearn(?:s|ed)?\s+(?:an?\s+)?(?:additional\s+|further\s+|initial\s+|"
+    r"first\s+|second\s+|full\s+)?(?:\d+(?:\.\d+)?\s*%\s+)?interest\b|"
+    r"\bearns?\s+(?:a\s+)?(?:\d+(?:\.\d+)?\s*%)|"
+    r"\bstak(?:ed|ing)\b|\bstakes\s+(?!in\b)(?:\w+\s+){0,3}?"
+    r"(?:ground|claims?|land|property|projects?|hectares|licen[cs]es?|"
+    r"tenements?|area|block)\b|"
+    r"\bclaims?\s+(?:staking|acquisitions?|packages?|blocks?)\b|"
+    r"\b(?:expands?|expanded|expanding|increases?|increased|consolidates?|"
+    r"consolidated|doubles?|doubled|triples?|tripled|grows?|enlarges?|"
+    r"adds?\s+to)\b[^\n]{0,50}?\b(?:land\s+(?:packages?|positions?|holdings?|"
+    r"base|tenure)|claims?\s+(?:area|positions?|holdings?|packages?|blocks?)|"
+    r"mineral\s+claims?|property\s+(?:size|area|footprint)|mineral\s+tenure)\b",
+    re.I,
+)
+_OPTION_LAND_NOT_V8 = re.compile(
+    r"\b(?:stock|share|incentive|employee)\s+options?\b|"
+    r"\b(?:equity|strategic|ownership|minority|majority|controlling)\s+stakes?\b|"
+    r"\b(?:crypto\w*|ETH|ethereum|solana|token|validator|proof[- ]of)\b",
+    re.I,
+)
+
+
+def _is_option_land(h: str) -> bool:
+    return bool(h) and bool(_OPTION_LAND_V8.search(h)) and not _OPTION_LAND_NOT_V8.search(h)
+
+
+# --- Regulatory & Compliance ----------------------------------------------
+_REGULATORY_V8 = re.compile(
+    r"\bMCTO\b|\bcease\s+trade\s+orders?\b|"
+    r"\bchange\s+(?:of|in)\s+(?:the\s+)?auditors?\b|"
+    r"\bauditors?\s+(?:change|resignation|appointment|transition)\b|"
+    r"\bas\s+(?:the\s+)?(?:company'?s\s+|new\s+|successor\s+)?auditors?\b|"
+    r"\b(?:appointment|resignation)\s+of\s+(?:the\s+)?(?:new\s+)?auditors?\b|"
+    r"\blate\s+filing\b|\bdelay\w*\s+(?:in\s+)?(?:the\s+)?filing\b|"
+    r"\bfiling\s+delay\b|\bdefault\s+(?:status|announcement|report)\b|"
+    r"\bbi-?weekly\s+(?:default\s+|MCTO\s+)?status\b|"
+    r"\bfiling\s+relief\b|\bblanket\s+relief\b|"
+    r"\bCSE\s+bulletin\b|\bForm\s+7\b|\bmonthly\s+progress\s+report\b|"
+    r"\b(?:no|unaware\s+of\s+any|not\s+aware\s+of\s+any)\s+(?:undisclosed\s+)?"
+    r"material\s+(?:change|developments?)\b|"
+    r"\b(?:respond\w*|repl(?:y|ies))\s+to\s+(?:an?\s+|the\s+)?(?:OTC|IIROC|CIRO|"
+    r"regulator|BCSC|OSC|recent\s+(?:promotional|market|trading|stock))|"
+    r"\bOTC\s+Markets?\s+(?:Group\s+)?(?:request|inquiry|inquiries)\b|"
+    r"\bpromotional\s+activit(?:y|ies)\b|\bunusual\s+(?:market|trading)\s+activity\b|"
+    r"\bunsanctioned\s+(?:third[- ]party\s+)?promotion|"
+    r"\bclarif(?:y|ies|ied|ication|ying)\b[^\n]{0,60}?\b(?:disclosure|"
+    r"news\s+release|press\s+release|announcement)\b|"
+    r"\b(?:correction|corrects|retraction|retracts)\b[^\n]{0,40}?"
+    r"\b(?:news\s+release|press\s+release|disclosure)\b|"
+    r"\b(?:Nasdaq|NYSE(?:\s+American)?)\b[^\n]{0,40}?\b(?:notification|notice|"
+    r"deficiency|non-?compliance)\b|\bminimum\s+bid\s+price\b|"
+    r"\bregains?\s+compliance\b|\bcontinued\s+listing\s+(?:standards?|requirements?)\b|"
+    r"\brevocation\s+of\s+(?:the\s+)?(?:MCTO|management\s+cease|cease\s+trade)|"
+    r"\bsecurities\s+commission\b[^\n]{0,40}?\b(?:order|settlement|hearing|"
+    r"allegations?|decision)\b",
+    re.I,
+)
+
+
+def _is_regulatory(h: str) -> bool:
+    return bool(h) and bool(_REGULATORY_V8.search(h))
+
+
+# --- Technical Reports (NI 43-101) ----------------------------------------
+_TECH_REPORT_V8 = re.compile(
+    r"\btechnical\s+reports?\b|"
+    r"\b(?:NI|N\.I\.)\s*-?\s*43\s*-?\s*101\s+(?:technical\s+)?reports?\b|"
+    r"\b43\s*-?\s*101\s+reports?\b|"
+    r"\bS-?K\s*1300\s+(?:technical\s+report\s+summary|report)\b|"
+    r"\bconsent\s+of\s+(?:the\s+)?qualified\s+persons?\b|"
+    r"\btechnical\s+(?:report\s+)?disclosure\b",
+    re.I,
+)
+# Commissioning a report is a plan, the same rule Resource Estimates follows.
+_TECH_REPORT_PLAN_V8 = re.compile(
+    r"\b(?:engag\w*|commission\w*|retain\w*|initiat\w*|commenc\w*|begins?|"
+    r"start\w*|select\w*|hires?|contracts?|mandates?)\b[^\n]{0,80}?"
+    r"\b(?:technical|43\s*-?\s*101)\s+(?:technical\s+)?report|"
+    r"\b(?:to\s+prepare|preparation\s+of|towards?|in\s+support\s+of|"
+    r"planned|upcoming|forthcoming)\b[^\n]{0,40}?\b(?:NI\s*43-?101|technical)"
+    r"\s+(?:technical\s+)?(?:report|disclosure)",
+    re.I,
+)
+_TECH_REPORT_DONE_V8 = re.compile(
+    r"\b(?:files?|filed|filing|refil\w*|publish\w*|releases?|delivers?|"
+    r"completes?|completion|receives?|amended|updated|voluntary|posts?)\b"
+    r"[^\n]{0,60}?\btechnical\s+report|"
+    r"\btechnical\s+report\b[^\n]{0,20}?\b(?:filed|completed|received)\b",
+    re.I,
+)
+
+
+def _is_tech_report(h: str) -> bool:
+    if not h or not _TECH_REPORT_V8.search(h):
+        return False
+    return bool(_TECH_REPORT_DONE_V8.search(h)) or not _TECH_REPORT_PLAN_V8.search(h)
+
+
+# --- Debt & Credit Facilities ---------------------------------------------
+_DEBT_V8 = re.compile(
+    r"\bloans?\b|"
+    r"\b(?:credit|debt|loan|revolving(?:\s+credit)?|prepayment|standby|"
+    r"equipment\s+financing|term\s+debt|bridge|working\s+capital)\s+"
+    r"facilit(?:y|ies)\b|"
+    r"\bdebentures?\b|"
+    r"\bconvertible\s+(?:senior\s+)?(?:notes?|bonds?)\b|"
+    r"\b(?:senior|secured|unsecured|subordinated|promissory|exchangeable)\s+"
+    r"(?:secured\s+|unsecured\s+|convertible\s+)?notes?\b|"
+    r"\bbonds?\s+(?:offering|issue|issuance)\b|\bgreen\s+bonds?\b|"
+    r"\bgold\s+prepay\w*\b|\bprepayment\s+(?:agreement|financing)\b|"
+    r"\bproject\s+(?:debt|finance\s+facility)\b|"
+    r"\bdebt\s+(?:financing|facilit(?:y|ies)|restructur\w*|refinanc\w*|"
+    r"repayment|package|funding|instruments?)\b|"
+    r"\brefinanc\w*\b|"
+    r"\brepa(?:y|ys|id|ying|yment)\b[^\n]{0,40}?\b(?:loans?|debt|debentures?|"
+    r"notes?|facilit(?:y|ies)|credit|lenders?)\b|"
+    r"\bextend\w*\s+(?:the\s+)?maturit(?:y|ies)\b|\bmaturity\s+(?:date\s+)?extensions?\b",
+    re.I,
+)
+_DEBT_NOT_V8 = re.compile(
+    r"\bdebt\s+settlements?\b|\bshares?\s+for\s+debt\b|"
+    r"\bsettle\w*\s+(?:of\s+)?(?:outstanding\s+)?(?:debt|indebtedness)\b|"
+    r"\bin\s+settlement\s+of\b",
+    re.I,
+)
+
+
+def _is_debt(h: str) -> bool:
+    return bool(h) and bool(_DEBT_V8.search(h)) and not _DEBT_NOT_V8.search(h)
+
+
+V8_TAGS = (
+    ("Debt & Credit Facilities", _is_debt),
+    ("Technical Reports (NI 43-101)", _is_tech_report),
+    ("Royalties & Streams", _is_royalty),
+    ("Property Options & Staking", _is_option_land),
+    ("Regulatory & Compliance", _is_regulatory),
+)
+
+
+# A headline that is really the exchange disclaimer ("Neither TSX Venture
+# Exchange nor its Regulation Services Provider...") carries the issuer's
+# name but not the subject, so "Orogen Royalties" in it is not a royalty.
+_DISCLAIMER_HEADLINE_V8 = re.compile(
+    r"^\s*neither\s+(?:the\s+)?(?:TSX|CSE|Canadian\s+Securities|"
+    r"Investment\s+Industry)", re.I)
+
+
+def v8_tags(headline: str | None) -> list[str]:
+    h = (headline or "").strip()
+    if _DISCLAIMER_HEADLINE_V8.search(h):
+        return []
+    return [name for name, fn in V8_TAGS if fn(h)]
+
+
+def add_v8_tags(cats: list[str], headline: str | None, recovered: str | None = None) -> list[str]:
+    """v8: add the five tags from the headline (and a recovered title), then
+    re-apply 'Corporate Updates is the bucket of last resort'."""
+    tags = v8_tags(norm_head(headline))
+    if recovered:
+        tags += [t for t in v8_tags(norm_head(recovered)) if t not in tags]
+    if not tags:
+        return cats
+    merged = set(cats) | set(tags)
+    merged.discard("Corporate Updates")
+    return [c for c in CATEGORIES if c in merged]
+
+
+def categorize(headline: str | None, body: str | None) -> list[str]:
+    """Return the categories this release belongs to, in CATEGORIES order (v8 = v7 + five tags)."""
+    cats, _recovered = categorize_v7(headline, body)
+    return add_v8_tags(cats, headline, _recovered)
 
 
 def format_categories(cats: Iterable[str]) -> str:
@@ -1775,6 +2700,160 @@ SELF_TEST += [
     # ...while the present tense is still a transaction
     ("Mosaic Minerals Acquires 6,600 Hectares With Critical Minerals "
      "Potential in Nunavik", "", ["Mergers & Acquisitions"], []),
+]
+
+
+# --- v7: expectations changed by decisions -----------------------------------
+# Justin, 2026-09-15: genuine earnings calls go to Financials, so a notice of
+# quarterly results is Financials too. Market-maker engagements are paid
+# capital-markets services and now sit with Marketing Announcement (flagged
+# for Justin's review in the v7 write-up).
+_V7_OVERRIDES = {
+    "Americas Gold and Silver Provides Notice of First Quarter 2026 Results and Conference Call":
+        (["Financials"], ["Production Results"]),
+    "Lithium Argentina to Release First Quarter 2026 Results on May 12, 2026":
+        (["Financials"], []),
+    "Advanced Gold Exploration Retains Market Maker Services":
+        (["Marketing Announcement"], ["Management Changes", "Exploration Programs", "Mergers & Acquisitions"]),
+}
+SELF_TEST = [
+    ((h, b) + _V7_OVERRIDES[h]) if h in _V7_OVERRIDES else (h, b, mi, me)
+    for (h, b, mi, me) in SELF_TEST
+]
+
+SELF_TEST += [
+    # --- v7 recall: every one of these sat in Corporate Updates alone -------
+    ("Eldorado Gold Reports Solid First Quarter 2025 Financial and Operational Results; Skouries Progressing to Plan",
+     "", ["Financials"], ["Corporate Updates"]),
+    ("Denison Reports Financial and Operational Results for Q2 2026", "", ["Financials"], []),
+    ("LUCARA ANNOUNCES Q1 2025 RESULTS", "", ["Financials"], []),
+    ("GALIANO GOLD PROVIDES NOTICE OF THIRD QUARTER 2025 RESULTS", "", ["Financials"], []),
+    ("Jaguar Mining Inc. Reports First Quarter 2026 Operating Results", "", ["Production Results"], []),
+    ("First Majestic Produces 7.9 Million AgEq Ounces in Q2 2025", "", ["Production Results"], []),
+    ("B2Gold Announces Total Consolidated Gold Production for 2024 of 804,778 oz", "", ["Production Results"], []),
+    ("NEVADA KING ANNOUNCES MORE THAN DOUBLING OF M&I RESOURCE AT ATLANTA TO 1,019,600 GOLD OUNCES", "",
+     ["Resource Estimates"], []),
+    ("Torex Gold Reports Year-End 2024 Reserves & Resources", "", ["Resource Estimates"], []),
+    ("McFarlane Intersects 148.37 Grams per Tonne Gold Over 1.3 Metres", "", ["Drill Results"], []),
+    ("First Drill Hole at St Anthony Gold Mine Reports Near Surface 11.9 grams per tonne over 8.4 metres", "",
+     ["Drill Results"], []),
+    ("HARFANG ANNOUNCES WINTER DIAMOND DRILL PROGRAM AT SKY LAKE, ONTARIO", "", ["Exploration Programs"], []),
+    ("Greenridge Exploration Announces 2024 Work Program for its Weyman Copper Project", "",
+     ["Exploration Programs"], []),
+    ("VICTORY COMPLETES MAG SURVEY OF ITS TAHLO LAKE PROPERTY", "", ["Exploration Programs"], []),
+    ("First Andes Delineates >1.2-km-Long Gold-in-Soil Anomaly, Santas Gloria Project, Peru", "",
+     ["Exploration Programs"], []),
+    ("Black Mammoth Metals Stakes 185 Claims at Quito NV", "", ["Mergers & Acquisitions"], []),
+    ("Quimbaya Gold Expands Strategic Land Position at Tahami Project", "", ["Mergers & Acquisitions"], []),
+    ("Nuclear Fuels Shareholders Approve Arrangement with Premier American Uranium", "",
+     ["Mergers & Acquisitions", "Shareholder Meetings"], []),
+    ("Canadian Critical Minerals Announces the Passing of Founder David W. Johnston", "",
+     ["Management Changes"], []),
+    ("Hertz Energy Announces Change of Chief Financial Officer", "", ["Management Changes"], []),
+    ("Blackrock Silver Announces the Appointment of Bernard Poznanski and Susan Mathieu to the Board of Directors", "",
+     ["Management Changes"], []),
+    ("APPIA ANNOUNCES $478,640 FINAL CLOSING AND TOTAL PROCEEDS OF $1,299,165", "", ["Financings"], []),
+    ("Cullinan Metals Announces Private Placements", "", ["Financings"], []),
+    ("OUTCROP SILVER ANNOUNCES $20 MILLION PUBLIC OFFERING", "", ["Financings"], []),
+    ("Bunker Hill Announces Equity Compensation Grants", "", ["Share Capital & Compensation"], []),
+    ("Max Resource Extends Expiry Date and Amends Price on Share Purchase Warrants", "",
+     ["Share Capital & Compensation"], ["Mergers & Acquisitions"]),
+    ("IIROC Trade Halt - Alba Minerals Ltd.", "", ["Listings & Exchange"], []),
+    ("Waraba Gold Limited Unaware of Any Material Change", "", ["Listings & Exchange"], []),
+    ("Happy Creek Announces Arrangements To Address Mailing of Shareholders Meeting Materials", "",
+     ["Shareholder Meetings"], []),
+    ("POWER NICKEL ANNOUNCES CHANGE OF NAME TO POWER METALLIC MINES INC.", "", ["Corporate Actions"], []),
+    ("RAIN ENTERS INTO ARGENTINIAN LITHIUM JV OVER 150,000 HECTARES", "", ["Partnerships & JV"], []),
+    ("Surge Receives Positive Record of Decision on its Exploration Plan of Operations Permit at the Nevada North Lithium Project",
+     "", ["Permits & Approvals"], []),
+    ("Chesapeake Gold Receives a U.S. Patent for Enhanced Metal Recovery from Sulphide Ores", "",
+     ["Metallurgy & Processing"], []),
+    ("Foremost Lithium to Attend H.C. Wainwright 26th Annual Global Investment Conference", "",
+     ["Marketing Announcement"], []),
+    ("Hybrid Power Solutions Inc. to Exhibit at Public Works and Defence Industry Conferences", "",
+     ["Marketing Announcement"], []),
+    # a hollow stored headline is read through the document's own title
+    ("News release", "250 Southridge NW, Suite 300\nEdmonton, AB\nSankamap Announces $5.0M Private Placement\n"
+     "Edmonton, Alberta - March 3, 2026 - Sankamap Metals Inc. proposes to complete a non-brokered private placement",
+     ["Financings"], ["Corporate Updates"]),
+
+    # --- v7 precision: each of these was a false positive while building ---
+    ("GreenLight Metals Engages ICP Securities for Automated Market Making Services", "", [], ["Permits & Approvals"]),
+    ("Nevada Organic Phosphate Appoints Garry Smith, P.Geo. Director", "", [], ["Production Results"]),
+    ("Pan American Energy Announces The Commencement of Metallurgical Testing On Core Samples From The Horizon Lithium Project",
+     "", [], ["Exploration Programs"]),
+    ("Exploits Discovery Announces Leadership Transition", "", [], ["Exploration Programs"]),
+    ("OceanaGold Provides Notice of Third Quarter 2025 Results and Conference Call", "", ["Financials"], ["Production Results"]),
+    ("Blackrock Silver Announces Updated Preliminary Economic Assessment for Its Tonopah West Project; Production of 7.1 million ounces",
+     "", ["Economic Studies"], ["Production Results"]),
+    ("MAJESTIC GOLD CORP. REPORTS SUSPENSION OF DGZ MINE", "", [], ["Listings & Exchange"]),
+    ("Japan Gold Announces Extension to Investment Agreement with OR Royalties for the Option to Purchase an Additional Net Smelter Return Royalty",
+     "", [], ["Metallurgy & Processing"]),
+    ("CCC Announces Proposed $25 Million Financing for Winter Drilling Program at Black Horse and Continuing Support for Commissioning of Muketi Airstrip",
+     "", ["Financings"], ["Exploration Programs", "Metallurgy & Processing"]),
+    ("Golden Rapture Mining Announces Expiry of 7,457,068 Share Purchase Warrants", "", [], ["Mergers & Acquisitions"]),
+    ("Global Uranium Corp. Announces Marketing Program", "", ["Marketing Announcement"], ["Exploration Programs"]),
+    ("Adelayde Announces Private Placement to Fund Gold Drill Program in Esmeralda County, Nevada", "",
+     ["Financings"], ["Exploration Programs"]),
+    ("Forge Resources Corp. Announces Executive Site Visit to La Estrella Coal Project", "", [], ["Management Changes"]),
+    ("FREEMAN WELCOMES EXECUTIVE ORDER EMPOWERING DOMESTIC MINERAL PRODUCTION", "", [], ["Management Changes"]),
+    ("Ivanhoe's mining crews have entered the orebody on the way to become the world's leading polymetallic producer", "",
+     [], ["Corporate Actions"]),
+    ("AC/DC Battery Metals Provides Annual General Meeting Results", "", ["Shareholder Meetings"], ["Financials"]),
+    ("Trinity One Metals Identifies Historic High Grade Silver Intercepts at Silver-1 Including 2.60 m at 1,240 g/t Silver",
+     "", [], ["Drill Results"]),
+    ("ALBA REPORTS ON SUCCESSFUL INVESTMENT IN NORAM: NORAM EXTENDS ZEUS LITHIUM DEPOSIT", "", [], ["Financings"]),
+    ("Northstar Expands Bryce Gold Property Acquires Historic Britcanna Mining Lease", "", [], ["Permits & Approvals"]),
+    ("WESDOME ANNOUNCES AUTOMATIC SHARE PURCHASE PLAN", "", ["Corporate Actions"], ["Mergers & Acquisitions"]),
+    # round 3: a company name that ends in "Mining" is not a mine starting up
+    ("Collective Mining Commences Drilling at the San Antonio Project", "", ["Exploration Programs"], ["Production Results"]),
+    ("GR Silver Mining Commences Trading on OTCQX", "", [], ["Production Results"]),
+    ("Sierra Madre Commences Mining at Coloso, Expanding Mining Operations", "", ["Production Results"], []),
+    ("Argyle Responds to OTC Markets Request on Recent Promotional Activity", "", ["Listings & Exchange"], []),
+    ("Austral Gold Restarts Production at Casposo, Argentina", "", ["Production Results"], []),
+    ("Lithium Argentina Announces $220 Million of New Debt Facilities Closed at Cauchari-Olaroz", "", ["Financings"], []),
+    ("QUANTUM CRITICAL METALS REPORTS 150 METERS OF 38GPT GALLIUM, 694GPT RUBIDIUM", "", ["Drill Results"], []),
+]
+
+SELF_TEST += [
+    # --- v8: five new tags (2026-09-16) ---------------------------------
+    ('ATEX Reduces NSR Royalty on the Valeriano Project', "", ['Royalties & Streams'], ['Debt & Credit Facilities', 'Technical Reports (NI 43-101)', 'Property Options & Staking', 'Regulatory & Compliance']),
+    ('Noranda Royalties Completes Compilation of Data ON Arctic Fox Lithium Corp.’S Kana Lake Lithium Property', "", [], ['Debt & Credit Facilities', 'Technical Reports (NI 43-101)', 'Royalties & Streams', 'Property Options & Staking', 'Regulatory & Compliance']),
+    ('Royalties Inc. Reports Yearend Results for 2025', "", [], ['Debt & Credit Facilities', 'Technical Reports (NI 43-101)', 'Royalties & Streams', 'Property Options & Staking', 'Regulatory & Compliance']),
+    ('Market One: Summit Royalties Expands Its Gold Royalty and Streaming Portfolio', "", ['Royalties & Streams'], ['Debt & Credit Facilities', 'Technical Reports (NI 43-101)', 'Property Options & Staking', 'Regulatory & Compliance']),
+    ('Japan Gold Announces Sale of Royalty to Osisko Gold Royalties', "", ['Royalties & Streams'], ['Debt & Credit Facilities', 'Technical Reports (NI 43-101)', 'Property Options & Staking', 'Regulatory & Compliance']),
+    ('TNR Gold NSR Royalty Update - McEwen Provides Update on NSR Royalty on Los Azules Copper', "", ['Royalties & Streams'], ['Debt & Credit Facilities', 'Technical Reports (NI 43-101)', 'Property Options & Staking', 'Regulatory & Compliance']),
+    ('Saskatchewan Government Sets Lithium Production Royalty Rate at 3%', "", [], ['Debt & Credit Facilities', 'Technical Reports (NI 43-101)', 'Royalties & Streams', 'Property Options & Staking', 'Regulatory & Compliance']),
+    ('Delta Resources Options DELTA-2 Project in Québec to Troilus Mining Corp. - $8.25M and 1% NSR to Be Paid over 3 Years', "", ['Royalties & Streams', 'Property Options & Staking'], ['Debt & Credit Facilities', 'Technical Reports (NI 43-101)', 'Regulatory & Compliance']),
+    ('F4 Uranium Confirms Termination of Hearty Bay Option Agreement by Traction Uranium', "", ['Property Options & Staking'], ['Debt & Credit Facilities', 'Technical Reports (NI 43-101)', 'Royalties & Streams', 'Regulatory & Compliance']),
+    ('Canada One Stakes New Ground at Copper Dome Project,', "", ['Property Options & Staking'], ['Debt & Credit Facilities', 'Technical Reports (NI 43-101)', 'Royalties & Streams', 'Regulatory & Compliance']),
+    ('Getchell Gold Corp. Increases Fondaway Canyon Project Claim Area by 50%', "", ['Property Options & Staking'], ['Debt & Credit Facilities', 'Technical Reports (NI 43-101)', 'Royalties & Streams', 'Regulatory & Compliance']),
+    ('Class 1 Nickel Announces Option Cancellation', "", ['Property Options & Staking'], ['Debt & Credit Facilities', 'Technical Reports (NI 43-101)', 'Royalties & Streams', 'Regulatory & Compliance']),
+    ('American Copper Development Corporation Grants Stock Options', "", [], ['Debt & Credit Facilities', 'Technical Reports (NI 43-101)', 'Royalties & Streams', 'Property Options & Staking', 'Regulatory & Compliance']),
+    ('Company Acquires Strategic Stake in Peer', "", [], ['Debt & Credit Facilities', 'Technical Reports (NI 43-101)', 'Royalties & Streams', 'Property Options & Staking', 'Regulatory & Compliance']),
+    ('Spearmint Expands ETH Staking Program', "", [], ['Debt & Credit Facilities', 'Technical Reports (NI 43-101)', 'Royalties & Streams', 'Property Options & Staking', 'Regulatory & Compliance']),
+    ('Sankamap Announces Revocation of MCTO', "", ['Regulatory & Compliance'], ['Debt & Credit Facilities', 'Technical Reports (NI 43-101)', 'Royalties & Streams', 'Property Options & Staking']),
+    ('Homeland Announces Change in Auditor', "", ['Regulatory & Compliance'], ['Debt & Credit Facilities', 'Technical Reports (NI 43-101)', 'Royalties & Streams', 'Property Options & Staking']),
+    ('Crest Announces Appointment of Mnp Llp, Chartered Accountants, as Auditor', "", ['Regulatory & Compliance'], ['Debt & Credit Facilities', 'Technical Reports (NI 43-101)', 'Royalties & Streams', 'Property Options & Staking']),
+    ('Gemdale Gold Unaware of Any Material Change', "", ['Regulatory & Compliance'], ['Debt & Credit Facilities', 'Technical Reports (NI 43-101)', 'Royalties & Streams', 'Property Options & Staking']),
+    ('Benjamin Hill Responds to OTC Markets Request Regarding Recent Unsanctioned Third-Party Promotional Activity', "", ['Regulatory & Compliance'], ['Debt & Credit Facilities', 'Technical Reports (NI 43-101)', 'Royalties & Streams', 'Property Options & Staking']),
+    ('Goliath Clarifies News Release Issued This Morning', "", ['Regulatory & Compliance'], ['Debt & Credit Facilities', 'Technical Reports (NI 43-101)', 'Royalties & Streams', 'Property Options & Staking']),
+    ('Largo Announces Receipt of Nasdaq Notification Regarding Minimum Bid Price Deficiency', "", ['Regulatory & Compliance'], ['Debt & Credit Facilities', 'Technical Reports (NI 43-101)', 'Royalties & Streams', 'Property Options & Staking']),
+    ('XYZ Appoints Jane Doe as CTO', "", [], ['Debt & Credit Facilities', 'Technical Reports (NI 43-101)', 'Royalties & Streams', 'Property Options & Staking', 'Regulatory & Compliance']),
+    ('Mithril Silver & Gold Announces Filing Of Technical Report', "", ['Technical Reports (NI 43-101)'], ['Debt & Credit Facilities', 'Royalties & Streams', 'Property Options & Staking', 'Regulatory & Compliance']),
+    ('Spearmint Engages Stantec for Resource Estimate and Technical Report on the Clayton Valley Lithium Clay Discovery', "", [], ['Debt & Credit Facilities', 'Technical Reports (NI 43-101)', 'Royalties & Streams', 'Property Options & Staking', 'Regulatory & Compliance']),
+    ('Consent of qualified person (NI 43-101)', "", ['Technical Reports (NI 43-101)'], ['Debt & Credit Facilities', 'Royalties & Streams', 'Property Options & Staking', 'Regulatory & Compliance']),
+    ('Clarification to Technical Disclosure', "", ['Technical Reports (NI 43-101)', 'Regulatory & Compliance'], ['Debt & Credit Facilities', 'Royalties & Streams', 'Property Options & Staking']),
+    ('Acme Announces Maiden NI 43-101 Mineral Resource Estimate', "", [], ['Debt & Credit Facilities', 'Technical Reports (NI 43-101)', 'Royalties & Streams', 'Property Options & Staking', 'Regulatory & Compliance']),
+    ('Abcourt Closes US$8M Loan Facility to Start Sleeping Giant MINE', "", ['Debt & Credit Facilities'], ['Technical Reports (NI 43-101)', 'Royalties & Streams', 'Property Options & Staking', 'Regulatory & Compliance']),
+    ('Euromax Enters into Agreements to Extend Maturity Dates of Previously Issued Convertible Debentures', "", ['Debt & Credit Facilities'], ['Technical Reports (NI 43-101)', 'Royalties & Streams', 'Property Options & Staking', 'Regulatory & Compliance']),
+    ('Ivanhoe Mines prices an offering of US$750,000,000 Senior Notes due 2030', "", ['Debt & Credit Facilities'], ['Technical Reports (NI 43-101)', 'Royalties & Streams', 'Property Options & Staking', 'Regulatory & Compliance']),
+    ('Silver Pony Announces Communications Engagement and Debt Settlement', "", [], ['Debt & Credit Facilities', 'Technical Reports (NI 43-101)', 'Royalties & Streams', 'Property Options & Staking', 'Regulatory & Compliance']),
+    ('Guanajuato Silver Takes Advantage of Favourable Pricing to Further Accelerate Gold Loan Repayment', "", ['Debt & Credit Facilities'], ['Technical Reports (NI 43-101)', 'Royalties & Streams', 'Property Options & Staking', 'Regulatory & Compliance']),
+    ('Lincoln Gold Receives Demand for Loan Repayment', "", ['Debt & Credit Facilities'], ['Technical Reports (NI 43-101)', 'Royalties & Streams', 'Property Options & Staking', 'Regulatory & Compliance']),
+    ('Battery X Metals Advances 2025 Critical Metals Exploration Strategy, Initiates NI 43-101 Report for Y Lithium Project', "", [], ['Debt & Credit Facilities', 'Technical Reports (NI 43-101)', 'Royalties & Streams', 'Property Options & Staking', 'Regulatory & Compliance']),
+    ('Neither TSX Venture Exchange nor its Regulation Services Provider (as that term is defined in the policies of the TSX Venture Exchange) accepts responsibility Orogen Royalties Inc.', "", [], ['Debt & Credit Facilities', 'Technical Reports (NI 43-101)', 'Royalties & Streams', 'Property Options & Staking', 'Regulatory & Compliance']),
+    ('Surge Copper Files NI 43-101 Technical Report for the Berg PFS', "", ['Technical Reports (NI 43-101)'], ['Debt & Credit Facilities', 'Royalties & Streams', 'Property Options & Staking', 'Regulatory & Compliance']),
 ]
 
 

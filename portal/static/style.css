@@ -1255,3 +1255,20 @@ main {
   display: flex; flex-wrap: wrap; gap: 0.4rem 0.5rem;
   align-items: center; padding: 0.55rem 0 0.3rem;
 }
+
+
+/* ===== v8 category chips (2026-09-16) =====
+   Five tags carved out of Corporate Updates. feed.html renders
+   `cat-chip cat-chip-<code>` and `cat-badge cat-<code>`. */
+.cat-chip-dbt, .cat-dbt { background: #eeedf8; border-color: #c5c1e6; color: #463d80; }
+.cat-chip-tec, .cat-tec { background: #eceff3; border-color: #bcc6d3; color: #3a4a5e; }
+.cat-chip-roy, .cat-roy { background: #fbf3dc; border-color: #e3cf8f; color: #6e5410; }
+.cat-chip-opt, .cat-opt { background: #f4eee6; border-color: #d9c7ad; color: #6a5132; }
+.cat-chip-reg, .cat-reg { background: #fbeaea; border-color: #e5b5b5; color: #8a2a2a; }
+
+
+/* ===== v8 chip-on fix (2026-09-16) =====
+   The coloured chip rules (v4 and v8) sit later in this file than .cat-chip-on
+   with the same specificity, so a selected coloured chip kept its pale
+   background under white text. Two classes outrank one. */
+.cat-chip.cat-chip-on { background: var(--brand-red); border-color: var(--brand-red); }
