@@ -1484,6 +1484,11 @@ def _ticker_to_name(ticker: str) -> str:
 templates.env.filters['company_name'] = _ticker_to_name
 
 
+# MNT_NAV_V2 (2026-09-16): nav groups and data-page specs live in portal/pages.py.
+from portal import pages as _mnt_pages  # noqa: E402
+_mnt_pages.register(templates)
+
+
 @app.get("/drills", response_class=HTMLResponse)
 def drills_page(
     request: Request,
@@ -1498,6 +1503,8 @@ def drills_page(
     # parseable intercept and used to be invisible here. has=data brings back
     # the old extracted-only view.
     where, args = _cat_where("Drill Results", ticker)
+    # TICKER_QUALIFY_V1 (2026-09-16): the joined table also has a ticker column.
+    where = where.replace("(ticker = ?", "(e.ticker = ?")
     where = [where]
     if days and days > 0:
         cutoff = (_dt_drill.utcnow() - _td_drill(days=days)).strftime("%Y-%m-%d")
@@ -1547,7 +1554,20 @@ def drills_page(
     ))
     tickers_list = [r[0] for r in distinct_tickers]
 
-    return templates.TemplateResponse(request, "drills.html", {
+    # DATA_PAGE_V1 (2026-09-16): same queries as before, laid out by
+    # data_page.html from pages.PAGE_SPECS["drills"]. tagged_total feeds the
+    # coverage line: tagged releases under the company/window filter, ignoring has=.
+    _tt_where, _tt_args = _cat_where("Drill Results", ticker)
+    _tt_where = [_tt_where]
+    if days and days > 0:
+        _tt_where.append("substr(COALESCE(e.published_at, e.classified_at), 1, 10) >= ?")
+        _tt_args.append(cutoff)
+    tagged_total = conn.execute(
+        "SELECT COUNT(*) FROM events e WHERE " + " AND ".join(_tt_where), _tt_args
+    ).fetchone()[0]
+    return templates.TemplateResponse(request, "data_page.html", {
+        "spec": _mnt_pages.PAGE_SPECS["drills"],
+        "tagged_total": tagged_total,
         "request": request,
         "is_admin": auth.is_logged_in(request),
         "page": "drills",
@@ -1581,6 +1601,8 @@ def resources_page(
     conn = db.get_conn()
     # Driven by the TAG: 185 tagged releases have no parseable tonnage.
     where, args = _cat_where("Resource Estimates", ticker)
+    # TICKER_QUALIFY_V1 (2026-09-16): the joined table also has a ticker column.
+    where = where.replace("(ticker = ?", "(e.ticker = ?")
     where = [where]
     if days and days > 0:
         from datetime import datetime as _dt_res, timedelta as _td_res

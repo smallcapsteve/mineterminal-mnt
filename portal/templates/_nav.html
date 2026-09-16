@@ -1,0 +1,33 @@
+{# MNT_NAV_V2 (2026-09-16): two-row nav, drawn from portal/pages.py MNT_NAV.
+   Row one: News, the groups, search. Row two: the pages in the current
+   group; pages not built yet show as greyed "coming" tabs. Replaces the
+   hand-written <nav class="primary-nav"> block. Styles: static/mnt-nav.css. #}
+{% set _grp = mnt_nav_group_for(page) %}
+<nav class="mnt-nav" aria-label="Sections">
+  <div class="mnt-nav-row">
+    <div class="mnt-nav-groups">
+      <a href="/" class="mnt-nav-tab{% if page == 'news' %} is-active{% endif %}"{% if page == 'news' %} aria-current="page"{% endif %}>News</a>
+      {% for g in MNT_NAV %}
+        <a href="{{ g.href }}" class="mnt-nav-tab{% if _grp and _grp.id == g.id %} is-active{% endif %}">{{ g.label }}</a>
+      {% endfor %}
+      {% if is_admin %}<a href="/admin/analytics" class="mnt-nav-tab{% if page == 'admin' %} is-active{% endif %}">Analytics</a>{% endif %}
+    </div>
+    <form class="primary-nav-search" method="get" action="/search" data-typeahead data-suggest="/api/search">
+      <input type="search" name="q" placeholder="Search ticker, company or news…" value="{{ q or '' }}" autocomplete="off" aria-label="Search">
+      <button type="submit">Search</button>
+    </form>
+  </div>
+  {% if _grp %}
+  <div class="mnt-nav-sub">
+    <div class="mnt-nav-sub-inner">
+      {% for p in _grp.pages %}
+        {% if p.href %}
+          <a href="{{ p.href }}" class="mnt-nav-subtab{% if p.key == page %} is-active{% endif %}"{% if p.key == page %} aria-current="page"{% endif %}>{{ p.label }}</a>
+        {% else %}
+          <span class="mnt-nav-subtab is-coming" title="Coming soon">{{ p.label }}<small>coming</small></span>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</nav>

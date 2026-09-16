@@ -12,6 +12,8 @@
        the static symlink; kept out of style.css so it can be reverted by
        deleting two lines. -->
   <link rel="stylesheet" href="/static/typeahead.css?v=v1">
+  <!-- MNT_NAV_V2 (2026-09-16): two-row nav + data page template. -->
+  <link rel="stylesheet" href="/static/mnt-nav.css?v=v1">
   <link rel="icon" type="image/png" href="/static/mnt-logo.svg?v=v10">
   <style id="mnt-mtp-ticker-links">
   /* MNT_MTP_TICKER_LINKS_V1_BEGIN */
@@ -60,28 +62,7 @@
     </div>
   </header>
 
-  <nav class="primary-nav">
-    <div class="primary-nav-inner">
-      <div class="primary-nav-links">
-      <a href="/" {% if page == 'news' %}class="active"{% endif %}>News</a>
-      <a href="/drills" {% if page == 'drills' %}class="active"{% endif %}>Drill Results</a>
-      <a href="/resources" {% if page == 'resources' %}class="active"{% endif %}>Resource Estimates</a>
-      <a href="/production-results" {% if page == 'production' %}class="active"{% endif %}>Production Results</a>
-      <a href="/economic-studies" {% if page == 'economic' %}class="active"{% endif %}>Economic Studies</a>
-      <a href="/exploration-programs" {% if page == 'exploration' %}class="active"{% endif %}>Exploration</a>
-      <a href="/permits-approvals" {% if page == 'permits' %}class="active"{% endif %}>Permits</a>
-      <a href="/financings" {% if page == 'financings' %}class="active"{% endif %}>Financings</a>
-      <a href="/share-capital" {% if page == 'sharecap' %}class="active"{% endif %}>Share Capital</a>
-      <a href="/management-changes" {% if page == 'management' %}class="active"{% endif %}>Management Changes</a>
-      <a href="/mergers-acquisitions" {% if page == 'mna' %}class="active"{% endif %}>Mergers &amp; Acquisitions</a>
-      {% if is_admin %}<a href="/admin/analytics" {% if page == 'admin' %}class="active"{% endif %}>Analytics</a>{% endif %}
-      </div>
-      <form class="primary-nav-search" method="get" action="/search" data-typeahead data-suggest="/api/search">
-        <input type="search" name="q" placeholder="Search ticker, company or news…" value="{{ q or '' }}" autocomplete="off">
-        <button type="submit">Search</button>
-      </form>
-    </div>
-  </nav>
+  {% include "_nav.html" %}
 
   <main>
     {% block content %}{% endblock %}

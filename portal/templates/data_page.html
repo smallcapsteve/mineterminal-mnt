@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{# DATA_PAGE_V1 (2026-09-16): one template for every structured data page,
+   driven by a PageSpec in portal/pages.py. First page on it: /drills. The
+   route still runs its own queries; this template only lays them out. #}
+{% block title %}{{ spec.title }} — MiningNewsTerminal{% endblock %}
+{% block content %}
+  <h2 class="page-title">{{ spec.title }}</h2>
+
+  {% if spec.describe %}<p class="dp-desc">{{ spec.describe }}</p>{% endif %}
+  {% if tagged_total is defined and with_data is defined and tagged_total %}
+    {% set _pct = 100.0 * with_data / tagged_total %}
+    <p class="dp-cover">
+      <span class="dp-bar" aria-hidden="true"><i style="width: {{ '%.1f' | format(_pct) }}%"></i></span>
+      <span><strong>{{ '{:,}'.format(with_data) }}</strong> of {{ '{:,}'.format(tagged_total) }} tagged releases have extracted data</span>
+    </p>
+  {% endif %}
+
+  <section class="filters fin-filters">
+    <form method="get" action="{{ spec.url }}">
+      {% if 'company' in spec.filters %}
+      <label for="ticker">Company:</label>
+      <select name="ticker" id="ticker" onchange="this.form.submit()">
+        <option value="">All companies</option>
+        {% for t in tickers %}
+          <option value="{{ t }}" {% if t == selected_ticker %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+      {% endif %}
+
+      {% if 'window' in spec.filters and spec.windows %}
+      <label for="days">Window:</label>
+      <select name="days" id="days" onchange="this.form.submit()">
+        {% for d, label in spec.windows %}
+          <option value="{{ d }}" {% if d == days %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      {% endif %}
+
+      {% if 'has_data' in spec.filters %}
+      <label for="has">Show:</label>
+      <select name="has" id="has" onchange="this.form.submit()">
+        <option value="all" {% if has != 'data' %}selected{% endif %}>All tagged releases</option>
+        <option value="data" {% if has == 'data' %}selected{% endif %}>With extracted data only</option>
+      </select>
+      {% endif %}
+
+      {% if selected_ticker or days or has == 'data' %}
+        <a class="cat-clear" href="{{ spec.url }}">Reset</a>
+      {% endif %}
+      <span class="muted">{{ rows|length }} shown · {{ total_filtered }} matching{% if has != 'data' and with_data is defined %} · {{ with_data }} with extracted data{% endif %}</span>
+    </form>
+  </section>
+
+  {% if not rows %}
+    <p class="empty">{{ spec.empty_text }}</p>
+  {% else %}
+    <div class="table-scroll">
+    <table class="fin-table data-table {{ spec.table_class }}">
+      <colgroup>
+        {% for c in spec.columns %}<col style="width: {{ c.width }}%">{% endfor %}
+      </colgroup>
+      <thead>
+        <tr>
+          {% for c in spec.columns %}<th>{{ c.label }}</th>{% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr>
+            {% for c in spec.columns %}
+              {% set v = r[c.key] %}
+              {% if c.kind == 'ticker' %}
+                <td class="fin-ticker">{% set _mtp = r["ticker"] | mtp_url(c.mtp) %}{% if _mtp %}<a class="mtp-co" href="{{ _mtp }}" target="_blank" rel="noopener" title="Open {{ r['ticker'] }} {{ c.mtp_title }} on MineTerminalPro">{{ r["ticker"] }}</a>{% else %}{{ r["ticker"] }}{% endif %}</td>
+              {% elif c.kind == 'plain' %}
+                <td>{{ v if v is not none else "" }}</td>
+              {% elif c.kind == 'date' %}
+                <td class="fin-date">{{ (v or "")[:10] }}</td>
+              {% elif c.kind == 'strong' %}
+                <td{% if c.td_class %} class="{{ c.td_class }}"{% endif %}><strong>{{ v or "—" }}</strong></td>
+              {% elif c.kind == 'release' %}
+                <td>{% if v %}<a href="{{ v }}">View ↗</a>{% else %}—{% endif %}</td>
+              {% else %}
+                <td{% if c.td_class %} class="{{ c.td_class }}"{% endif %}>{{ v or "—" }}</td>
+              {% endif %}
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  {% endif %}
+  {% include "_pager.html" %}
+{% endblock %}
