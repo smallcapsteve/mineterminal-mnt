@@ -63,6 +63,8 @@ _RE_BROKERED = re.compile(r"\b(?<!non-)brokered\s+(?:private\s+)?(?:placement|of
 _RE_NON_BROKERED = re.compile(r"\bnon[- ]brokered\s+(?:private\s+)?(?:placement|offering)", re.I)
 _RE_BOUGHT_DEAL = re.compile(r"\bbought\s+deal\b", re.I)
 _RE_CD = re.compile(r"\bconvertible\s+debenture(?:s)?\b", re.I)
+_RE_CD_HEAD = re.compile(r"\b(?:debentures?|convertible|notes?)\b", re.I)
+_RE_LIFE_HEAD = re.compile(r"\bLIFE\b|listed\s+issuer\s+financing", re.I)
 
 # ---------- field extractors ----------
 
@@ -242,6 +244,7 @@ FLAGS = dict(
     outstanding_guard=True,        # E8 "58,748,220 common shares issued and outstanding" is not the offering
     closes_upsized=True,           # E10 "Closes Upsized $1.7M Private Placement" is a close, not an upsize
     tranche_labels=True,           # E9 "2nd Tranche", "Tranche 1", "Closes $1M Tranche of" are tranches, not final closes
+    cd_headline_priority=True,     # E11 a headline naming flow-through / LIFE shares is not a debenture deal because the body mentions one
 )
 
 _ORD = {"1st": "first", "2nd": "second", "3rd": "third", "4th": "fourth", "5th": "fifth",
@@ -614,6 +617,11 @@ def classify_kind(headline: str, body: str) -> str:
     is_brk = bool(_RE_BROKERED.search(text))
     is_nbk = bool(_RE_NON_BROKERED.search(text))
     is_cd = bool(_RE_CD.search(text))
+    if FLAGS["cd_headline_priority"] and is_cd and not _RE_CD_HEAD.search(h) \
+            and (_RE_FT.search(h) or _RE_LIFE_HEAD.search(h)):
+        # "ATHA Energy Announces $25 Million LIFE Private Placement of Flow-Through
+        # Shares": its body also describes a separate convertible debenture deal.
+        is_cd = False
     flags = []
     if FLAGS["new_instruments"]:
         # headline only: "proceeds will repay the credit facility" in a
@@ -977,10 +985,19 @@ def self_test(verbose: bool = False) -> int:
             if is_about_financing(h, "") != want:
                 bad += 1
                 print(f"DEAL FAIL: {not want} | {h}")
+        # E11: a flow-through / LIFE headline stays shares when the body also describes a debenture deal
+        body_cd = ("The Company also announces that it has upsized its previously announced convertible "
+                   "debenture financing to US$25 million.")
+        if "CD" in classify_kind("ATHA Energy Announces $25 Million LIFE Private Placement of Flow-Through Shares", body_cd):
+            bad += 1
+            print("KIND FAIL: LIFE flow-through headline read as a convertible debenture")
+        if "CD" not in classify_kind("ATHA Energy Announces Upsizing of Convertible Debenture Financing to USD$25 Million", body_cd):
+            bad += 1
+            print("KIND FAIL: debenture headline lost CD")
     finally:
         FLAGS.clear()
         FLAGS.update(saved)
-    n = len(_ROLE_CASES) + len(_AMOUNT_CASES) + 12
+    n = len(_ROLE_CASES) + len(_AMOUNT_CASES) + 14
     print(f"self_test: {n - bad}/{n} passed")
     return bad
 

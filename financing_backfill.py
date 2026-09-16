@@ -79,9 +79,30 @@ BF_FLAGS = dict(
     kind_guard=True,     # B5 a loan/bond/stream never joins an equity placement's lifecycle
     rel_price=True,      # B6 "same price" is relative: $0.04 and $0.045 are different deals
     continuation=True,   # B7 a prospectus filing / "previously announced" is not a new deal
+    results_gate=True,   # B8 a quarterly/annual results or financial-statements release is not a financing
+    cd_guard=True,       # B9 a convertible-debenture event does not join a flow-through / LIFE share deal
 )
 
 _DEBT_TOKENS = {"DEBT", "STREAM"}
+
+import re as _re_res
+# "Kuya Silver Reports Q1, 2026 Financial Results - Strengthens Cash Position to
+# USD$27.2 Mil", "Artemis Gold Reports Q2 2025 Results", "Silverco Mining Announces
+# Filing of Q1 2026 Interim Financial Statements and MD&A": the amounts are cash
+# balances and facilities, not a raise. A headline that also names a deal ("AGM
+# Results and Closes $883,700 Non-Brokered Private Placement") is kept.
+_RESULTS_HEAD = _re_res.compile(
+    r"(?i)\b(?:Q[1-4]|first|second|third|fourth|full|quarter(?:ly)?|annual|year[\s\-]end|semi[\s\-]annual|"
+    r"half[\s\-]year|fiscal|interim|H[12])\b[^|]{0,40}?\b(?:results|financial\s+statements|financials|MD&A|"
+    r"activities\s+report|operating\s+and\s+financial)\b|\bfinancial\s+results\b")
+_DEAL_HEAD = _re_res.compile(
+    r"(?i)\b(?:clos(?:es|ed|ing)|private\s+placements?|financing|offering|bought\s+deal|flow[\s\-]through|"
+    r"LIFE|tranche|subscription|debentures?|loan|credit\s+facilit|notes\s+offering|raises?|prospectus)\b")
+
+
+def _is_results_release(headline):
+    h = headline or ""
+    return bool(_RESULTS_HEAD.search(h)) and not _DEAL_HEAD.search(h)
 
 
 def _kind_family(kind):
@@ -106,6 +127,15 @@ def _kinds_compatible(a, b, event_headline=None):
     extractor labelled as equity may still join a debt lifecycle when its own
     headline is about the debt ("Completes Upsized $115 Million Offering of
     Senior Notes" was read as PP)."""
+    if BF_FLAGS.get("cd_guard"):
+        ta = {t for t in (a or "").split("+") if t}
+        tb = {t for t in (b or "").split("+") if t}
+        shares = {"FT", "LIFE"}
+        # "ATHA Energy Announces $25 Million LIFE Private Placement of Flow-Through
+        # Shares" and "Announces Upsizing of Convertible Debenture Financing to
+        # USD$25 Million" are two deals; the second made the first a US$ debenture.
+        if ("CD" in ta) != ("CD" in tb) and ((ta if "CD" in tb else tb) & shares):
+            return False
     fa, fb = _kind_family(a), _kind_family(b)
     if fa is None or fb is None or fa == fb:
         return True
@@ -242,6 +272,11 @@ def run_pass2_group(con):
     rows_o = list(con.execute(
         "SELECT * FROM financing_events WHERE role!='announcement' ORDER BY ticker, event_date"
     ))
+    n_results = 0
+    if BF_FLAGS["results_gate"]:
+        n_results = sum(1 for r in rows_a + rows_o if _is_results_release(r["raw_headline"]))
+        rows_a = [r for r in rows_a if not _is_results_release(r["raw_headline"])]
+        rows_o = [r for r in rows_o if not _is_results_release(r["raw_headline"])]
     print(f"[pass2] {len(rows_a)} announcements, {len(rows_o)} non-announcement events")
 
     cur = con.cursor()
@@ -528,7 +563,7 @@ def run_pass2_group(con):
             orphan += 1
     con.commit()
     print(f"[pass2] matched={matched} orphan={orphan} dup_announcements={n_dup_ann} "
-          f"dup_closes={n_dup_close} mentions_not_promoted={n_gated} continuations={n_cont}")
+          f"dup_closes={n_dup_close} mentions_not_promoted={n_gated} continuations={n_cont} results_releases_skipped={n_results}")
 
 
 def report(con):
@@ -600,6 +635,12 @@ def self_test():
         ("gb3", "BGF", "final_close", 765304, 0.04, "2025-10-24", "Beauce Gold Fields Closing a Non-Brokered Private Placement", "NON_BROKERED"),
         ("gn1", "EU", "announcement", 75000000, None, "2025-08-19", "enCore Announces Proposed Offering of $75 Million of Convertible Senior Notes", "DEBT"),
         ("gn2", "EU", "final_close", 115000000, 2.58, "2025-08-22", "enCore Completes Upsized $115 Million Offering of Senior Notes", "PP"),
+        # 2026-09-16 v3: results releases (B8) and debenture vs flow-through (B9)
+        ("gr1", "KUYA", "mention", 27200000, 0.30, "2026-05-29", "Kuya Silver Reports Q1 2026 Financial Results", "PP"),
+        ("gr2", "ART", "announcement", 700000000, None, "2025-08-13", "Artemis Gold Reports Q2 2025 Results Consistent with Guidance", "DEBT"),
+        ("gr3", "STUP", "final_close", 883700, 0.05, "2025-06-20", "Straightup Announces AGM Results and Closes $883,700 Private Placement", "NON_BROKERED"),
+        ("gc1", "SASK", "announcement", 25000200, 1.20, "2025-05-12", "ATHA Energy Announces $25 Million LIFE Private Placement of Flow-Through Shares", "LIFE+FT"),
+        ("gc2", "SASK", "announcement", 25000000, None, "2025-05-14", "ATHA Energy Announces Upsizing of Convertible Debenture Financing to USD$25 Million", "CD"),
     ]:
         con.execute("INSERT INTO financing_events(event_id, ticker, role, gross_total, unit_price, event_date,"
                     " raw_headline, kind, is_deal) VALUES (?,?,?,?,?,?,?,?,1)", r)
@@ -622,6 +663,9 @@ def self_test():
         ("a final prospectus filing continues its bought deal, and the close follows", fid["gp2"] == fid["gp1"] == fid["gp3"]),
         ("a $0.04 close joins the $0.04 placement, not the $0.045 one", fid["gb3"] == fid["gb1"] != fid["gb2"]),
         ("a senior-notes close labelled PP still joins its notes offering", fid["gn2"] == fid["gn1"]),
+        ("a quarterly results release with a figure is not a financing", fid["gr1"] is None and fid["gr2"] is None),
+        ("AGM results that also close a placement are kept", fid["gr3"] is not None),
+        ("a debenture upsize does not join a flow-through LIFE placement", fid["gc1"] is not None and fid["gc2"] != fid["gc1"]),
     ]
     g = con.execute("SELECT gross_closed, n_tranches FROM financings WHERE financing_id=?", (fid["b1"],)).fetchone()
     checks.append(("a duplicate close is not counted twice", g["gross_closed"] == 300000 and g["n_tranches"] == 1))
