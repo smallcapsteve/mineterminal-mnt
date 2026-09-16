@@ -1,0 +1,6077 @@
+{
+ "schema": 1,
+ "name": "drill_results",
+ "tag": "Drill Results",
+ "status": "draft",
+ "created": "2026-09-16",
+ "drafted_by": "Claude (from headline + lede, without extractor output)",
+ "reviewer": null,
+ "reviewed_at": null,
+ "sampling": "seed 20260916; approved, tagged Drill Results, body >= 400 chars; 36 with a stored row (Au 13, Cu/CuEq 6, Ag/AgEq 5, AuEq 3, other 9) + 14 without",
+ "items": [
+  {
+   "n": 0,
+   "event_id": "bdf9c9045de7a2a0bd47a158a9ce54bc1511709a",
+   "ticker": "SIEN.V",
+   "published_at": "2025-03-20T12:00:00Z",
+   "stratum": "no_row",
+   "body_sha1": "570dd81982b351ae01530e8f0c0c78250e8bf68d",
+   "review": "draft",
+   "expect": {
+    "is_result": false,
+    "sample_type": "none",
+    "intercepts": [],
+    "complete": true,
+    "projects": [
+     "Case Lake Project",
+     "Case Lake"
+    ],
+    "confidence": "high"
+   },
+   "note": "Drilling completed with visual sulphide descriptions only; 117 core samples sent to lab, assays pending."
+  },
+  {
+   "n": 1,
+   "event_id": "26cb6e92a9e0b2809f86a224254ded85e87eb94a",
+   "ticker": "FUU.V",
+   "published_at": "2025-12-15T12:00:00Z",
+   "stratum": "row:other",
+   "body_sha1": "2b3cdf030cdf65f81405d10d7e0e7298a3437182",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "drill",
+    "intercepts": [
+     {
+      "hole": "PLN25-197",
+      "length_m": 1.5,
+      "grade": 1.08,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": false
+     },
+     {
+      "hole": "PLN25-197",
+      "length_m": 0.5,
+      "grade": 0.07,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": false
+     },
+     {
+      "hole": "PLN25-198",
+      "length_m": 7.5,
+      "grade": 0.26,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": false
+     },
+     {
+      "hole": "PLN25-198",
+      "length_m": 0.5,
+      "grade": 1.33,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": true
+     },
+     {
+      "hole": "PLN25-199",
+      "length_m": 1.5,
+      "grade": 0.29,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": false
+     },
+     {
+      "hole": "PLN25-200",
+      "length_m": 8.5,
+      "grade": 3.4,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": false
+     },
+     {
+      "hole": "PLN25-200",
+      "length_m": 2.0,
+      "grade": 0.27,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": true
+     },
+     {
+      "hole": "PLN25-200",
+      "length_m": 2.5,
+      "grade": 10.2,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": true
+     },
+     {
+      "hole": "PLN25-200",
+      "length_m": 1.0,
+      "grade": 20.7,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": true
+     },
+     {
+      "hole": "PLN25-200",
+      "length_m": 4.0,
+      "grade": 0.76,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": true
+     },
+     {
+      "hole": "PLN25-200",
+      "length_m": 5.5,
+      "grade": 0.05,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": false
+     },
+     {
+      "hole": "PLN25-207",
+      "length_m": 0.5,
+      "grade": 0.06,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": false
+     },
+     {
+      "hole": "PLN25-210",
+      "length_m": 0.5,
+      "grade": 0.18,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": false
+     },
+     {
+      "hole": "PLN25-210",
+      "length_m": 0.5,
+      "grade": 0.13,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": false
+     },
+     {
+      "hole": "PLN25-210",
+      "length_m": 0.5,
+      "grade": 0.06,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": false
+     },
+     {
+      "hole": "PLN25-210",
+      "length_m": 0.5,
+      "grade": 0.08,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": false
+     },
+     {
+      "hole": "PLN25-210",
+      "length_m": 6.0,
+      "grade": 0.14,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": false
+     },
+     {
+      "hole": "PLN25-212",
+      "length_m": 11.0,
+      "grade": 0.1,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": false
+     },
+     {
+      "hole": "PLN25-212",
+      "length_m": 10.0,
+      "grade": 0.12,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": false
+     },
+     {
+      "hole": "PLN25-212",
+      "length_m": 6.0,
+      "grade": 0.12,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": false
+     },
+     {
+      "hole": "PLN25-213W1",
+      "length_m": 0.5,
+      "grade": 0.08,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": false
+     },
+     {
+      "hole": "PLN25-213W1",
+      "length_m": 0.5,
+      "grade": 0.07,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": false
+     },
+     {
+      "hole": "PLN25-215",
+      "length_m": 0.5,
+      "grade": 0.08,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": false
+     },
+     {
+      "hole": "PLN25-216",
+      "length_m": 0.5,
+      "grade": 0.12,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": false
+     },
+     {
+      "hole": "PLN25-217",
+      "length_m": 0.5,
+      "grade": 0.06,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": false
+     },
+     {
+      "hole": "PLN25-217",
+      "length_m": 3.5,
+      "grade": 0.07,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": false
+     },
+     {
+      "hole": "PLN25-217",
+      "length_m": 1.5,
+      "grade": 0.05,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": false
+     },
+     {
+      "hole": "PLN25-217",
+      "length_m": 1.0,
+      "grade": 0.07,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": false
+     },
+     {
+      "hole": "PLN25-217",
+      "length_m": 5.5,
+      "grade": 0.19,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": false
+     },
+     {
+      "hole": "PLN25-217",
+      "length_m": 6.5,
+      "grade": 0.14,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": false
+     },
+     {
+      "hole": "PLN25-217",
+      "length_m": 3.5,
+      "grade": 0.41,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": false
+     },
+     {
+      "hole": "PLN25-217",
+      "length_m": 0.5,
+      "grade": 0.11,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": false
+     },
+     {
+      "hole": "PLN25-217",
+      "length_m": 3.5,
+      "grade": 0.3,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": false
+     },
+     {
+      "hole": "PLN25-217",
+      "length_m": 0.5,
+      "grade": 1.04,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": true
+     },
+     {
+      "hole": "PLN25-217",
+      "length_m": 0.5,
+      "grade": 0.07,
+      "unit": "%",
+      "metal": "U3O8",
+      "including": false
+     }
+    ],
+    "complete": true,
+    "projects": [
+     "PLN Property",
+     "PLN",
+     "Broach Property",
+     "Broach"
+    ],
+    "confidence": "medium"
+   },
+   "note": "Final JR Zone and Tetra Zone assays incl. Table 1; PLN25-200 highlight 8.5m composite plus table sub-rows 2.0m@0.27 and 4.0m@0.76 (inside it, marked including); 26.5m composite has no grade; PLN25-205 not reported here."
+  },
+  {
+   "n": 2,
+   "event_id": "db88f89b7a296c17102f6f980fcde5fb951a0e6f",
+   "ticker": "SSV.V",
+   "published_at": "2026-01-06T12:00:00Z",
+   "stratum": "row:Ag|AgEq",
+   "body_sha1": "7323864ecdb77e94eeafba968c8651fc94a3bf5f",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "drill",
+    "intercepts": [
+     {
+      "hole": "25CLM-205",
+      "length_m": 10.4,
+      "grade": 743.0,
+      "unit": "g/t",
+      "metal": "AgEq",
+      "including": false
+     },
+     {
+      "hole": "25CLM-205",
+      "length_m": 3.9,
+      "grade": 1490.0,
+      "unit": "g/t",
+      "metal": "AgEq",
+      "including": true
+     },
+     {
+      "hole": "25CLM-202",
+      "length_m": 5.3,
+      "grade": 221.0,
+      "unit": "g/t",
+      "metal": "AgEq",
+      "including": false
+     },
+     {
+      "hole": "25CLM-202",
+      "length_m": 1.2,
+      "grade": 449.0,
+      "unit": "g/t",
+      "metal": "AgEq",
+      "including": true
+     },
+     {
+      "hole": "25CLM-204",
+      "length_m": 7.3,
+      "grade": 305.0,
+      "unit": "g/t",
+      "metal": "AgEq",
+      "including": false
+     },
+     {
+      "hole": "25CLM-204",
+      "length_m": 4.0,
+      "grade": 456.0,
+      "unit": "g/t",
+      "metal": "AgEq",
+      "including": true
+     },
+     {
+      "hole": "25CLM-205",
+      "length_m": 11.8,
+      "grade": 194.0,
+      "unit": "g/t",
+      "metal": "AgEq",
+      "including": false
+     },
+     {
+      "hole": "25CLM-205",
+      "length_m": 1.0,
+      "grade": 572.0,
+      "unit": "g/t",
+      "metal": "AgEq",
+      "including": true
+     },
+     {
+      "hole": null,
+      "length_m": 17.9,
+      "grade": 136.0,
+      "unit": "g/t",
+      "metal": "AgEq",
+      "including": false
+     },
+     {
+      "hole": "25CLM-205",
+      "length_m": 10.4,
+      "grade": 365.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "25CLM-205",
+      "length_m": 3.9,
+      "grade": 688.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": true
+     },
+     {
+      "hole": "25CLM-202",
+      "length_m": 5.3,
+      "grade": 73.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "25CLM-202",
+      "length_m": 1.2,
+      "grade": 170.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": true
+     },
+     {
+      "hole": "25CLM-204",
+      "length_m": 7.3,
+      "grade": 102.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "25CLM-204",
+      "length_m": 4.0,
+      "grade": 131.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": true
+     },
+     {
+      "hole": "25CLM-205",
+      "length_m": 11.8,
+      "grade": 119.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "25CLM-205",
+      "length_m": 1.0,
+      "grade": 483.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": true
+     },
+     {
+      "hole": null,
+      "length_m": 17.9,
+      "grade": 63.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "25CLM-205",
+      "length_m": 10.4,
+      "grade": 7.8,
+      "unit": "%",
+      "metal": "Pb",
+      "including": false
+     },
+     {
+      "hole": "25CLM-205",
+      "length_m": 3.9,
+      "grade": 17.1,
+      "unit": "%",
+      "metal": "Pb",
+      "including": true
+     },
+     {
+      "hole": "25CLM-202",
+      "length_m": 5.3,
+      "grade": 2.8,
+      "unit": "%",
+      "metal": "Pb",
+      "including": false
+     },
+     {
+      "hole": "25CLM-202",
+      "length_m": 1.2,
+      "grade": 8.9,
+      "unit": "%",
+      "metal": "Pb",
+      "including": true
+     },
+     {
+      "hole": "25CLM-204",
+      "length_m": 7.3,
+      "grade": 3.6,
+      "unit": "%",
+      "metal": "Pb",
+      "including": false
+     },
+     {
+      "hole": "25CLM-204",
+      "length_m": 4.0,
+      "grade": 6.4,
+      "unit": "%",
+      "metal": "Pb",
+      "including": true
+     },
+     {
+      "hole": "25CLM-205",
+      "length_m": 11.8,
+      "grade": 1.7,
+      "unit": "%",
+      "metal": "Pb",
+      "including": false
+     },
+     {
+      "hole": "25CLM-205",
+      "length_m": 1.0,
+      "grade": 3.2,
+      "unit": "%",
+      "metal": "Pb",
+      "including": true
+     },
+     {
+      "hole": null,
+      "length_m": 17.9,
+      "grade": 1.6,
+      "unit": "%",
+      "metal": "Pb",
+      "including": false
+     },
+     {
+      "hole": "25CLM-205",
+      "length_m": 10.4,
+      "grade": 8.2,
+      "unit": "%",
+      "metal": "Zn",
+      "including": false
+     },
+     {
+      "hole": "25CLM-205",
+      "length_m": 3.9,
+      "grade": 17.1,
+      "unit": "%",
+      "metal": "Zn",
+      "including": true
+     },
+     {
+      "hole": "25CLM-202",
+      "length_m": 5.3,
+      "grade": 3.4,
+      "unit": "%",
+      "metal": "Zn",
+      "including": false
+     },
+     {
+      "hole": "25CLM-202",
+      "length_m": 1.2,
+      "grade": 3.7,
+      "unit": "%",
+      "metal": "Zn",
+      "including": true
+     },
+     {
+      "hole": "25CLM-204",
+      "length_m": 7.3,
+      "grade": 3.7,
+      "unit": "%",
+      "metal": "Zn",
+      "including": false
+     },
+     {
+      "hole": "25CLM-204",
+      "length_m": 4.0,
+      "grade": 5.4,
+      "unit": "%",
+      "metal": "Zn",
+      "including": true
+     },
+     {
+      "hole": "25CLM-205",
+      "length_m": 11.8,
+      "grade": 1.0,
+      "unit": "%",
+      "metal": "Zn",
+      "including": false
+     },
+     {
+      "hole": "25CLM-205",
+      "length_m": 1.0,
+      "grade": 0.5,
+      "unit": "%",
+      "metal": "Zn",
+      "including": true
+     },
+     {
+      "hole": null,
+      "length_m": 17.9,
+      "grade": 1.4,
+      "unit": "%",
+      "metal": "Zn",
+      "including": false
+     },
+     {
+      "hole": "25CLM-204",
+      "length_m": 7.3,
+      "grade": 0.5,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "25CLM-205",
+      "length_m": 11.8,
+      "grade": 0.2,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": null,
+      "length_m": 17.9,
+      "grade": 0.1,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "25CLM-205",
+      "length_m": 10.4,
+      "grade": 0.1,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     }
+    ],
+    "complete": false,
+    "projects": [
+     "Cerro Las Minitas",
+     "Cerro Las Minitas Project",
+     "Puro Corazon"
+    ],
+    "confidence": "medium"
+   },
+   "note": "47 metal entries qualify; kept all AgEq/Ag/Pb/Zn plus top-4 Cu by grade x length (dropped 3 Cu, 4 Au); 17.9m interval has no hole stated; 25CLM-203 1,115 g/t AgEq is previously reported; widths are est. true thickness."
+  },
+  {
+   "n": 3,
+   "event_id": "0c8707f29c46e47e8a9b2f47af88b948789894b1",
+   "ticker": "BULL.CN",
+   "published_at": "2022-02-17T12:00:00Z",
+   "stratum": "row:other",
+   "body_sha1": "4401290d1275839378809f165807ac936d5acee9",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "drill",
+    "intercepts": [
+     {
+      "hole": "EB-21-73",
+      "length_m": 3.0,
+      "grade": 1.653,
+      "unit": "g/t",
+      "metal": "PdEq",
+      "including": false
+     },
+     {
+      "hole": "EB-21-74",
+      "length_m": 20.0,
+      "grade": 1.395,
+      "unit": "g/t",
+      "metal": "PdEq",
+      "including": false
+     },
+     {
+      "hole": "EB-21-76",
+      "length_m": 2.0,
+      "grade": 1.258,
+      "unit": "g/t",
+      "metal": "PdEq",
+      "including": false
+     },
+     {
+      "hole": "EB-21-77",
+      "length_m": 20.0,
+      "grade": 1.174,
+      "unit": "g/t",
+      "metal": "PdEq",
+      "including": false
+     },
+     {
+      "hole": "EB-21-77",
+      "length_m": 39.0,
+      "grade": 1.122,
+      "unit": "g/t",
+      "metal": "PdEq",
+      "including": false
+     },
+     {
+      "hole": "EB-21-77",
+      "length_m": 6.0,
+      "grade": 1.899,
+      "unit": "g/t",
+      "metal": "PdEq",
+      "including": true
+     },
+     {
+      "hole": "EB-21-78",
+      "length_m": 38.0,
+      "grade": 2.187,
+      "unit": "g/t",
+      "metal": "PdEq",
+      "including": false
+     },
+     {
+      "hole": "EB-21-78",
+      "length_m": 7.0,
+      "grade": 4.09,
+      "unit": "g/t",
+      "metal": "PdEq",
+      "including": true
+     },
+     {
+      "hole": "EB-21-79",
+      "length_m": 24.0,
+      "grade": 1.207,
+      "unit": "g/t",
+      "metal": "PdEq",
+      "including": false
+     },
+     {
+      "hole": "EB-21-80",
+      "length_m": 1.0,
+      "grade": 3.559,
+      "unit": "g/t",
+      "metal": "PdEq",
+      "including": false
+     },
+     {
+      "hole": "EB-21-80",
+      "length_m": 10.0,
+      "grade": 0.731,
+      "unit": "g/t",
+      "metal": "PdEq",
+      "including": false
+     },
+     {
+      "hole": "EB-21-80",
+      "length_m": 1.0,
+      "grade": 18.755,
+      "unit": "g/t",
+      "metal": "PdEq",
+      "including": false
+     },
+     {
+      "hole": "EB-21-73",
+      "length_m": 3.0,
+      "grade": 0.838,
+      "unit": "g/t",
+      "metal": "Pd",
+      "including": false
+     },
+     {
+      "hole": "EB-21-74",
+      "length_m": 20.0,
+      "grade": 0.666,
+      "unit": "g/t",
+      "metal": "Pd",
+      "including": false
+     },
+     {
+      "hole": "EB-21-76",
+      "length_m": 2.0,
+      "grade": 0.017,
+      "unit": "g/t",
+      "metal": "Pd",
+      "including": false
+     },
+     {
+      "hole": "EB-21-77",
+      "length_m": 20.0,
+      "grade": 0.541,
+      "unit": "g/t",
+      "metal": "Pd",
+      "including": false
+     },
+     {
+      "hole": "EB-21-77",
+      "length_m": 39.0,
+      "grade": 0.332,
+      "unit": "g/t",
+      "metal": "Pd",
+      "including": false
+     },
+     {
+      "hole": "EB-21-77",
+      "length_m": 6.0,
+      "grade": 0.621,
+      "unit": "g/t",
+      "metal": "Pd",
+      "including": true
+     },
+     {
+      "hole": "EB-21-78",
+      "length_m": 38.0,
+      "grade": 1.173,
+      "unit": "g/t",
+      "metal": "Pd",
+      "including": false
+     },
+     {
+      "hole": "EB-21-78",
+      "length_m": 7.0,
+      "grade": 2.344,
+      "unit": "g/t",
+      "metal": "Pd",
+      "including": true
+     },
+     {
+      "hole": "EB-21-79",
+      "length_m": 24.0,
+      "grade": 0.579,
+      "unit": "g/t",
+      "metal": "Pd",
+      "including": false
+     },
+     {
+      "hole": "EB-21-80",
+      "length_m": 1.0,
+      "grade": 1.81,
+      "unit": "g/t",
+      "metal": "Pd",
+      "including": false
+     },
+     {
+      "hole": "EB-21-80",
+      "length_m": 10.0,
+      "grade": 0.202,
+      "unit": "g/t",
+      "metal": "Pd",
+      "including": false
+     },
+     {
+      "hole": "EB-21-80",
+      "length_m": 1.0,
+      "grade": 9.76,
+      "unit": "g/t",
+      "metal": "Pd",
+      "including": false
+     },
+     {
+      "hole": "EB-21-73",
+      "length_m": 3.0,
+      "grade": 0.301,
+      "unit": "g/t",
+      "metal": "Pt",
+      "including": false
+     },
+     {
+      "hole": "EB-21-74",
+      "length_m": 20.0,
+      "grade": 0.201,
+      "unit": "g/t",
+      "metal": "Pt",
+      "including": false
+     },
+     {
+      "hole": "EB-21-76",
+      "length_m": 2.0,
+      "grade": 0.011,
+      "unit": "g/t",
+      "metal": "Pt",
+      "including": false
+     },
+     {
+      "hole": "EB-21-77",
+      "length_m": 20.0,
+      "grade": 0.167,
+      "unit": "g/t",
+      "metal": "Pt",
+      "including": false
+     },
+     {
+      "hole": "EB-21-77",
+      "length_m": 39.0,
+      "grade": 0.099,
+      "unit": "g/t",
+      "metal": "Pt",
+      "including": false
+     },
+     {
+      "hole": "EB-21-77",
+      "length_m": 6.0,
+      "grade": 0.172,
+      "unit": "g/t",
+      "metal": "Pt",
+      "including": true
+     },
+     {
+      "hole": "EB-21-78",
+      "length_m": 38.0,
+      "grade": 0.392,
+      "unit": "g/t",
+      "metal": "Pt",
+      "including": false
+     },
+     {
+      "hole": "EB-21-78",
+      "length_m": 7.0,
+      "grade": 0.765,
+      "unit": "g/t",
+      "metal": "Pt",
+      "including": true
+     },
+     {
+      "hole": "EB-21-79",
+      "length_m": 24.0,
+      "grade": 0.15,
+      "unit": "g/t",
+      "metal": "Pt",
+      "including": false
+     },
+     {
+      "hole": "EB-21-80",
+      "length_m": 1.0,
+      "grade": 1.21,
+      "unit": "g/t",
+      "metal": "Pt",
+      "including": false
+     },
+     {
+      "hole": "EB-21-80",
+      "length_m": 10.0,
+      "grade": 0.124,
+      "unit": "g/t",
+      "metal": "Pt",
+      "including": false
+     },
+     {
+      "hole": "EB-21-80",
+      "length_m": 1.0,
+      "grade": 2.98,
+      "unit": "g/t",
+      "metal": "Pt",
+      "including": false
+     },
+     {
+      "hole": "EB-21-78",
+      "length_m": 38.0,
+      "grade": 0.106,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "EB-21-77",
+      "length_m": 39.0,
+      "grade": 0.048,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "EB-21-78",
+      "length_m": 7.0,
+      "grade": 0.196,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "EB-21-79",
+      "length_m": 24.0,
+      "grade": 0.054,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     }
+    ],
+    "complete": false,
+    "projects": [
+     "East Bull Palladium Deposit",
+     "East Bull",
+     "East Bull Deposit"
+    ],
+    "confidence": "medium"
+   },
+   "note": "Table has 94 metal entries (Pd,Pt,Au,Cu,Ni,Co,2PGM+Au,PdEq); kept all PdEq/Pd/Pt rows plus top-4 Au; table values used (lede rounds 18.755->18.76, 2.187->2.19); drilled widths."
+  },
+  {
+   "n": 4,
+   "event_id": "8cfd415a875bf3c5e8afe78175784082b929f271",
+   "ticker": "HWG.CN",
+   "published_at": "2024-02-12T12:00:00Z",
+   "stratum": "row:Ag|AgEq",
+   "body_sha1": "e5f8bef6240f7def16ba71f142a1856061fc441c",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "drill",
+    "intercepts": [
+     {
+      "hole": "MN23-02",
+      "length_m": 9.14,
+      "grade": 47.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "MN23-06",
+      "length_m": 1.52,
+      "grade": 0.51,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     }
+    ],
+    "complete": true,
+    "projects": [
+     "Midas North",
+     "Midas North Project"
+    ],
+    "confidence": "low"
+   },
+   "note": "Maiden RC/core scout program; MN23-02 also restated as 9.1 m (same intercept); text cut off mid-discussion so further intercepts may be missing."
+  },
+  {
+   "n": 5,
+   "event_id": "ff86e64a37754f3f66a8e5f05d42c6dd5b07536887c621170ee043c8bfc09d8a",
+   "ticker": "ORV.TO",
+   "published_at": "2026-05-27T10:30:00",
+   "stratum": "row:Au",
+   "body_sha1": "063b15fa25e7ca669ce3a59b499954fc847432bc",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "drill",
+    "intercepts": [
+     {
+      "hole": "TADD-278",
+      "length_m": 2.0,
+      "grade": 32.34,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 2.0,
+      "grade": 4.5,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 2.0,
+      "grade": 0.06,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 16.8,
+      "grade": 0.32,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 16.8,
+      "grade": 4.2,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 16.8,
+      "grade": 0.81,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 1.0,
+      "grade": 1.34,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 1.0,
+      "grade": 20.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": true
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 1.0,
+      "grade": 5.39,
+      "unit": "%",
+      "metal": "Cu",
+      "including": true
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 1.3,
+      "grade": 1.49,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 1.3,
+      "grade": 9.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": true
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 1.3,
+      "grade": 2.44,
+      "unit": "%",
+      "metal": "Cu",
+      "including": true
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 37.0,
+      "grade": 0.86,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 37.0,
+      "grade": 6.09,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 37.0,
+      "grade": 0.69,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 3.0,
+      "grade": 5.62,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 3.0,
+      "grade": 10.2,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": true
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 3.0,
+      "grade": 0.29,
+      "unit": "%",
+      "metal": "Cu",
+      "including": true
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 205.0,
+      "grade": 0.25,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 205.0,
+      "grade": 1.82,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 205.0,
+      "grade": 0.12,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 16.0,
+      "grade": 0.43,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 16.0,
+      "grade": 3.37,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": true
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 16.0,
+      "grade": 0.07,
+      "unit": "%",
+      "metal": "Cu",
+      "including": true
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 15.0,
+      "grade": 0.61,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 15.0,
+      "grade": 4.06,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": true
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 15.0,
+      "grade": 0.21,
+      "unit": "%",
+      "metal": "Cu",
+      "including": true
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 7.3,
+      "grade": 0.3,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 7.3,
+      "grade": 8.2,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 7.3,
+      "grade": 0.28,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 11.3,
+      "grade": 0.23,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 11.3,
+      "grade": 1.71,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 11.3,
+      "grade": 0.26,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 6.0,
+      "grade": 0.29,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 6.0,
+      "grade": 1.48,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "TADD-278",
+      "length_m": 6.0,
+      "grade": 0.19,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     }
+    ],
+    "complete": true,
+    "projects": [
+     "Taguas Project",
+     "Taguas"
+    ],
+    "confidence": "medium"
+   },
+   "note": "Complete TADD-278 assays (Table 1); some shallower rows may repeat the April 8, 2026 release but text does not say which; TADD-279 pending."
+  },
+  {
+   "n": 6,
+   "event_id": "86fb3fa80b6b9f2d3cc2389e2740f82ab02fab5b19d09d02f9b23863f4e5d62c",
+   "ticker": "SAND.CN",
+   "published_at": "2022-02-01T04:00:00+00:00",
+   "stratum": "row:Ag|AgEq",
+   "body_sha1": "774cf83d6855e95f052d235d7888fa86bfd8f35c",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "drill",
+    "intercepts": [
+     {
+      "hole": "MR-DDH-003",
+      "length_m": 2.65,
+      "grade": 1456.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "MNW-DDH-005A",
+      "length_m": 4.75,
+      "grade": 242.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "MNW-DDH-005A",
+      "length_m": 2.45,
+      "grade": 404.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": true
+     }
+    ],
+    "complete": true,
+    "projects": [
+     "Virginia Project",
+     "Virginia",
+     "Virginia Silver Project"
+    ],
+    "confidence": "high"
+   },
+   "note": "Phase III core results; Table 1 not in text; MNW-DDH-001 5.9m@190 g/t is previously reported; Pb >10,000 ppm is a detection limit, not a grade."
+  },
+  {
+   "n": 7,
+   "event_id": "8776e88a3847da08bad749d484d4059c3b2c19dc",
+   "ticker": "GTC.V",
+   "published_at": "2026-09-02T12:00:00Z",
+   "stratum": "row:Cu|CuEq",
+   "body_sha1": "f425ea08734bad5c2f4660acb5732b5299bcb26c",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "drill",
+    "intercepts": [
+     {
+      "hole": "GS26-01",
+      "length_m": 184.0,
+      "grade": 0.37,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "GS26-01",
+      "length_m": 184.0,
+      "grade": 0.4,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "GS26-01",
+      "length_m": 184.0,
+      "grade": 7.0,
+      "unit": "ppm",
+      "metal": "Mo",
+      "including": false
+     },
+     {
+      "hole": "GS26-01",
+      "length_m": 184.0,
+      "grade": 0.001,
+      "unit": "ppm",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "GS26-01",
+      "length_m": 28.0,
+      "grade": 0.83,
+      "unit": "%",
+      "metal": "Cu",
+      "including": true
+     },
+     {
+      "hole": "GS26-01",
+      "length_m": 28.0,
+      "grade": 0.3,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": true
+     },
+     {
+      "hole": "GS26-01",
+      "length_m": 28.0,
+      "grade": 7.0,
+      "unit": "ppm",
+      "metal": "Mo",
+      "including": true
+     },
+     {
+      "hole": "GS26-01",
+      "length_m": 28.0,
+      "grade": 0.001,
+      "unit": "ppm",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "GS26-01",
+      "length_m": 10.0,
+      "grade": 1.9,
+      "unit": "%",
+      "metal": "Cu",
+      "including": true
+     },
+     {
+      "hole": "GS26-01",
+      "length_m": 10.0,
+      "grade": 0.7,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": true
+     },
+     {
+      "hole": "GS26-01",
+      "length_m": 10.0,
+      "grade": 5.0,
+      "unit": "ppm",
+      "metal": "Mo",
+      "including": true
+     },
+     {
+      "hole": "GS26-01",
+      "length_m": 10.0,
+      "grade": 0.002,
+      "unit": "ppm",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "GS26-02",
+      "length_m": 68.5,
+      "grade": 0.81,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "GS26-02",
+      "length_m": 68.5,
+      "grade": 0.3,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "GS26-02",
+      "length_m": 68.5,
+      "grade": 5.0,
+      "unit": "ppm",
+      "metal": "Mo",
+      "including": false
+     },
+     {
+      "hole": "GS26-02",
+      "length_m": 68.5,
+      "grade": 0.002,
+      "unit": "ppm",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "GS26-02",
+      "length_m": 13.8,
+      "grade": 1.83,
+      "unit": "%",
+      "metal": "Cu",
+      "including": true
+     },
+     {
+      "hole": "GS26-02",
+      "length_m": 13.8,
+      "grade": 0.4,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": true
+     },
+     {
+      "hole": "GS26-02",
+      "length_m": 13.8,
+      "grade": 4.0,
+      "unit": "ppm",
+      "metal": "Mo",
+      "including": true
+     },
+     {
+      "hole": "GS26-02",
+      "length_m": 13.8,
+      "grade": 0.002,
+      "unit": "ppm",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "GS26-02",
+      "length_m": 1.0,
+      "grade": 9.87,
+      "unit": "%",
+      "metal": "Cu",
+      "including": true
+     }
+    ],
+    "complete": true,
+    "projects": [
+     "Getty Project",
+     "Getty",
+     "Getty South"
+    ],
+    "confidence": "medium"
+   },
+   "note": "First Getty South holes; Mo and Au (ppm) taken from Table 1; 1m sample of 9.87% Cu at 45.2m (figure caption) included as inner interval of GS26-02; historical intercepts not quantified."
+  },
+  {
+   "n": 8,
+   "event_id": "4eb227fe68f802e978d1dc5fca272a1613049b32",
+   "ticker": "FOR.V",
+   "published_at": "2026-03-03T12:00:00Z",
+   "stratum": "row:Au",
+   "body_sha1": "c74d0bb568d07400f8d07dba38d9a5869f10f80b",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "drill",
+    "intercepts": [
+     {
+      "hole": "B25-346",
+      "length_m": 17.0,
+      "grade": 2.54,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "B25-346",
+      "length_m": 5.0,
+      "grade": 6.61,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "B25-346",
+      "length_m": 19.0,
+      "grade": 1.42,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "B25-347",
+      "length_m": 15.0,
+      "grade": 1.91,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "B25-347",
+      "length_m": 2.0,
+      "grade": 6.95,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "B25-347",
+      "length_m": 3.0,
+      "grade": 3.72,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "B25-347",
+      "length_m": 19.0,
+      "grade": 1.86,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "B25-347",
+      "length_m": 3.0,
+      "grade": 4.55,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "B25-347",
+      "length_m": 7.0,
+      "grade": 2.76,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "B25-347",
+      "length_m": 3.0,
+      "grade": 5.63,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "B25-347",
+      "length_m": 2.0,
+      "grade": 8.72,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "B25-348",
+      "length_m": 9.3,
+      "grade": 2.29,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "B25-348",
+      "length_m": 3.0,
+      "grade": 4.68,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "B25-348",
+      "length_m": 4.0,
+      "grade": 1.6,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "B25-348",
+      "length_m": 10.0,
+      "grade": 1.26,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     }
+    ],
+    "complete": true,
+    "projects": [
+     "Goldfields",
+     "Goldfields Gold Project",
+     "Box deposit",
+     "Box"
+    ],
+    "confidence": "high"
+   },
+   "note": "Table 1 core lengths; 7.0m@2.76 is inside 19.0m@1.86 and itself contains 3.0m@5.63; 8.72 g/t over 2.0m is a standalone interval (432-434m)."
+  },
+  {
+   "n": 9,
+   "event_id": "0c27e718bfe7cf70681a9a220d09c9f1fe63b57387c584f2faf14fe58126169b",
+   "ticker": "GSTR.CN",
+   "published_at": "2025-07-23T15:12:40+00:00",
+   "stratum": "no_row",
+   "body_sha1": "05a32db951ded90f7f3a790fcd71d51ee7c82c83",
+   "review": "draft",
+   "expect": {
+    "is_result": false,
+    "sample_type": "grab",
+    "intercepts": [],
+    "complete": true,
+    "projects": [
+     "Wildhorse Property",
+     "Wildhorse",
+     "Wildhorse Project"
+    ],
+    "confidence": "high"
+   },
+   "note": "Rock grab sample assays only, no drilling; text cut off before any values."
+  },
+  {
+   "n": 10,
+   "event_id": "e3136df8a6c3021729b7d3ce3cd35dc359b25ff2",
+   "ticker": "GTCH.CN",
+   "published_at": "2022-11-15T12:00:00Z",
+   "stratum": "row:Au",
+   "body_sha1": "5c732e852ed9d8cd5c6c931dd86f013bfc7387f3",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "drill",
+    "intercepts": [
+     {
+      "hole": "FCG22-22",
+      "length_m": 56.6,
+      "grade": 3.0,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false,
+      "alt_lengths": [
+       59.3
+      ]
+     },
+     {
+      "hole": "FCG22-22",
+      "length_m": 8.1,
+      "grade": 8.8,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "FCG22-22",
+      "length_m": 21.7,
+      "grade": 2.4,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "FCG22-22",
+      "length_m": 5.3,
+      "grade": 7.1,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "FCG22-22",
+      "length_m": 41.6,
+      "grade": 0.8,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "FCG22-22",
+      "length_m": 25.8,
+      "grade": 1.1,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     }
+    ],
+    "complete": true,
+    "projects": [
+     "Fondaway Canyon",
+     "Fondaway Canyon project",
+     "Fondaway Canyon Gold project"
+    ],
+    "confidence": "medium"
+   },
+   "note": "New assays for FCG22-22 only (FCG22-17 to 21 and 2002 holes are previously reported/historical); headline says 59.3 m but body twice says 56.6 m for the 3.0 g/t interval, body value used."
+  },
+  {
+   "n": 11,
+   "event_id": "f3b288ae8ba0bec9a6d4691f53bd5ca60828bc45198a6951a3614213a25560d3",
+   "ticker": "CCR.CN",
+   "published_at": "2022-11-02T13:17:02+00:00",
+   "stratum": "row:other",
+   "body_sha1": "72ddcca6fc7ce60a051461e4794f86d6c72d9ed8",
+   "review": "draft",
+   "expect": {
+    "is_result": false,
+    "sample_type": "drill",
+    "intercepts": [],
+    "complete": true,
+    "projects": [
+     "Quesnel Nickel Project",
+     "Quesnel Nickel"
+    ],
+    "confidence": "high"
+   },
+   "note": "Handheld XRF scans of Winkie drill core only (0.355% Ni over 7 m is XRF), no lab assays; backpack drill results previously reported."
+  },
+  {
+   "n": 12,
+   "event_id": "9ab2d7aee001e4c66a55c47e89439cb032808f2aac987a5692f7f31ea70e2a5d",
+   "ticker": "MOC.CN",
+   "published_at": "2023-04-11T13:20:56+00:00",
+   "stratum": "row:other",
+   "body_sha1": "765c5aa836ee4380c68c3b123b5d2421be489c4e",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "drill",
+    "intercepts": [
+     {
+      "hole": "GA-23-12",
+      "length_m": 15.0,
+      "grade": 0.16,
+      "unit": "%",
+      "metal": "Ni",
+      "including": false
+     },
+     {
+      "hole": "GA-23-12",
+      "length_m": 6.0,
+      "grade": 0.21,
+      "unit": "%",
+      "metal": "Ni",
+      "including": false
+     },
+     {
+      "hole": "GA-23-12",
+      "length_m": 12.0,
+      "grade": 0.17,
+      "unit": "%",
+      "metal": "Ni",
+      "including": false
+     },
+     {
+      "hole": "GA-23-12",
+      "length_m": 39.0,
+      "grade": 0.18,
+      "unit": "%",
+      "metal": "Ni",
+      "including": false
+     },
+     {
+      "hole": "GA-23-13",
+      "length_m": 159.5,
+      "grade": 0.23,
+      "unit": "%",
+      "metal": "Ni",
+      "including": false
+     },
+     {
+      "hole": "GA-23-13",
+      "length_m": 96.5,
+      "grade": 0.25,
+      "unit": "%",
+      "metal": "Ni",
+      "including": true
+     },
+     {
+      "hole": "GA-23-13",
+      "length_m": 51.0,
+      "grade": 0.26,
+      "unit": "%",
+      "metal": "Ni",
+      "including": true
+     },
+     {
+      "hole": "GA-23-14",
+      "length_m": 31.5,
+      "grade": 0.13,
+      "unit": "%",
+      "metal": "Ni",
+      "including": false
+     }
+    ],
+    "complete": true,
+    "projects": [
+     "Gaboury",
+     "Gaboury project"
+    ],
+    "confidence": "high"
+   },
+   "note": "Four-hole program at Pike West showing; table uses decimal commas (0,23 -> 0.23); GA-23-15 weakly mineralized with no interval; text cut off after intercepts."
+  },
+  {
+   "n": 13,
+   "event_id": "c321e5f6787df7ce7c7e73f17976d6a6190bf099",
+   "ticker": "MINK.V",
+   "published_at": "2026-03-11T12:00:00Z",
+   "stratum": "row:other",
+   "body_sha1": "046311eaff6fe51358407bb83c99ec250e97be01",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "drill",
+    "intercepts": [
+     {
+      "hole": "W-26-10",
+      "length_m": 8.5,
+      "grade": 0.09,
+      "unit": "%",
+      "metal": "Ni",
+      "including": false
+     },
+     {
+      "hole": "W-26-10",
+      "length_m": 8.5,
+      "grade": 0.23,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "W-26-10",
+      "length_m": 8.5,
+      "grade": 0.01,
+      "unit": "%",
+      "metal": "Co",
+      "including": false
+     },
+     {
+      "hole": "W-26-10",
+      "length_m": 4.0,
+      "grade": 0.12,
+      "unit": "%",
+      "metal": "Ni",
+      "including": true
+     },
+     {
+      "hole": "W-26-10",
+      "length_m": 4.0,
+      "grade": 0.37,
+      "unit": "%",
+      "metal": "Cu",
+      "including": true
+     },
+     {
+      "hole": "W-26-10",
+      "length_m": 4.0,
+      "grade": 0.02,
+      "unit": "%",
+      "metal": "Co",
+      "including": true
+     },
+     {
+      "hole": "W-26-11",
+      "length_m": 11.2,
+      "grade": 0.06,
+      "unit": "%",
+      "metal": "Ni",
+      "including": false
+     },
+     {
+      "hole": "W-26-11",
+      "length_m": 11.2,
+      "grade": 0.14,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "W-26-11",
+      "length_m": 11.2,
+      "grade": 0.01,
+      "unit": "%",
+      "metal": "Co",
+      "including": false
+     },
+     {
+      "hole": "W-26-12",
+      "length_m": 9.5,
+      "grade": 0.07,
+      "unit": "%",
+      "metal": "Ni",
+      "including": false
+     },
+     {
+      "hole": "W-26-12",
+      "length_m": 9.5,
+      "grade": 0.17,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "W-26-12",
+      "length_m": 9.5,
+      "grade": 0.01,
+      "unit": "%",
+      "metal": "Co",
+      "including": false
+     },
+     {
+      "hole": "W-26-13",
+      "length_m": 12.0,
+      "grade": 0.29,
+      "unit": "%",
+      "metal": "Ni",
+      "including": false
+     },
+     {
+      "hole": "W-26-13",
+      "length_m": 12.0,
+      "grade": 0.24,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "W-26-13",
+      "length_m": 12.0,
+      "grade": 0.04,
+      "unit": "%",
+      "metal": "Co",
+      "including": false
+     },
+     {
+      "hole": "W-26-13",
+      "length_m": 7.1,
+      "grade": 0.44,
+      "unit": "%",
+      "metal": "Ni",
+      "including": true
+     },
+     {
+      "hole": "W-26-13",
+      "length_m": 7.1,
+      "grade": 0.28,
+      "unit": "%",
+      "metal": "Cu",
+      "including": true
+     },
+     {
+      "hole": "W-26-13",
+      "length_m": 7.1,
+      "grade": 0.06,
+      "unit": "%",
+      "metal": "Co",
+      "including": true
+     },
+     {
+      "hole": "W-26-13",
+      "length_m": 4.0,
+      "grade": 0.58,
+      "unit": "%",
+      "metal": "Ni",
+      "including": true
+     },
+     {
+      "hole": "W-26-13",
+      "length_m": 4.0,
+      "grade": 0.18,
+      "unit": "%",
+      "metal": "Cu",
+      "including": true
+     },
+     {
+      "hole": "W-26-13",
+      "length_m": 4.0,
+      "grade": 0.08,
+      "unit": "%",
+      "metal": "Co",
+      "including": true
+     },
+     {
+      "hole": "W-26-14",
+      "length_m": 18.0,
+      "grade": 0.1,
+      "unit": "%",
+      "metal": "Ni",
+      "including": false
+     },
+     {
+      "hole": "W-26-14",
+      "length_m": 18.0,
+      "grade": 0.16,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "W-26-14",
+      "length_m": 18.0,
+      "grade": 0.02,
+      "unit": "%",
+      "metal": "Co",
+      "including": false
+     },
+     {
+      "hole": "W-26-14",
+      "length_m": 7.0,
+      "grade": 0.12,
+      "unit": "%",
+      "metal": "Ni",
+      "including": true
+     },
+     {
+      "hole": "W-26-14",
+      "length_m": 7.0,
+      "grade": 0.19,
+      "unit": "%",
+      "metal": "Cu",
+      "including": true
+     },
+     {
+      "hole": "W-26-14",
+      "length_m": 7.0,
+      "grade": 0.02,
+      "unit": "%",
+      "metal": "Co",
+      "including": true
+     },
+     {
+      "hole": "W-26-14",
+      "length_m": 5.5,
+      "grade": 0.13,
+      "unit": "%",
+      "metal": "Ni",
+      "including": true
+     },
+     {
+      "hole": "W-26-14",
+      "length_m": 5.5,
+      "grade": 0.2,
+      "unit": "%",
+      "metal": "Cu",
+      "including": true
+     },
+     {
+      "hole": "W-26-14",
+      "length_m": 5.5,
+      "grade": 0.02,
+      "unit": "%",
+      "metal": "Co",
+      "including": true
+     },
+     {
+      "hole": "W-26-15",
+      "length_m": 2.0,
+      "grade": 0.15,
+      "unit": "%",
+      "metal": "Ni",
+      "including": false
+     },
+     {
+      "hole": "W-26-16",
+      "length_m": 11.4,
+      "grade": 0.06,
+      "unit": "%",
+      "metal": "Ni",
+      "including": false
+     },
+     {
+      "hole": "W-26-16",
+      "length_m": 11.4,
+      "grade": 0.11,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "W-26-16",
+      "length_m": 11.4,
+      "grade": 0.01,
+      "unit": "%",
+      "metal": "Co",
+      "including": false
+     },
+     {
+      "hole": "W-26-17A",
+      "length_m": 5.6,
+      "grade": 0.23,
+      "unit": "%",
+      "metal": "Ni",
+      "including": false
+     },
+     {
+      "hole": "W-26-17A",
+      "length_m": 5.6,
+      "grade": 0.09,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "W-26-17A",
+      "length_m": 5.6,
+      "grade": 0.03,
+      "unit": "%",
+      "metal": "Co",
+      "including": false
+     },
+     {
+      "hole": "W-26-17A",
+      "length_m": 2.5,
+      "grade": 0.35,
+      "unit": "%",
+      "metal": "Ni",
+      "including": true
+     },
+     {
+      "hole": "W-26-17A",
+      "length_m": 2.5,
+      "grade": 0.14,
+      "unit": "%",
+      "metal": "Cu",
+      "including": true
+     },
+     {
+      "hole": "W-26-17A",
+      "length_m": 2.5,
+      "grade": 0.06,
+      "unit": "%",
+      "metal": "Co",
+      "including": true
+     }
+    ],
+    "complete": false,
+    "projects": [
+     "Warren",
+     "Warren Property",
+     "Warren Ni Cu Co Property"
+    ],
+    "confidence": "medium"
+   },
+   "note": "16 table intervals x Ni/Cu/Co = 48 entries, capped at 40 by Ni grade x length (dropped W-26-17A 0.65 m, W-26-15 3.0 m, and Cu/Co of W-26-15 2.0 m); W-26-12 Ni written '0/07' read as 0.07; grab, bulk and historical values excluded."
+  },
+  {
+   "n": 14,
+   "event_id": "e415ff37fbbd5bb6c0b091554c197cfe175f5e23",
+   "ticker": "ILI.V",
+   "published_at": "2025-01-15T12:00:00Z",
+   "stratum": "row:other",
+   "body_sha1": "ab1c4ee0a7b820d33bec004100945ab6d29833d1",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "mixed",
+    "intercepts": [
+     {
+      "hole": "JP-24-42",
+      "length_m": 11.5,
+      "grade": 1.08,
+      "unit": "%",
+      "metal": "Li2O",
+      "including": false
+     },
+     {
+      "hole": "JP-24-42",
+      "length_m": 8.0,
+      "grade": 1.46,
+      "unit": "%",
+      "metal": "Li2O",
+      "including": true
+     },
+     {
+      "hole": "JP-24-42",
+      "length_m": 8.8,
+      "grade": 0.81,
+      "unit": "%",
+      "metal": "Li2O",
+      "including": false
+     },
+     {
+      "hole": "JP-24-42",
+      "length_m": 5.05,
+      "grade": 1.14,
+      "unit": "%",
+      "metal": "Li2O",
+      "including": true
+     }
+    ],
+    "complete": true,
+    "projects": [
+     "Jackpot",
+     "Jackpot Project",
+     "Jackpot lithium project",
+     "Casino Royale"
+    ],
+    "confidence": "high"
+   },
+   "note": "New diamond drill assays from JP-24-42 plus channel CH24-01 (1.61% over 7.80 m) and grab samples, which are excluded."
+  },
+  {
+   "n": 15,
+   "event_id": "989080d568af8f7d5eeb2e1b80b8ab0fcccac6184bf8b7173bf126a918def76a",
+   "ticker": "ABRA.TO",
+   "published_at": "2026-06-15T11:30:00",
+   "stratum": "row:Cu|CuEq",
+   "body_sha1": "f14a305ae5e7cd9b84829a6b2f8eecece9d24acb",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "drill",
+    "intercepts": [
+     {
+      "hole": "DDH-LC26-010",
+      "length_m": 747.5,
+      "grade": 0.69,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "DDH-LC26-010",
+      "length_m": 747.5,
+      "grade": 0.06,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "DDH-LC26-010",
+      "length_m": 747.5,
+      "grade": 142.0,
+      "unit": "ppm",
+      "metal": "Mo",
+      "including": false
+     },
+     {
+      "hole": "DDH-LC26-010",
+      "length_m": 747.5,
+      "grade": 3.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "DDH-LC26-010",
+      "length_m": 108.0,
+      "grade": 1.06,
+      "unit": "%",
+      "metal": "Cu",
+      "including": true
+     },
+     {
+      "hole": "DDH-LC26-010",
+      "length_m": 108.0,
+      "grade": 0.1,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "DDH-LC26-010",
+      "length_m": 108.0,
+      "grade": 204.0,
+      "unit": "ppm",
+      "metal": "Mo",
+      "including": true
+     },
+     {
+      "hole": "DDH-LC26-010",
+      "length_m": 108.0,
+      "grade": 6.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": true
+     },
+     {
+      "hole": "DDH-LC26-010",
+      "length_m": 184.0,
+      "grade": 0.78,
+      "unit": "%",
+      "metal": "Cu",
+      "including": true
+     },
+     {
+      "hole": "DDH-LC26-010",
+      "length_m": 184.0,
+      "grade": 0.09,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "DDH-LC26-010",
+      "length_m": 184.0,
+      "grade": 123.0,
+      "unit": "ppm",
+      "metal": "Mo",
+      "including": true
+     },
+     {
+      "hole": "DDH-LC26-010",
+      "length_m": 184.0,
+      "grade": 3.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": true
+     },
+     {
+      "hole": "DDH-LC26-010",
+      "length_m": 20.0,
+      "grade": 1.05,
+      "unit": "%",
+      "metal": "Cu",
+      "including": true
+     },
+     {
+      "hole": "DDH-LC26-010",
+      "length_m": 20.0,
+      "grade": 0.13,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "DDH-LC26-010",
+      "length_m": 20.0,
+      "grade": 147.0,
+      "unit": "ppm",
+      "metal": "Mo",
+      "including": true
+     },
+     {
+      "hole": "DDH-LC26-010",
+      "length_m": 20.0,
+      "grade": 4.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": true
+     },
+     {
+      "hole": "DDH-LC26-011",
+      "length_m": 250.6,
+      "grade": 0.39,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "DDH-LC26-011",
+      "length_m": 250.6,
+      "grade": 0.07,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "DDH-LC26-011",
+      "length_m": 250.6,
+      "grade": 119.0,
+      "unit": "ppm",
+      "metal": "Mo",
+      "including": false
+     },
+     {
+      "hole": "DDH-LC26-011",
+      "length_m": 250.6,
+      "grade": 3.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "DDH-LC26-011",
+      "length_m": 220.0,
+      "grade": 0.42,
+      "unit": "%",
+      "metal": "Cu",
+      "including": true
+     },
+     {
+      "hole": "DDH-LC26-011",
+      "length_m": 220.0,
+      "grade": 0.08,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "DDH-LC26-011",
+      "length_m": 220.0,
+      "grade": 127.0,
+      "unit": "ppm",
+      "metal": "Mo",
+      "including": true
+     },
+     {
+      "hole": "DDH-LC26-011",
+      "length_m": 220.0,
+      "grade": 3.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": true
+     },
+     {
+      "hole": "DDH-LC26-012",
+      "length_m": 42.0,
+      "grade": 1.03,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "DDH-LC26-012",
+      "length_m": 42.0,
+      "grade": 0.63,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "DDH-LC26-012",
+      "length_m": 42.0,
+      "grade": 2.0,
+      "unit": "ppm",
+      "metal": "Mo",
+      "including": false
+     },
+     {
+      "hole": "DDH-LC26-012",
+      "length_m": 42.0,
+      "grade": 41.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "DDH-LC26-012",
+      "length_m": 28.0,
+      "grade": 1.45,
+      "unit": "%",
+      "metal": "Cu",
+      "including": true
+     },
+     {
+      "hole": "DDH-LC26-012",
+      "length_m": 28.0,
+      "grade": 0.81,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "DDH-LC26-012",
+      "length_m": 28.0,
+      "grade": 2.0,
+      "unit": "ppm",
+      "metal": "Mo",
+      "including": true
+     },
+     {
+      "hole": "DDH-LC26-012",
+      "length_m": 28.0,
+      "grade": 45.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": true
+     },
+     {
+      "hole": "DDH-LC26-012",
+      "length_m": 66.0,
+      "grade": 0.28,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "DDH-LC26-012",
+      "length_m": 66.0,
+      "grade": 0.04,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "DDH-LC26-012",
+      "length_m": 66.0,
+      "grade": 1.0,
+      "unit": "ppm",
+      "metal": "Mo",
+      "including": false
+     },
+     {
+      "hole": "DDH-LC26-012",
+      "length_m": 66.0,
+      "grade": 3.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "DDH-LC26-012",
+      "length_m": 78.0,
+      "grade": 0.39,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "DDH-LC26-012",
+      "length_m": 78.0,
+      "grade": 0.24,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "DDH-LC26-012",
+      "length_m": 78.0,
+      "grade": 1.0,
+      "unit": "ppm",
+      "metal": "Mo",
+      "including": false
+     },
+     {
+      "hole": "DDH-LC26-012",
+      "length_m": 78.0,
+      "grade": 4.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     }
+    ],
+    "complete": false,
+    "projects": [
+     "La Coipita",
+     "La Coipita Project"
+    ],
+    "confidence": "medium"
+   },
+   "note": "15 table intervals x Cu/Au/Mo/Ag = 60 entries, capped at 40 by Cu grade x length; headline 748 m is rounded 747.5 m; holes written DDH-LC26-010 in text but DDH-LC26-10 in table."
+  },
+  {
+   "n": 16,
+   "event_id": "aab787d96524a638772147db4ca0ec592957363f",
+   "ticker": "BOL.V",
+   "published_at": "2026-09-08T12:00:00Z",
+   "stratum": "no_row",
+   "body_sha1": "6cc32faa20308d46aea3063a6486916468caaa7f",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "drill",
+    "intercepts": [
+     {
+      "hole": "WC-26-03",
+      "length_m": 2.28,
+      "grade": 3.96,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "WC-26-03",
+      "length_m": 0.69,
+      "grade": 11.4,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     }
+    ],
+    "complete": true,
+    "projects": [
+     "Wilcorp",
+     "Wilcorp Property"
+    ],
+    "confidence": "low"
+   },
+   "note": "Only WC-26-03 stated; lede cut off before Table 2 gold results, so other intercepts may exist; 2012/2024 grab samples excluded."
+  },
+  {
+   "n": 17,
+   "event_id": "96c9bb234e33318b8a40c35848ae7ccdf037d21a",
+   "ticker": "STCU.CN",
+   "published_at": "2023-01-23T12:00:00Z",
+   "stratum": "row:Cu|CuEq",
+   "body_sha1": "f1f213b4ea692f0413a73a5715cfa360a3c32021",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "drill",
+    "intercepts": [
+     {
+      "hole": "IN22-80",
+      "length_m": 36.0,
+      "grade": 0.11,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "IN22-81",
+      "length_m": 106.0,
+      "grade": 0.13,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "IN22-81",
+      "length_m": 32.0,
+      "grade": 0.21,
+      "unit": "%",
+      "metal": "Cu",
+      "including": true
+     },
+     {
+      "hole": "IN22-82",
+      "length_m": 258.0,
+      "grade": 0.19,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "IN22-82",
+      "length_m": 170.7,
+      "grade": 0.23,
+      "unit": "%",
+      "metal": "Cu",
+      "including": true
+     },
+     {
+      "hole": "IN22-82",
+      "length_m": 26.0,
+      "grade": 0.47,
+      "unit": "%",
+      "metal": "Cu",
+      "including": true
+     },
+     {
+      "hole": "IN22-82",
+      "length_m": 40.0,
+      "grade": 0.3,
+      "unit": "%",
+      "metal": "Cu",
+      "including": true
+     },
+     {
+      "hole": "IN22-82",
+      "length_m": 42.0,
+      "grade": 0.24,
+      "unit": "%",
+      "metal": "Cu",
+      "including": true
+     },
+     {
+      "hole": "IN22-82",
+      "length_m": 26.0,
+      "grade": 0.28,
+      "unit": "%",
+      "metal": "Cu",
+      "including": true
+     },
+     {
+      "hole": "IN22-85",
+      "length_m": 28.4,
+      "grade": 0.22,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "IN22-85",
+      "length_m": 17.0,
+      "grade": 0.2,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "IN22-74",
+      "length_m": 30.8,
+      "grade": 0.1,
+      "unit": "%",
+      "metal": "Mo",
+      "including": false
+     },
+     {
+      "hole": "IN22-74",
+      "length_m": 30.8,
+      "grade": 0.16,
+      "unit": "%",
+      "metal": "MoS2Eq",
+      "including": false
+     },
+     {
+      "hole": "IN22-74",
+      "length_m": 7.5,
+      "grade": 0.32,
+      "unit": "%",
+      "metal": "Mo",
+      "including": true
+     },
+     {
+      "hole": "IN22-74",
+      "length_m": 7.5,
+      "grade": 0.51,
+      "unit": "%",
+      "metal": "MoS2Eq",
+      "including": true
+     }
+    ],
+    "complete": true,
+    "projects": [
+     "Indata",
+     "Indata Project"
+    ],
+    "confidence": "medium"
+   },
+   "note": "Highlights say 173.6 m @ 0.23% Cu and 28.9 m @ 0.47% Cu but table gives 170.7 m and 26.0 m (173.6/28.9 are 'To' depths), table lengths used; MoS2 eq entered as MoS2Eq."
+  },
+  {
+   "n": 18,
+   "event_id": "8fa2a4f5297b8fa17be6031547df00f3853fb06b",
+   "ticker": "GSRI.CN",
+   "published_at": "2023-10-19T12:00:00Z",
+   "stratum": "row:Au",
+   "body_sha1": "7c42cb28fe7fbcfa5972eb9263b140195d3dcbbe",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "drill",
+    "intercepts": [
+     {
+      "hole": "MN-23-RC005",
+      "length_m": 14.0,
+      "grade": 1.0,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "MN-23-RC005",
+      "length_m": 11.0,
+      "grade": 1.27,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "MN-23-RC008",
+      "length_m": 7.0,
+      "grade": 7.5,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "MN-23-RC008",
+      "length_m": 4.0,
+      "grade": 13.06,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "MN-23-RC009",
+      "length_m": 4.0,
+      "grade": 1.79,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "MN-23-RC010",
+      "length_m": 5.0,
+      "grade": 1.86,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "MN-23-RC010",
+      "length_m": 1.0,
+      "grade": 7.4,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": null,
+      "length_m": 15.0,
+      "grade": 0.94,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     }
+    ],
+    "complete": true,
+    "projects": [
+     "Marudi Mountain",
+     "Marudi Mountain Property",
+     "Marudi Mountain gold project"
+    ],
+    "confidence": "medium"
+   },
+   "note": "RC assays; headline '15 m at 0.94 g/t Au' appears nowhere in lede or Table 1 (kept, hole null); RC009 grade 1.78 in highlights vs 1.79 in table, table used."
+  },
+  {
+   "n": 19,
+   "event_id": "c5f96a7fea33c6c6a6c52424b9133c4aedf4684e",
+   "ticker": "KLDC.V",
+   "published_at": "2026-01-22T12:00:00Z",
+   "stratum": "row:Au",
+   "body_sha1": "fe82a73a4bb952b0c7f42459780f35f106d4bf6c",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "drill",
+    "intercepts": [
+     {
+      "hole": "KLD25-39",
+      "length_m": 6.3,
+      "grade": 0.62,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "KLD25-40",
+      "length_m": 8.3,
+      "grade": 0.86,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "KLD25-40",
+      "length_m": 5.5,
+      "grade": 1.21,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     }
+    ],
+    "complete": true,
+    "projects": [
+     "KL West",
+     "KL West Property"
+    ],
+    "confidence": "medium"
+   },
+   "note": "Assays for KLD25-39/40 at Wolverine Bend in highlights, though body says most samples still being prepared for lab; lede cut off."
+  },
+  {
+   "n": 20,
+   "event_id": "964e4463714ab4619dfac0061489665d5f8e5e93",
+   "ticker": "KLD.V",
+   "published_at": "2025-12-16T12:00:00Z",
+   "stratum": "no_row",
+   "body_sha1": "6bd596ed30a8a73e4934831e5a8dcff0217fe268",
+   "review": "draft",
+   "expect": {
+    "is_result": false,
+    "sample_type": "none",
+    "intercepts": [],
+    "complete": true,
+    "projects": [
+     "Frotet Project",
+     "Frotet",
+     "Regnault gold deposit",
+     "Regnault"
+    ],
+    "confidence": "high"
+   },
+   "note": "Maiden inferred resource estimate for the Regnault deposit (royalty interest); no new drill assays."
+  },
+  {
+   "n": 21,
+   "event_id": "dbd45f63f4c4641ecd15356308e441537bda79ac",
+   "ticker": "AUXX.V",
+   "published_at": "2025-05-15T12:00:00Z",
+   "stratum": "row:Au",
+   "body_sha1": "1e2076d2a0bb5a9c2634d7d1e6b38531d540d579",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "drill",
+    "intercepts": [
+     {
+      "hole": "MQD-25-175",
+      "length_m": 9.45,
+      "grade": 6.02,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "MQD-25-175",
+      "length_m": 2.45,
+      "grade": 22.2,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "MQD-25-175",
+      "length_m": 0.7,
+      "grade": 3.57,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "MQD-25-176",
+      "length_m": 13.0,
+      "grade": 2.3,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "MQD-25-176",
+      "length_m": 3.0,
+      "grade": 9.0,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "MQD-25-176",
+      "length_m": 10.0,
+      "grade": 1.17,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "MQD-25-176",
+      "length_m": 4.0,
+      "grade": 2.67,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "MQD-25-177",
+      "length_m": 3.5,
+      "grade": 2.72,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "MQD-25-177",
+      "length_m": 0.4,
+      "grade": 9.67,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "MQD-25-177",
+      "length_m": 2.75,
+      "grade": 3.33,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "MQD-25-177",
+      "length_m": 3.0,
+      "grade": 3.54,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "MQD-25-177",
+      "length_m": 1.0,
+      "grade": 7.28,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "MQD-25-146",
+      "length_m": 0.3,
+      "grade": 5.37,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "MQD-25-146",
+      "length_m": 3.35,
+      "grade": 0.93,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "MQD-25-146",
+      "length_m": 2.25,
+      "grade": 1.17,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "MQD-25-149",
+      "length_m": 4.06,
+      "grade": 1.08,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "MQD-25-150",
+      "length_m": 5.0,
+      "grade": 0.44,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "MQD-25-163",
+      "length_m": 0.3,
+      "grade": 5.86,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "MQD-25-168",
+      "length_m": 0.9,
+      "grade": 11.9,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     }
+    ],
+    "complete": true,
+    "projects": [
+     "Moss Gold Project",
+     "Moss",
+     "Moss Deposit"
+    ],
+    "confidence": "medium"
+   },
+   "note": "New Superion-area drill assays; MQD-25-148 and MQD-22-014 are previously reported and excluded; MQD-25-176 top interval is 13.0 m in highlights but 9.0 m in body (used 13.0); lede cut off."
+  },
+  {
+   "n": 22,
+   "event_id": "d5124cc50c70cf6e4de04d135b45da5264beb310",
+   "ticker": "PRR.CN",
+   "published_at": "2021-12-08T12:00:00Z",
+   "stratum": "row:AuEq",
+   "body_sha1": "9c260484a0cd5b3258d12614b9e21c8aed417284",
+   "review": "draft",
+   "expect": {
+    "is_result": false,
+    "sample_type": "channel",
+    "intercepts": [],
+    "complete": true,
+    "projects": [
+     "Knauss Creek property",
+     "Knauss Creek"
+    ],
+    "confidence": "high"
+   },
+   "note": "Channel, chip and grab rock samples only plus historical surface assays; no drilling."
+  },
+  {
+   "n": 23,
+   "event_id": "c38322ee7be4e9cfc52e43c41864d7ebf055535aa3c28f0113ac6095a2aca40b",
+   "ticker": "BLLG.CN",
+   "published_at": "2021-09-22T16:59:57",
+   "stratum": "row:AuEq",
+   "body_sha1": "a4ead0d5a96366d3461359eadf6f7e49576a5340",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "drill",
+    "intercepts": [
+     {
+      "hole": "DM-21-177",
+      "length_m": 0.65,
+      "grade": 47.09,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": false
+     },
+     {
+      "hole": "DM-21-177",
+      "length_m": 1.37,
+      "grade": 8.05,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": false
+     },
+     {
+      "hole": "DM-21-177",
+      "length_m": 3.55,
+      "grade": 7.71,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": false
+     },
+     {
+      "hole": "DM-21-177",
+      "length_m": 0.75,
+      "grade": 20.3,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": false
+     },
+     {
+      "hole": "DM-21-177",
+      "length_m": 0.8,
+      "grade": 9.22,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": false
+     },
+     {
+      "hole": "DM-21-177",
+      "length_m": 0.33,
+      "grade": 20.81,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": false
+     },
+     {
+      "hole": "DM-21-176",
+      "length_m": 0.55,
+      "grade": 34.05,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": false
+     },
+     {
+      "hole": "DM-21-176",
+      "length_m": 1.5,
+      "grade": 5.5,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": false
+     },
+     {
+      "hole": "DM-21-176",
+      "length_m": 0.33,
+      "grade": 22.32,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": false
+     },
+     {
+      "hole": "DM-21-173",
+      "length_m": 2.4,
+      "grade": 4.45,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": false
+     }
+    ],
+    "complete": true,
+    "projects": [
+     "Dome Mountain Gold Project",
+     "Dome Mountain"
+    ],
+    "confidence": "medium"
+   },
+   "note": "New diamond drill assays reported only as Au eq highlights; Table 1 with per-metal grades is cut off; Chance Creek holes pending."
+  },
+  {
+   "n": 24,
+   "event_id": "a203279b1bbaaff63da10b4fbf699b8b5d5aafa15311046c2e2b6bf523e3c90f",
+   "ticker": "FF.TO",
+   "published_at": "2026-04-29T23:17:12",
+   "stratum": "row:Cu|CuEq",
+   "body_sha1": "bdf030c226cd151e2d520f074974201646959375",
+   "review": "draft",
+   "expect": {
+    "is_result": false,
+    "sample_type": "drill",
+    "intercepts": [],
+    "complete": true,
+    "projects": [
+     "Green Bay Copper-Gold Project",
+     "Green Bay",
+     "Ming Mine"
+    ],
+    "confidence": "medium"
+   },
+   "note": "Quarterly activities report recapping drill results already announced 8 April 2026 (e.g. 70.8m @ 4.0% CuEq in MUG25-096); treated as previously reported."
+  },
+  {
+   "n": 25,
+   "event_id": "d6a65fb10f7fd771190334d4dd6a2e1fa72516e4",
+   "ticker": "MMET.CN",
+   "published_at": "2026-01-22T12:00:00Z",
+   "stratum": "row:Au",
+   "body_sha1": "67284d46f45a5854579607f2bbd8b1a720379292",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "drill",
+    "intercepts": [
+     {
+      "hole": "25DDH-SEL-052",
+      "length_m": 4.3,
+      "grade": 12.49,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "25DDH-SEL-052",
+      "length_m": 1.3,
+      "grade": 29.24,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "25DDH-SEL-052",
+      "length_m": 16.4,
+      "grade": 1.0,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "25DDH-SEL-059",
+      "length_m": 22.7,
+      "grade": 2.23,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "25DDH-SEL-059",
+      "length_m": 15.9,
+      "grade": 2.84,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "25DDH-SEL-050",
+      "length_m": 57.0,
+      "grade": 1.01,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "25DDH-SEL-054",
+      "length_m": 9.0,
+      "grade": 2.2,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "25DDH-SEL-054",
+      "length_m": 17.0,
+      "grade": 0.82,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "25DDH-SEL-054",
+      "length_m": 21.0,
+      "grade": 0.64,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "25DDH-SEL-054",
+      "length_m": 19.0,
+      "grade": 1.01,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "25DDH-SEL-040",
+      "length_m": 11.0,
+      "grade": 0.72,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "25DDH-SEL-040",
+      "length_m": 2.6,
+      "grade": 1.38,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "25DDH-SEL-040",
+      "length_m": 8.1,
+      "grade": 2.21,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "25DDH-SEL-040",
+      "length_m": 3.7,
+      "grade": 3.94,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "25DDH-SEL-041",
+      "length_m": 3.2,
+      "grade": 0.8,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "25DDH-SEL-047",
+      "length_m": 7.1,
+      "grade": 1.8,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "25DDH-SEL-047",
+      "length_m": 3.0,
+      "grade": 1.96,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "25DDH-SEL-047",
+      "length_m": 1.1,
+      "grade": 5.06,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "25DDH-SEL-047",
+      "length_m": 4.0,
+      "grade": 1.17,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "25DDH-SEL-048",
+      "length_m": 4.0,
+      "grade": 0.61,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "25DDH-SEL-048",
+      "length_m": 3.3,
+      "grade": 0.84,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "25DDH-SEL-048",
+      "length_m": 5.0,
+      "grade": 0.6,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "25DDH-SEL-048",
+      "length_m": 14.0,
+      "grade": 1.56,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "25DDH-SEL-048",
+      "length_m": 3.4,
+      "grade": 2.61,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "25DDH-SEL-048",
+      "length_m": 3.0,
+      "grade": 2.58,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "25DDH-SEL-048",
+      "length_m": 5.6,
+      "grade": 0.58,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "25DDH-SEL-048",
+      "length_m": 5.0,
+      "grade": 0.79,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "25DDH-SEL-048",
+      "length_m": 8.4,
+      "grade": 0.8,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "25DDH-SEL-049",
+      "length_m": 6.5,
+      "grade": 0.67,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "25DDH-SEL-049",
+      "length_m": 8.0,
+      "grade": 0.49,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "25DDH-SEL-049",
+      "length_m": 8.0,
+      "grade": 0.66,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "25DDH-SEL-049",
+      "length_m": 4.0,
+      "grade": 1.03,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "25DDH-SEL-049",
+      "length_m": 25.0,
+      "grade": 0.81,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "25DDH-SEL-049",
+      "length_m": 5.0,
+      "grade": 2.25,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "25DDH-SEL-049",
+      "length_m": 4.7,
+      "grade": 0.54,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "25DDH-SEL-049",
+      "length_m": 6.1,
+      "grade": 0.97,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "25DDH-SEL-049",
+      "length_m": 3.0,
+      "grade": 1.77,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     }
+    ],
+    "complete": true,
+    "projects": [
+     "Sela Creek",
+     "Sela Creek Gold Project"
+    ],
+    "confidence": "medium"
+   },
+   "note": "Final 2025 drill assays (Jons Trend, Big Berg); SEL-031 14 m @ 1.72 g/t is previously released and excluded; table uses core intercept not true width and is cut off mid SEL-049."
+  },
+  {
+   "n": 26,
+   "event_id": "e71c0a4e8162c7e89d6f3ede1436a1ad89e94e1a",
+   "ticker": "CUPA.CN",
+   "published_at": "2024-07-24T12:00:00Z",
+   "stratum": "no_row",
+   "body_sha1": "f402442c3b68a837ccf6d2741d4e6715b5a01c1d",
+   "review": "draft",
+   "expect": {
+    "is_result": false,
+    "sample_type": "grab",
+    "intercepts": [],
+    "complete": true,
+    "projects": [
+     "Blue Lake",
+     "Blue Lake Project",
+     "Blue Lake Copper Project"
+    ],
+    "confidence": "high"
+   },
+   "note": "Site-visit grab samples of boulders, outcrop and adit stockpile plus a historical resource; no drilling."
+  },
+  {
+   "n": 27,
+   "event_id": "59e2cc6c0d6f8b24167ed4e706c6e122782c1fa2",
+   "ticker": "CQX.CN",
+   "published_at": "2024-09-20T12:00:00Z",
+   "stratum": "no_row",
+   "body_sha1": "48f00e22541bca4fe82607df282c95b408bfdf7f",
+   "review": "draft",
+   "expect": {
+    "is_result": false,
+    "sample_type": "none",
+    "intercepts": [],
+    "complete": true,
+    "projects": [
+     "Thane Copper Gold Project",
+     "Thane Project",
+     "Thane"
+    ],
+    "confidence": "high"
+   },
+   "note": "New showing discovered in field review; rock samples sent to lab with no assays reported."
+  },
+  {
+   "n": 28,
+   "event_id": "2464aa9d198047cf223eac88244ea7076a20c877",
+   "ticker": "EPL.V",
+   "published_at": "2026-08-17T12:00:00Z",
+   "stratum": "no_row",
+   "body_sha1": "f16c7b379a964e6b413d8750f74227d0456bdff1",
+   "review": "draft",
+   "expect": {
+    "is_result": false,
+    "sample_type": "grab",
+    "intercepts": [],
+    "complete": true,
+    "projects": [
+     "Pine Channel Gold Project",
+     "Pine Channel",
+     "Pine Channel Property"
+    ],
+    "confidence": "high"
+   },
+   "note": "2026 grab/chip rock sampling only; drill intercepts quoted (GT88-11, PC2-1, Z1-10) are historical."
+  },
+  {
+   "n": 29,
+   "event_id": "0e76781551f0effd192c5054275c16b71c56912f",
+   "ticker": "FMAN.V",
+   "published_at": "2026-01-06T12:00:00Z",
+   "stratum": "no_row",
+   "body_sha1": "38fc1312bb61a1a79eddc4f8065278f0ff5b8cf8",
+   "review": "draft",
+   "expect": {
+    "is_result": false,
+    "sample_type": "drill",
+    "intercepts": [],
+    "complete": true,
+    "projects": [
+     "Lemhi Gold Project",
+     "Lemhi"
+    ],
+    "confidence": "high"
+   },
+   "note": "Year-end 2025 recap; the 8.0 m @ 3.1 g/t Au intercept was released in earlier news releases."
+  },
+  {
+   "n": 30,
+   "event_id": "fe2d1004e9297d844623cc9c4e9fd8589fa5b95d",
+   "ticker": "TOC.CN",
+   "published_at": "2021-06-15T12:00:00Z",
+   "stratum": "row:AuEq",
+   "body_sha1": "648cff3efe17ec7dda3e26286f90d0a5b8bc17f0",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "drill",
+    "intercepts": [
+     {
+      "hole": "JES-21-40",
+      "length_m": 57.96,
+      "grade": 0.19,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "JES-21-40",
+      "length_m": 57.96,
+      "grade": 1.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "JES-21-40",
+      "length_m": 57.96,
+      "grade": 0.2,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": false
+     },
+     {
+      "hole": "JES-21-41",
+      "length_m": 3.04,
+      "grade": 0.36,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "JES-21-41",
+      "length_m": 3.04,
+      "grade": 17.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "JES-21-41",
+      "length_m": 3.04,
+      "grade": 0.54,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": false
+     },
+     {
+      "hole": "JES-21-41",
+      "length_m": 4.57,
+      "grade": 0.39,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "JES-21-41",
+      "length_m": 4.57,
+      "grade": 4.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "JES-21-41",
+      "length_m": 4.57,
+      "grade": 0.43,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": false
+     },
+     {
+      "hole": "JES-21-41",
+      "length_m": 1.52,
+      "grade": 0.47,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "JES-21-41",
+      "length_m": 1.52,
+      "grade": 7.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "JES-21-41",
+      "length_m": 1.52,
+      "grade": 0.54,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": false
+     },
+     {
+      "hole": "JES-21-41",
+      "length_m": 12.19,
+      "grade": 0.19,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "JES-21-41",
+      "length_m": 12.19,
+      "grade": 4.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "JES-21-41",
+      "length_m": 12.19,
+      "grade": 0.24,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": false
+     },
+     {
+      "hole": "JES-21-42",
+      "length_m": 1.52,
+      "grade": 0.46,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "JES-21-42",
+      "length_m": 1.52,
+      "grade": 5.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "JES-21-42",
+      "length_m": 1.52,
+      "grade": 0.51,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": false
+     },
+     {
+      "hole": "JES-21-43",
+      "length_m": 35.1,
+      "grade": 0.66,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "JES-21-43",
+      "length_m": 35.1,
+      "grade": 6.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "JES-21-43",
+      "length_m": 35.1,
+      "grade": 0.72,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": false
+     },
+     {
+      "hole": "JES-21-43",
+      "length_m": 13.7,
+      "grade": 1.7,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "JES-21-43",
+      "length_m": 3.1,
+      "grade": 6.8,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "JES-21-43",
+      "length_m": 3.1,
+      "grade": 7.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": true
+     },
+     {
+      "hole": "JES-21-43",
+      "length_m": 7.6,
+      "grade": 17.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": true
+     }
+    ],
+    "complete": true,
+    "projects": [
+     "Pilar",
+     "Pilar Gold-Silver Project",
+     "Pilar Property"
+    ],
+    "confidence": "medium"
+   },
+   "note": "New Phase II RC assays for 4 holes; JES-21-43 taken from highlight text, other holes from Table 1 (JES-21-41 bottom interval AuEq is 0.28 in text vs 0.24 in table); Phase I and historic intercepts excluded."
+  },
+  {
+   "n": 31,
+   "event_id": "62dcb47b6fb416a867f3948aae5dabc0beaedd80",
+   "ticker": "SVRS.V",
+   "published_at": "2026-07-22T12:00:00Z",
+   "stratum": "row:Ag|AgEq",
+   "body_sha1": "0e08634ed9f88bbc7d7a9935ed40b988c5d71d15",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "drill",
+    "intercepts": [
+     {
+      "hole": "IDP-SM-26-003A",
+      "length_m": 3.7,
+      "grade": 661.0,
+      "unit": "g/t",
+      "metal": "AgEq",
+      "including": false
+     },
+     {
+      "hole": "IDP-SM-26-003A",
+      "length_m": 1.6,
+      "grade": 1231.0,
+      "unit": "g/t",
+      "metal": "AgEq",
+      "including": true
+     },
+     {
+      "hole": "EDP-SM-26-006",
+      "length_m": 15.35,
+      "grade": 328.0,
+      "unit": "g/t",
+      "metal": "AgEq",
+      "including": false
+     },
+     {
+      "hole": "EDP-SM-26-006",
+      "length_m": 2.0,
+      "grade": 1461.0,
+      "unit": "g/t",
+      "metal": "AgEq",
+      "including": true
+     },
+     {
+      "hole": "IDP-SM-26-015",
+      "length_m": 3.9,
+      "grade": 617.0,
+      "unit": "g/t",
+      "metal": "AgEq",
+      "including": false
+     },
+     {
+      "hole": "IDP-SM-26-015",
+      "length_m": 1.9,
+      "grade": 969.0,
+      "unit": "g/t",
+      "metal": "AgEq",
+      "including": true
+     },
+     {
+      "hole": "IDP-SM-26-010",
+      "length_m": 5.05,
+      "grade": 366.0,
+      "unit": "g/t",
+      "metal": "AgEq",
+      "including": false
+     },
+     {
+      "hole": "IDP-SM-26-010",
+      "length_m": 1.7,
+      "grade": 554.0,
+      "unit": "g/t",
+      "metal": "AgEq",
+      "including": true
+     },
+     {
+      "hole": "IDP-SM-26-002",
+      "length_m": 8.05,
+      "grade": 221.0,
+      "unit": "g/t",
+      "metal": "AgEq",
+      "including": false
+     },
+     {
+      "hole": "IDP-SM-26-002",
+      "length_m": 1.5,
+      "grade": 744.0,
+      "unit": "g/t",
+      "metal": "AgEq",
+      "including": true
+     },
+     {
+      "hole": "IDP-SM-26-017",
+      "length_m": 2.85,
+      "grade": 468.0,
+      "unit": "g/t",
+      "metal": "AgEq",
+      "including": false
+     },
+     {
+      "hole": "IDP-SM-26-017",
+      "length_m": 1.0,
+      "grade": 728.0,
+      "unit": "g/t",
+      "metal": "AgEq",
+      "including": true
+     },
+     {
+      "hole": "IDP-SM-26-018",
+      "length_m": 1.2,
+      "grade": 399.0,
+      "unit": "g/t",
+      "metal": "AgEq",
+      "including": false
+     },
+     {
+      "hole": "IDP-SM-26-018",
+      "length_m": 5.0,
+      "grade": 241.0,
+      "unit": "g/t",
+      "metal": "AgEq",
+      "including": false
+     }
+    ],
+    "complete": true,
+    "projects": [
+     "La Parrilla",
+     "La Parrilla Silver Mine Complex",
+     "San Marcos"
+    ],
+    "confidence": "high"
+   },
+   "note": "New underground diamond drill results at San Marcos, lengths are drilled lengths (ETW given separately); headline 3.7 m and 15.4 m are the same intercepts rounded; Table 1 not in text."
+  },
+  {
+   "n": 32,
+   "event_id": "349f36758f7ac85a6c0973093e089cae457f7563",
+   "ticker": "AG.TO",
+   "published_at": "2025-08-18T12:00:00Z",
+   "stratum": "row:Au",
+   "body_sha1": "d4ee3e0e046b046ef0a66602e95b66768be57259",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "drill",
+    "intercepts": [
+     {
+      "hole": "ELI25X-1",
+      "length_m": 3.57,
+      "grade": 15.93,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "ELI25X-1",
+      "length_m": 3.57,
+      "grade": 1112.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "SIN25X-5",
+      "length_m": 5.17,
+      "grade": 7.66,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "SIN25X-5",
+      "length_m": 5.17,
+      "grade": 495.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "SJE25-4",
+      "length_m": 3.2,
+      "grade": 7.86,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "SJE25-4",
+      "length_m": 3.2,
+      "grade": 193.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "ELI25X-17",
+      "length_m": 1.06,
+      "grade": 23.7,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "ELI25X-17",
+      "length_m": 1.06,
+      "grade": 578.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "STE25X-20",
+      "length_m": 2.53,
+      "grade": 9.65,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "STE25X-20",
+      "length_m": 2.53,
+      "grade": 121.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "ROT25X-10",
+      "length_m": 1.52,
+      "grade": 6.4,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "ROT25X-10",
+      "length_m": 1.52,
+      "grade": 472.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "COR25X-2",
+      "length_m": 2.12,
+      "grade": 2.59,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "COR25X-2",
+      "length_m": 2.12,
+      "grade": 327.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "SIN25X-9",
+      "length_m": 2.12,
+      "grade": 8.38,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "SIN25X-9",
+      "length_m": 2.12,
+      "grade": 242.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "ROT25X-12",
+      "length_m": 3.78,
+      "grade": 1.66,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "ROT25X-12",
+      "length_m": 3.78,
+      "grade": 168.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "ROT25X-7",
+      "length_m": 0.77,
+      "grade": 7.37,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "ROT25X-7",
+      "length_m": 0.77,
+      "grade": 689.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "STE25X-9",
+      "length_m": 3.38,
+      "grade": 2.44,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "STE25X-9",
+      "length_m": 3.38,
+      "grade": 120.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "STE25X-6",
+      "length_m": 1.01,
+      "grade": 6.79,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "STE25X-6",
+      "length_m": 1.01,
+      "grade": 463.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     }
+    ],
+    "complete": true,
+    "projects": [
+     "San Dimas",
+     "San Dimas Silver/Gold Mine"
+    ],
+    "confidence": "medium"
+   },
+   "note": "New 2025 exploration drill results; only true lengths are written (From/To only imply core length), so true lengths used; text cut off at Table 2 so further intercepts may exist."
+  },
+  {
+   "n": 33,
+   "event_id": "243944dfef005ddd33c8771b2cb07133d1c05cd0",
+   "ticker": "NEXU.CN",
+   "published_at": "2020-12-15T12:00:00Z",
+   "stratum": "row:Au",
+   "body_sha1": "26c370a725d99f57f09463a57cae64104936176e",
+   "review": "draft",
+   "expect": {
+    "is_result": false,
+    "sample_type": "drill",
+    "intercepts": [],
+    "complete": true,
+    "projects": [
+     "Independence",
+     "Independence project"
+    ],
+    "confidence": "low"
+   },
+   "note": "Previously unreleased assays from 12 RC holes drilled in 2017 by a previous operator (called historic), not company drilling; if counted, AGEI-02 270 ft = 82.296 m at 1.10 g/t Au etc."
+  },
+  {
+   "n": 34,
+   "event_id": "0ebd8e39f0ea89798541a13d68809b8255357e49",
+   "ticker": "EPL.V",
+   "published_at": "2025-12-01T12:00:00Z",
+   "stratum": "row:Au",
+   "body_sha1": "f5a59d5115ebe6723c990221ca5b74dc7bd93072",
+   "review": "draft",
+   "expect": {
+    "is_result": false,
+    "sample_type": "grab",
+    "intercepts": [],
+    "complete": true,
+    "projects": [
+     "Bulldog",
+     "Bulldog Property",
+     "Bulldog Gold-Silver Project"
+    ],
+    "confidence": "high"
+   },
+   "note": "Only 2025 rock chip and grab samples (29.9 g/t Au over 1.8 m is a rock chip); drill intercepts quoted are historical."
+  },
+  {
+   "n": 35,
+   "event_id": "ab7587e7be2d7e7081ac63da3c4c275dc116c500",
+   "ticker": "MKO.V",
+   "published_at": "2025-02-05T12:00:00Z",
+   "stratum": "row:Au",
+   "body_sha1": "c84745d127acbf1f259c802d67d35a019b9f841b",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "mixed",
+    "intercepts": [
+     {
+      "hole": "EMD24-pitgeotech015",
+      "length_m": 16.0,
+      "grade": 2.93,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false,
+      "alt_lengths": [
+       15.4
+      ]
+     },
+     {
+      "hole": "EMD24-pitgeotech011",
+      "length_m": 31.5,
+      "grade": 3.73,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "EMD24-310",
+      "length_m": 18.0,
+      "grade": 1.08,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     }
+    ],
+    "complete": true,
+    "projects": [
+     "Eagle Mountain",
+     "Eagle Mountain Gold Project",
+     "Salbora",
+     "Salbora Deposit"
+    ],
+    "confidence": "medium"
+   },
+   "note": "New geotechnical/infill drill assays plus a channel sample (SACH24-001, excluded); pitgeotech015 uses 16.0 m drilled length, headline 15.4 m is ETW; text cut off."
+  },
+  {
+   "n": 36,
+   "event_id": "7b40ee3a6013ac72bc0c0788ac8f9fb2b3b984eab451cd20422914b03397a784",
+   "ticker": "ATMY.CN",
+   "published_at": "2026-03-03T04:00:00+00:00",
+   "stratum": "row:other",
+   "body_sha1": "a0f1eb732c30434c9315478aa35f77ee6d78fd60",
+   "review": "draft",
+   "expect": {
+    "is_result": false,
+    "sample_type": "none",
+    "intercepts": [],
+    "complete": true,
+    "projects": [
+     "Bald Hill",
+     "Bald Hill Antimony Project"
+    ],
+    "confidence": "high"
+   },
+   "note": "Drilling update with visual stibnite descriptions only, no assays; 2010 trench result is historical."
+  },
+  {
+   "n": 37,
+   "event_id": "c3660f3b927cc72bda27021b884aa497d44cf8ea",
+   "ticker": "MARI.TO",
+   "published_at": "2025-07-03T12:00:00Z",
+   "stratum": "row:Cu|CuEq",
+   "body_sha1": "1beebe1e57d395efdf66233e75aa4f456dfe4ec0",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "drill",
+    "intercepts": [
+     {
+      "hole": "SMRD-13",
+      "length_m": 100.0,
+      "grade": 1.3,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "SMRD-13",
+      "length_m": 26.0,
+      "grade": 4.1,
+      "unit": "%",
+      "metal": "Cu",
+      "including": true
+     },
+     {
+      "hole": "SMRD-13",
+      "length_m": 6.0,
+      "grade": 12.0,
+      "unit": "%",
+      "metal": "Cu",
+      "including": true
+     },
+     {
+      "hole": "SMD-02",
+      "length_m": 132.0,
+      "grade": 1.0,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "SMD-02",
+      "length_m": 40.0,
+      "grade": 2.1,
+      "unit": "%",
+      "metal": "Cu",
+      "including": true
+     },
+     {
+      "hole": "SMD-01",
+      "length_m": 22.0,
+      "grade": 1.7,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "SMRD-12",
+      "length_m": 56.0,
+      "grade": 1.4,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "SMD-03",
+      "length_m": 42.0,
+      "grade": 0.72,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     }
+    ],
+    "complete": true,
+    "projects": [
+     "Pampa Medina",
+     "Pampa Medina deposit"
+    ],
+    "confidence": "medium"
+   },
+   "note": "New diamond drill assays; SMD-01 68 m/20 m and all SMR-01 intercepts marked previously reported and excluded; nested within-intervals flagged including; text cut off."
+  },
+  {
+   "n": 38,
+   "event_id": "af414917ee2691e9024da28226586387fc250022",
+   "ticker": "FYL.V",
+   "published_at": "2026-01-26T12:00:00Z",
+   "stratum": "row:Cu|CuEq",
+   "body_sha1": "e6849f95b8aeacd00705b4279743c45daafa0d59",
+   "review": "draft",
+   "expect": {
+    "is_result": false,
+    "sample_type": "surface",
+    "intercepts": [],
+    "complete": true,
+    "projects": [
+     "SAY",
+     "SAY Project",
+     "SAY Property"
+    ],
+    "confidence": "high"
+   },
+   "note": "Rock, soil and biogeochemical surface sampling only; the 21.7 m chip-sample result is 2024 surface work."
+  },
+  {
+   "n": 39,
+   "event_id": "566cbbec3ddc1c8fb223b5fceb94d9a52b0318c81f9394bab3e68622958ea3d4",
+   "ticker": "CAP.CN",
+   "published_at": "2025-06-16T04:00:00+00:00",
+   "stratum": "no_row",
+   "body_sha1": "5d085c192ba04212a24e435d9b9f7aa7e5dc8087",
+   "review": "draft",
+   "expect": {
+    "is_result": false,
+    "sample_type": "none",
+    "intercepts": [],
+    "complete": true,
+    "projects": [
+     "Destiny",
+     "Destiny gold property"
+    ],
+    "confidence": "high"
+   },
+   "note": "Planned drill holes and MRE details only; 26.6 and 17.5 g/t Au grades are historical from a previous operator with no lengths."
+  },
+  {
+   "n": 40,
+   "event_id": "78945faaaa125e19f2a50b14e72d3c88375ecf98065a3b229a448cbdb0c911e6",
+   "ticker": "JTWO.V",
+   "published_at": "2026-05-04T09:00:00",
+   "stratum": "no_row",
+   "body_sha1": "b47854e4db53f9235a03b5df64b33b1faed76fdf",
+   "review": "draft",
+   "expect": {
+    "is_result": false,
+    "sample_type": "grab",
+    "intercepts": [],
+    "complete": true,
+    "projects": [
+     "Sierra Plata",
+     "Sierra Plata Project"
+    ],
+    "confidence": "high"
+   },
+   "note": "Grab samples from historic mine dumps only (up to 845.4 g/t AgEq); drill permitting just started; Miniac 0.3m intercept is historical."
+  },
+  {
+   "n": 41,
+   "event_id": "170f502b8ed1ec0dc59699ed43a894da8d56eae2",
+   "ticker": "SKP.V",
+   "published_at": "2026-02-26T12:00:00Z",
+   "stratum": "no_row",
+   "body_sha1": "7638721753762dfefa28d9f0ed2b76a03b963dd1",
+   "review": "draft",
+   "expect": {
+    "is_result": false,
+    "sample_type": "none",
+    "intercepts": [],
+    "complete": true,
+    "projects": [
+     "Hercules Gold Project",
+     "Hercules"
+    ],
+    "confidence": "high"
+   },
+   "note": "Drill program commencement; grades quoted are an Exploration Target and historic surface samples, results expected April 2026."
+  },
+  {
+   "n": 42,
+   "event_id": "e8e0aaf481bd072cc8519dd64843d7db",
+   "ticker": "PGOL.CN",
+   "published_at": "2011-10-17",
+   "stratum": "no_row",
+   "body_sha1": "1583bfab2e8b6c196b4611ed34ba3c63edbd90dd",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "drill",
+    "intercepts": [],
+    "complete": true,
+    "projects": [
+     "Moss Mine Project",
+     "Moss Mine",
+     "Moss"
+    ],
+    "confidence": "low"
+   },
+   "note": "Headline announces final Phase 1 drill hole results but the lede is cut off after the disclaimer, so no intercepts are available."
+  },
+  {
+   "n": 43,
+   "event_id": "78f5e1ec5561747895f31eded34e7bd96c7b7f2b",
+   "ticker": "IRV.CN",
+   "published_at": "2020-02-07T12:00:00Z",
+   "stratum": "row:Au",
+   "body_sha1": "4f65ddb743b3d6b84ee1e4bfb8c4f56477629170",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "drill",
+    "intercepts": [
+     {
+      "hole": "19OMI-010",
+      "length_m": 3.0,
+      "grade": 27.0,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 3.0,
+      "grade": 40.5,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 3.0,
+      "grade": 27.5,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": false
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 3.77,
+      "grade": 12.3,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 3.77,
+      "grade": 84.5,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 3.77,
+      "grade": 13.3,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": false
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 2.01,
+      "grade": 21.4,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 2.01,
+      "grade": 111.4,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": true
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 2.01,
+      "grade": 22.7,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": true
+     },
+     {
+      "hole": "19OMI-009",
+      "length_m": 0.8,
+      "grade": 46.3,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "19OMI-009",
+      "length_m": 0.8,
+      "grade": 22.1,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "19OMI-009",
+      "length_m": 0.8,
+      "grade": 46.6,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": false
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 1.1,
+      "grade": 29.6,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 1.1,
+      "grade": 36.5,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 1.1,
+      "grade": 30.0,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": false
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 0.3,
+      "grade": 96.5,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 0.3,
+      "grade": 65.7,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": true
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 0.3,
+      "grade": 97.3,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": true
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 0.62,
+      "grade": 38.5,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 0.62,
+      "grade": 128.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": true
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 0.62,
+      "grade": 40.0,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": true
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 1.05,
+      "grade": 14.1,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 1.05,
+      "grade": 37.6,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 1.05,
+      "grade": 14.5,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": false
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 9.75,
+      "grade": 1.3,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 9.75,
+      "grade": 60.6,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 9.75,
+      "grade": 2.0,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": false
+     },
+     {
+      "hole": "19OMI-009",
+      "length_m": 3.7,
+      "grade": 3.1,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "19OMI-009",
+      "length_m": 3.7,
+      "grade": 28.2,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "19OMI-009",
+      "length_m": 3.7,
+      "grade": 3.4,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": false
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 1.97,
+      "grade": 4.8,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 1.97,
+      "grade": 29.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 1.97,
+      "grade": 5.1,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": false
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 1.2,
+      "grade": 7.8,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 1.2,
+      "grade": 887.5,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 1.2,
+      "grade": 18.3,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": false
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 2.3,
+      "grade": 3.8,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 2.3,
+      "grade": 55.9,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 2.3,
+      "grade": 4.4,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": false
+     },
+     {
+      "hole": "19OMI-010",
+      "length_m": 3.6,
+      "grade": 2.3,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     }
+    ],
+    "complete": false,
+    "projects": [
+     "Omu Gold Project",
+     "Omu",
+     "Omui Mine",
+     "Omui"
+    ],
+    "confidence": "medium"
+   },
+   "note": "New assays for 19OMI-009/-010: 36 table rows x Au/Ag/AuEq = 108 entries, top 40 kept by Au grade x length; 19OMI-008 no significant values; text cut off."
+  },
+  {
+   "n": 44,
+   "event_id": "82f02738e5ce896b914861a2bc552d3ce44171c8",
+   "ticker": "USA.TO",
+   "published_at": "2025-08-22T12:00:00Z",
+   "stratum": "row:Ag|AgEq",
+   "body_sha1": "6d44d9fb2688222fc17da32b5243892028900dc1",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "drill",
+    "intercepts": [
+     {
+      "hole": "43-317",
+      "length_m": 0.21,
+      "grade": 24913,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "43-317",
+      "length_m": 0.21,
+      "grade": 16.9,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "43-304",
+      "length_m": 1.05,
+      "grade": 2816,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "43-304",
+      "length_m": 1.05,
+      "grade": 2.0,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "43-304",
+      "length_m": 1.05,
+      "grade": 1.05,
+      "unit": "%",
+      "metal": "Sb",
+      "including": false
+     },
+     {
+      "hole": "43-316",
+      "length_m": 1.58,
+      "grade": 2354,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "43-316",
+      "length_m": 1.58,
+      "grade": 1.7,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     }
+    ],
+    "complete": true,
+    "projects": [
+     "Galena Complex",
+     "Galena Mine"
+    ],
+    "confidence": "high"
+   },
+   "note": "Underground exploration drilling on 149 Vein extension; three holes listed, Sb pending on 43-316/317; full table only via external PDF."
+  },
+  {
+   "n": 45,
+   "event_id": "e7059d3eaff6a58e07f95151fab8eee9021df528",
+   "ticker": "TOC.CN",
+   "published_at": "2022-03-02T12:00:00Z",
+   "stratum": "no_row",
+   "body_sha1": "4a597e39e9fda98f606211dc61102fe396b338d3",
+   "review": "draft",
+   "expect": {
+    "is_result": false,
+    "sample_type": "none",
+    "intercepts": [],
+    "complete": true,
+    "projects": [
+     "Pilar",
+     "Pilar Au-Ag Project",
+     "Pilar Gold-Silver property"
+    ],
+    "confidence": "high"
+   },
+   "note": "Corporate update with Phase III drill results pending; all intercepts quoted are previously reported 2020/2021 RC or historic drilling."
+  },
+  {
+   "n": 46,
+   "event_id": "8df6b4f1c4e14a31ac5fcbc7e6327e956f5cbd9e",
+   "ticker": "BULL.CN",
+   "published_at": "2020-09-29T12:00:00Z",
+   "stratum": "row:other",
+   "body_sha1": "9b9a167ad3fe0f47aa2846453f6e7b89dff122ff",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "drill",
+    "intercepts": [
+     {
+      "hole": "EB20-21",
+      "length_m": 65.0,
+      "grade": 0.417,
+      "unit": "g/t",
+      "metal": "Pd",
+      "including": false
+     },
+     {
+      "hole": "EB20-21",
+      "length_m": 65.0,
+      "grade": 0.173,
+      "unit": "g/t",
+      "metal": "Pt",
+      "including": false
+     },
+     {
+      "hole": "EB20-21",
+      "length_m": 65.0,
+      "grade": 0.039,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "EB20-21",
+      "length_m": 65.0,
+      "grade": 0.112,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "EB20-21",
+      "length_m": 65.0,
+      "grade": 0.059,
+      "unit": "%",
+      "metal": "Ni",
+      "including": false
+     },
+     {
+      "hole": "EB20-21",
+      "length_m": 65.0,
+      "grade": 0.007,
+      "unit": "%",
+      "metal": "Co",
+      "including": false
+     },
+     {
+      "hole": "EB20-21",
+      "length_m": 65.0,
+      "grade": 0.63,
+      "unit": "g/t",
+      "metal": "PGM+Au",
+      "including": false
+     },
+     {
+      "hole": "EB20-21",
+      "length_m": 65.0,
+      "grade": 1.07,
+      "unit": "g/t",
+      "metal": "PdEq",
+      "including": false
+     },
+     {
+      "hole": "EB20-22",
+      "length_m": 71.0,
+      "grade": 0.406,
+      "unit": "g/t",
+      "metal": "Pd",
+      "including": false
+     },
+     {
+      "hole": "EB20-22",
+      "length_m": 71.0,
+      "grade": 0.155,
+      "unit": "g/t",
+      "metal": "Pt",
+      "including": false
+     },
+     {
+      "hole": "EB20-22",
+      "length_m": 71.0,
+      "grade": 0.044,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "EB20-22",
+      "length_m": 71.0,
+      "grade": 0.133,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "EB20-22",
+      "length_m": 71.0,
+      "grade": 0.066,
+      "unit": "%",
+      "metal": "Ni",
+      "including": false
+     },
+     {
+      "hole": "EB20-22",
+      "length_m": 71.0,
+      "grade": 0.008,
+      "unit": "%",
+      "metal": "Co",
+      "including": false
+     },
+     {
+      "hole": "EB20-22",
+      "length_m": 71.0,
+      "grade": 0.6,
+      "unit": "g/t",
+      "metal": "PGM+Au",
+      "including": false
+     },
+     {
+      "hole": "EB20-22",
+      "length_m": 71.0,
+      "grade": 1.1,
+      "unit": "g/t",
+      "metal": "PdEq",
+      "including": false
+     },
+     {
+      "hole": "EB20-22",
+      "length_m": 30.0,
+      "grade": 0.439,
+      "unit": "g/t",
+      "metal": "Pd",
+      "including": true
+     },
+     {
+      "hole": "EB20-22",
+      "length_m": 30.0,
+      "grade": 0.171,
+      "unit": "g/t",
+      "metal": "Pt",
+      "including": true
+     },
+     {
+      "hole": "EB20-22",
+      "length_m": 30.0,
+      "grade": 0.059,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "EB20-22",
+      "length_m": 30.0,
+      "grade": 0.196,
+      "unit": "%",
+      "metal": "Cu",
+      "including": true
+     },
+     {
+      "hole": "EB20-22",
+      "length_m": 30.0,
+      "grade": 0.082,
+      "unit": "%",
+      "metal": "Ni",
+      "including": true
+     },
+     {
+      "hole": "EB20-22",
+      "length_m": 30.0,
+      "grade": 0.008,
+      "unit": "%",
+      "metal": "Co",
+      "including": true
+     },
+     {
+      "hole": "EB20-22",
+      "length_m": 30.0,
+      "grade": 0.67,
+      "unit": "g/t",
+      "metal": "PGM+Au",
+      "including": true
+     },
+     {
+      "hole": "EB20-22",
+      "length_m": 30.0,
+      "grade": 1.34,
+      "unit": "g/t",
+      "metal": "PdEq",
+      "including": true
+     },
+     {
+      "hole": "EB20-23",
+      "length_m": 54.0,
+      "grade": 0.424,
+      "unit": "g/t",
+      "metal": "Pd",
+      "including": false
+     },
+     {
+      "hole": "EB20-23",
+      "length_m": 54.0,
+      "grade": 0.154,
+      "unit": "g/t",
+      "metal": "Pt",
+      "including": false
+     },
+     {
+      "hole": "EB20-23",
+      "length_m": 54.0,
+      "grade": 0.042,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "EB20-23",
+      "length_m": 54.0,
+      "grade": 0.09,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "EB20-23",
+      "length_m": 54.0,
+      "grade": 0.042,
+      "unit": "%",
+      "metal": "Ni",
+      "including": false
+     },
+     {
+      "hole": "EB20-23",
+      "length_m": 54.0,
+      "grade": 0.006,
+      "unit": "%",
+      "metal": "Co",
+      "including": false
+     },
+     {
+      "hole": "EB20-23",
+      "length_m": 54.0,
+      "grade": 0.62,
+      "unit": "g/t",
+      "metal": "PGM+Au",
+      "including": false
+     },
+     {
+      "hole": "EB20-23",
+      "length_m": 54.0,
+      "grade": 0.97,
+      "unit": "g/t",
+      "metal": "PdEq",
+      "including": false
+     },
+     {
+      "hole": "EB20-24",
+      "length_m": 11.0,
+      "grade": 0.983,
+      "unit": "g/t",
+      "metal": "Pd",
+      "including": false
+     },
+     {
+      "hole": "EB20-24",
+      "length_m": 11.0,
+      "grade": 0.272,
+      "unit": "g/t",
+      "metal": "Pt",
+      "including": false
+     },
+     {
+      "hole": "EB20-24",
+      "length_m": 11.0,
+      "grade": 0.063,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "EB20-24",
+      "length_m": 11.0,
+      "grade": 0.164,
+      "unit": "%",
+      "metal": "Cu",
+      "including": false
+     },
+     {
+      "hole": "EB20-24",
+      "length_m": 11.0,
+      "grade": 0.072,
+      "unit": "%",
+      "metal": "Ni",
+      "including": false
+     },
+     {
+      "hole": "EB20-24",
+      "length_m": 11.0,
+      "grade": 0.008,
+      "unit": "%",
+      "metal": "Co",
+      "including": false
+     },
+     {
+      "hole": "EB20-24",
+      "length_m": 11.0,
+      "grade": 1.326,
+      "unit": "g/t",
+      "metal": "PGM+Au",
+      "including": false
+     },
+     {
+      "hole": "EB20-24",
+      "length_m": 11.0,
+      "grade": 1.92,
+      "unit": "g/t",
+      "metal": "PdEq",
+      "including": false
+     }
+    ],
+    "complete": true,
+    "projects": [
+     "East Bull Palladium Project",
+     "East Bull"
+    ],
+    "confidence": "medium"
+   },
+   "note": "Table widths used (EB20-21 65.0 m, EB20-23 54.0 m) though lede says 66.0 m and 55.0 m; '2PGM+Au' column written as PGM+Au; Rh not yet included in PdEq."
+  },
+  {
+   "n": 47,
+   "event_id": "7d7e3656be3e74c306cb975a096f9705474e00cf",
+   "ticker": "MLP.V",
+   "published_at": "2025-09-16T12:00:00Z",
+   "stratum": "row:other",
+   "body_sha1": "9489a00d589579b2aef9e8217b5d5e0bc9f86a9d",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "drill",
+    "intercepts": [
+     {
+      "hole": "BA-001-EXT",
+      "length_m": 155.7,
+      "grade": 9.51,
+      "unit": "%",
+      "metal": "KCl",
+      "including": false
+     },
+     {
+      "hole": "BA-001-EXT",
+      "length_m": 42.15,
+      "grade": 14.28,
+      "unit": "%",
+      "metal": "KCl",
+      "including": false
+     },
+     {
+      "hole": "BA-001-EXT",
+      "length_m": 16.3,
+      "grade": 14.84,
+      "unit": "%",
+      "metal": "KCl",
+      "including": false
+     },
+     {
+      "hole": "BA-001-EXT",
+      "length_m": 2.65,
+      "grade": 18.15,
+      "unit": "%",
+      "metal": "KCl",
+      "including": false
+     },
+     {
+      "hole": "BA-001-EXT",
+      "length_m": 3.45,
+      "grade": 17.21,
+      "unit": "%",
+      "metal": "KCl",
+      "including": false
+     },
+     {
+      "hole": "BA-001-EXT",
+      "length_m": 10.15,
+      "grade": 13.75,
+      "unit": "%",
+      "metal": "KCl",
+      "including": true
+     },
+     {
+      "hole": "BA-001-EXT",
+      "length_m": 6.79,
+      "grade": 15.86,
+      "unit": "%",
+      "metal": "KCl",
+      "including": true
+     },
+     {
+      "hole": "BA-001-EXT",
+      "length_m": 6.25,
+      "grade": 15.4,
+      "unit": "%",
+      "metal": "KCl",
+      "including": true
+     },
+     {
+      "hole": "BA-001-EXT",
+      "length_m": 6.9,
+      "grade": 16.63,
+      "unit": "%",
+      "metal": "KCl",
+      "including": true
+     },
+     {
+      "hole": "BA-001-EXT",
+      "length_m": 20.45,
+      "grade": 19.11,
+      "unit": "%",
+      "metal": "KCl",
+      "including": true
+     },
+     {
+      "hole": "BA-001-EXT",
+      "length_m": 4.3,
+      "grade": 20.82,
+      "unit": "%",
+      "metal": "KCl",
+      "including": true
+     },
+     {
+      "hole": "BA-001-EXT",
+      "length_m": 24.4,
+      "grade": 14.19,
+      "unit": "%",
+      "metal": "KCl",
+      "including": true
+     },
+     {
+      "hole": "BA-001-EXT",
+      "length_m": 15.0,
+      "grade": 14.43,
+      "unit": "%",
+      "metal": "KCl",
+      "including": true
+     },
+     {
+      "hole": "BA-001-EXT",
+      "length_m": 6.22,
+      "grade": 13.19,
+      "unit": "%",
+      "metal": "KCl",
+      "including": true
+     },
+     {
+      "hole": "BA-001-EXT",
+      "length_m": 1.2,
+      "grade": 19.15,
+      "unit": "%",
+      "metal": "KCl",
+      "including": true
+     },
+     {
+      "hole": "BA-001-EXT",
+      "length_m": 0.85,
+      "grade": 20.1,
+      "unit": "%",
+      "metal": "KCl",
+      "including": true
+     },
+     {
+      "hole": "BA-001-EXT",
+      "length_m": 4.0,
+      "grade": 14.98,
+      "unit": "%",
+      "metal": "KCl",
+      "including": true
+     }
+    ],
+    "complete": true,
+    "projects": [
+     "Banio Potash Project",
+     "Banio"
+    ],
+    "confidence": "medium"
+   },
+   "note": "Cycle intervals (Table 1) plus 13% cut-off seams (Table 2) as including; cumulative sums (220.25 m @ 10.4%, 112.46 m @ 15.92% KCl) excluded as non-contiguous; Cycle IV/III seams duplicate Table 1."
+  },
+  {
+   "n": 48,
+   "event_id": "7c90685d0d55e5c27cfbbb42933c7ea54ad9e083",
+   "ticker": "CMET.CN",
+   "published_at": "2021-06-16T12:00:00Z",
+   "stratum": "row:Au",
+   "body_sha1": "3adb15e3dae2d24210921f9330a5ce7370f214e8",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "drill",
+    "intercepts": [
+     {
+      "hole": "DES21-156",
+      "length_m": 32.8,
+      "grade": 0.59,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "DES21-156",
+      "length_m": 0.8,
+      "grade": 4.89,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "DES21-156",
+      "length_m": 5.25,
+      "grade": 3.68,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "DES21-156",
+      "length_m": 2.1,
+      "grade": 18.64,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "DES21-156",
+      "length_m": 0.45,
+      "grade": 32.67,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "DES21-157",
+      "length_m": 1.85,
+      "grade": 0.8,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "DES21-157",
+      "length_m": 3.86,
+      "grade": 0.72,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "DES21-157",
+      "length_m": 6.35,
+      "grade": 0.58,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "DES21-157",
+      "length_m": 4.45,
+      "grade": 3.79,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "DES21-157",
+      "length_m": 0.8,
+      "grade": 20.36,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "DES21-159",
+      "length_m": 41.0,
+      "grade": 0.53,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "DES21-159",
+      "length_m": 0.9,
+      "grade": 3.62,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "DES21-160",
+      "length_m": 6.2,
+      "grade": 0.6,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "DES21-160",
+      "length_m": 12.7,
+      "grade": 0.83,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "DES21-160",
+      "length_m": 0.9,
+      "grade": 3.74,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "DES21-160",
+      "length_m": 3.55,
+      "grade": 0.98,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "DES21-160",
+      "length_m": 19.0,
+      "grade": 0.55,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "DES21-160",
+      "length_m": 8.0,
+      "grade": 1.57,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "DES21-160",
+      "length_m": 1.0,
+      "grade": 4.99,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "DES21-160",
+      "length_m": 1.0,
+      "grade": 3.68,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "DES21-160",
+      "length_m": 1.25,
+      "grade": 4.88,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "DES21-161",
+      "length_m": 2.65,
+      "grade": 6.97,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "DES21-161",
+      "length_m": 0.95,
+      "grade": 15.8,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "DES21-161",
+      "length_m": 10.65,
+      "grade": 0.93,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "DES21-161",
+      "length_m": 0.65,
+      "grade": 8.8,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "DES21-161",
+      "length_m": 2.5,
+      "grade": 1.47,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "DES21-161",
+      "length_m": 0.6,
+      "grade": 5.12,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "DES21-162",
+      "length_m": 13.7,
+      "grade": 0.51,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "DES21-162",
+      "length_m": 0.55,
+      "grade": 4.7,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "DES21-162",
+      "length_m": 21.0,
+      "grade": 0.98,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "DES21-162",
+      "length_m": 2.3,
+      "grade": 4.48,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "DES21-162",
+      "length_m": 3.1,
+      "grade": 0.82,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     }
+    ],
+    "complete": true,
+    "projects": [
+     "Destiny Project",
+     "Destiny"
+    ],
+    "confidence": "high"
+   },
+   "note": "First assays from 2021 diamond drilling (DAC Zone); 32 table intervals, highlight lines duplicate the table; 0.45 m 'and' row nested in the 2.10 m interval."
+  },
+  {
+   "n": 49,
+   "event_id": "8b01131e16941c4ca8edec290aa64af4c28e8d1e",
+   "ticker": "IRV.CN",
+   "published_at": "2019-12-17T12:00:00Z",
+   "stratum": "no_row",
+   "body_sha1": "1e317fe10f8cf1b777cf55322e956ad869415c2f",
+   "review": "draft",
+   "expect": {
+    "is_result": true,
+    "sample_type": "drill",
+    "intercepts": [
+     {
+      "hole": "19OMI-001",
+      "length_m": 1.0,
+      "grade": 19.25,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "19OMI-001",
+      "length_m": 1.0,
+      "grade": 27.5,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "19OMI-001",
+      "length_m": 1.0,
+      "grade": 19.57,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": false
+     },
+     {
+      "hole": "19OMI-001",
+      "length_m": 1.08,
+      "grade": 4.38,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "19OMI-001",
+      "length_m": 1.08,
+      "grade": 6.15,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "19OMI-001",
+      "length_m": 1.08,
+      "grade": 4.45,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": false
+     },
+     {
+      "hole": "19OMI-001",
+      "length_m": 0.58,
+      "grade": 6.34,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "19OMI-001",
+      "length_m": 0.58,
+      "grade": 8.52,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": true
+     },
+     {
+      "hole": "19OMI-001",
+      "length_m": 0.58,
+      "grade": 6.44,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": true
+     },
+     {
+      "hole": "19OMI-002",
+      "length_m": 12.1,
+      "grade": 1.58,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "19OMI-002",
+      "length_m": 12.1,
+      "grade": 139.9,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "19OMI-002",
+      "length_m": 12.1,
+      "grade": 3.23,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": false
+     },
+     {
+      "hole": "19OMI-002",
+      "length_m": 1.8,
+      "grade": 6.05,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "19OMI-002",
+      "length_m": 1.8,
+      "grade": 808.18,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": true
+     },
+     {
+      "hole": "19OMI-002",
+      "length_m": 1.8,
+      "grade": 15.56,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": true
+     },
+     {
+      "hole": "19OMI-002",
+      "length_m": 0.33,
+      "grade": 28.9,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "19OMI-002",
+      "length_m": 0.33,
+      "grade": 4180.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": true
+     },
+     {
+      "hole": "19OMI-002",
+      "length_m": 0.33,
+      "grade": 78.08,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": true
+     },
+     {
+      "hole": "19OMI-002",
+      "length_m": 1.0,
+      "grade": 1.04,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": false
+     },
+     {
+      "hole": "19OMI-002",
+      "length_m": 1.0,
+      "grade": 326.68,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": false
+     },
+     {
+      "hole": "19OMI-002",
+      "length_m": 1.0,
+      "grade": 4.88,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": false
+     },
+     {
+      "hole": "19OMI-002",
+      "length_m": 0.19,
+      "grade": 3.46,
+      "unit": "g/t",
+      "metal": "Au",
+      "including": true
+     },
+     {
+      "hole": "19OMI-002",
+      "length_m": 0.19,
+      "grade": 1195.0,
+      "unit": "g/t",
+      "metal": "Ag",
+      "including": true
+     },
+     {
+      "hole": "19OMI-002",
+      "length_m": 0.19,
+      "grade": 17.52,
+      "unit": "g/t",
+      "metal": "AuEq",
+      "including": true
+     }
+    ],
+    "complete": true,
+    "projects": [
+     "Omu Gold Project",
+     "Omu",
+     "Omui Mine",
+     "Omui"
+    ],
+    "confidence": "high"
+   },
+   "note": "First assays for 19OMI-001/-002 (8 rows x Au/Ag/AuEq); deep hole 19OMI-010 only visually logged, assays pending."
+  }
+ ]
+}

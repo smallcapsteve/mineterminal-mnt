@@ -13,6 +13,8 @@ scripts = [
     ('/opt/mnt/app/management_backfill.py', 'management_changes'),
     # FACTS_V1 (2026-09-16): incremental facts-store extraction; a no-op until an extractor is registered
     ('/opt/mnt/app/facts_sync.py',          'facts'),
+    # ACCURACY_V1 (2026-09-16): re-measure pages against their accuracy sets at most once per 20 hours; always exits 0
+    ('/opt/mnt/app/accuracy_run.py',        'accuracy'),
 ]
 for path, label in scripts:
     print(f'[sync_structured] running {label} backfill')
