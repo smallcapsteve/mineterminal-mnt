@@ -51,8 +51,14 @@ if [ "$code" != "200" ] || [ "$code2" != "200" ]; then
   exit 3
 fi
 
-cd $LIVE || exit 2
 echo "--- registering and backfilling the reader (the page is untouched until the gate activates it)"
-nohup runuser -u mnt -- $PY facts_sync.py --backfill management > /var/tmp/mnt-mgmt1-backfill.log 2>&1 &
-echo "backfill started, pid $!; watch /var/tmp/mnt-mgmt1-backfill.log"
+# systemd-run, not nohup: a relay session takes its children with it when it ends, and the first
+# attempt was killed before it read a single release.
+systemctl reset-failed mnt-mgmt-backfill 2>/dev/null
+systemd-run --unit=mnt-mgmt-backfill --description='MGMT_V1 1.0.0 backfill' \
+  --working-directory=$LIVE --uid=mnt --gid=mnt --setenv=PYTHONUNBUFFERED=1 \
+  $PY $LIVE/facts_sync.py --backfill management
+sleep 10
+systemctl is-active mnt-mgmt-backfill
+echo "watch it with: journalctl -u mnt-mgmt-backfill -f"
 echo "INSTALL_MGMT_DONE $(date -u +%FT%TZ)"
