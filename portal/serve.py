@@ -34,4 +34,15 @@ except Exception:  # pragma: no cover
     import logging
     logging.getLogger(__name__).exception("drills_api register failed")
 
+
+# MNT_FINANCINGS_API_V1 (2026-09-17): /api/v1/financings JSON for MTP's /financings and
+# company pages. Guarded like the drills hook: if this module ever fails to import, the
+# site still serves.
+try:
+    from portal import financings_api
+    financings_api.register(app)
+except Exception:  # pragma: no cover
+    import logging
+    logging.getLogger(__name__).exception("financings_api register failed")
+
 __all__ = ["app"]
