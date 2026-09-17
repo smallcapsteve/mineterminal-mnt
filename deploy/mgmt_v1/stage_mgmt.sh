@@ -23,18 +23,17 @@ for f in portal/extractors/mgmt_roles.py portal/extractors/management.py portal/
   curl -fsSL "$RAW/$f" -o "$f" || { echo "FAIL fetching $f"; exit 3; }
 done
 
-echo "--- checking what arrived"
+echo "--- every file, byte for byte against the workspace copy"
 cat > $W/SUMS_NEW <<'SUMS'
-e5b3eac1146dce639089414a31d0997252092741a18b59728adcb9a3ad7356ad  portal/extractors/mgmt_roles.py
+1eb50baeb96bcf3263960f0fd3b1f2cc2493593701e428b9d8372939deae7aa9  portal/extractors/mgmt_roles.py
+c7249b14abbec08069b013423cc2418b23779e53d4e4ac9c5374ddfa9339c831  portal/extractors/management.py
+1cfacd527b78fb3ec7e8660c1618b5ddedbaf65ccb122bd60056d9ad7cd9c71a  portal/management_publish.py
+cb2edb3309f3fc4e6d8ed031f99e3a6fb256b72df34942835fc04da875ed5092  portal/accuracy_management.py
 d32a3ac09019db6354fee656d4afd5d0a07da4e455af84b135fda6372c910db6  portal/extractors/__init__.py
 e4c6567cc3caee4045e9edf34896f3ab219a514697cff0193ce16744db7b58a9  sync_structured.py
+c92a6f5a7c27318d86aae648fcac119a0edcad181729688c2599abba2898b9b6  accuracy/sets/management.json
 SUMS
-sha256sum -c --quiet $W/SUMS_NEW && echo "small files: byte-for-byte the workspace copies" \
-  || { echo "NOTE: a small file differs from the workspace copy"; sha256sum -c $W/SUMS_NEW; }
-for f in portal/extractors/management.py portal/management_publish.py portal/accuracy_management.py \
-         accuracy/sets/management.json; do
-  echo "  $(sha256sum $f)"
-done
+sha256sum -c $W/SUMS_NEW || { echo "REFUSED: a file did not arrive as it left the workspace"; exit 3; }
 
 echo "--- accuracy.py: the live file plus the five-line import (the 60 KB file never travels)"
 $PY - <<'PY' || exit 3
