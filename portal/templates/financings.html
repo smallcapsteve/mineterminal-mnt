@@ -66,7 +66,9 @@
       </thead>
       <tbody>
         {% for r in rows %}
-          <tr>
+          {% set _rowi = loop.index %}
+          {% set _det = r["releases"] if r["releases"] is defined and r["releases"]|length >= 2 else none %}
+          <tr{% if _det %} class="dp-has-detail"{% endif %}>
             <td class="fin-ticker">{% set _mtp = r["ticker"] | mtp_url('financings') %}{% if _mtp %}<a class="mtp-co" href="{{ _mtp }}" target="_blank" rel="noopener" title="Open {{ r['ticker'] }} financings on MineTerminalPro">{{ r["ticker"] }}</a>{% else %}{{ r["ticker"] }}{% endif %}</td>
             <td class="fin-date">{{ (r["announced_at"] or "")[:10] }}</td>
             <td class="fin-kind">{{ (r["kind"] or "—") | replace("_", " ") | replace("+", " · ") }}</td>
@@ -81,15 +83,49 @@
               {% if (r["n_tranches"] or 0) > 0 %}
                 <span class="fin-tranches">· {{ r["n_tranches"] }} tranche{% if r["n_tranches"] != 1 %}s{% endif %}</span>
               {% endif %}
+              {% if _det %}<br><button type="button" class="dp-toggle" aria-expanded="false" aria-controls="fin-detail-{{ _rowi }}">{{ _det|length }} releases</button>{% endif %}
             </td>
             <td class="fin-date">
               <a href="/event/{{ r['seed_event_id'] }}">{{ (r["last_update_at"] or "")[:10] }}</a>
             </td>
           </tr>
+          {% if _det %}
+          <tr class="dp-detail" id="fin-detail-{{ _rowi }}" hidden>
+            <td colspan="9" style="padding-top:0;background:#fafafa">
+              <table class="dp-sub">
+                <colgroup><col style="width:11%"><col style="width:15%"><col style="width:11%"><col style="width:11%"><col style="width:8%"><col style="width:44%"></colgroup>
+                <thead><tr><th>Date</th><th>Stage</th><th>Amount</th><th>Closed to date</th><th>Price</th><th>Release</th></tr></thead>
+                <tbody>
+                  {% for d in _det %}
+                  <tr>
+                    <td class="dp-num">{{ d.date }}</td>
+                    <td>{{ d.stage }}{% if d.copy %} <span class="dp-incl-mark">copy</span>{% endif %}</td>
+                    <td class="dp-num">{{ d.amount or "—" }}</td>
+                    <td class="dp-num">{{ d.total or "" }}</td>
+                    <td class="dp-num">{{ d.price or "" }}</td>
+                    <td><a href="/event/{{ d.event_id }}">{{ d.headline or "View" }}</a></td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </td>
+          </tr>
+          {% endif %}
         {% endfor %}
       </tbody>
     </table>
     </div>
   {% endif %}
   {% include "_pager.html" %}
+  <script id="fin-detail-toggle-v1">
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest ? e.target.closest(".dp-toggle") : null;
+    if (!b) return;
+    var row = document.getElementById(b.getAttribute("aria-controls"));
+    if (!row) return;
+    var open = b.getAttribute("aria-expanded") === "true";
+    b.setAttribute("aria-expanded", open ? "false" : "true");
+    row.hidden = open;
+  });
+  </script>
 {% endblock %}

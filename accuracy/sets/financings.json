@@ -1,0 +1,2218 @@
+{
+ "schema": 1,
+ "name": "financings",
+ "tag": "Financings",
+ "status": "confirmed",
+ "created": "2026-09-17",
+ "drafted_by": "Claude sub-agents (headline + first 6,000 chars, without extractor output), guide claude/MNT_FIN_LABEL_GUIDE_2026-09-17.md",
+ "reviewer": "Justin",
+ "reviewed_at": "2026-09-17",
+ "review_process": "Justin marked all 50 Correct in the review page (12:05-12:13Z). Sub-agents then re-read the full text of the 19 cards where the live page disagreed or confidence was low, quoting the settling passage; Claude verified every quote. Justin approved 3 corrections (#7, #17, #25) and 3 exclusions (#13, #38, #41).",
+ "sampling": "seed 20260917; auto_approved, tagged Financings, body >= 300 chars (7,953); stratified by live role: announcement 14, final_close 12, tranche_close 7, upsize 5, amendment 3, terminated 2, mention(deal) 4, mention(no deal) 3",
+ "items": [
+  {
+   "n": 0,
+   "event_id": "de330a613c4f59288e73f084c7a311af36e1a3e7fb0771df47db95a76b70a47d",
+   "ticker": "PNGC.CN",
+   "published_at": "2026-08-10T12:15:00",
+   "stratum": "announcement/1",
+   "body_sha1": "64a02c74b1f98e409045fc89b2681dd6f20d6121",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Loyalist Exploration Limited",
+    "role": "announcement",
+    "deal_types": [
+     "PP"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": 1500000,
+    "amount_offered_alt": [
+     2000000
+    ],
+    "amount_this_close": null,
+    "amount_closed_total": null,
+    "unit_prices": [
+     0.04
+    ],
+    "warrant": null,
+    "conversion_price": null,
+    "same_deal": [
+     "05ec5080bae63090b391d8a6712759a97d042bcd7c290521756fdd2cde8b0e35"
+    ],
+    "not_same_deal": [
+     "fecb3168e2f3e43f65b4d05e0b2bf8575e78276f"
+    ],
+    "confidence": "high",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "Non-brokered PP of up to 37,500,000 shares at $0.04 for up to $1,500,000; company may increase by 12,500,000 shares for up to $500,000 more (alt 2,000,000). The $200,000 shares-for-debt is excluded. Feb 2026 final tranche is an earlier deal; Aug 31 first tranche is this one."
+  },
+  {
+   "n": 1,
+   "event_id": "923d5a3207909b5db2c0cd93485e63b7145ae6b7",
+   "ticker": "PPTA.TO",
+   "published_at": "2025-06-16T12:00:00Z",
+   "stratum": "final_close/1",
+   "body_sha1": "aa29b61aa8baa4217e1901e8769cf11569723c6a",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Perpetua Resources Corp.",
+    "role": "final_close",
+    "deal_types": [
+     "PP"
+    ],
+    "offering": "BROKERED",
+    "currency": "USD",
+    "amount_offered": 425000000,
+    "amount_offered_alt": [
+     325000000,
+     374000000,
+     474000000
+    ],
+    "amount_this_close": 425000000,
+    "amount_closed_total": 425000000,
+    "unit_prices": [
+     13.2
+    ],
+    "warrant": null,
+    "conversion_price": null,
+    "same_deal": [
+     "bf0af84e4a7458efed3582505e12351c47baa9f9"
+    ],
+    "not_same_deal": [
+     "e33c78a68de9da9e9564a65d68199707e60e1cd1"
+    ],
+    "confidence": "medium",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "Closes upsized US$325M underwritten public offering at US$13.20 plus concurrent US$100M Paulson private placement (7,575,757 shares, same price) = US$425M per headline. Underwriters' 15% option unexercised (offering ~US$374M if exercised; the July 14 release reports its exercise). Deal type for the public common-share offering is a judgement call (PP used)."
+  },
+  {
+   "n": 2,
+   "event_id": "e185a57fdc7c11e7eb8f90ba1a109bc46dcb7fd8",
+   "ticker": "PNGC.CN",
+   "published_at": "2020-04-16T12:00:00Z",
+   "stratum": "announcement/1",
+   "body_sha1": "0f4a90fa6d06104094430f7481b989cf238277c9",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": null,
+    "issuer_name": "Golden Birch Resources Inc.",
+    "role": "announcement",
+    "deal_types": [
+     "PP"
+    ],
+    "offering": "BROKERED",
+    "currency": "CAD",
+    "amount_offered": 6000000,
+    "amount_offered_alt": [],
+    "amount_this_close": null,
+    "amount_closed_total": null,
+    "unit_prices": [
+     0.15
+    ],
+    "warrant": {
+     "per_unit": 1,
+     "strike": 0.2,
+     "term_months": 60
+    },
+    "conversion_price": null,
+    "same_deal": [
+     "b8d588ab4e95d4357f8a06f2c909cdcd009e8e3b",
+     "f8fee37b5f9aca51fb9a216681cfb33b003f8c45",
+     "50801703c763bd36a840ec3960faa8b22a30a471"
+    ],
+    "not_same_deal": [],
+    "confidence": "medium",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "Engaged IBK Capital to manage a PP of units at C$0.15 for up to C$6,000,000 (commissions paid to IBK -> brokered); one warrant at C$0.20 for five years. Text shows CSE: GBRX, not PNGC (possible later rename, cannot tell). Context tranches May-Aug 2020 (final total $1.7M) assumed to be this deal from sequence/tranche numbering."
+  },
+  {
+   "n": 3,
+   "event_id": "0e2d01cd6468a79653067c6477203500d93605655b3543209676837e32079632",
+   "ticker": "RISE.CN",
+   "published_at": "2025-10-24T04:00:00+00:00",
+   "stratum": "final_close/1",
+   "body_sha1": "d18530ede61eb7b5be01c77a51af8f900f19c212",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Rise Gold Corp.",
+    "role": "final_close",
+    "deal_types": [
+     "PP"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "USD",
+    "amount_offered": null,
+    "amount_offered_alt": [],
+    "amount_this_close": 7000000,
+    "amount_closed_total": 7000000,
+    "unit_prices": [
+     0.25
+    ],
+    "warrant": {
+     "per_unit": 1,
+     "strike": 0.45,
+     "term_months": 36
+    },
+    "conversion_price": null,
+    "same_deal": [
+     "a4b436976a9a9e5da0f2c240f631521ed81c3033ed4b4715a8cebffd516c9cea"
+    ],
+    "not_same_deal": [
+     "67b90437e5920598b8e2de46e6e027a156120cf5654ae547ab68f6fdf23eb094",
+     "c17e00cf21e713c1111d81a320d43f0866b4bff59325fa4530e9d4e36e4ee846"
+    ],
+    "confidence": "high",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "'closed the non-brokered private placement of units announced in its October 17, 2025 news release' raising US$7,000,000 from 28,000,000 units at US$0.25; warrant at US$0.45 until Oct 24, 2028 (36 months). Close-only release, so amount_offered null. April/May 2025 US$3M deal is separate."
+  },
+  {
+   "n": 4,
+   "event_id": "c833c0a0b7c42e8b8fa1798924627a6c1cf9893e",
+   "ticker": "XGC.V",
+   "published_at": "2025-12-17T12:00:00Z",
+   "stratum": "mention/1",
+   "body_sha1": "32e3a2f154367da0ab939185d84825f8620a91f2",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Xali Gold Corp.",
+    "role": "update",
+    "deal_types": [
+     "PP"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": 1500000,
+    "amount_offered_alt": [],
+    "amount_this_close": null,
+    "amount_closed_total": null,
+    "unit_prices": [
+     0.1
+    ],
+    "warrant": {
+     "per_unit": 0.5,
+     "strike": 0.2,
+     "term_months": 18
+    },
+    "conversion_price": null,
+    "same_deal": [
+     "b52e44a3b2e2dd3f0f1cb299f756655045ae6584",
+     "e72b8638417de2c4f576c577cc13cfbbe348bb33"
+    ],
+    "not_same_deal": [
+     "56fd2b942ae2b7d0b795ebb3c91be01b62bc6db87430d70d820ea743099873b0",
+     "dc01815438b735c7528c43960e57e22759fc0ac4a461207d795a74fe1fb62d29",
+     "c7ac62e16526fc0a163b7aef5b64416764914b8c468fd9aa73c96dce7dd8f0bb"
+    ],
+    "confidence": "medium",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "'plans to close the first tranche of the previously announced non-brokered private placement on December 19' (~C$1M, second tranche ~C$0.5M Dec 23); nothing closed yet, so update. 15,000,000 units at C$0.10 for ~C$1,500,000, half warrant at C$0.20 for 18 months. June 2026 releases are a new deal."
+  },
+  {
+   "n": 5,
+   "event_id": "5e7624add8edd268cd339caa5e54baebe8a1cc57",
+   "ticker": "CAMB.V",
+   "published_at": "2025-11-12T12:00:00Z",
+   "stratum": "mention/0",
+   "body_sha1": "0fe91da6fdd42f33742d889adc7862f3a2a75b11",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": false,
+    "issuer_matches_ticker": null,
+    "issuer_name": "Ascot Resources Ltd.",
+    "role": null,
+    "deal_types": [],
+    "offering": null,
+    "currency": null,
+    "amount_offered": null,
+    "amount_offered_alt": [],
+    "amount_this_close": null,
+    "amount_closed_total": null,
+    "unit_prices": [],
+    "warrant": null,
+    "conversion_price": null,
+    "same_deal": [],
+    "not_same_deal": [],
+    "confidence": null,
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "Q3 2025 results release; the rights offering (announced Nov 7), Oct 2025 Nebari bridge loan, Fiore-assisted $150M equity financing and ~$59M 2025 placement are all recaps of previously announced items, nothing new announced/closed here. Borderline: rights offering terms ($14,871K at $0.01) are restated in full."
+  },
+  {
+   "n": 6,
+   "event_id": "ed1d991fd9fcab8ce16c41b384e1bbebb2a5546d",
+   "ticker": "SLA.CN",
+   "published_at": "2020-12-21T12:00:00Z",
+   "stratum": "tranche_close/1",
+   "body_sha1": "48d98f6c47a2deffada8bde9c387a37811cfe704",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": null,
+    "issuer_name": "Canadian Metals Inc.",
+    "role": "tranche_close",
+    "deal_types": [
+     "PP"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": null,
+    "amount_offered_alt": [],
+    "amount_this_close": 350000,
+    "amount_closed_total": 350000,
+    "unit_prices": [
+     0.08
+    ],
+    "warrant": {
+     "per_unit": 1,
+     "strike": 0.15,
+     "term_months": 24
+    },
+    "conversion_price": null,
+    "same_deal": [
+     "c292bd8b13030b074d04358b55303df5fc2ba83c"
+    ],
+    "not_same_deal": [],
+    "confidence": "medium",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "'completed a first tranche of its previously announced non-brokered private placement' - 4,375,000 units at $0.08 for $350,000, one warrant at $0.15 for 24 months. Text shows CSE: CME, not SLA (possible rename). Sept 2020 PP announcement assumed to be this deal; Feb 2021 $2M close undecidable; Dec 18 debenture amendment not a financing."
+  },
+  {
+   "n": 7,
+   "event_id": "85ede9cf8b39f5e94eba19a5afce2b71f485f572",
+   "ticker": "IRV.CN",
+   "published_at": "2022-07-06T12:00:00Z",
+   "stratum": "announcement/1",
+   "body_sha1": "b1dc2d9d7b05cc7b5545e56b5bd568635e7c866b",
+   "review": "corrected",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Irving Resources Inc.",
+    "role": "update",
+    "deal_types": [
+     "PP"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": null,
+    "amount_offered_alt": [],
+    "amount_this_close": null,
+    "amount_closed_total": null,
+    "unit_prices": [],
+    "warrant": {
+     "per_unit": 0.5,
+     "strike": 1.6,
+     "term_months": 36
+    },
+    "conversion_price": null,
+    "same_deal": [
+     "7bfe20ad37ef4a88b927619397f265971a08ae06"
+    ],
+    "not_same_deal": [],
+    "confidence": "medium",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "Crescat joins as lead strategic investor in the PP of units announced June 20, 2022, investing $1 million for 1 million units (implies $1.00/unit); half warrant at $1.60 for three years. Deal size not stated. Aug 4 'Completion of Non-Brokered Private Placement' (singular) could be a later tranche or a separate deal - skipped.",
+   "review_note": "Release states no unit price ('$1 million ... for 1 million Units'); price removed."
+  },
+  {
+   "n": 8,
+   "event_id": "925f81afb0a1443f1bcb6952895aedd8e85d71b9",
+   "ticker": "EXN.V",
+   "published_at": "2025-04-23T12:00:00Z",
+   "stratum": "upsize/1",
+   "body_sha1": "fed62254be15e31c55541b4503366ae4aeb681cd",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Excellon Resources Inc.",
+    "role": "upsize",
+    "deal_types": [
+     "PP"
+    ],
+    "offering": "BROKERED",
+    "currency": "CAD",
+    "amount_offered": 7000000,
+    "amount_offered_alt": [
+     8000000
+    ],
+    "amount_this_close": null,
+    "amount_closed_total": null,
+    "unit_prices": [
+     0.105
+    ],
+    "warrant": {
+     "per_unit": 0.5,
+     "strike": 0.15,
+     "term_months": 36
+    },
+    "conversion_price": null,
+    "same_deal": [
+     "a09c8885d77036bb6cbc90e5f357a400c86e9a9f",
+     "40bcde647ed912e11ee4d9d06c3b4a7e2cbfe5cf"
+    ],
+    "not_same_deal": [
+     "9191b4c419331d584de051cc6c7b4b24be748038",
+     "112b9b4d576acaf9005c953ebf615d12d69fff03",
+     "e7a15f0610ad0b97ebcf1a4860abd9e800d0539e"
+    ],
+    "confidence": "high",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "'increased the size of its previously announced best efforts private placement from up to C$6,500,000 to up to C$7,000,000' - 66,666,667 units at C$0.105, Red Cloud lead agent; agents' option for ~C$1,000,000 more (alt 8,000,000). Half warrant at C$0.15 for 36 months."
+  },
+  {
+   "n": 9,
+   "event_id": "bcbeba9a19e39b8bcfdc46c6ed3c922d40d5dc28bc896436a5d58fbb27e9a591",
+   "ticker": "ZIGY.CN",
+   "published_at": "2026-06-02T04:00:00+00:00",
+   "stratum": "tranche_close/1",
+   "body_sha1": "ece4be55e9c2f680622a3d3021c1eca5401fb912",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Stardust Metal Corp.",
+    "role": "tranche_close",
+    "deal_types": [
+     "PP",
+     "FT"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": 5260000,
+    "amount_offered_alt": [],
+    "amount_this_close": 2500000,
+    "amount_closed_total": 2500000,
+    "unit_prices": [],
+    "warrant": {
+     "per_unit": 1,
+     "strike": 0.7,
+     "term_months": 24
+    },
+    "conversion_price": null,
+    "same_deal": [
+     "ffcc8754e5473abe84fc9f65af78e7c7be9ed24995dde771c0f0cf1d1a6be0c8",
+     "13507b2818c1e01a37cc5b407e0dda2958194c155110b3f0f4698ec0b19ccb2e"
+    ],
+    "not_same_deal": [],
+    "confidence": "medium",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "First tranche of previously announced non-brokered PP closed for ~$2.5M (~$750,000 FT units + ~$1,750,000 NFT units); premium FT second tranche to follow toward $5.26M total. Issue prices not stated in the text read (insider figures imply ~$0.47 NFT unit); each unit has one warrant at $0.70 for 24 months."
+  },
+  {
+   "n": 10,
+   "event_id": "f6f204e9f18e1b086d15616386bae3fffbc56163",
+   "ticker": "MAV.CN",
+   "published_at": "2022-11-09T12:00:00Z",
+   "stratum": "final_close/1",
+   "body_sha1": "252e2b80ae1324b39f367a42af18cdb0a2c9df25",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": null,
+    "issuer_name": "Victory Resources Corporation",
+    "role": "final_close",
+    "deal_types": [
+     "PP"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": null,
+    "amount_offered_alt": [],
+    "amount_this_close": 172150,
+    "amount_closed_total": 172150,
+    "unit_prices": [
+     0.022
+    ],
+    "warrant": {
+     "per_unit": 1,
+     "strike": 0.05,
+     "term_months": 24
+    },
+    "conversion_price": null,
+    "same_deal": [
+     "5dfe026f29e7722ee813b8d7b6199fceab7fcba1"
+    ],
+    "not_same_deal": [
+     "3adfc2f195160e6b7fd5c90c35866ce2d1fc9240",
+     "42923a721669e2d9cbdf69fdc6f9f20b7a707d38",
+     "f92d20a32081f258be9ca5787e63cfb7d3e7bb0a",
+     "b09f7a9b26726440def70f2e1ee9068001311997",
+     "99697acc5e3162c65d473f946cb321bb2101a3b7",
+     "2a4cfb8075537f2b9b7c1fc2e598662e03067f6b"
+    ],
+    "confidence": "medium",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "'has closed its previously announced non-brokered private placement ... 7,825,000 units at $0.022 ... gross proceeds of $172,150'; unit = one share + one warrant at $0.05 for 2 years. Release says CSE: VR, not MAV (ticker likely post-rename), so issuer_matches_ticker left null; Oct 17 2022 announcement matches $0.022/$0.05 terms."
+  },
+  {
+   "n": 11,
+   "event_id": "3b4c19a584b36c191421ae9abd920e4fc99eef81",
+   "ticker": "VRB.V",
+   "published_at": "2026-04-06T12:00:00Z",
+   "stratum": "announcement/1",
+   "body_sha1": "4e6dc0744639d46aadf8d9586bc2d8894f757109",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "VanadiumCorp Resource Inc.",
+    "role": "announcement",
+    "deal_types": [
+     "PP"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": 700000,
+    "amount_offered_alt": [],
+    "amount_this_close": null,
+    "amount_closed_total": null,
+    "unit_prices": [
+     0.12
+    ],
+    "warrant": {
+     "per_unit": 1,
+     "strike": 0.22,
+     "term_months": 24
+    },
+    "conversion_price": null,
+    "same_deal": [
+     "9775d954b780d14f78a18f972843eef6af7f47d2",
+     "cc3b23c1d752982ae7caab796c8a5a07deef5af5",
+     "ba1c5240ed4bc5332c17f5819905c863c5522438"
+    ],
+    "not_same_deal": [
+     "017d15615133212b7eda12c96f04c794a2c10307",
+     "7d26d9d4a21d6aa54d63cd3a7a75f7d5005dc0d8",
+     "a3846e1590aecb32bb69b7d49999dfdf1b68eb68"
+    ],
+    "confidence": "high",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "'intends to complete a non-brokered private placement ... of up to CAD $700,000 ... Units priced at $0.12'. The $446,133 first tranche is future ('Subject to Exchange approval, the Company will close a first tranche'), so nothing closed here; later context releases cite 'further to its April 6, 2026 news release'."
+  },
+  {
+   "n": 12,
+   "event_id": "d5ecd7467968a63ac0a0899d36d7c08f62bb7dd5",
+   "ticker": "NOM.CN",
+   "published_at": "2025-08-01T12:00:00Z",
+   "stratum": "tranche_close/1",
+   "body_sha1": "8d450ed656a7ccb5dc623837707506c0d7760782",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Norsemont Mining Inc.",
+    "role": "tranche_close",
+    "deal_types": [
+     "PP"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": null,
+    "amount_offered_alt": [],
+    "amount_this_close": 1392000,
+    "amount_closed_total": null,
+    "unit_prices": [
+     0.6
+    ],
+    "warrant": {
+     "per_unit": 0.5,
+     "strike": 0.75,
+     "term_months": 24
+    },
+    "conversion_price": null,
+    "same_deal": [
+     "9e52ddbc26268c253a2434dffbeeed7e62985dfa4f1f8ca085f4fe4e12dcfde2",
+     "10b641e27fecf6fb3033bd81f86c673719dc07b5",
+     "5256c34119851d1a55331b05d2be1109532eac73f73e5fa342d0e0bc8516e67c",
+     "6586b6eaceda46bf01827c8ea483f50dd98a3534ef6dce40e7628f4dbb6f90db",
+     "6bf5200b732823cee8dbcd0dbb64cc77e161744d",
+     "49f81ee9f1c6faf57874cdfe563ae4c836755971b2e4cb0fbbb9b764c2855c70",
+     "d5a50a9fb46f130c080b39f6c1ca7fd87f019861",
+     "b102747b6565108bd4a5ae854e0e93018d79debeff0ac9922392c16f940b3237"
+    ],
+    "not_same_deal": [
+     "91a7f0e165097522628e59420b962e60ff60c573",
+     "4a36e4e59ef9043d3b04d77135be3e581f7b91541ed28a3f2ec8509276f3dbef",
+     "0436a5f8e0f937cc3ad94556a1f80733ad20c9f70fe7144676419bad4c901efe",
+     "d71ee0ba8b963fc558ee92c6c6b46666915f98b27b041b8639efbc16eb7669e4",
+     "5fe06cdec776447deafdcea9d1cf6313da811802acd39f33a44107d5028abb53",
+     "ef3dcf7cc7646672901600607206e26d347cf6ab403f6d74a11a6341e19b6b86"
+    ],
+    "confidence": "high",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "'further to its news release dated August 1, 2025, it has closed the second tranche ... 2,320,000 units ... at CAD $0.60 per unit for gross proceeds of CAD $1,392,000'; one-half warrant at $0.75 for two years. No aggregate-to-date or total size stated in this release."
+  },
+  {
+   "n": 13,
+   "event_id": "105de1005c9cd75dfa0c76ee796a1257d520a01f055d4bf87b739ff0b64327f9",
+   "ticker": "QQQ.CN",
+   "published_at": "2026-01-30T04:00:00+00:00",
+   "stratum": "mention/1",
+   "body_sha1": "fe1979983597d2674456c326a887e07b0fd6a443",
+   "review": "excluded",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Questcorp Mining Inc.",
+    "role": "update",
+    "deal_types": [
+     "PP",
+     "OTHER"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": null,
+    "amount_offered_alt": [],
+    "amount_this_close": null,
+    "amount_closed_total": 2100050,
+    "unit_prices": [
+     0.15
+    ],
+    "warrant": null,
+    "conversion_price": null,
+    "same_deal": [
+     "f02a576efe418b3c43cd1f38a66bbea345d700e98bddfb149302dd6daa0b5ec2",
+     "888a5bef20a00f6a1a8f2a8499cde916c95738311c3cab17b95b10a64f7c1542",
+     "955ccd0fbf7d699102a8848c041601401a994a01d61e581b4afccd249794b912",
+     "3dad4fe415371ff5ada9ed269a4344c89d34c9728dbe67f027dd350276cb9eba",
+     "352e3ccb33893bf70de6ac445901e5fb45400aed934eba3dee4323ffc279aaa2"
+    ],
+    "not_same_deal": [
+     "053363fbba9824952c8221e1ed94e2b7dc046cd0f14fa3daafd43e81ce256574",
+     "612356125ecd791a6b6a5daacc778dde7e9a87706d74bad3e47586b92d43454d",
+     "104406b16b2756bf12f8dad3b0d1e06497ecc77f5f53fb872b4dcfb016bc1bb1",
+     "ce245eb601d622ed4a7f0a49ac0f0797824a6494dc260fe62e58f076bc3fd05a",
+     "b6d9e7dcb529f9a00f17724bce69e81fcd0bbbf7682fc7d33af37f2845377698"
+    ],
+    "confidence": "low",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "BCSC-prompted clarification of a completed deal: 'On October 24, 2025, the Company completed a non-brokered private placement ... 14,000,334 units ... $0.15 ... gross proceeds of $2,100,050' plus the concurrent $2,000,000-notional Sorbie sharing agreement (only $85,000 released up front). Closes nothing new; borderline vs the 'only references a past financing' false rule, labelled true/update because the whole release restates deal terms.",
+   "review_note": "Regulator-prompted clarification of a placement closed three months earlier; announces, closes or changes nothing, so it is fair either way."
+  },
+  {
+   "n": 14,
+   "event_id": "079cdfc1a10f0ea54b946a99ecea84ee",
+   "ticker": "HML.CN",
+   "published_at": "2025-08-05",
+   "stratum": "tranche_close/1",
+   "body_sha1": "0f5f8477942a6b39ea96f952a31c511b536efe14",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Heritage Mining Ltd.",
+    "role": "tranche_close",
+    "deal_types": [
+     "LIFE"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": 636570,
+    "amount_offered_alt": [
+     635570
+    ],
+    "amount_this_close": 619070,
+    "amount_closed_total": 619070,
+    "unit_prices": [
+     0.035
+    ],
+    "warrant": {
+     "per_unit": 1,
+     "strike": 0.05,
+     "term_months": 36
+    },
+    "conversion_price": null,
+    "same_deal": [
+     "9eaf20aaa40da56adf3fa4be79d3b75d",
+     "89241ca735fb329ff70812a8dc94f8ed"
+    ],
+    "not_same_deal": [
+     "242d9cb4406789f9c50749d659bea87b",
+     "42843b5a5c36b602132c6cbd877ff1a7",
+     "2326cb7d082e84c7e1789d489caaec41",
+     "22d9a6fe58a555a717f7d1338d6494d0",
+     "2a045310bef03aa99a85aa7205612ef9",
+     "90fa0ab189e3405877cc2d1a5a479754",
+     "24424b9357905e4f5df3931de9d75ea2",
+     "5f2fc1286fbb8e81fda39ed393706a83",
+     "3caaae7edfbae3b553fe3b9d8d1785a5"
+    ],
+    "confidence": "medium",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "'closed the first tranche of the non-brokered ... LIFE private placement of 17,687,714 units ... $0.035 ... ~C$619,070, of the max offering, C$636,570'; later paragraph says 'up to $635,570' (typo; 18,187,725 x $0.035 = $636,570), so the other figure is in alt. Described as non-brokered 'best-efforts basis' despite cash commissions."
+  },
+  {
+   "n": 15,
+   "event_id": "7de035686dc3f207394b4b07f17a75e591d481f8",
+   "ticker": "CIA.TO",
+   "published_at": "2025-12-21T12:00:00Z",
+   "stratum": "mention/0",
+   "body_sha1": "922fc76a80a9a9eea17cc95909e434184fd8edc0",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Champion Iron Limited",
+    "role": "announcement",
+    "deal_types": [
+     "PP",
+     "DEBT"
+    ],
+    "offering": null,
+    "currency": "USD",
+    "amount_offered": 100000000,
+    "amount_offered_alt": [],
+    "amount_this_close": null,
+    "amount_closed_total": null,
+    "unit_prices": [],
+    "warrant": null,
+    "conversion_price": null,
+    "same_deal": [
+     "b2d3c10832bd140fa5f5c61e735f4688b92bbc1a"
+    ],
+    "not_same_deal": [
+     "f28f9f8360084e08b3557f93dbd5fa8d7951fcfa",
+     "3fb06db2c2b2a08eb00538a2c1282b20fad5a71f"
+    ],
+    "confidence": "medium",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "Acquisition release that also announces funding: 'a US$100 million equity private placement ... with ... La Caisse, and a fully committed term loan in the amount of US$150 million ... underwritten by ... Scotiabank'. amount_offered set to the US$100M equity placement (the one closed in the Feb 2026 context release); the US$150M term loan is a separate facility. Body truncated at 6,000 of 33,160 chars, so price/terms not seen."
+  },
+  {
+   "n": 16,
+   "event_id": "d39418e88424aa1b2a2cb753dc1fb2c974b7c70f",
+   "ticker": "ACM.CN",
+   "published_at": "2021-05-27T12:00:00Z",
+   "stratum": "upsize/1",
+   "body_sha1": "aa6686cb03867e1359d93178dc90753681d7a003",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": null,
+    "issuer_name": "DeepRock Minerals Inc.",
+    "role": "upsize",
+    "deal_types": [
+     "PP"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": 500000,
+    "amount_offered_alt": [],
+    "amount_this_close": null,
+    "amount_closed_total": null,
+    "unit_prices": [
+     0.05
+    ],
+    "warrant": {
+     "per_unit": 1,
+     "strike": 0.06,
+     "term_months": 24
+    },
+    "conversion_price": null,
+    "same_deal": [
+     "7793d16535d1023c428abc0aade98bb7d8fdf026",
+     "343f68197948014220fd4c410619445e8e34f5b6"
+    ],
+    "not_same_deal": [
+     "dee24d71c276abab40cadc86777a829196ccde8f",
+     "fb4d0151ec1d8ad92abcccf346c0908d08fb874f",
+     "c285e3a9af3876ad5c1ad7431f03af01993c67b8"
+    ],
+    "confidence": "medium",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "'increasing the amount of its previously announced non-brokered private placement from $300,000 to $500,000 for a total offering of 10,000,000 units ... at $0.05'. Release says CSE: DEEP, not ACM (issuer_matches_ticker null). July 9 close ($655,000 / 13,100,000 units = $0.05) put in same_deal on matching price and no intervening announcement, though it exceeds the $500k size."
+  },
+  {
+   "n": 17,
+   "event_id": "da27e6041fc10da56144a659893129496485ba73",
+   "ticker": "CASC.CN",
+   "published_at": "2024-12-27T12:00:00Z",
+   "stratum": "final_close/1",
+   "body_sha1": "e24bc1d640502c61c4fa0f997d824a2fbd8be2a5",
+   "review": "corrected",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Cascade Copper Corp.",
+    "role": "announcement",
+    "deal_types": [
+     "PP",
+     "FT"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": 500000,
+    "amount_offered_alt": [],
+    "amount_this_close": null,
+    "amount_closed_total": null,
+    "unit_prices": [
+     0.04,
+     0.035
+    ],
+    "warrant": {
+     "per_unit": 0.5,
+     "strike": 0.07,
+     "term_months": 24
+    },
+    "conversion_price": null,
+    "same_deal": [
+     "2d0185feae86981292a1a94695da6a94a7f743c6bd0b68aa0744a159eb7ad8d2",
+     "b5afccc3266c58d717b5978cd8cea984fb40ed8a54f41837ba5eb26175272305"
+    ],
+    "not_same_deal": [
+     "e4cf9231a76b41d314acf3dd478a1cae7eb771c5e8f5ddd752fe67e7b6a97ac4",
+     "b07072ffc22c7c7e39ea8c35ac3ed1c18311576fb6feb94176460db0f5366dba"
+    ],
+    "confidence": "medium",
+    "warrant_alt": [],
+    "alt_readings": [
+     {
+      "role": "final_close",
+      "deal_types": [
+       "FT"
+      ],
+      "offering": "NON_BROKERED",
+      "amount_offered": null,
+      "amount_offered_alt": [],
+      "amount_this_close": 25000,
+      "amount_closed_total": null,
+      "unit_prices": [
+       0.07
+      ],
+      "warrant": {
+       "per_unit": 0.5,
+       "strike": 0.1,
+       "term_months": 24
+      },
+      "warrant_alt": [],
+      "same_deal": [
+       "e4cf9231a76b41d314acf3dd478a1cae7eb771c5e8f5ddd752fe67e7b6a97ac4",
+       "b07072ffc22c7c7e39ea8c35ac3ed1c18311576fb6feb94176460db0f5366dba"
+      ],
+      "not_same_deal": [
+       "2d0185feae86981292a1a94695da6a94a7f743c6bd0b68aa0744a159eb7ad8d2",
+       "b5afccc3266c58d717b5978cd8cea984fb40ed8a54f41837ba5eb26175272305"
+      ]
+     }
+    ]
+   },
+   "note": "Two deals: labelled the headline one, 'a non-brokered private placement for aggregate proceeds of up to CDN$500,000' (FT units $0.04, NFT units $0.035, half warrant at $0.07 for 24 months). The same release also final-closes the separate July 2024 'Previous Offering' (357,143 FT units at $0.07, aggregate CDN$25,000), not captured in the amounts; Jan/Apr 2025 tranche closes assumed to belong to the new deal.",
+   "review_note": "Release announces a new offering of up to CDN$500,000 and also closes the old July 2024 flow-through offering (CDN$25,000); either reading is accepted."
+  },
+  {
+   "n": 18,
+   "event_id": "2ac38dce039361135e6eb9ed3eaa205605f09f87",
+   "ticker": "BEAU.CN",
+   "published_at": "2026-08-17T12:00:00Z",
+   "stratum": "final_close/1",
+   "body_sha1": "65831abc0c439cc1b60d6c71bad0966c8b3623f0",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Beaumont Exploration Corp.",
+    "role": "final_close",
+    "deal_types": [
+     "PP",
+     "FT"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": null,
+    "amount_offered_alt": [],
+    "amount_this_close": 72000,
+    "amount_closed_total": 72000,
+    "unit_prices": [
+     0.12
+    ],
+    "warrant": {
+     "per_unit": 1,
+     "strike": 0.15,
+     "term_months": 24
+    },
+    "conversion_price": null,
+    "same_deal": [],
+    "not_same_deal": [],
+    "confidence": "high",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "'completed its previously announced non-brokered private placement consisting of (i) 430,000 units ... at $0.12 ... and (ii) 170,000 flow-through shares ... at $0.12 ... for aggregate gross proceeds of $72,000'; each unit has one warrant at $0.15 for 24 months. No context."
+  },
+  {
+   "n": 19,
+   "event_id": "b4c85fdd5526605e421f5eee441425c87143f5d7",
+   "ticker": "PGX.V",
+   "published_at": "2025-04-02T12:00:00Z",
+   "stratum": "final_close/1",
+   "body_sha1": "419b4d595cb35487c6e12b0f92f352ef75c794ce",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Prosper Gold Corp.",
+    "role": "final_close",
+    "deal_types": [
+     "FT"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": null,
+    "amount_offered_alt": [],
+    "amount_this_close": 525000,
+    "amount_closed_total": 525000,
+    "unit_prices": [
+     0.1
+    ],
+    "warrant": null,
+    "conversion_price": null,
+    "same_deal": [
+     "6bcc84892915d02095c1989e99f1fd2fe193c3fc"
+    ],
+    "not_same_deal": [],
+    "confidence": "high",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "'closed a non-brokered private placement ... 5,250,000 FT Shares at a price of $0.10 per FT Share, for gross proceeds ... of $525,000'. Warrants are finder broker warrants only (no units), so warrant null; March 21 2025 'Announces Private Placement' (non-brokered) is the only prior financing."
+  },
+  {
+   "n": 20,
+   "event_id": "6b17e74175d369f239f66368f2ad31ce30111792",
+   "ticker": "MLO.V",
+   "published_at": "2025-08-25T12:00:00Z",
+   "stratum": "final_close/1",
+   "body_sha1": "b44a65aca809a21b1508979eff8e8b2b438162d1",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Metalero Mining Corp.",
+    "role": "final_close",
+    "deal_types": [
+     "PP"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": null,
+    "amount_offered_alt": [],
+    "amount_this_close": 919501,
+    "amount_closed_total": 919501,
+    "unit_prices": [
+     0.12
+    ],
+    "warrant": {
+     "per_unit": 1,
+     "strike": 0.25,
+     "term_months": 24
+    },
+    "conversion_price": null,
+    "same_deal": [
+     "b91bd95b3880fe2b570408e2e157a73e5703d171",
+     "f978e3c343bea5fcdd9df18b7634f45b7067a5c6"
+    ],
+    "not_same_deal": [
+     "e067e8ad6b62d5de73ad2393929ea5ed69bb554b",
+     "2c095de0eafbd87c474dc096e95c0bf4a47fde00",
+     "8474866a27283c1ba07638917f78aef61aa7dea3",
+     "99f9de341e48b495b3f60de631e902f8083a6408",
+     "f238f8a61926e038c831d4009049e6aacf3b6e51"
+    ],
+    "confidence": "high",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "\"completion of its previously disclosed non-brokered private placement ... gross proceeds of $919,501 ... 7,662,509 units at $0.12\"; refers to releases of July 18 and 30 (announce + upsize). No deal size restated, so amount_offered null. Warrant strike $0.25 yr 1 stepping to $0.35 yr 2; first-year strike used. Sept-Dec 2025 $300k placement is a later separate deal."
+  },
+  {
+   "n": 21,
+   "event_id": "deb1926964092c51770d2279ca9c82d9f7fd8fe5",
+   "ticker": "IAU.TO",
+   "published_at": "2024-08-12T12:00:00Z",
+   "stratum": "amendment/1",
+   "body_sha1": "a8502cdbdbfc318a0fdc9b205364bc61a694f3a5",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "i-80 Gold Corp.",
+    "role": "update",
+    "deal_types": [
+     "PP"
+    ],
+    "offering": null,
+    "currency": "CAD",
+    "amount_offered": 29000000,
+    "amount_offered_alt": [],
+    "amount_this_close": null,
+    "amount_closed_total": null,
+    "unit_prices": [
+     0.8
+    ],
+    "warrant": null,
+    "conversion_price": null,
+    "same_deal": [
+     "a0d2162d18c30491c545d259adb6b2065f344e47",
+     "f94b06372f425ec06796f8485bc6d4a60273ca04"
+    ],
+    "not_same_deal": [
+     "cae26d8bcd15a5f56254e9244742d4f0bc28927a",
+     "8e0e642eddf6596b72fd81b317abf2683c31fd4f",
+     "a2677ea6a8ffc5be1e689e2982717fe1ae333e11"
+    ],
+    "confidence": "medium",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "Filing of prospectus supplement \"further to its news releases dated January 15 and 16, 2025\" for min C$14.4M / max C$29,000,000 at C$0.80; size \"has been increased from US$10 million to US$20 million (C$29 million)\" -- upsize appears to predate this release (headline 'for Upsized Offering'), so role=update. Public common-share offering coded PP (no prospectus code); no underwriters named in visible text. Concurrent C$803,367 subscription-receipt placement with D&Os also announced (not included in amount)."
+  },
+  {
+   "n": 22,
+   "event_id": "d188db39ce6db72864f6d7a6fbf9bd339ab64906e904b4e57510754335fa5f4d",
+   "ticker": "RGN.CN",
+   "published_at": "2026-03-11T12:30:08+00:00",
+   "stratum": "announcement/1",
+   "body_sha1": "c8ba3934ae33b3bf715f7bb1c4d2982141e059a6",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Rush Gold Corp.",
+    "role": "announcement",
+    "deal_types": [
+     "PP"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": 2000000,
+    "amount_offered_alt": [],
+    "amount_this_close": null,
+    "amount_closed_total": null,
+    "unit_prices": [
+     0.1
+    ],
+    "warrant": null,
+    "conversion_price": null,
+    "same_deal": [
+     "32014f65faa37dadeb6955b9656d8678918f4582413c2cedfddbdc0250315ee4"
+    ],
+    "not_same_deal": [
+     "ccc020ab2cf51ecb11b845ab58433366aaefbd173912ed8bfd26f657400f5cea",
+     "99c441ab9e63fa186f6a2c6b8fd0a3a1918a0438a98681a8db4babb6f1cac70e",
+     "31728d4e6755539f56d2f5b142717c3d50df815b"
+    ],
+    "confidence": "low",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "Main news is rock sampling; final section announces \"a non-brokered private placement of up to 20 million common shares at a price of CAD$0.10 per Share\" -- body truncated mid-sentence, so $2,000,000 is derived (20M x $0.10) and any FT/LIFE/warrant terms are unseen. April 17, 2026 first-tranche close is \"further to its news release dated March 11, 2026\"."
+  },
+  {
+   "n": 23,
+   "event_id": "61bb6da6034fd1d6049593f59fe1d08ba093e4bd",
+   "ticker": "RGR.CN",
+   "published_at": "2026-08-07T12:00:00Z",
+   "stratum": "announcement/1",
+   "body_sha1": "84b55730fdb33312cda4c3599cd1456719b2e1ad",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Rio Grande Resources Ltd.",
+    "role": "announcement",
+    "deal_types": [
+     "PP"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": 2500000,
+    "amount_offered_alt": [],
+    "amount_this_close": null,
+    "amount_closed_total": null,
+    "unit_prices": [
+     0.2
+    ],
+    "warrant": {
+     "per_unit": 1,
+     "strike": 0.4,
+     "term_months": 24
+    },
+    "conversion_price": null,
+    "same_deal": [
+     "2460a8019b7a4f209822b608e5a56cb5ad01ffa5"
+    ],
+    "not_same_deal": [],
+    "confidence": "high",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "\"non-brokered private placement of up to 12,500,000 units at a price of $0.20 per Unit for gross proceeds of up to $2,500,000\"; one warrant at $0.40 for 24 months; closing expected ~Aug 24, 2026, matching the Aug 24 closing release."
+  },
+  {
+   "n": 24,
+   "event_id": "fd67dde7e9195dbe61b4f24a83f9f59edb6fdfe3",
+   "ticker": "TSLV.V",
+   "published_at": "2025-08-21T12:00:00Z",
+   "stratum": "terminated/1",
+   "body_sha1": "f1df3b5eb83847cbd43218e5ac5896ea543ff395",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Tier One Silver Inc.",
+    "role": "terminated",
+    "deal_types": [
+     "LIFE"
+    ],
+    "offering": null,
+    "currency": "CAD",
+    "amount_offered": null,
+    "amount_offered_alt": [],
+    "amount_this_close": null,
+    "amount_closed_total": null,
+    "unit_prices": [],
+    "warrant": null,
+    "conversion_price": null,
+    "same_deal": [
+     "a18f6e1dc74f19ad1b1b8823a410b230a1847c3b",
+     "ba08507569c3f002d76cfb8d00213b980d1f1841",
+     "65b673bfa4180a6e678f46c630976876bce73461"
+    ],
+    "not_same_deal": [
+     "699f4c5ae5111c2bd2fe7ac8af3f9bdc5f47e204",
+     "82c5b4c7a4eca64eb0dea581e38fea451495b870",
+     "c0cfb310eeec756ce90248ecc64fea5b5099c8cd",
+     "7695ca0b29f6e1d7b532f554c2b001ca4fccf612"
+    ],
+    "confidence": "medium",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "\"the proposed private placement equity financing, being offered pursuant to a LIFE offering document filed on June 23, 2025, will not be proceeding\". No amount/price in this release; currency defaulted to CAD. June 11/23 and July 16 releases are the LIFE offering; Sept 2025 $5.6M placement is a new deal."
+  },
+  {
+   "n": 25,
+   "event_id": "57ebe471927144b88caea607106f1c62a7ce9699",
+   "ticker": "TRAC.CN",
+   "published_at": "2023-10-27T12:00:00Z",
+   "stratum": "amendment/1",
+   "body_sha1": "1264fa57c1427962eb7a819713ec8d9e70f824e7",
+   "review": "corrected",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Traction Uranium Corp.",
+    "role": "amendment",
+    "deal_types": [
+     "LIFE",
+     "FT"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": 1500000,
+    "amount_offered_alt": [
+     2500000,
+     1000000
+    ],
+    "amount_this_close": null,
+    "amount_closed_total": null,
+    "unit_prices": [
+     0.15,
+     0.175
+    ],
+    "warrant": {
+     "per_unit": 1,
+     "strike": 0.2,
+     "term_months": 24
+    },
+    "conversion_price": null,
+    "same_deal": [
+     "5868d6d9b4cd7ea4657d7ad0a3327c703fec6d36",
+     "7a44bcb6c4549eb08ee4c7f8ef625f6eff2111ed",
+     "efcef96457f2c401e2aaa73ffed007ee299898f6"
+    ],
+    "not_same_deal": [
+     "3805587be09436417783965c0068ad44ca722cb7",
+     "64804da0f44528403d2d808c6f9f6c480ae6d21f",
+     "85a16c9f35908d16b3afcfb6ed57bf1625879ca9"
+    ],
+    "confidence": "low",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "Two linked deals: amends the Sept 27 LIFE offering (now up to $1,500,000 at $0.15/unit, warrant strike updated to $0.20, 24 mo) and newly announces a separate non-LIFE FT unit placement of up to $1,000,000 at $0.175. Role=amendment for the headline LIFE deal; amount_offered = combined $2.5M with LIFE-only $1.5M as alt. The FT units are NOT under LIFE, so [LIFE,FT] here does not mean a LIFE-FT deal. Nov 14 close covers both offerings; Nov 24 'second tranche' follows it.",
+   "review_note": "Release states $1.5M for the amended LIFE offering and a separate $1.0M FT unit offering, never a combined $2.5M; offered set to $1.5M with $2.5M and $1.0M accepted."
+  },
+  {
+   "n": 26,
+   "event_id": "4b4add48ba42264b5b688d83dc1a77d9224e324a",
+   "ticker": "SCU.CN",
+   "published_at": "2025-04-23T12:00:00Z",
+   "stratum": "final_close/1",
+   "body_sha1": "a6721f296b0914a0ee2444a5b9354c57e5a52d4d",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Sankamap Metals Inc.",
+    "role": "final_close",
+    "deal_types": [
+     "PP"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": null,
+    "amount_offered_alt": [],
+    "amount_this_close": 869799,
+    "amount_closed_total": 869799,
+    "unit_prices": [
+     0.12
+    ],
+    "warrant": {
+     "per_unit": 1,
+     "strike": 0.3,
+     "term_months": 36
+    },
+    "conversion_price": null,
+    "same_deal": [],
+    "not_same_deal": [
+     "e5b3f6efdc8f5defd4b46cb9f96b0c817ae37b86acaad502a8ab7d60fa2216af",
+     "d28ad4aa917502248d79e0577dae80c64f6dcfb4fb9a454334dd3676fb5f48d9"
+    ],
+    "confidence": "high",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "\"has completed a non-brokered private placement financing of 7,248,331 units at a price of $0.12 per Unit for gross proceeds of up to $869,799\" (odd 'up to' wording, but it is the closed amount). Warrant 3 years, strike C$0.30/0.35/0.40 by year; first-year strike used. July 2025 $0.22 placement is a later separate deal."
+  },
+  {
+   "n": 27,
+   "event_id": "e01ad6f631b5909a55a453bca7bddeb8f8f9ed4b",
+   "ticker": "AWR.CN",
+   "published_at": "2020-08-20T12:00:00Z",
+   "stratum": "announcement/1",
+   "body_sha1": "f95c3a2107fc5061220e4150c8825773471962bc",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Aurwest Resources Corporation",
+    "role": "announcement",
+    "deal_types": [
+     "PP"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": 750000,
+    "amount_offered_alt": [
+     900000
+    ],
+    "amount_this_close": null,
+    "amount_closed_total": null,
+    "unit_prices": [
+     0.05
+    ],
+    "warrant": {
+     "per_unit": 1,
+     "strike": 0.1,
+     "term_months": 36
+    },
+    "conversion_price": null,
+    "same_deal": [
+     "1de949bfc8d7edb1eadef1f1caa232caa975d00c",
+     "ee8534592372b5f597d5fc5e3d1b628e289f3b16",
+     "518f6f69ff82852534d3272afac4628d25c47de6"
+    ],
+    "not_same_deal": [
+     "b66cdfa6f9247d7b5dfe93e3eded689db494e854",
+     "b83d83702d1bb22f0a0e221c91017c38344a9afc"
+    ],
+    "confidence": "high",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "\"non-brokered private placement of up to 15,000,000 units at $0.05 per Unit for proceeds of up to $750,000\"; 20% greenshoe to $900,000 (alt). Warrant $0.10 within 18 months, $0.15 thereafter to 36 months. Later closes cite \"news releases dated August 20, 2020\"; May 2020 share placement is a prior separate deal."
+  },
+  {
+   "n": 28,
+   "event_id": "fb5e783505e19a9c8590c1b1c17112d84148a95e",
+   "ticker": "MOLT.CN",
+   "published_at": "2025-12-17T12:00:00Z",
+   "stratum": "announcement/1",
+   "body_sha1": "8e3fffaf5b520dfe558652df020c172d07e84d12",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Molten Metals Corp.",
+    "role": "announcement",
+    "deal_types": [
+     "FT"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": 300000,
+    "amount_offered_alt": [],
+    "amount_this_close": null,
+    "amount_closed_total": null,
+    "unit_prices": [
+     0.5
+    ],
+    "warrant": {
+     "per_unit": 0.5,
+     "strike": 0.6,
+     "term_months": 24
+    },
+    "conversion_price": null,
+    "same_deal": [],
+    "not_same_deal": [
+     "6f67aae712c0095eb04e8ddab7456729b9217462",
+     "64a29c5f862fee0a8eb909bc04202902bcb9f4f8084209cd73d0de98a9d24693"
+    ],
+    "confidence": "high",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "\"arranged a non-brokered private placement of flow-through units for aggregate gross proceeds of up to $300,000\"; 600,000 FT Units at $0.50, one-half warrant at $0.60 for 24 months. Nov 2025 $1M LIFE unit offering at $0.25 is a different deal."
+  },
+  {
+   "n": 29,
+   "event_id": "af19346e10239bce6b8d53b17528bb007518c3a5",
+   "ticker": "FUU.V",
+   "published_at": "2026-04-02T12:00:00Z",
+   "stratum": "mention/1",
+   "body_sha1": "edb3ac49c779782dfedcd16062bb0b6338e927ff",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "F3 Uranium Corp.",
+    "role": "announcement",
+    "deal_types": [
+     "FT"
+    ],
+    "offering": "BOUGHT_DEAL",
+    "currency": "CAD",
+    "amount_offered": 5000000,
+    "amount_offered_alt": [
+     6000000
+    ],
+    "amount_this_close": null,
+    "amount_closed_total": null,
+    "unit_prices": [
+     0.2
+    ],
+    "warrant": null,
+    "conversion_price": null,
+    "same_deal": [],
+    "not_same_deal": [
+     "a8ea98691492434dfeb93efacbfbd9647b761613"
+    ],
+    "confidence": "high",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "Headline in body: \"F3 Announces Bought Deal Private Placement for Gross Proceeds of C$5 Million\"; 25,000,000 FT shares at C$0.20 underwritten by Red Cloud syndicate, plus Underwriters' Option for up to C$1,000,000 more (alt C$6M). Oct 2025 C$20M LIFE bought deal closed earlier, separate."
+  },
+  {
+   "n": 30,
+   "event_id": "33e5da6244fadaeb88d27dabca55ffe15583e111",
+   "ticker": "SMN.V",
+   "published_at": "2026-08-26T12:00:00Z",
+   "stratum": "final_close/1",
+   "body_sha1": "3ce075542293dff24a00f8e2f3e84b1ee07f0e0c",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Sun Summit Minerals Corp.",
+    "role": "final_close",
+    "deal_types": [
+     "PP",
+     "FT"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": null,
+    "amount_offered_alt": [],
+    "amount_this_close": 4000000,
+    "amount_closed_total": 4000000,
+    "unit_prices": [
+     0.145,
+     0.1
+    ],
+    "warrant": null,
+    "conversion_price": null,
+    "same_deal": [
+     "d7f534dc45f61381366075004b132426bb5554f0"
+    ],
+    "not_same_deal": [],
+    "confidence": "high",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "'has closed its non-brokered private placement ... previously announced ... August 6, 2026' via 20,689,656 charity FT shares at $0.145 and 10,000,000 NFT shares at $0.10 for aggregate gross proceeds of $4,000,000; the $4M in the headline is the closed amount, no separate offered size, so amount_offered null. Only finder warrants, no unit warrants."
+  },
+  {
+   "n": 31,
+   "event_id": "980346389781806c78a7b04f78872cf448b63d47",
+   "ticker": "PMC.CN",
+   "published_at": "2021-12-09T12:00:00Z",
+   "stratum": "announcement/1",
+   "body_sha1": "6c113dd8cae063845e2bfcd1970ea18c344add79",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Peloton Minerals Corporation",
+    "role": "announcement",
+    "deal_types": [
+     "PP"
+    ],
+    "offering": null,
+    "currency": "CAD",
+    "amount_offered": 456866.76,
+    "amount_offered_alt": [],
+    "amount_this_close": null,
+    "amount_closed_total": null,
+    "unit_prices": [
+     0.06
+    ],
+    "warrant": {
+     "per_unit": 1,
+     "strike": 0.1,
+     "term_months": 36
+    },
+    "conversion_price": null,
+    "same_deal": [
+     "69f1a43f08949eef0035e59143fd4a1f"
+    ],
+    "not_same_deal": [
+     "312b05414ca7f0f3bab56566bab7d24a"
+    ],
+    "confidence": "medium",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "'has received subscriptions for a private placement totaling CDN$456,866.76 ... 7,614,446 units priced at CDN$0.06 ... one warrant exercisable for three years at $0.10' - subscriptions received, no closing stated, and first release of this deal, so announcement. Dec 11 context is the same headline/amount; July $122,500 is a separate deal; the warrant extension is not a financing."
+  },
+  {
+   "n": 32,
+   "event_id": "003410ef40f414dda047f5dfb20c0f2a40e46d6c",
+   "ticker": "MEK.V",
+   "published_at": "2026-04-17T12:00:00Z",
+   "stratum": "tranche_close/1",
+   "body_sha1": "6194952a5199f4ec5ffe6d317b7d72ddac38ef96",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Metals Creek Resources Corp.",
+    "role": "tranche_close",
+    "deal_types": [
+     "PP",
+     "FT"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": 1250000,
+    "amount_offered_alt": [],
+    "amount_this_close": 557500,
+    "amount_closed_total": 557500,
+    "unit_prices": [
+     0.03,
+     0.035
+    ],
+    "warrant": {
+     "per_unit": 1,
+     "strike": 0.05,
+     "term_months": 36
+    },
+    "conversion_price": null,
+    "same_deal": [
+     "aec5179159334040d9185c0e82499b8346c38947",
+     "ea5e24670400c1a9361e42da2a1bccc9a852dc40",
+     "c215a8e8e191876c7d9ae26d87797f2ad2c34336",
+     "6b827404f19dae6ab4cf123bad250926ed79fb41"
+    ],
+    "not_same_deal": [
+     "ca5b000af9c8cfa33cc4227976baa872d3dbff68",
+     "85436ebf0ecc1ce51790d132b5ecf4d4c4b5dc5b",
+     "886b58b0c6e24c7731bc1b747565f9bae231d64a",
+     "4762f8d440d22aa7b41581dc6bd5401c6adace35",
+     "c813522f47fdc63784020b7332136c586e955a08",
+     "75de540f17e6c09b23a80348771969b9b13cfd21",
+     "4610902755df216d13d507bd1ecad5ca30a9b095",
+     "5c598b9763b52b76f7b2672767fd2da7e2947dd3"
+    ],
+    "confidence": "medium",
+    "warrant_alt": [
+     {
+      "per_unit": 0.5,
+      "strike": 0.06,
+      "term_months": null
+     }
+    ],
+    "alt_readings": []
+   },
+   "note": "'further to its April 2, 2026 and April 15, 2026 news releases ... closed a first tranche for aggregate gross proceeds of $557,500'; size = up to $750,000 NFT units ($0.03, one warrant @ $0.05 / 36 mo) + up to $500,000 FT units ($0.035, one-half warrant @ $0.06 / 36 mo) = $1.25M (sum, matches Apr 15 upsize headline). Warrant object uses the NFT unit terms; FT units carry 0.5 warrant @ $0.06."
+  },
+  {
+   "n": 33,
+   "event_id": "98514d039a11cc039773e5b6b9f942b502481aa0b52733a4b4929e6a708576f6",
+   "ticker": "GCP.CN",
+   "published_at": "2025-11-27T04:00:00+00:00",
+   "stratum": "tranche_close/1",
+   "body_sha1": "5f0bc02ac9634bcd720a67341494f6f62cc9d724",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Golcap Resources Corp.",
+    "role": "tranche_close",
+    "deal_types": [
+     "FT"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": null,
+    "amount_offered_alt": [],
+    "amount_this_close": 399999.78,
+    "amount_closed_total": 399999.78,
+    "unit_prices": [
+     0.285
+    ],
+    "warrant": null,
+    "conversion_price": null,
+    "same_deal": [
+     "7bfb91ccaeb9989589fdca8fd2cb29267860e6a566b014d3ce041f0abee7179f",
+     "7836e205e231347efb42f4393b24cdd8e2ca030b2623922faa91d0d61187d470"
+    ],
+    "not_same_deal": [],
+    "confidence": "medium",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "'closed the first tranche ... 1,403,508 FT Shares at $0.285 ... gross proceeds of $399,999.78 ... received an additional subscription for $285,000 and expects to close the final tranche'. Headline says 'Increases' but no new total size is stated in the body (implied ~$684,999.78), so amount_offered left null."
+  },
+  {
+   "n": 34,
+   "event_id": "3dfb249c04de606b45fcf6412e558d150f2ee990",
+   "ticker": "NVT.V",
+   "published_at": "2025-12-05T12:00:00Z",
+   "stratum": "mention/0",
+   "body_sha1": "3c4358832d438f2d66154268391ab09a6946acc8",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": false,
+    "issuer_matches_ticker": null,
+    "issuer_name": "Nortec Minerals Corp.",
+    "role": null,
+    "deal_types": [],
+    "offering": null,
+    "currency": null,
+    "amount_offered": null,
+    "amount_offered_alt": [],
+    "amount_this_close": null,
+    "amount_closed_total": null,
+    "unit_prices": [],
+    "warrant": null,
+    "conversion_price": null,
+    "same_deal": [],
+    "not_same_deal": [],
+    "confidence": "high",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "Acquisition status update (TSXV conditional approval); only refers to 'the concurrent private placement described in the Company's press release dated November 12, 2025' with no amount or price, so it only references a past-announced financing."
+  },
+  {
+   "n": 35,
+   "event_id": "b8a88c951b846fc196027adfcce28ca0208bf2ed",
+   "ticker": "CVV.V",
+   "published_at": "2025-09-24T12:00:00Z",
+   "stratum": "terminated/1",
+   "body_sha1": "9c201489fb2e8f2ca91b71c201f6c9c9a91935ef",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": false,
+    "issuer_matches_ticker": null,
+    "issuer_name": "CanAlaska Uranium Ltd.",
+    "role": null,
+    "deal_types": [],
+    "offering": null,
+    "currency": null,
+    "amount_offered": null,
+    "amount_offered_alt": [],
+    "amount_this_close": null,
+    "amount_closed_total": null,
+    "unit_prices": [],
+    "warrant": null,
+    "conversion_price": null,
+    "same_deal": [],
+    "not_same_deal": [],
+    "confidence": "high",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "Termination of the Cree East option agreement with Nexus Uranium; the '$3.4M Investment by Nexus' is optionee exploration spending on the project, not a capital raise by CanAlaska. Body truncated at 6000 chars but cut in the About section."
+  },
+  {
+   "n": 36,
+   "event_id": "6e12d6b1ff013b48b1290b8f3185439c64b5d762504a508bf2f54e9a6faa8501",
+   "ticker": "NINE.CN",
+   "published_at": "2024-09-03T08:30:10+00:00",
+   "stratum": "amendment/1",
+   "body_sha1": "adf7253bca5be60f7e2e80952774759114d70996",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Nine Mile Metals Ltd.",
+    "role": "amendment",
+    "deal_types": [
+     "PP"
+    ],
+    "offering": null,
+    "currency": "CAD",
+    "amount_offered": 250000,
+    "amount_offered_alt": [],
+    "amount_this_close": null,
+    "amount_closed_total": null,
+    "unit_prices": [
+     0.05
+    ],
+    "warrant": {
+     "per_unit": 0.5,
+     "strike": 0.08,
+     "term_months": 24
+    },
+    "conversion_price": null,
+    "same_deal": [
+     "49d8a6dc4fd3f52c05dcca66b92de7c4d4a764d459496d241931c98857c78f94",
+     "2f55afe7bb40d2ade8aa3a2dd59c91eb52566f779ad5f348d1eb3abcc4133c81"
+    ],
+    "not_same_deal": [
+     "ec07126bb9be2ee748fba0d0fe648fe6224da79f344cca86c6b63f30333b78f6",
+     "e6c07d610477713fef6b4155de5b18f5a020406500c36cc8f97ba086348e00e3",
+     "55a23a0e4e8d32dea0358f9a74a48c08dc8b2fe6ba759cdd2753c383440c32be",
+     "e98d18162e139085460240e2989ad885da3986c51c00e9bff071bfa849a698db",
+     "52fdcca6f161b561bb52a49b8b8c63cb167a0184d645ce88c5c30c1aa7c76557",
+     "9d60b61767fb790727a2417ad7fc5b32a2c64685f485d896aa580ef434079f1b",
+     "d304713b46f43520c58392c4246a5bb9f55d0b4bbbc25550904c84ec96a257f4"
+    ],
+    "confidence": "high",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "'to amend its press release dated August 30, 2024 ... to amend the price per Unit ... up to 5,000,000 units at $0.05 ... one-half warrant at $0.08 for 24 months', proceeds up to $250,000. Nov 16 release updates the Sept 3 release and closes it; finder commissions only, so offering null."
+  },
+  {
+   "n": 37,
+   "event_id": "db34cb340125cb0b26dcbfb0d3707e24ee38db87fe8f2be4de1f5c39906129cf",
+   "ticker": "AZT.V",
+   "published_at": "2026-09-03T15:53:00",
+   "stratum": "upsize/1",
+   "body_sha1": "2703a124bb534586364db80f0312ebf32eccd5c0",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Aztec Minerals Corp.",
+    "role": "upsize",
+    "deal_types": [
+     "PP"
+    ],
+    "offering": "BOUGHT_DEAL",
+    "currency": "CAD",
+    "amount_offered": 5568000,
+    "amount_offered_alt": [],
+    "amount_this_close": null,
+    "amount_closed_total": null,
+    "unit_prices": [
+     0.32
+    ],
+    "warrant": {
+     "per_unit": 0.5,
+     "strike": 0.42,
+     "term_months": 24
+    },
+    "conversion_price": null,
+    "same_deal": [
+     "5ec277368e2cca1a1c49faaaaf8264ba4ffb851755582c216044ee2d6c114185"
+    ],
+    "not_same_deal": [],
+    "confidence": "high",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "'to increase the size of its previously announced bought deal ... 17,400,000 units at C$0.32 for gross proceeds of C$5,568,000'; one-half warrant at C$0.42 for 24 months. Underwriter's option adds up to ~C$835,200 but no with-option total is stated, so amount_offered_alt left empty (would be 6,403,200)."
+  },
+  {
+   "n": 38,
+   "event_id": "35790375c1e0f778d2f735cfb74c0c056ed299b8f841c85555a0c498a8ace53f",
+   "ticker": "AVE.CN",
+   "published_at": "2022-09-21T12:00:35+00:00",
+   "stratum": "announcement/1",
+   "body_sha1": "5ce6de59c34a0218dab0105e69de3570f29cc099",
+   "review": "excluded",
+   "expect": {
+    "is_financing": false,
+    "issuer_matches_ticker": null,
+    "issuer_name": "Vital Battery Metals",
+    "role": null,
+    "deal_types": [],
+    "offering": null,
+    "currency": null,
+    "amount_offered": null,
+    "amount_offered_alt": [],
+    "amount_this_close": null,
+    "amount_closed_total": null,
+    "unit_prices": [],
+    "warrant": null,
+    "conversion_price": null,
+    "same_deal": [],
+    "not_same_deal": [],
+    "confidence": "low",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "Headline 'Vital Battery Metals Announces Private Placement' but the 357-char body is a different release (Aventis Energy Corvo drill results) and contains no deal terms, amount or price; labelled false for lack of deal-specific content. Mismatched/garbled source - needs re-fetch.",
+   "review_note": "Stored body is a different company's drill-results release; the financing cannot be checked."
+  },
+  {
+   "n": 39,
+   "event_id": "fe5c3a1993f7afd272368c1d7484e647",
+   "ticker": "STAR.CN",
+   "published_at": "2025-05-20",
+   "stratum": "final_close/1",
+   "body_sha1": "36ffe18343e0caff4f11f75c25c2f7925ce4b789",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Starmet Ventures Inc.",
+    "role": "final_close",
+    "deal_types": [
+     "PP"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": null,
+    "amount_offered_alt": [],
+    "amount_this_close": 1110000,
+    "amount_closed_total": 1110000,
+    "unit_prices": [
+     0.05
+    ],
+    "warrant": {
+     "per_unit": 1,
+     "strike": 0.05,
+     "term_months": 36
+    },
+    "conversion_price": null,
+    "same_deal": [
+     "c6eacdd93a1eb3eb3c580a3b3ad4655a",
+     "758bf356f32be373fea8b55aa91d2345"
+    ],
+    "not_same_deal": [],
+    "confidence": "high",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "'further to its news release of February 3, 2025 and March 3, 2025, it has closed the previously announced non-brokered private placement ... 22,200,000 units at $0.05 ... raising $1,110,000'; one warrant at $0.05 for 36 months. No offered size restated (context announced up to $2M), so amount_offered null."
+  },
+  {
+   "n": 40,
+   "event_id": "6b03fbbb71ad5de91ab15f36f9bff3a335e73003",
+   "ticker": "OMGA.CN",
+   "published_at": "2026-03-10T12:00:00Z",
+   "stratum": "announcement/1",
+   "body_sha1": "fe90da8c85422b7fa6a6c5df3ff7992c59fced35",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Omega Pacific Resources Ltd.",
+    "role": "announcement",
+    "deal_types": [
+     "PP",
+     "FT"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": 3000000,
+    "amount_offered_alt": [
+     3700000
+    ],
+    "amount_this_close": null,
+    "amount_closed_total": null,
+    "unit_prices": [
+     0.22,
+     0.2
+    ],
+    "warrant": {
+     "per_unit": 0.5,
+     "strike": 0.33,
+     "term_months": 18
+    },
+    "conversion_price": null,
+    "same_deal": [
+     "6afbf25ca7c7776bbdabb1e3fbf85eb9",
+     "859c78953df95d966cee1df25d90d9f9",
+     "c93740e0658b16c8319406e5aa2b2bc4",
+     "bb0dd5062817c8acfc96aecee6ba2cba62505e57",
+     "e25fa1c4e2e46c84a84700d36d91376d5b5cbd68"
+    ],
+    "not_same_deal": [
+     "1a4212af0a32db30be18207c6aab3ffa"
+    ],
+    "confidence": "medium",
+    "warrant_alt": [
+     {
+      "per_unit": 0.5,
+      "strike": 0.3,
+      "term_months": 24
+     }
+    ],
+    "alt_readings": []
+   },
+   "note": "Headline figure is 'up to $3,000,000' but the stated terms (10,000,000 FT Units at $0.22 + 7,500,000 NFT Units at $0.20) sum to $3,700,000; the Mar 11 context release 'clarifies' size is up to $3,700,000, so 3.7M put in alt. Warrant terms differ by tranche (FT: 1/2 at $0.33 for 18 mo; NFT: 1/2 at $0.30 for 2 years); FT terms recorded as listed first."
+  },
+  {
+   "n": 41,
+   "event_id": "57a2b1587976a879c57004390324d8d41e5ed297f338d70794d0aad18222905c",
+   "ticker": "MEX.V",
+   "published_at": "2025-02-25T23:56:06",
+   "stratum": "mention/1",
+   "body_sha1": "090ef9d09953e1a29ed30d48df58af70bddc585b",
+   "review": "excluded",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Mexican Gold Mining Corp.",
+    "role": "final_close",
+    "deal_types": [
+     "PP"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": null,
+    "amount_offered_alt": [],
+    "amount_this_close": 160000,
+    "amount_closed_total": 160000,
+    "unit_prices": [
+     0.04
+    ],
+    "warrant": null,
+    "conversion_price": null,
+    "same_deal": [],
+    "not_same_deal": [],
+    "confidence": "low",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "Body is a scraped news-listing page, not a single release. Matched to published_at (2025-02-25 23:56 UTC = 6:46 PM EST entry): 'has now closed its previously announced a non-brokered private placement offering for aggregate gross proceeds of CAD $160,000 through the issuance of 4,000,000 units ... at a price of $0.04 per Unit'. Warrant terms truncated, so warrant null. Other listing entries (Jun 2026 subscription receipts, Oct/Nov 2025 $850k PP) are different deals.",
+   "review_note": "Stored body is a scraped news-listing page, not the release."
+  },
+  {
+   "n": 42,
+   "event_id": "7ee62e91bbb90a1a479786ef621a641dd63321cd",
+   "ticker": "BGD.V",
+   "published_at": "2026-06-02T12:00:00Z",
+   "stratum": "announcement/1",
+   "body_sha1": "9087a25c6172e56665328892e879525cdb95a208",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Bullion Gold Resources Corp.",
+    "role": "announcement",
+    "deal_types": [
+     "PP"
+    ],
+    "offering": null,
+    "currency": "CAD",
+    "amount_offered": 1500000,
+    "amount_offered_alt": [],
+    "amount_this_close": null,
+    "amount_closed_total": null,
+    "unit_prices": [
+     0.09
+    ],
+    "warrant": {
+     "per_unit": 0.5,
+     "strike": 0.15,
+     "term_months": 18
+    },
+    "conversion_price": null,
+    "same_deal": [
+     "26735ee23851aeae1b59eab1e4dff70a4cf26fd5",
+     "c3ec7ee6541ecd6d1f2a41bad10f78bf35d30d53"
+    ],
+    "not_same_deal": [],
+    "confidence": "high",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "'private placement of up to 16,666,667 units ... at a price of $0.09 per Unit for gross proceeds of up to $1,500,000'; this release does not say brokered or non-brokered (finder's fees only), so offering null. Jun 9 upsize to $2M and Jun 17 close are the same deal."
+  },
+  {
+   "n": 43,
+   "event_id": "984a4d13177d865620daf883423dc847a8ee0414",
+   "ticker": "BLLG.CN",
+   "published_at": "2019-09-18T12:00:00Z",
+   "stratum": "tranche_close/1",
+   "body_sha1": "62a4c38238f07de91c898d6e2376479955112cc9",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Blue Lagoon Resources Inc.",
+    "role": "tranche_close",
+    "deal_types": [
+     "PP"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": null,
+    "amount_offered_alt": [],
+    "amount_this_close": 300000,
+    "amount_closed_total": 300000,
+    "unit_prices": [
+     1.0
+    ],
+    "warrant": null,
+    "conversion_price": null,
+    "same_deal": [
+     "edea04cfdf662adf9183c8145e05508587cf8456",
+     "0d80cdc819218391323aeebc1411dc34887fc652"
+    ],
+    "not_same_deal": [
+     "53c69936a64a68bac6a117735b29c5d5f46d22ee",
+     "2606ab55ccf27457681886b885901f71b606ee59",
+     "2f224f61c2dd66da20ce608227419a3c3202a33a"
+    ],
+    "confidence": "high",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "'completed the first tranche of its non-brokered private placement ... described in its news release dated September 16, 2019 ... issued 300,000 common shares at a price of $1.00 per share for gross proceeds of $300,000'. No offering size stated. Oct 23 corporate update and Nov 14 'further $100,000' close skipped (cannot tell from lede); Jan 2020 releases are a new placement."
+  },
+  {
+   "n": 44,
+   "event_id": "df27175a6baa597a22336a042525bce9d53fd84e",
+   "ticker": "GRZ.V",
+   "published_at": "2026-02-11T12:00:00Z",
+   "stratum": "upsize/1",
+   "body_sha1": "d085456107b607bef0b147f515e08a8edf5e2100",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Gold Reserve Ltd.",
+    "role": "upsize",
+    "deal_types": [
+     "PP"
+    ],
+    "offering": "BROKERED",
+    "currency": "USD",
+    "amount_offered": 75000000,
+    "amount_offered_alt": [
+     93750000
+    ],
+    "amount_this_close": null,
+    "amount_closed_total": null,
+    "unit_prices": [
+     3.0
+    ],
+    "warrant": null,
+    "conversion_price": null,
+    "same_deal": [
+     "1ac362e4ed43524a2d8dc99347a19f1c40455f77"
+    ],
+    "not_same_deal": [
+     "0011b4a581237ae565a16116c10cc384a5c3cf73",
+     "a13c18b3971bcd8386c9701a1f635926c6e71a83"
+    ],
+    "confidence": "high",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "'increasing the size of the previously announced private placement of common shares ... to gross proceeds of up to approximately US$75 million ... at US$3.00', best-efforts via Cantor Fitzgerald as Agent; US$93.75M if the 25% over-allotment option is exercised in full. July 2025 US$30M close and its agency agreement are a prior deal."
+  },
+  {
+   "n": 45,
+   "event_id": "01d798901deee731368fedb38400685fe0ee5e44",
+   "ticker": "TCEC.CN",
+   "published_at": "2024-07-23T12:00:00Z",
+   "stratum": "announcement/1",
+   "body_sha1": "1d1fec0454a23aee6b6b7cc4655a7e5dbaab07ff",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Tisdale Clean Energy Corp.",
+    "role": "announcement",
+    "deal_types": [
+     "PP"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": 500000,
+    "amount_offered_alt": [],
+    "amount_this_close": null,
+    "amount_closed_total": null,
+    "unit_prices": [
+     0.075
+    ],
+    "warrant": {
+     "per_unit": 1,
+     "strike": 0.15,
+     "term_months": 36
+    },
+    "conversion_price": null,
+    "same_deal": [
+     "d1792123d4d247e09bac5bb0b87f1d55ecb56c34"
+    ],
+    "not_same_deal": [
+     "e4e41d69615a51915300f8e930476b8690a2e0d8",
+     "415841b9d462eeba6dc46b4c27449d10f20aad35",
+     "cf744f583b413d15e71195f76104036314f67759",
+     "23650a6ad68030c66aeab56c6cf982fdb24fa149"
+    ],
+    "confidence": "high",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "'non-brokered private placement, up to 6,666,667 units at a price of $0.075 per Unit for gross proceeds of up to $500,000. Each Unit ... one share purchase warrant exercisable at $0.15 for thirty-six months.' Option grant in same release is not part of the financing. Jul 31 2024 close is this deal; Feb 2024 and Dec 2024 (Terra Clean Energy) placements are separate."
+  },
+  {
+   "n": 46,
+   "event_id": "07441407354ed72effc559a02968479b4a81c0a9",
+   "ticker": "TAI.CN",
+   "published_at": "2024-08-16T12:00:00Z",
+   "stratum": "final_close/1",
+   "body_sha1": "51417c0733f5c2d1d3d4a87df1cc29bc90139fe7",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Talmora Diamond Inc.",
+    "role": "final_close",
+    "deal_types": [
+     "PP",
+     "FT"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": null,
+    "amount_offered_alt": [],
+    "amount_this_close": 400000,
+    "amount_closed_total": 400000,
+    "unit_prices": [
+     0.05
+    ],
+    "warrant": {
+     "per_unit": 1,
+     "strike": 0.06,
+     "term_months": 12
+    },
+    "conversion_price": null,
+    "same_deal": [
+     "92ce783123781c59743351a41afc4a4191de58b9"
+    ],
+    "not_same_deal": [],
+    "confidence": "high",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "'closed its previously announced non-brokered private placement offering of 5,000,000 HD Units at $0.05 and 3,000,000 flow-through units at $0.05 for aggregate gross proceeds of $400,000'; each unit has one warrant at $0.06 for 12 months. Close-only release, so amount_offered null."
+  },
+  {
+   "n": 47,
+   "event_id": "2a776fa0b5aa3c0662367b3cd215beda718c6f9a",
+   "ticker": "TGOL.V",
+   "published_at": "2025-06-25T12:00:00Z",
+   "stratum": "upsize/1",
+   "body_sha1": "db7baa1f1eaf7107e6838e8243eb3bb13f01a5a4",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Thunder Gold Corp",
+    "role": "upsize",
+    "deal_types": [
+     "PP",
+     "FT"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": 1600000,
+    "amount_offered_alt": [],
+    "amount_this_close": null,
+    "amount_closed_total": null,
+    "unit_prices": [
+     0.07,
+     0.06
+    ],
+    "warrant": {
+     "per_unit": 0.5,
+     "strike": 0.1,
+     "term_months": 18
+    },
+    "conversion_price": null,
+    "same_deal": [
+     "11bbc784f28fadfbeed9116d7fc3272be00012c4",
+     "1a1d9ded494d0cc6eacfd09f87aa6a781bb3b6d3"
+    ],
+    "not_same_deal": [
+     "2e67459bf1084eca45ce60df13300f79f9897196",
+     "1926259c06078f63e28cbdf92c33cc6057e25b9f",
+     "c3a6d038f8e2de8eb9e763d407ccc976a7ff925d",
+     "099282e1e65ec7adbf914a60372285189dc4abe2",
+     "4e1cc14714c479c04c7b6716c42284a7a9a0cb0a"
+    ],
+    "confidence": "high",
+    "warrant_alt": [
+     {
+      "per_unit": 1,
+      "strike": 0.1,
+      "term_months": 18
+     }
+    ],
+    "alt_readings": []
+   },
+   "note": "'upsize of its previously announced non-brokered private placement ... from gross proceeds of CDN$1,000,000 to CDN$1,600,000'; FT Units $0.07 (1/2 warrant), non-FT Units $0.06 (one full warrant), both warrants $0.10 for 18 months. Warrant per_unit recorded for FT Units (listed first); non-FT is 1. Jun 4 $1M announcement and Jun 30 $1.6M close are same deal; Jan and Dec 2025 placements are separate."
+  },
+  {
+   "n": 48,
+   "event_id": "8adab2aba13603e8aac97168fe8f9a1c8f1d98d1",
+   "ticker": "W.V",
+   "published_at": "2025-04-16T12:00:00Z",
+   "stratum": "final_close/1",
+   "body_sha1": "13eda8c35f11627b24ba34cd7a2d11431ce0dab1",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": null,
+    "issuer_name": "Midasco Capital Corp.",
+    "role": "final_close",
+    "deal_types": [
+     "PP"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": null,
+    "amount_offered_alt": [],
+    "amount_this_close": 350000,
+    "amount_closed_total": 350000,
+    "unit_prices": [
+     0.05
+    ],
+    "warrant": {
+     "per_unit": 1,
+     "strike": 0.075,
+     "term_months": 12
+    },
+    "conversion_price": null,
+    "same_deal": [],
+    "not_same_deal": [
+     "0949d7ddd779147fbaeb162bdc2447fc07a58ec2"
+    ],
+    "confidence": "medium",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "Release is by Midasco Capital Corp. (TSX-V: MGC.H) while ticker is W.V; context shows W = Spartan Metals with the same contact (Pettigrew), suggesting a later rename, but the text does not say so, hence null. 'completed its previously announced non-brokered private placement of 7,000,000 units at $0.05 per Unit for gross proceeds of up to $350,000' treated as a $350,000 close (offered null, close-only). Sept 2025 Spartan $2.25M close is a separate deal."
+  },
+  {
+   "n": 49,
+   "event_id": "55c52ea52b3e8a24a535244587799ccbc12de94b",
+   "ticker": "NIX.CN",
+   "published_at": "2024-04-26T12:00:00Z",
+   "stratum": "announcement/1",
+   "body_sha1": "23a6e5bc8a68ab0c0e011d3621df6fcef7672e30",
+   "review": "confirmed",
+   "expect": {
+    "is_financing": true,
+    "issuer_matches_ticker": true,
+    "issuer_name": "Archer Exploration Corp.",
+    "role": "announcement",
+    "deal_types": [
+     "PP"
+    ],
+    "offering": "NON_BROKERED",
+    "currency": "CAD",
+    "amount_offered": 2275000,
+    "amount_offered_alt": [],
+    "amount_this_close": null,
+    "amount_closed_total": null,
+    "unit_prices": [
+     0.24
+    ],
+    "warrant": {
+     "per_unit": 1,
+     "strike": 0.36,
+     "term_months": 36
+    },
+    "conversion_price": null,
+    "same_deal": [
+     "939dfe202fa8da8d33fe127175ace792ce45f139"
+    ],
+    "not_same_deal": [
+     "3515829c2d2a1cf33eb517d9655adcfe0449b6e6",
+     "9bf502a6b8c55dd4584bb19791700a58f589d9f2"
+    ],
+    "confidence": "high",
+    "warrant_alt": [],
+    "alt_readings": []
+   },
+   "note": "'non-brokered private placement for gross proceeds of up to $2,275,000 ... up to 9,479,166 units (post-Consolidation) at $0.24; one warrant at $0.36 for 36 months'. Archer changed its name to NorthX Nickel Corp. with new symbol NIX, so ticker matches. May 14 2024 NorthX close is this deal; Oct/Nov 2023 $2M placement is separate."
+  }
+ ]
+}

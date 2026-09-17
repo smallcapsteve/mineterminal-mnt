@@ -176,6 +176,9 @@ class TagSpec:
     from_records: object = None
     describe: dict = field(default_factory=dict)
     replaces: dict = None
+    # FIN_SPEC_V1 (2026-09-17): a tag whose rows need the whole corpus (deals grouped from several releases)
+    # scores a candidate through its publisher: candidate_predictor(conn, extractor, version) -> predict(it, ev)
+    candidate_predictor: object = None
 
 
 SPECS = {}
@@ -432,7 +435,9 @@ def gate_and_activate(conn, facts, tagspec, extractor_spec, aset, *, selftest_ok
         raise AccuracyError(f"{name} {version} is {st!r}; only a candidate or retired version can be gated")
     if facts.pending_events(conn, name, version, limit=1):
         raise AccuracyError(f"{name} {version} is not fully backfilled; run facts_sync.py --backfill {name} first")
-    rep = evaluate(tagspec, aset, extractor_predictor(tagspec, extractor_spec), load_events(conn, aset))
+    predict = (tagspec.candidate_predictor(conn, name, version) if tagspec.candidate_predictor
+               else extractor_predictor(tagspec, extractor_spec))
+    rep = evaluate(tagspec, aset, predict, load_events(conn, aset))
     replaced = replaced_info(conn, tagspec, name, version) if tagspec.replaces else None
     rows_before = page_row_counts(conn)
     pages_before = page_statuses(base, hrefs)
@@ -617,6 +622,207 @@ register_spec(TagSpec(
               "intercept": "the headline intercept (grade, metal, length) is a real new intercept from the release",
               "hole": "the hole shown is the hole that intercept came from",
               "project": "the project shown is the release's project"}))
+
+
+# ------------------------------------------------------------------ Financings (FIN_SPEC_V1, 2026-09-17)
+FIN_KEY_FIELDS = ("row", "company", "stage", "amount", "grouping", "price", "type", "warrant")
+FIN_TYPE_TOKENS = {"PP", "FT", "LIFE", "CD", "DEBT", "IPO", "ATM", "STREAM", "OTHER"}
+FIN_OFFER_TOKENS = {"BOUGHT_DEAL", "BROKERED", "NON_BROKERED"}
+FIN_ROLE_ALIAS = {"mention": "update"}
+
+
+def _fin_close(a, b, rel=0.01, absol=1.0):
+    return a is not None and b is not None and abs(float(a) - float(b)) <= max(rel * abs(float(b)), absol)
+
+
+def _fin_price_close(a, b):
+    return a is not None and b is not None and abs(float(a) - float(b)) <= max(0.005 * abs(float(b)), 0.00051)
+
+
+def _fin_types(tokens):
+    toks = {t for t in (tokens or []) if t}
+    types = {t for t in toks if t in FIN_TYPE_TOKENS} - {"PP"}
+    offer = [t for t in toks if t in FIN_OFFER_TOKENS]
+    return types, (offer[0] if offer else None)
+
+
+def _fin_judge_one(pred, e, event_id=None):
+    """pred: None (release not shown on the page) or
+         {ticker, role, kind: [tokens], amounts: [numbers], unit_price, warrant: {per_unit, strike, term_months} | None,
+          members: [event_ids in the same deal row]}
+       e: the label (expect), already merged with an alt reading if any."""
+    out = {f: [] for f in FIN_KEY_FIELDS}
+    fin = bool(e.get("is_financing"))
+    if pred is None:
+        if fin:
+            out["row"].append("fn")
+        return out
+    out["row"].append("tp" if fin else "fp")
+    if not fin:
+        return out
+    m = e.get("issuer_matches_ticker")
+    if m is True:
+        out["company"].append("tp")
+    elif m is False:
+        out["company"].append("fp")
+    role = FIN_ROLE_ALIAS.get(pred.get("role"), pred.get("role"))
+    if role is not None:
+        out["stage"].append("tp" if role == e.get("role") else "fp")
+    elif e.get("role"):
+        out["stage"].append("fn")
+    gold = [x for x in [e.get("amount_offered"), e.get("amount_this_close"), e.get("amount_closed_total")] + list(e.get("amount_offered_alt") or []) if x]
+    claims = [a for a in (pred.get("amounts") or []) if a]
+    for a in claims:
+        out["amount"].append("tp" if any(_fin_close(a, g) for g in gold) else "fp")
+    if not claims and gold:
+        out["amount"].append("fn")
+    same, notsame = set(e.get("same_deal") or []), set(e.get("not_same_deal") or [])
+    if same or notsame:
+        mem = set(pred.get("members") or []) - ({event_id} if event_id else set())
+        out["grouping"].append("tp" if same <= mem and not (mem & notsame) else "fp")
+    prices = list(e.get("unit_prices") or [])
+    if e.get("conversion_price") is not None:
+        prices.append(e["conversion_price"])
+    p = pred.get("unit_price")
+    if p is not None:
+        out["price"].append("tp" if any(_fin_price_close(p, g) for g in prices) else "fp")
+    elif prices:
+        out["price"].append("fn")
+    if pred.get("kind"):
+        pt, po = _fin_types(pred["kind"])
+        gt, go = _fin_types(list(e.get("deal_types") or []) + [e.get("offering")])
+        ok = pt == gt and (po is None or go is None or po == go)
+        out["type"].append("tp" if ok else "fp")
+    gw = [w for w in [e.get("warrant")] + list(e.get("warrant_alt") or []) if w]
+    w = pred.get("warrant")
+    if w and (w.get("strike") is not None or w.get("term_months") is not None):
+        conv = e.get("conversion_price")
+        if not gw and conv is not None and _fin_price_close(w.get("strike"), conv) and w.get("term_months") is None:
+            pass  # a CD's conversion price shown in the warrant column: not scored
+        else:
+            def match(g):
+                if w.get("strike") is not None and not _fin_price_close(w["strike"], g.get("strike")):
+                    return False
+                if w.get("term_months") is not None and g.get("term_months") is not None and int(w["term_months"]) != int(g["term_months"]):
+                    return False
+                if w.get("per_unit") is not None and g.get("per_unit") is not None and abs(w["per_unit"] - g["per_unit"]) > 1e-9:
+                    return False
+                return True
+            out["warrant"].append("tp" if any(match(g) for g in gw) else "fp")
+    elif gw:
+        out["warrant"].append("fn")
+    return out
+
+
+def judge_financing(pred, expect, event_id=None):
+    """Scores against the label and each of its alt_readings; keeps the reading with the fewest mistakes."""
+    if event_id is None and pred:
+        event_id = pred.get("event_id")
+    readings = [expect] + [dict(expect, **alt) for alt in (expect.get("alt_readings") or [])]
+    best = None
+    for r in readings:
+        o = _fin_judge_one(pred, r, event_id)
+        bad = sum(1 for v in o.values() for x in v if x != "tp")
+        if best is None or bad < best[0]:
+            best = (bad, o)
+    return best[1]
+
+
+FIN_UNIT_COMP_PER = {"share + half warrant": 0.5, "share + warrant": 1.0, "unit + half warrant": 0.5, "unit + warrant": 1.0}
+
+
+def fin_stored_prediction(event_row, deal_row, members):
+    """Adapter for today's tables. event_row: financing_events (role, tranche_label, kind, gross_total, unit_count,
+    unit_price, unit_comp, warrant_strike, warrant_term_months, currency, is_deal); deal_row: financings row
+    (financing_id, ticker, announced_at, kind, status, ...). A release in a 'mention' row is hidden from the page."""
+    if event_row is None or deal_row is None or deal_row[4] == "mention":
+        return None
+    role, _tl, kind, gross, _cnt, price, comp, strike, term = event_row[:9]
+    w = None
+    if strike is not None or term is not None:
+        w = {"per_unit": FIN_UNIT_COMP_PER.get(comp), "strike": strike, "term_months": term}
+    return {"ticker": deal_row[1], "role": role, "kind": (kind or "").split("+") if kind else [],
+            "amounts": [gross] if gross else [], "unit_price": price, "warrant": w, "members": list(members)}
+
+
+def stored_financing(conn, event_id):
+    """What /financings shows for one release today (legacy or published tables alike)."""
+    ev = conn.execute("SELECT role, tranche_label, kind, gross_total, unit_count, unit_price, unit_comp, warrant_strike, "
+                      "warrant_term_months, currency, is_deal, financing_id FROM financing_events WHERE event_id=?",
+                      (event_id,)).fetchone()
+    if ev is None or ev[11] is None:
+        return None
+    row = conn.execute("SELECT financing_id, ticker, announced_at, kind, status, gross_announced, gross_closed, unit_price, "
+                       "unit_comp, warrant_strike, warrant_term_months, n_events, currency FROM financings WHERE financing_id=?",
+                       (ev[11],)).fetchone()
+    members = [r[0] for r in conn.execute("SELECT event_id FROM financing_events WHERE financing_id=?", (ev[11],))]
+    cols = {r[1] for r in conn.execute("PRAGMA table_info(financing_events)")}
+    pred = fin_stored_prediction(tuple(ev[:11]), tuple(row) if row else None, members)
+    if pred is not None and "amount_offered" in cols:
+        am = conn.execute("SELECT amount_offered, amount_this_close, amount_closed_total FROM financing_events WHERE event_id=?",
+                          (event_id,)).fetchone()
+        if am and any(am):
+            pred["amounts"] = [x for x in am if x]
+    if pred is not None:
+        pred["event_id"] = event_id
+    return pred
+
+
+def _fin_compute(conn, extractor, version):
+    from portal import financing_publish as P
+    deals, releases, _st = P.compute(P.load_items(conn, version))
+    return deals, releases
+
+
+def _fin_candidate(conn, extractor, version):
+    _deals, releases = _fin_compute(conn, extractor, version)
+    return {r["event"]["event_id"] for r in releases if r["deal"] is not None}
+
+
+def _fin_current(conn):
+    return {r[0] for r in conn.execute(
+        "SELECT e.event_id FROM financing_events e JOIN financings f ON f.financing_id=e.financing_id "
+        "WHERE COALESCE(f.status,'') <> 'mention'")}
+
+
+def _fin_describe(conn, event_ids):
+    out = []
+    for eid in event_ids:
+        r = conn.execute("SELECT e.ticker, e.event_date, e.role, f.status, e.raw_headline FROM financing_events e "
+                         "LEFT JOIN financings f ON f.financing_id=e.financing_id WHERE e.event_id=?", (eid,)).fetchone()
+        if r:
+            out.append(f"{eid[:8]} {r[0]} {r[1]} | was {r[2]} in a {r[3]} row | {(r[4] or '')[:90]}")
+    return out
+
+
+def _fin_candidate_predictor(conn, extractor, version):
+    from portal import financing_publish as P
+    deals, releases = _fin_compute(conn, extractor, version)
+    preds = P.predictions(deals, releases)
+    for eid, p in preds.items():
+        if p is not None:
+            p["event_id"] = eid
+    return lambda it, ev: preds.get(it["event_id"])
+
+
+def _fin_from_records(records):
+    from portal.extractors import financings as X
+    return X.to_prediction(records)
+
+
+register_spec(TagSpec(
+    name="financings", tag="Financings", key_fields=FIN_KEY_FIELDS, judge=judge_financing, stored=stored_financing,
+    from_records=_fin_from_records, candidate_predictor=_fin_candidate_predictor,
+    replaces={"page": "financings", "min_row_recall": 0.977, "candidate": _fin_candidate, "current": _fin_current,
+              "describe": _fin_describe},
+    describe={"row": "a release is shown in a deal row only when it is the company's own financing",
+              "company": "the row's ticker is the company raising the money",
+              "stage": "the release's stage (announced, upsized, terms changed, tranche closed, closed, cancelled, update)",
+              "amount": "every amount shown for the release is one the release states (size offered, this close, closed total)",
+              "grouping": "the deal row holds the same deal's other releases and none from a different deal",
+              "price": "the unit price is one of the deal's issue prices (or a debenture's conversion price)",
+              "type": "flow-through / LIFE / debenture / debt / IPO / ATM / stream, and brokered or not, match the release",
+              "warrant": "warrant strike, term and per-unit fraction match the unit's warrant"}))
 
 
 # ------------------------------------------------------------------ self-tests
@@ -909,6 +1115,25 @@ def _selftest():
        {"/": 200, "/bad": 500, "/moved": 302, "/nope": 404})
     srv.shutdown()
     ok("sets dir under app", SETS_DIR.endswith(os.path.join("accuracy", "sets")) and tempfile is not None)
+
+    # financings judge (FIN_SPEC_V1)
+    fe = {"is_financing": True, "issuer_matches_ticker": True, "role": "final_close", "deal_types": ["PP"],
+          "offering": "NON_BROKERED", "amount_offered": None, "amount_offered_alt": [], "amount_this_close": 500000,
+          "amount_closed_total": 500000, "unit_prices": [0.05], "warrant": {"per_unit": 1, "strike": 0.1, "term_months": 24},
+          "warrant_alt": [], "conversion_price": None, "same_deal": ["a"], "not_same_deal": ["b"], "alt_readings": []}
+    fp = {"event_id": "x", "role": "final_close", "kind": ["NON_BROKERED"], "amounts": [500000.0], "unit_price": 0.05,
+          "warrant": {"per_unit": 1.0, "strike": 0.1, "term_months": 24}, "members": ["x", "a"]}
+    eq("fin judge all right", {k: v for k, v in judge_financing(fp, fe).items() if v},
+       {"row": ["tp"], "company": ["tp"], "stage": ["tp"], "amount": ["tp"], "grouping": ["tp"], "price": ["tp"], "type": ["tp"],
+        "warrant": ["tp"]})
+    bad = dict(fp, members=["x", "a", "b"], amounts=[270000.0], kind=["BROKERED"], role="tranche_close")
+    o = judge_financing(bad, fe)
+    eq("fin judge wrong grouping/amount/type/stage", (o["grouping"], o["amount"], o["type"], o["stage"]), (["fp"], ["fp"], ["fp"], ["fp"]))
+    eq("fin judge hidden financing", judge_financing(None, fe)["row"], ["fn"])
+    eq("fin judge not a financing shown", judge_financing(fp, dict(fe, is_financing=False))["row"], ["fp"])
+    eq("fin judge alt reading", judge_financing(dict(fp, role="announcement", amounts=[1000000.0]),
+                                                 dict(fe, alt_readings=[{"role": "announcement", "amount_offered": 1000000,
+                                                                          "amount_this_close": None, "amount_closed_total": None}]))["stage"], ["tp"])
 
     failed = [n for n, good_ in results if not good_]
     for n in failed:

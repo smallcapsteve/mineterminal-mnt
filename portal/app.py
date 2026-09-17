@@ -270,6 +270,44 @@ except Exception:
         return f"{half}{term}warrant at ${strike:.2f}".strip()
 
 
+_FIN_STAGE = {"announcement": "Announced", "upsize": "Upsized", "amendment": "Terms changed",
+              "tranche_close": "Tranche closed", "final_close": "Closed", "terminated": "Cancelled",
+              "update": "Update", "mention": "Update"}
+
+
+def _fin_releases(conn, rows):
+    """FIN_DETAIL_V1: attach r["releases"] (oldest first) to each deal row. Reads the amount columns the
+    FIN_V1 publisher adds when they exist; the legacy tables only have gross_total."""
+    ids = [r["financing_id"] for r in rows if r.get("financing_id") is not None]
+    for r in rows:
+        r["releases"] = []
+    if not ids:
+        return
+    cols = {c[1] for c in conn.execute("PRAGMA table_info(financing_events)")}
+    extra = ", amount_offered, amount_this_close, amount_closed_total, is_duplicate" if "amount_offered" in cols else ""
+    by = {r["financing_id"]: r for r in rows}
+    q = ("SELECT event_id, financing_id, event_date, role, tranche_label, gross_total, unit_price, raw_headline%s "
+         "FROM financing_events WHERE financing_id IN (%s) ORDER BY event_date, event_id") % (extra, ",".join("?" * len(ids)))
+    for e in conn.execute(q, ids):
+        e = dict(e)
+        role = e.get("role") or ""
+        closing = role in ("tranche_close", "final_close")
+        if "amount_offered" in e:
+            amt = e.get("amount_this_close") if closing else e.get("amount_offered")
+            tot = e.get("amount_closed_total") if closing else None
+        else:
+            amt, tot = e.get("gross_total"), None
+        stage = _FIN_STAGE.get(role, role.replace("_", " ").capitalize())
+        if e.get("tranche_label") and closing and e["tranche_label"] != "final":
+            stage += " (" + e["tranche_label"] + ")"
+        by[e["financing_id"]]["releases"].append({
+            "event_id": e["event_id"], "date": (e.get("event_date") or "")[:10], "stage": stage,
+            "amount": fmt_money(amt) if amt else "",
+            "total": fmt_money(tot) if tot and tot != amt else "",
+            "price": ("$%.3f" % e["unit_price"]) if e.get("unit_price") else "",
+            "headline": (e.get("raw_headline") or "")[:160], "copy": bool(e.get("is_duplicate"))})
+
+
 @app.get("/financings", response_class=HTMLResponse)
 def financings_page(
     request: Request,
@@ -321,6 +359,9 @@ def financings_page(
             d.get("unit_comp"), d.get("warrant_strike"), d.get("warrant_term_months")
         )
         decorated.append(d)
+
+    # FIN_DETAIL_V1 (2026-09-17): each deal row expands to the releases grouped into it
+    _fin_releases(conn, decorated)
 
     # Side metrics
     total = conn.execute("SELECT COUNT(*) FROM financings").fetchone()[0]
