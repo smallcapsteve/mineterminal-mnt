@@ -31,7 +31,7 @@ from portal import drill_extract as D
 from portal import facts as F
 
 NAME = "drill_results"
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 KIND = "drill_result"
 TAG = "Drill Results"
 MAX_INTERVALS = 150
@@ -112,7 +112,8 @@ _RE_HIST = re.compile(
     r"|highlights?|assays?|data|work|sampl\w*|trench\w*|values?|grades?|programs?|programmes?|campaigns?|core)"
     r"|(?:drill\w*|holes?|results?|intercepts?|intersections?|highlights?|assays?|trench\w*|sampl\w*)"
     r"\s+(?:\w+\s+){0,2}(?:are|were|is|was)\s+historic(?:al)?"
-    r"|previous(?:ly)?[\s\-]+(?:report|announc|releas|disclos|drill|trench|sampl|publish|intersect|identif|defin|known|tested)\w*"
+    r"|previous(?:ly)?[\s\-]+(?:report|announc|releas|disclos|drill|trench|sampl|publish|intersect|identif|defin|known|tested|hole)\w*"
+    r"|(?:highest|best)[\-\s]+grade\s+(?:\w+\s+){0,2}(?:encountered|intersected|returned|drilled)\s+to\s+date\s+(?:at\s+(?:the\s+)?[\w\-]+(?:\s+[\w\-]+){0,2}\s+)?(?:is|was|remains|came)\b"
     r"|past\s+(?:drill\w*|exploration)\s+(?:success|results?|highlights?|programs?)"
     r"|\(\s*(?:" + MONTHS + r")\.?\s+\d{1,2},?\s+(?:19|20)\d\d\s+(?:news|press)\s+release"
     r"|(?:has|have|had)\s+(?:previously\s+)?reported\s+on\s+(?:numerous|several|multiple|many)"
@@ -128,7 +129,8 @@ _RE_HIST = re.compile(
     r"|(?:previous|former|prior)\s+(?:operators?|owners?|explorers?|companies)"
     r"|(?:press|news)\s+releases?\s+(?:dated|of|on)\b|(?:asx\s+)?announcements?\s+(?:dated|of|on)\s+\d"
     r"|see\s+(?:the\s+)?(?:company'?s\s+|[A-Z][\w&]*'?s?\s+){0,2}(?:asx\s+)?(?:news|press)\s+rel"
-    r"|based\s+on\s+(?:(?:19|20)\d\d\s+)?(?:historical\s+)?data|intercepts?\s+(?:of\s+)?up\s+to"
+    r"|based\s+on\s+(?:(?:19|20)\d\d\s+)?(?:historical\s+)?data"
+    r"|previously,?\s+(?:the|this|that|our|its|we)\s"
     r"|see\s+(?:the\s+)?(?:asx\s+)?announcement|\(\s*(?:see\s+)?(?:NR|PR)\s+(?:dated\s+)?(?:" + MONTHS + r")"
     r"|ref(?:\.|er\s+to|erence)?\s+(?:the\s+)?(?:company'?s\s+)?(?:press|news)\s+releases?"
     r"|assessment\s+(?:report|file)|prior\s+(?:drilling|programs?|holes?|campaigns?)"
@@ -211,8 +213,12 @@ def context_reason(ctx: str, release_date, program_years=(), pos=None, exempt_ye
         return "xrf"
     if _RE_VISUAL.search(ctx) and not _RE_ASSAY.search(ctx):
         return "visual"
+    skip_until = -1
+    skipped = []
     for m in _RE_HIST.finditer(ctx):
         before = ctx[max(0, m.start() - 90):m.start()]
+        if pos is not None and pos < m.start() and m.start() < skip_until:
+            continue  # the citation belongs to the sub-interval skipped just before it
         if _RE_SINCE.search(before):
             continue  # "completed since the last news release dated ..." introduces NEW results
         if (re.match(r"(?i)historic|prior\s+drill|previous\s+drill", m.group(0)) and _RE_RELATES.search(before)
@@ -222,9 +228,24 @@ def context_reason(ctx: str, release_date, program_years=(), pos=None, exempt_ye
         if (pos is not None and pos > m.end() and _RE_REFERENCE.match(m.group(0))
                 and ctx.rfind("(", 0, m.start()) > ctx.rfind(")", 0, m.start())):
             continue  # "(see news release dated ...)" refers to what came before it, not to a later figure
+        lead = ctx[max(0, m.start() - 45):m.start()]
+        if (pos is not None and pos < m.start() and re.search(
+                r"(?i)(?:includ\w*|incl\.?|within|encompass\w*|expand\w*|extend\w*|increas\w*|enlarg\w*|upgrad\w*|improv\w*)"
+                r"\s+(?:\w+\s+){0,2}(?:the|a|an|its|our|of|on)?\s*$", lead)):
+            skip_until = m.end() + 130
+            skipped.append((m.start(), min(len(ctx), skip_until)))
+            continue  # 1.0.1: "16.37 g/t over 16.0 m including the previously announced interval of 67.1 g/t over 3.0 m"
         if pos is not None and pos < m.start() - 20 and m.group(0)[:8].lower() == "previous":
             continue  # "27 m @ 37 g/t (APC-162) ... up-dip of previously released hole X": the old hole comes after
+        if (pos is not None and pos > m.end() and re.search(r"(?i)combin\w*\s+with\s+(?:the\s+)?$", lead)
+                and re.search(r"(?i)\b(?:to\s+form|composite|for\s+a\s+total|combined)\b", ctx[m.end():pos])):
+            continue  # "combining with previously released results to form a composite of 0.93% CuEq over 240 m"
+        if (pos is not None and pos > m.end() and re.search(r"(?i)(?:increas\w*|expand\w*|extend\w*|improv\w*|upgrad\w*)\s+(?:the\s+)?(?:size|length|grade|width)?\s*(?:and\s+\w+\s+)?(?:of\s+)?(?:the\s+|a\s+)?$", lead)
+                and re.search(r"(?i)\bnew\s+(?:results|assays|drilling|holes?)\b", ctx[m.end():pos])):
+            continue  # "Significantly Increasing Size of Previously Announced Interval. New results ... 186 m of 2.13% CuEq"
         return "historical"
+    for a, b in skipped:  # the dates of a skipped earlier sub-interval say nothing about the new parent
+        ctx = ctx[:a] + " " * (b - a) + ctx[b:]
     if release_date:
         for m in _RE_YEAR_WORK.finditer(ctx):
             y = int(m.group("y") or m.group("y2") or m.group("y3") or m.group("y4"))
@@ -547,6 +568,12 @@ def _one_length_per_grade(ivs, text):
     return out
 
 
+def _hole_prefix(hole):
+    """"SP" for "SP23-17": the letters a program's hole ids share, year and number aside."""
+    m = re.match(r"^([A-Za-z]{1,6})", hole or "")
+    return m.group(1).upper() if m else ""
+
+
 def _old_hole(hole, release_date):
     """Hole id names a year well before the release ("TM22-119" in a 2025 release)."""
     m = _RE_HOLE_YEAR.match(hole or "")
@@ -556,11 +583,15 @@ def _old_hole(hole, release_date):
     groups = [int(g) for g in re.findall(r"(?<![\d])(\d{2})(?![\d])", hole[m.end(1):])]
     if any(g in (yy, yy - 1) for g in groups):
         return False  # "J-10-21": hole 10 of 2021
+    if re.search(r"(?i)(?:W\d{1,2}|[\-_]?EXT?|X)$", hole):
+        return False  # "CS-21-73W1", "TM21-107X": a wedge or extension drilled from an old hole is new drilling (1.0.1)
     y = 2000 + int(m.group(1))
-    return y < release_date[0] - 1 or (y < release_date[0] and (release_date[1] or 0) > 6)
+    return y < release_date[0] - 1  # a hole named for last year is still this program's hole (1.0.1: "OB-24" in Sept 2025)
 
 
-_RE_WIDTH_NOTE = re.compile(r"(?i)\(\s*[\d.,]+\s*(?:m|metres?|meters?)\s*(?:etw|e\.t\.w\.?|tw|true\s+widths?|est\w*\.?\s+true\s+widths?)\s*\)")
+_RE_WIDTH_NOTE = re.compile(r"(?i)\(\s*[\d.,]+\s*(?:m|metres?|meters?)\s*,?\s*(?:etw|e\.t\.w\.?|tw|true\s+widths?|est\w*\.?\s+true\s+widths?)"
+                            r"(?:\s*[\"“”]?\s*ETW\s*[\"“”]?)?\s*\)"
+                            r"|(?<=metres|meters)\s+down[\-\s]?hole(?=\s*(?:\([^()]{0,60}\)\s*)?grading\b)|(?<=\dm)\s+down[\-\s]?hole(?=\s*(?:\([^()]{0,60}\)\s*)?grading\b)")
 
 
 def _width_from_note(t, iv, a, b):
@@ -728,7 +759,11 @@ _RE_REF_HOLE = re.compile(
     r"|(?:stepping|step[\s\-]?outs?|laterally|extending)\s+(?:\w+\s+)?from|\)\s*,\s*(?:and\s+)?)\s*"
     r"(?:the\s+)?(?:\w+\s+){0,2}?(?:(?:drill\s*)?holes?\s+)?(?-i:[A-Z][A-Z0-9]*(?:\s*-\s*[A-Z0-9]+)+)\s*\([^()]{0,30}$"
     r"|\bbetween\b[^.]{0,160}\band\s+(?:(?:drill\s*)?holes?\s+)?(?-i:[A-Z][A-Z0-9]*(?:\s*-\s*[A-Z0-9]+)+)\s*\([^()]{0,30}$"
-    r"|\bpreviously\s+\w+\b[^.()]{0,90}\(\s*(?-i:[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+)\s*:[^()]{0,30}$")
+    r"|\bpreviously\s+\w+\b[^.()]{0,90}\(\s*(?-i:[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+)\s*:[^()]{0,30}$"
+    # 1.0.1: "located 50m north of CC24_018, which intersected 88.25m of 0.60% CuEq"
+    r"|\b(?:(?:north|south|east|west)\w*\s+of|(?:up|down)[\s\-]?dip\s+(?:of|from)|along\s+strike\s+(?:of|from)|below|above|beneath|adjacent\s+to|near)\s+"
+    r"(?:(?:drill\s*)?holes?\s+)?(?-i:[A-Z][A-Z0-9]*(?:[\-_][A-Z0-9]+)+)\s*,?\s*(?:which|that)\s+(?:previously\s+)?(?:intersected|returned|assayed|graded|intercepted)\s*"
+    r"(?:[\d.,]+\s*(?:m|metres?|meters?)\s*(?:of|@|at|grading)?\s*)?$")
 
 
 _RE_SURFACE_NEAR = re.compile(r"(?i)\b(?:trench\w*|channels?|chip|grab|outcrop|soil|boulder|float)\b(?![\s\-]+(?:Vein|Zone|Creek|Lake|Hill))")
@@ -750,13 +785,46 @@ _RE_WITHIN_TAIL = re.compile(r"(?i)\bwithin\s+(?:an?\s+)?(?:(?:broader|wider|lar
 _RE_LIST_INCL = re.compile(r"(?i)\b(?:results?|highlights?|intercepts?|intersections?|assays?|values|holes?|grades?|drilling)\s*,?\s+incl(?:uding|udes|\.)?\s*[:\-]?\s*$")
 # "values up to 0.5 g/t Au within an 8 m-wide iron formation": the highest sample, not an interval
 _RE_UP_TO = re.compile(r"(?i)\b(?:values?|grades?|samples?|concentrations?)\s+(?:of\s+|returning\s+|reaching\s+)?up\s+to\s*$")
+# 1.0.1: "several intervals exceeding 50 m with grades above 10% P2O5", "in total ... 212 meters averaging above 0.1% Cu"
+_THRESHOLD_WORD = r"(?:exceeding|above|greater\s+than|more\s+than|in\s+excess\s+of|>)\s*"
+_RE_THRESHOLD_LEN = re.compile(r"(?i)" + _THRESHOLD_WORD + r"[\d.,]+\s*(?:m|metres?|meters?|ft|feet)\b")
+_RE_THRESHOLD_GRADE = re.compile(r"(?i)" + _THRESHOLD_WORD + r"[\d.,]+\s*(?:%|g/t|gpt|ppm|grams)")
 # "(see NR March 31, 2026)" after a figure: it was released before
 _RE_REF_AFTER = re.compile(r"(?i)\(\s*(?:see\s+|refer\s+to\s+)?(?:the\s+)?(?:company'?s\s+)?(?:NR|news\s+release|press\s+release)s?\b[^()]{0,40}?(?:19|20)\d\d\s*\)"
                            r"|\(\s*(?:see\s+)?(?:[A-Z][a-z]+\.?\s+\d{1,2},?\s+)?(?:19|20)\d\d\s+(?:NR|news\s+release|press\s+release)\s*\)")
 _RE_EQ_PAREN = re.compile(r"(?i)(\d[\d.,]*\s*(?:g/t|%|ppm)\s*[A-Za-z0-9]{1,6}Eq\s*)\([^()]{3,80}\)(?=\s*(?:over|across|for)\b)")
 _RE_REASSAY = re.compile(r"(?i)\bre\s?-?\s?assay\w*")
-_RE_INVESTEE = re.compile(r"(?i)\binvestee\b|\bportfolio\s+compan|\b(?:applau\w+|congratulat\w+)\s+[A-Z]"
+_RE_INVESTEE = re.compile(r"(?i)\binvestee\b|\bportfolio\s+compan"
+                          r"|\b(?:applau\w+|congratulat\w+)\s+(?!(?i:proposed|government|federal|provincial|premier|minister|announcement|decision|approval|the|its|all|his|her|their|team|everyone)\b)(?-i:[A-Z])"
                           r"|\b(?:strategic\s+|equity\s+)?investment\s+in\s+(?-i:[A-Z])[\w&.\- ]{2,40}\(\s*(?:TSX|CSE|ASX|NYSE|OTC)")
+# 1.0.1: a headline about another company's results ("highlights Results announced by Canada Nickel", "Discusses Allkem Ltd.'s")
+_RE_INVESTEE_HEADLINE = re.compile(r"(?i)\b(?:results|success)\s+(?:announced|reported)\s+by\s+(?-i:[A-Z])"
+                                   r"|\b(?:reports?\s+on|discuss\w*|comments?\s+on)\s+(?-i:[A-Z])[\w.&\-]*(?:\s+(?-i:[A-Z])[\w.&\-]*){0,3}['’]s\b")
+# the opening of a release that reports new assays (1.0.1): used only to overrule a plan / pending / corporate headline
+_RE_NEW_RESULTS_LEDE = re.compile(
+    r"(?i)\b(?:report|announc|provid|releas|present|deliver|shar)\w*\s+(?:\w+\s+){0,6}?(?:assay|drill(?:ing)?|analytical|laboratory|core)\s+results"
+    r"|\b(?:report|announc|provid|releas|present)\w*\s+(?:the\s+)?(?:initial|first|final|further|additional|new|remaining|latest|complete)\s+(?:\w+\s+){0,3}?results"
+    r"|\b(?:assay\s+)?results\s+(?:have\s+(?:now\s+)?been|were|are)\s+received|\breceived\s+(?:\w+\s+){0,3}(?:assay\s+)?results"
+    r"|\bassays?\s+(?:results\s+)?(?:from|for)\s+(?:the\s+)?(?:first|initial|final|remaining|additional|next|last)?\s*(?:\w+\s+){0,2}(?:drill\s*)?holes"
+    r"|\b(?:hole|DDH|drill\s+hole)\s+[A-Z][A-Za-z0-9]*[\-_]?[A-Za-z0-9\-]*\s+(?:returned|intersected|intercepted|assayed|cut|yielded)\b")
+_RE_NEW_RESULTS_NOT_BEFORE = re.compile(r"(?i)(?:previous\w*|recent\w*|historic\w*|earlier|prior|past|\bto|\bwill|expect\w*|await\w*|summar\w*|consolidat\w*"
+                                        r"|compil\w*|recap\w*|review\w*|once|when|until)\s+(?:\w+\s+){0,2}$")
+_RE_NEW_RESULTS_NOT_IN = re.compile(r"(?i)summar|consolidat|compil|recap|historic|pending")
+_RE_NEW_RESULTS_NOT_AFTER = re.compile(r"(?i)^\W{0,3}(?:for\s+(?:the\s+)?\w+\s+\w+\s+)?(?:were|was|have\s+been|had\s+been)\s+(?:previously\s+)?(?:announced|released|reported|disclosed|published)"
+                                       r"|^[^.]{0,60}\b(?:are|remain|still)\s+pending")
+
+
+def _new_results_lede(t: str) -> bool:
+    """The opening says THIS release reports new assays (not that results were reported before, or are to come)."""
+    for m in _RE_NEW_RESULTS_LEDE.finditer(t):
+        before = t[max(0, m.start() - 60):m.start()]
+        if _RE_NEW_RESULTS_NOT_BEFORE.search(before) and not re.search(
+                r"(?i)(?:pleased|wish\w*|happy|excited|proud|delighted|like)\s+to\s+(?:\w+\s+)?$", before):
+            continue
+        if _RE_NEW_RESULTS_NOT_IN.search(m.group(0)) or _RE_NEW_RESULTS_NOT_AFTER.search(t[m.end():m.end() + 90]):
+            continue
+        return True
+    return False
 _RE_EVENT_HEADLINE = re.compile(r"(?i)\bwebinar\b|\binvites?\s+(?:\w+\s+){0,2}(?:investors|shareholders)\b|\blive\s+(?:investor\s+)?(?:presentation|event|stream)\b"
                                 r"|\bfireside\s+chat\b|\bvirtual\s+(?:investor\s+)?(?:event|presentation)\b|\bupdates?\s+(?:on\s+)?(?:its\s+)?investment\s+in\b")
 # plan wording in a headline ("Announces Drilling to Commence", "Commences Initial Diamond Drill Program"); the rest of the
@@ -839,21 +907,23 @@ def analyse(headline: str, body: str) -> dict:
 
     # a release that announces a plan, or says results are still pending, and carries no number of its own
     hl_ints = _one_length_per_grade(D.find_intercepts(hl), D._prep(hl))
+    # 1.0.1: a plan / pending / corporate headline no longer ends the analysis on its own. The body is read, and the
+    # release keeps a row only if its own opening says it reports new results ("Completes Drill Program" releases that
+    # announce final assays, "Assay Results Still Pending" releases that report the first holes, financing + results).
+    hl_kind = None
     if not hl_ints and D._RE_PLAN_ONLY.search(hl) and not D._RE_RESULTS_STRONG.search(hl):
-        result["reason"] = "plan"
-        return result
-    if not hl_ints and _RE_CAMPAIGN_HEADLINE.search(hl) and not _RE_RESULTS_WORDS.search(hl):
-        result["reason"] = "plan"
-        return result
-    if not hl_ints and _headline_pending(hl):
-        result["reason"] = "pending"
-        return result
-
-    if not hl_ints and _RE_NOT_RESULTS_HEADLINE.search(hl) and not _RE_RESULTS_WORDS.search(hl):
-        result["reason"] = "not_results"
-        return result
+        hl_kind = "plan"
+    elif not hl_ints and _RE_CAMPAIGN_HEADLINE.search(hl) and not _RE_RESULTS_WORDS.search(hl):
+        hl_kind = "plan"
+    elif not hl_ints and _headline_pending(hl):
+        hl_kind = "pending"
+    elif not hl_ints and _RE_NOT_RESULTS_HEADLINE.search(hl) and not _RE_RESULTS_WORDS.search(hl):
+        hl_kind = "not_results"
     if not hl_ints and _RE_EVENT_HEADLINE.search(hl):
         result["reason"] = "not_results"  # a webinar invitation or an investment update recaps results released elsewhere
+        return result
+    if hl_kind and not _new_results_lede(D._prep(D.lede(raw_body))[:2500]):
+        result["reason"] = hl_kind
         return result
     hl_drill = (bool(hl_ints) or bool(_RE_DRILL_WORD.search(th)) or bool(_RE_RESULTS_WORDS.search(th))
                 or len(re.findall(r"[A-Za-z]+", hl)) < 5 or bool(re.search(r"(?i)news\s+release", hl)))
@@ -861,6 +931,9 @@ def analyse(headline: str, body: str) -> dict:
 
     release_reason = None
     th_np = _RE_PLAN_PHRASE.sub(" ", th)
+    # 1.0.1: "Significantly Increasing Size of Previously Announced Interval" is about the new result
+    th_np = re.sub(r"(?i)\b(?:increas|expand|extend|improv|upgrad|enlarg)\w*\s+(?:the\s+)?(?:size|length|grade|width)?\s*(?:and\s+\w+\s+)?(?:of\s+)?(?:the\s+|a\s+)?"
+                   r"previously\s+(?:announced|reported|released)", " ", th_np)
     if _RE_XRF.search(th):
         release_reason = "xrf"
     elif not _RE_DRILL_WORD.search(th_np) and context_reason(re.sub(r"^\W*\w+", "", th_np, count=1), None) in ("surface", "historical"):
@@ -871,11 +944,13 @@ def analyse(headline: str, body: str) -> dict:
         release_reason = "historical"  # "... Results Including 3.51 g/t AuEq over 93 metres in Historic Drilling"
     elif not _RE_DRILL_WORD.search(th) and any(not re.search(r"(?i)drill", m.group(0)) for m in _RE_SURFACE_INTRO.finditer(t[:1800])):
         release_reason = "surface"
-    elif _RE_PRIOR_OPERATOR_RELEASE.search(t[:2500]):
+    elif any(not re.search(r"(?i)\b(?:between|near|beside|adjacent\s+to|around|among|from|of|below|beneath|under|twin\w*|follow\w*\s+up\s+on)\s+(?:\w+\s+){0,2}$",
+                           t[max(0, m.start() - 40):m.start()])
+             for m in _RE_PRIOR_OPERATOR_RELEASE.finditer(t[:2500])):  # 1.0.1: "tested the vein between drill holes completed by the previous operator"
         release_reason = "historical_operator"
     elif _RE_FOLLOW_UP_HEADLINE.search(th) and _RE_PLAN_PHRASE.search(th) and not _RE_DRILL_VERB_HEADLINE.search(th):
         release_reason = "previously_reported"  # "Announces Drill Program to Follow up on Saddle Zone's Recent 5.94% CuEq over 11 m"
-    elif _RE_INVESTEE.search(th) or _RE_INVESTEE.search(t[:1500]):
+    elif _RE_INVESTEE.search(th) or _RE_INVESTEE_HEADLINE.search(th) or _RE_INVESTEE.search(t[:1500]):
         release_reason = "investee"  # results of a company this one holds shares in
     elif _RE_RECAP_HEADLINE.search(th) or _RE_RECAP_BODY.search(t[:3000]):
         release_reason = "recap"
@@ -935,13 +1010,29 @@ def analyse(headline: str, body: str) -> dict:
         if iv["reason"] is None and _RE_REF_HOLE.search(t[max(0, iv["pos"] - 200):iv["pos"]]):
             iv["reason"] = "reference_hole"  # "... 50 m downdip of hole AB-12 (1.2 g/t over 3 m)"
             _rule(iv, "ref_hole")
+        near_t = t[max(0, iv["pos"] - 200):iv["pos"] + 150]  # the interval's own sentence
+        cut = [m.end() for m in re.finditer(r"[.;]\s", near_t[:min(200, iv["pos"])])]
+        near_t = near_t[cut[-1] if cut else 0:]
+        end = re.search(r"[.;]\s", near_t[min(200, iv["pos"]) - (cut[-1] if cut else 0):])
+        if end:
+            near_t = near_t[:min(200, iv["pos"]) - (cut[-1] if cut else 0) + end.start()]
+        if (iv["reason"] is None and not any(_same(h, iv) for h in hl_ints) and (
+                (_RE_THRESHOLD_LEN.search(near_t) and _RE_THRESHOLD_GRADE.search(near_t))
+                or (_RE_THRESHOLD_GRADE.search(near_t) and re.search(r"(?i)\b(?:in\s+total|cumulative|aggregate|combined\s+(?:length|thickness))\b", near_t)))):
+            iv["reason"] = "not_interval"
+            _rule(iv, "threshold")
         if iv["reason"] is None and _RE_UP_TO.search(t[max(0, iv["pos"] - 40):iv["pos"]]) and not any(_same(h, iv) for h in hl_ints):
             iv["reason"] = "not_interval"
             _rule(iv, "up_to")
         if iv["reason"] is None:
             seg = t[iv["pos"]:iv["pos"] + 300]
             end = re.search(r"\.(?:\s|$)", seg)
-            if _RE_REF_AFTER.search(seg[:end.start() if end else 300]):
+            sent = seg[:end.start() if end else 300]
+            inc = re.search(r"(?i)includ\w*\s+(?:the\s+)?previously\s+(?:announced|reported|released)", sent)
+            ref = _RE_REF_AFTER.search(sent)
+            if ref and inc and inc.start() < ref.start():
+                ref = None  # 1.0.1: "... over 16.0 m including the previously announced interval of 67.1 g/t (see Press Release ...)"
+            if ref:
                 iv["reason"] = "previously_reported"
                 _rule(iv, "ref_after")
         if iv["reason"] is None and _RE_TRENCH_AFTER.search(t[iv["pos"]:iv["pos"] + 120]):
@@ -963,15 +1054,43 @@ def analyse(headline: str, body: str) -> dict:
                 _rule(iv, "incl_parent")
     _attach_holes(t, spans, holes, text_ints)
     for iv in text_ints:
-        if iv["reason"] is None and _old_hole(iv.get("hole"), rdate):
+        if (iv["reason"] is None and _old_hole(iv.get("hole"), rdate)
+                and not re.search(re.escape(iv["hole"]) + r"\s?W\d", t)):  # 1.0.1: wedge "CS-21-73W1" is new drilling
             iv["reason"] = "historical"  # hole TM22-119 quoted in a 2025 release
             _rule(iv, "hole_year")
     # an id that only appears inside a historical sentence is somebody else's hole
+    cur_prefixes = {_hole_prefix(h["id"]) for h in holes
+                    if rdate and _RE_HOLE_YEAR.match(h["id"]) and 2000 + int(_RE_HOLE_YEAR.match(h["id"]).group(1)) == rdate[0]}
     for iv in text_ints:
         if iv.get("hole") and iv["reason"] is None:
             hs = [h for h in holes if h["id"] == iv["hole"]]
-            if hs and all(reason_for(*_unit_ctx(t, spans, h["pos"])[:2]) == "historical" for h in hs):
+            hist = [reason_for(*_unit_ctx(t, spans, h["pos"])[:2]) == "historical" for h in hs]
+            if (hs and any(hist) and iv["hole"] not in _unit_ctx(t, spans, iv["pos"])[0]
+                    and _old_hole(iv["hole"], (rdate[0] + 1, 1, 1) if rdate else None)
+                    and _hole_prefix(iv["hole"]) in cur_prefixes):
+                iv["reason"] = "historical"  # "hole SP22-13 ... highest grade to date. These intervals are part of a broader zone" (1.0.1)
+                _rule(iv, "hole_hist_sentence")
+            elif hs and all(hist):
                 iv["hole"] = None
+
+    # 1.0.1: the same figure elsewhere called "previously reported hole X returned ..." is not new where it is repeated
+    for iv in text_ints:
+        if iv["reason"] is not None or any(_same(h, iv) for h in hl_ints):
+            continue
+        lit_len = ("%.2f" % iv["length_m"]).rstrip("0").rstrip(".")
+        for p in _occurrences(t, iv):
+            if abs(p - iv["pos"]) < 5:
+                continue
+            near = t[max(0, p - 140):p + 60]
+            if not re.search(r"(?<![\d.])" + re.escape(lit_len) + r"(?![\d])", near):
+                continue
+            pre = t[max(0, p - 140):p]
+            if re.search(r"[.;]\s", pre):
+                pre = pre[re.search(r"^.*[.;]\s", pre, re.S).end():]  # same sentence only
+            if re.search(r"(?i)\bpreviously\s+(?:reported|announced|released|disclosed|published)\s+(?:drill\s+)?(?:holes?|intercepts?|intervals?|intersections?|results?)\b", pre):
+                iv["reason"] = "previously_reported"
+                _rule(iv, "occurrence_prev")
+                break
 
     # the same figure elsewhere in the body: a rock-chip or XRF mention of it condemns a bare repeat
     for iv in text_ints:
@@ -1002,6 +1121,8 @@ def analyse(headline: str, body: str) -> dict:
 
     table_ints = find_tables(t, rdate, spans)
     for iv in table_ints:
+        if release_reason == "surface" and iv.get("hole") and _RE_DRILL_WORD.search(_unit_ctx(t, spans, iv["pos"])[0][:400]):
+            continue  # 1.0.1: a drill-hole table in a release that also reports soil or channel samples
         if release_reason:
             iv["reason"] = release_reason
             _rule(iv, "release")
@@ -1296,6 +1417,53 @@ CASES_V1 += [
     ("plan_follow_up_headline", "XXIX Announces 20 Hole Drill Program to Follow up on Saddle Zone's Recent 5.94% Copper Equivalent "
      "over 11-metre Intersection", "Feb 10, 2025 - The program will follow up on hole SZ-24-03 which returned 5.94% CuEq over 11 m.",
      ("reject", 11.0, 5.94)),
+]
+
+
+# 1.0.1: releases 1.0.0 wrongly dropped at the /drills switch (claude/MNT_DRILL_V101_2026-09-17.md)
+CASES_V1 += [
+    ("plan_headline_new_results", "Opus One Gold Completes 2026 Drill Program at Noyell",
+     "Toronto, Ontario, September 16, 2026 - Opus One Gold Corp. is pleased to announce the final assay results from its 2026 "
+     "drilling program. Hole NO-26-18 returned 2.34 g/t Au over 9.34 metres.", (9.34, 2.34, "Au")),
+    ("plan_headline_past_results", "Canadian Palladium Diamond Drilling at East Bull Property to Expand Mineralization",
+     "Vancouver, June 7, 2021 - The company is pleased to provide an update on diamond drilling. The drilling will deepen hole "
+     "EB-21-52, found to contain 2.38 g/t Pd over 6 metres at the bottom of the hole (see May 5, 2021 press release).",
+     ("reject", 6.0, 2.38)),
+    ("pending_headline_new_results", "Corporate Update: Assay Results Still Pending at Pilar",
+     "March 2, 2026 - The company is pleased to announce assay results from the first two holes. Hole PL-26-01 returned "
+     "54.55 m of 7.04 g/t Au.", (54.55, 7.04, "Au")),
+    ("including_prev_announced", "Graycliff Expands High-Grade Interval in Hole 9 to 13.32 g/t Gold Over 16.0 Metres",
+     "September 23, 2021 - Drill Hole J-9-21 intersected a mineralized interval of 13.32 g/t gold over 16.0 metres, including "
+     "the previously announced interval of 52.0 g/t Au over 4.0 m see Press Release dated June 15, 2021), as detailed below.",
+     (16.0, 13.32, "Au")),
+    ("downhole_etw", "Outcrop Silver Intersects Additional High-Grade Mineralization",
+     "Jan. 20, 2026 - Highlights DH549 returned 3.28 metres downhole (2.45 metres, Estimated True Width \"ETW\") grading "
+     "214 g/t Ag and 0.64 g/t Au in drilling.", (3.28, 214.0, "Ag")),
+    ("wedge_hole", "Cosa Reports 2,848 g/t Silver over 6.65 m in Wedge Hole",
+     "June 2, 2026 - Picture of new intersection interval from hole CS-21-73W1 drilled this spring grading 2,848 g/t silver "
+     "over 6.65m.", (6.65, 2848.0, "Ag")),
+    ("prior_year_hole", "Radisson Continues to Expand Gold Mineralization with Latest Drill Results",
+     "September 8, 2025 - Highlights include: OB-24-363 intersected 8.41 g/t gold over 2.2 metres in drilling at O'Brien.",
+     (2.2, 8.41, "Au")),
+    ("congratulate_team", "Americas Gold and Silver Announces High-Grade Infill Drill Results at Cosala",
+     "May 5, 2025 - \"I'd like to congratulate the Cosala team,\" said the CEO. Hole CS-25-11 intersected 599.8 g/t Ag over 14.0 m.",
+     (14.0, 599.8, "Ag")),
+    ("previously_the", "Goliath Expands Bonanza Zone By 750 Meters",
+     "July 15, 2026 - Previously the Golden Gate Zone contained 18 lodes with intercepts up to 34.52 g/t AuEq over 39.00 meters "
+     "(drill hole GD-24-260). Assays are pending.", ("reject", 39.0, 34.52)),
+    ("repeat_prev_reported", "Opus One Reports Final Results",
+     "September 16, 2026 - The zone 1 shoot, outlined by Hole NO-26-21a (4.92 g/t gold over 11.37 metres), will be a focus of "
+     "drilling. Previously reported hole NO-26-21a returned 4.92 g/t Au over 11.37 metres (June 17, 2026 press release). "
+     "Hole NO-26-18 returned 2.34 g/t Au over 9.34 metres.", ("reject", 11.37, 4.92)),
+    ("downhole_range", "Aston Bay Intersects Copper Outside Proposed Pit Designs",
+     "October 20, 2025 - Drill hole PFS-002: 12.1 metres @ 5.6% copper from 70m. The drill hole intersected semi-massive "
+     "chalcocite between 70-82.1m downhole at an average grade of 5.6% Cu.", ("reject", 82.1, 5.6)),
+    ("threshold", "First Phosphate Provides Analytical Results for Infill Drill Program",
+     "April 27, 2026 - In the Mountain Zone, several intervals exceeding 50 m with grades above 10% P2O5 were intersected.",
+     ("reject", 50.0, 10.0)),
+    ("reference_which", "Intrepid Metals Expands Ringo Footprint with Latest Drill Results",
+     "September 9, 2025 - The latest drill hole, CC25_037 intersected 140.80m of 0.36% CuEq and is located roughly 90m "
+     "northwest of CC24-019, which intersected 175.00m of 0.45% CuEq.", ("reject", 175.0, 0.45)),
 ]
 
 
