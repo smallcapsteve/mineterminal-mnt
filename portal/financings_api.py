@@ -27,6 +27,10 @@ List parameters
              announced). size needs currency: dollars of different currencies don't compare.
   page, limit    1-based page, limit 1..200 (default 50)
   include    events -> every release behind each deal
+  raises_only  1 -> only money raised or on its way: leaves out the rows that are not a raise at
+             all (a credit facility, a letter of interest, a base shelf prospectus, an ATM program
+             or a stream) and the deals that were terminated. Each item carries `class` saying
+             which it is, so a caller can label them instead of hiding them.
   universe   all (default) | mtp -> only companies on MTP's list
              (/var/lib/mnt-portal/mtp-companies.json). If that list can't be read the filter is
              not applied and the response says universe_applied: false (fail open).
@@ -89,6 +93,53 @@ def kind_tokens(kind: Optional[str]) -> list[str]:
     return out
 
 
+# A row in `financings` is not always money raised. These are the kinds and the headline
+# phrases that mean something else; `class` says which, and raises_only leaves them out.
+# Every pattern is matched lower-case against the seed release's headline, and mirrored in SQL
+# below, so a filtered page and its count always agree.
+DEAL_CLASSES = ("raise", "credit_facility", "letter_of_interest", "shelf", "atm", "stream")
+CLASS_KINDS = (("atm", "ATM"), ("stream", "STREAM"))
+CLASS_PHRASES = (
+    ("credit_facility", ("credit facilit", "revolving credit", "term loan facilit")),
+    ("letter_of_interest", ("letter of interest", "letters of interest", "letter of intent",
+                            "project letter")),
+    ("shelf", ("base shelf", "shelf prospectus")),
+)
+# How much of the release body counts as "the start". A headline of "News release" is common
+# enough that the phrase which says what a release is often sits in its first line instead.
+LEAD_CHARS = 400
+
+
+def deal_class(kind: Optional[str], headline: Optional[str], lead: Optional[str] = None) -> str:
+    """raise | credit_facility | letter_of_interest | shelf | atm | stream.
+
+    A stream or an ATM program is named by its kind; the other three are only visible in the
+    release's own headline ("Increase and Extension of Revolving Credit Facility", "EXIM Bank
+    Increases Letters of Interest", "Files Final Base Shelf Prospectus"). Everything else is a
+    raise, which keeps the default generous: a row is only moved out of a raise ranking when the
+    release says plainly that it is something else."""
+    toks = kind_tokens(kind)
+    for cls, tok in CLASS_KINDS:
+        if tok in toks:
+            return cls
+    h = ((headline or "") + " " + (lead or "")[:LEAD_CHARS]).lower()
+    for cls, phrases in CLASS_PHRASES:
+        if any(p in h for p in phrases):
+            return cls
+    return "raise"
+
+
+def _raises_only_sql() -> str:
+    """The same rules in SQL, so paging and totals agree with the items."""
+    parts = ["('+' || upper(REPLACE(REPLACE(COALESCE(f.kind, ''), ',', '+'), '/', '+')) || '+') LIKE '%%+%s+%%'" % tok
+             for _, tok in CLASS_KINDS]
+    col = ("lower(COALESCE(e.raw_headline, '') || ' ' || "
+           "substr(COALESCE(e.raw_body, e.raw_excerpt, ''), 1, %d))" % LEAD_CHARS)
+    for _, phrases in CLASS_PHRASES:
+        parts += ["%s LIKE '%%%s%%'" % (col, p) for p in phrases]
+    return "NOT (" + " OR ".join(parts) + ")"
+
+
 def gross_of(gross_closed, gross_announced) -> tuple[Optional[float], str]:
     """The money to show, and which field it came from. Closed wins: it is what was raised."""
     if gross_closed is not None:
@@ -115,7 +166,7 @@ class BadRequest(ValueError):
 
 def parse_params(ticker=None, status=None, state=None, kind=None, currency=None, since=None,
                  until=None, days=None, sort=None, page=None, limit=None, include=None,
-                 universe=None, today=None) -> dict:
+                 universe=None, today=None, raises_only=None) -> dict:
     p: dict[str, Any] = {}
     t = (ticker or "").strip()
     if t:
@@ -169,6 +220,7 @@ def parse_params(ticker=None, status=None, state=None, kind=None, currency=None,
     except (TypeError, ValueError):
         raise BadRequest("page and limit: whole numbers")
     p["limit"] = max(1, min(lim, MAX_LIMIT))
+    p["raises_only"] = str(raises_only or "").strip().lower() in ("1", "true", "yes", "on")
     inc = {x.strip().lower() for x in (include or "").split(",") if x.strip()}
     if inc - {"events"}:
         raise BadRequest("include: events")
@@ -268,7 +320,8 @@ _DEAL_COLS = (
     "f.unit_comp, f.warrant_strike, f.warrant_term_months, f.n_tranches, f.n_events, "
     "f.unit_count, f.currency, f.extractor_version, f.seed_event_id, "
     "e.slug AS seed_slug, e.raw_headline AS seed_headline, e.source_url AS seed_source_url, "
-    "e.source_name AS seed_source_name"
+    "e.source_name AS seed_source_name, "
+    "substr(COALESCE(e.raw_body, e.raw_excerpt, ''), 1, 400) AS seed_lead"
 )
 
 _EVENT_COLS = (
@@ -325,6 +378,9 @@ def _where(p: dict, universe: Optional[frozenset]) -> tuple[list[str], list]:
         else:
             where.append("(lower(COALESCE(f.status, '')) NOT IN (%s) OR substr(COALESCE(f.last_update_at, ''), 1, 10) < ?)" % ins)
             args += list(OPEN_STATUSES) + [cut]
+    if p.get("raises_only"):
+        where.append(_raises_only_sql())
+        where.append("lower(COALESCE(f.status, '')) != 'terminated'")
     if universe:
         where.append(
             "(CASE WHEN instr(f.ticker, '.') > 0 THEN upper(substr(f.ticker, 1, instr(f.ticker, '.') - 1)) "
@@ -380,6 +436,7 @@ def _deal_dict(r, names: dict, today=None) -> dict:
         "kind_tokens": kind_tokens(r["kind"]),
         "status": r["status"] or "",
         "state": deal_state(r["status"], upd, today),
+        "class": deal_class(r["kind"], r["seed_headline"], r["seed_lead"]),
         "gross": gross,
         "gross_basis": basis,
         "gross_announced": r["gross_announced"],
@@ -430,7 +487,8 @@ def query_list(conn, p: dict, names: dict, universe: Optional[frozenset]) -> dic
         "size": "COALESCE(f.gross_closed, f.gross_announced) DESC, COALESCE(f.announced_at, '') DESC, f.financing_id DESC",
     }[p["sort"]]
     base = ("FROM financings f LEFT JOIN events e ON e.event_id = f.seed_event_id WHERE " + " AND ".join(where))
-    total = conn.execute("SELECT COUNT(*) FROM financings f WHERE " + " AND ".join(where), args).fetchone()[0]
+    total = conn.execute("SELECT COUNT(*) FROM financings f LEFT JOIN events e ON e.event_id = f.seed_event_id "
+                         "WHERE " + " AND ".join(where), args).fetchone()[0]
     limit, page = p["limit"], p["page"]
     rows = conn.execute("SELECT " + _DEAL_COLS + " " + base + " ORDER BY " + order + " LIMIT ? OFFSET ?",
                         args + [limit, (page - 1) * limit]).fetchall()
@@ -447,6 +505,7 @@ def query_list(conn, p: dict, names: dict, universe: Optional[frozenset]) -> dic
         "sort": p["sort"],
         "filters": {k: p[k] for k in ("ticker", "status", "kind", "currency", "since", "until") if p.get(k)},
         "state": p["state"],
+        "raises_only": bool(p.get("raises_only")),
         "universe": p["universe"],
         "universe_applied": bool(universe),
         "items": items,
@@ -480,9 +539,14 @@ def query_facets(conn, universe: Optional[frozenset], today=None) -> dict:
             counts[tok] = counts.get(tok, 0) + r[1]
     kinds = [{"kind": k, "deals": n} for k, n in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))]
     states = {"open": 0, "closed": 0}
-    for r in conn.execute("SELECT f.status, f.last_update_at FROM financings f" + w, args):
+    classes = {c: 0 for c in DEAL_CLASSES}
+    for r in conn.execute("SELECT f.status, f.last_update_at, f.kind, e.raw_headline, "
+                          "substr(COALESCE(e.raw_body, e.raw_excerpt, ''), 1, 400) FROM financings f "
+                          "LEFT JOIN events e ON e.event_id = f.seed_event_id" + w, args):
         states[deal_state(r[0], r[1], today)] += 1
-    return {"statuses": statuses, "kinds": kinds, "currencies": currencies, "states": states}
+        classes[deal_class(r[2], r[3], r[4])] += 1
+    return {"statuses": statuses, "kinds": kinds, "currencies": currencies, "states": states,
+            "classes": classes}
 
 
 # --------------------------------------------------------------------------- web
@@ -549,10 +613,10 @@ def register(app) -> None:
                         until: Optional[str] = None, days: Optional[str] = None,
                         sort: Optional[str] = None, page: Optional[str] = None,
                         limit: Optional[str] = None, include: Optional[str] = None,
-                        universe: Optional[str] = None):
+                        universe: Optional[str] = None, raises_only: Optional[str] = None):
         try:
             p = parse_params(ticker, status, state, kind, currency, since, until, days, sort,
-                             page, limit, include, universe)
+                             page, limit, include, universe, raises_only=raises_only)
         except BadRequest as e:
             return _err(str(e), 400)
         uni = _universe_for(p["universe"])
@@ -574,7 +638,7 @@ def _selftest() -> int:
     conn.row_factory = sqlite3.Row
     conn.executescript("""
     CREATE TABLE events (event_id TEXT PRIMARY KEY, ticker TEXT, slug TEXT, raw_headline TEXT,
-        published_at TEXT, source_url TEXT, source_name TEXT);
+        published_at TEXT, source_url TEXT, source_name TEXT, raw_body TEXT, raw_excerpt TEXT);
     CREATE TABLE financings (financing_id INTEGER PRIMARY KEY, ticker TEXT NOT NULL, announced_at TEXT,
         last_update_at TEXT, kind TEXT, status TEXT, gross_announced REAL, gross_closed REAL,
         unit_price REAL, unit_comp TEXT, warrant_strike REAL, warrant_term_months INTEGER,
@@ -587,9 +651,9 @@ def _selftest() -> int:
         amount_closed_total REAL, is_duplicate INTEGER, reason TEXT, unit_prices TEXT, extractor_version TEXT);
     """)
 
-    def ev(eid, t, date, slug="s", head="ACME CLOSES PLACEMENT"):
-        conn.execute("INSERT INTO events VALUES (?,?,?,?,?,?,?)",
-                     (eid, t, slug, head, date + "T12:00:00", "https://wire/" + eid, "Wire"))
+    def ev(eid, t, date, slug="s", head="ACME CLOSES PLACEMENT", body=""):
+        conn.execute("INSERT INTO events VALUES (?,?,?,?,?,?,?,?,?)",
+                     (eid, t, slug, head, date + "T12:00:00", "https://wire/" + eid, "Wire", body, ""))
 
     def deal(fid, t, ann, upd, kind, status, ga, gc, cur="CAD", seed=None, price=0.4,
              strike=0.55, term=24, tranches=0, events=1, prices=None):
@@ -629,6 +693,20 @@ def _selftest() -> int:
     # d5 DDD.V: closed, largest CAD raise
     ev("e5", "DDD.V", "2026-05-05")
     deal(5, "DDD.V", "2026-05-05", "2026-06-06", "PP+BOUGHT_DEAL", "closed", 8000000.0, 9500000.0, seed="e5")
+    # d6-d9: the four things that are not money raised, all larger than any real raise here
+    ev("e6", "EEE.TO", "2026-04-01", head="ACME ANNOUNCES INCREASE AND EXTENSION OF REVOLVING CREDIT FACILITY")
+    deal(6, "EEE.TO", "2026-04-01", "2026-04-01", "DEBT", "announced", 850000000.0, None, seed="e6")
+    ev("e7", "FFF.V", "2026-04-02", head="EXIM Bank Increases Letters of Interest for the Supply Chain to $2 Billion")
+    deal(7, "FFF.V", "2026-04-02", "2026-04-02", "DEBT", "announced", 570000000.0, None, seed="e7")
+    ev("e8", "GGG.CN", "2026-04-03", head="Gee Corp Files Final Base Shelf Prospectus")
+    deal(8, "GGG.CN", "2026-04-03", "2026-04-03", "PP", "announced", 150000000.0, None, seed="e8")
+    ev("e9", "HHH.V", "2026-04-04", head="Aitch Enters Into At-The-Market Equity Distribution Agreement")
+    deal(9, "HHH.V", "2026-04-04", "2026-04-04", "ATM", "announced", 200000000.0, None, seed="e9")
+
+    # d10: what LUN.TO looks like - "News release" as the headline, a credit facility in the body
+    ev("e10", "III.TO", "2026-04-05", head="News release",
+       body="NEWS RELEASE Eye Mining Receives Commitments to Increase its Existing Credit Facility to $4.5 Billion Vancouver, April 5")
+    deal(10, "III.TO", "2026-04-05", "2026-04-05", "DEBT", "announced", 4500000000.0, None, seed="e10")
 
     names = {"AAA.V": "Acme Gold Corp.", "BBB.CN": "Bbb", "CCC.TO": "Cee Metals"}
     P = lambda **kw: parse_params(today=TODAY, **kw)
@@ -665,9 +743,9 @@ def _selftest() -> int:
     ok("page floor", P(page="0")["page"] == 1)
     ok("days -> since", P(days="10")["since"] == "2026-09-07")
 
-    r = query_list(conn, P(), names, None)
+    r = query_list(conn, P(raises_only="1"), names, None)
     ids = [i["financing_id"] for i in r["items"]]
-    ok("newest first", ids == [1, 2, 5, 4, 3] and r["total"] == 5 and r["pages"] == 1)
+    ok("newest first", ids == [1, 2, 5, 3] and r["total"] == 4 and r["pages"] == 1)
     it = r["items"][0]
     ok("deal fields", it["ticker"] == "AAA.V" and it["bare_ticker"] == "AAA"
        and it["company"] == "Acme Gold Corp." and it["date"] == "2026-09-10"
@@ -677,39 +755,41 @@ def _selftest() -> int:
     ok("headline title-cased where smart_title is available", it["headline"].lower().startswith("acme closes"))
     ok("release url on the deal", it["release_url"] == SITE_BASE + "/news/aaa.v/s")
     ok("stub company name dropped", r["items"][1]["company"] == "")
-    ok("missing seed release -> event url", r["items"][3]["release_url"] == SITE_BASE + "/event/gone")
+    ok("missing seed release -> event url",
+       [i["release_url"] for i in query_list(conn, P(), names, None)["items"] if i["financing_id"] == 4]
+       == [SITE_BASE + "/event/gone"])
     ok("closed deal shows money raised", r["items"][1]["gross"] == 2500000.0
        and r["items"][1]["gross_basis"] == "closed" and r["items"][1]["currency"] == "USD")
     ok("no events unless asked", "events" not in it)
 
-    r = query_list(conn, P(sort="updated"), names, None)
-    ok("updated order", [i["financing_id"] for i in r["items"]] == [1, 2, 5, 4, 3])
-    r = query_list(conn, P(sort="size", currency="CAD"), names, None)
-    ok("size order, one currency", [i["financing_id"] for i in r["items"]] == [4, 5, 1, 3])
-    r = query_list(conn, P(limit="2", page="2"), names, None)
-    ok("paging", [i["financing_id"] for i in r["items"]] == [5, 4] and r["pages"] == 3)
+    r = query_list(conn, P(sort="updated", raises_only="1"), names, None)
+    ok("updated order", [i["financing_id"] for i in r["items"]] == [1, 2, 5, 3])
+    r = query_list(conn, P(sort="size", currency="CAD", raises_only="1"), names, None)
+    ok("size order, one currency", [i["financing_id"] for i in r["items"]] == [5, 1, 3])
+    r = query_list(conn, P(limit="2", page="2", raises_only="1"), names, None)
+    ok("paging", [i["financing_id"] for i in r["items"]] == [5, 3] and r["pages"] == 2)
 
-    r = query_list(conn, P(ticker="aaa"), names, None)
-    ok("bare ticker", [i["financing_id"] for i in r["items"]] == [1, 4])
-    r = query_list(conn, P(ticker="AAA.V"), names, None)
-    ok("full ticker", [i["financing_id"] for i in r["items"]] == [1, 4])
-    r = query_list(conn, P(status="closed"), names, None)
+    r = query_list(conn, P(ticker="aaa", raises_only="1"), names, None)
+    ok("bare ticker", [i["financing_id"] for i in r["items"]] == [1])
+    r = query_list(conn, P(ticker="AAA.V", raises_only="1"), names, None)
+    ok("full ticker", [i["financing_id"] for i in r["items"]] == [1])
+    r = query_list(conn, P(status="closed", raises_only="1"), names, None)
     ok("status filter", [i["financing_id"] for i in r["items"]] == [2, 5])
-    r = query_list(conn, P(kind="pp"), names, None)
+    r = query_list(conn, P(kind="pp", raises_only="1"), names, None)
     ok("kind token filter", [i["financing_id"] for i in r["items"]] == [1, 2, 5])
-    r = query_list(conn, P(kind="NON_BROKERED"), names, None)
+    r = query_list(conn, P(kind="NON_BROKERED", raises_only="1"), names, None)
     ok("kind token is not a prefix match", [i["financing_id"] for i in r["items"]] == [1, 3])
-    r = query_list(conn, P(currency="USD"), names, None)
+    r = query_list(conn, P(currency="USD", raises_only="1"), names, None)
     ok("currency filter", [i["financing_id"] for i in r["items"]] == [2])
-    r = query_list(conn, P(since="2026-05-01", until="2026-07-31"), names, None)
+    r = query_list(conn, P(since="2026-05-01", until="2026-07-31", raises_only="1"), names, None)
     ok("date window on the announcement", [i["financing_id"] for i in r["items"]] == [2, 5])
-    r = query_list(conn, P(state="open"), names, None)
+    r = query_list(conn, P(state="open", raises_only="1"), names, None)
     ok("open deals", [i["financing_id"] for i in r["items"]] == [1])
-    r = query_list(conn, P(state="closed"), names, None)
-    ok("closed includes the stale announcement", [i["financing_id"] for i in r["items"]] == [2, 5, 4, 3])
+    r = query_list(conn, P(state="closed", raises_only="1"), names, None)
+    ok("closed includes the stale announcement", [i["financing_id"] for i in r["items"]] == [2, 5, 3])
     ok("state echoed", r["state"] == "closed" and r["filters"] == {})
 
-    r = query_list(conn, P(ticker="BBB", include="events"), names, None)
+    r = query_list(conn, P(ticker="BBB", include="events", raises_only="1"), names, None)
     evs = r["items"][0]["events"]
     ok("events attached in date order", [e["role"] for e in evs] == ["announcement", "tranche_close", "final_close"])
     ok("event fields", evs[1]["tranche_label"] == "First tranche" and evs[1]["amount_this_close"] == 1000000.0
@@ -722,20 +802,55 @@ def _selftest() -> int:
     ok("one missing -> None", query_one(conn, 999, names, TODAY) is None)
 
     uni = frozenset({"AAA", "DDD"})
-    r = query_list(conn, P(universe="mtp"), names, uni)
-    ok("universe filter", [i["financing_id"] for i in r["items"]] == [1, 5, 4] and r["universe_applied"])
-    r = query_list(conn, P(universe="mtp"), names, None)
-    ok("universe fail-open", r["total"] == 5 and r["universe_applied"] is False)
+    r = query_list(conn, P(universe="mtp", raises_only="1"), names, uni)
+    ok("universe filter", [i["financing_id"] for i in r["items"]] == [1, 5] and r["universe_applied"])
+    r = query_list(conn, P(universe="mtp", raises_only="1"), names, None)
+    ok("universe fail-open", r["total"] == 4 and r["universe_applied"] is False)
 
     f = query_facets(conn, None, TODAY)
     ok("facet statuses", {x["status"]: x["deals"] for x in f["statuses"]}
-       == {"closed": 2, "upsized": 1, "announced": 1, "terminated": 1})
-    ok("facet kinds", {x["kind"]: x["deals"] for x in f["kinds"]}
-       == {"PP": 3, "NON_BROKERED": 2, "FT": 1, "BROKERED": 1, "LIFE": 1, "DEBT": 1, "BOUGHT_DEAL": 1})
-    ok("facet currencies", {x["currency"]: x["deals"] for x in f["currencies"]} == {"CAD": 4, "USD": 1})
-    ok("facet states", f["states"] == {"open": 1, "closed": 4})
+       == {"announced": 6, "closed": 2, "upsized": 1, "terminated": 1})
+    ok("facet currencies", {x["currency"]: x["deals"] for x in f["currencies"]} == {"CAD": 9, "USD": 1})
+    ok("facet states", f["states"] == {"open": 1, "closed": 9})
+    ok("facet classes", f["classes"] == {"raise": 5, "credit_facility": 2, "letter_of_interest": 1,
+                                         "shelf": 1, "atm": 1, "stream": 0})
     f = query_facets(conn, frozenset({"BBB"}), TODAY)
     ok("facets follow the universe", {x["currency"]: x["deals"] for x in f["currencies"]} == {"USD": 1})
+
+    ok("class: a plain placement is a raise", deal_class("PP+NON_BROKERED", "Acme Announces Private Placement") == "raise")
+    ok("class: credit facility", deal_class("DEBT", "ACME ANNOUNCES INCREASE AND EXTENSION OF REVOLVING CREDIT FACILITY") == "credit_facility")
+    ok("class: letter of interest", deal_class("DEBT", "EXIM Bank Increases Letters of Interest to $2 Billion") == "letter_of_interest")
+    ok("class: base shelf", deal_class("PP", "Gee Corp Files Final Base Shelf Prospectus") == "shelf")
+    ok("class: ATM by kind", deal_class("ATM", "Aitch Enters Into At-The-Market Equity Distribution Agreement") == "atm")
+    ok("class: stream by kind", deal_class("STREAM", "Closes Royalty Financing") == "stream")
+    ok("class: a financing for an acquisition is still a raise",
+       deal_class("PP+BOUGHT_DEAL", "StrikePoint Announces Bought Deal Financing to Purchase the Project") == "raise")
+    ok("class: no headline defaults to raise", deal_class("PP", None) == "raise")
+    ok("class: the body's first line is read too",
+       deal_class("DEBT", "News release", "NEWS RELEASE Eye Mining Receives Commitments to Increase its "
+                  "Existing Credit Facility to $4.5 Billion") == "credit_facility")
+    ok("class: a project letter is a letter of interest",
+       deal_class("DEBT", "Ivanhoe Electric Receives Preliminary Project Letter from EXIM") == "letter_of_interest")
+    ok("class: only the start of the body counts",
+       deal_class("PP", "Acme Announces Private Placement", "x" * 500 + " base shelf prospectus") == "raise")
+
+    r = query_list(conn, P(), names, None)
+    ok("everything is listed by default", r["total"] == 10 and r["raises_only"] is False)
+    ok("each item says what it is", [i["class"] for i in r["items"] if i["financing_id"] in (6, 7, 8, 9)]
+       == ["atm", "shelf", "letter_of_interest", "credit_facility"])
+    r = query_list(conn, P(sort="size", currency="CAD"), names, None)
+    ok("without the filter the big non-raises lead", [i["financing_id"] for i in r["items"]][:5] == [10, 6, 7, 9, 8])
+    ok("the useless headline is still classed", r["items"][0]["class"] == "credit_facility")
+    r = query_list(conn, P(sort="size", currency="CAD", raises_only="1"), names, None)
+    ok("raises_only puts a real raise on top", [i["financing_id"] for i in r["items"]] == [5, 1, 3]
+       and r["total"] == 3 and r["raises_only"] is True)
+    ok("total and items agree under the filter", r["total"] == len(r["items"]))
+    r = query_list(conn, P(raises_only="1", limit="2"), names, None)
+    ok("filtered paging counts only raises", r["total"] == 4 and r["pages"] == 2)
+    ok("a terminated deal is not a raise on its way",
+       4 not in [i["financing_id"] for i in query_list(conn, P(raises_only="1"), names, None)["items"]])
+    ok("but it is still listed by default",
+       4 in [i["financing_id"] for i in query_list(conn, P(), names, None)["items"]])
 
     ok("universe parse", _parse_universe({"tickers": ["aaa", "BBB.V"]}) == frozenset({"AAA", "BBB"})
        and _parse_universe(None) == frozenset())
