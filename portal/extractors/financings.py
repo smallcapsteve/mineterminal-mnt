@@ -33,12 +33,13 @@ from __future__ import annotations
 
 import re
 import unicodedata
+from datetime import date
 
 from portal import facts as F
 from portal.extractors import fin_grammar as G
 
 NAME = "financings"
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 KIND = "financing"
 TAG = "Financings"
 TEXT_CAP = 8000
@@ -47,7 +48,7 @@ ROLES = ("announcement", "upsize", "amendment", "tranche_close", "final_close", 
 
 
 # ------------------------------------------------------------------ text
-_WS = re.compile(r"[ \t  -​  　]+")
+_WS = re.compile(r"[ \t  -​  　]+")
 
 
 def clean(text: str) -> str:
@@ -62,7 +63,7 @@ def clean(text: str) -> str:
     t = re.sub(r"(?i)\bnon\s*-\s*\n?\s*brokered", "non-brokered", t)
     t = re.sub(r"(?i)\bflow\s*-?\s*\n?\s*through", "flow-through", t)
     t = re.sub(r"(?i)\bone\s*-\s*(half|third|quarter|fourth)\b", lambda m: "one-" + m.group(1).lower(), t)
-    t = t.replace("\u019f", "ti").replace("\ua730", "ti")
+    t = t.replace("Ɵ", "ti").replace("ꜰ", "ti")
     return t
 
 
@@ -97,7 +98,7 @@ def main_headline(h: str) -> str:
     also closed ..."). The role is read from the part before that when the part names a deal on its own."""
     if len(h) < 90:
         return h
-    m = re.search(r"(?<=[a-z0-9A-Z)])\s+(?=(?:The\s+)?[Bb]ase\s+[Ss]helf|THIS\s+NEWS\s+RELEASE|NOT\s+FOR\s+DISTRIBUTION|(?:The|the)\s+(?:Company\b|[a-z])|[A-Z][a-z]+,\s+(?:[A-Z][a-z]+\s*)?(?:[A-Z][a-z]+)?\s*[-\u2013]|"
+    m = re.search(r"(?<=[a-z0-9A-Z)])\s+(?=(?:The\s+)?[Bb]ase\s+[Ss]helf|THIS\s+NEWS\s+RELEASE|NOT\s+FOR\s+DISTRIBUTION|(?:The|the)\s+(?:Company\b|[a-z])|[A-Z][a-z]+,\s+(?:[A-Z][a-z]+\s*)?(?:[A-Z][a-z]+)?\s*[-–]|"
                   r"(?:Vancouver|Toronto|Calgary|Montreal|London|Edmonton|Kelowna|Halifax|Denver|Reno|Perth)\b)", h[40:])
     if m:
         cut = h[:40 + m.start()]
@@ -153,7 +154,7 @@ def monies(text: str):
     return out
 
 
-_RE_PER = re.compile(r"(?i)^\s*(?:\(\s*[^)]{0,30}\)\s*)?(?:per|/|for\s+each|each)\b")
+_RE_PER = re.compile(r"(?i)^\s*(?:\(\s*[^)]{0,60}\)\s*)?(?:per|/|for\s+each|each)\b")
 _RE_NOT_DEAL_AMT_BEFORE = re.compile(
     r"(?i)(?:\b(?:insiders?|directors?|officers?|management|related\s+part(?:y|ies)|participat\w*|subscribed\s+by"
     r"|finders?'?|finder's|commissions?|fees?|cash\s+(?:position|balance|on\s+hand)|treasury|working\s+capital"
@@ -167,6 +168,7 @@ _RE_NOT_DEAL_AMT_BEFORE = re.compile(
 def money_kind(text: str, v, start: int, end: int) -> str:
     """'price' | 'strike' | 'conversion' | 'other' | 'deal' for one figure, from its words around it."""
     after = text[end:end + 40]
+    after_wide = text[end:end + 80]                       # 1.0.2: "$0.01 ($0.20 on a post-Consolidation basis) per Receipt"
     before = text[max(0, start - 140):start]
     near = before[-60:]
     if re.search(r"(?i)conver(?:sion|tible|t)\w*\s+(?:price\s+)?(?:of\s+|at\s+|equal\s+to\s+)?(?:approximately\s+)?$", near) \
@@ -179,11 +181,20 @@ def money_kind(text: str, v, start: int, end: int) -> str:
                  r"(?:purchase|acquire|exercis\w*|entitl\w*)[^.$]{0,90}(?:at\s+(?:a\s+price\s+of\s+)?|price\s+of\s+)$", before) \
             and not re.match(r"(?i)\s*per\s+(?:FT\s+|flow-through\s+|NFT\s+|hard[\s\-]dollar\s+)?units?\b", after):
         return "strike"
+    if re.search(r"(?i)\bprice\s+per\s+(?:\w+\s+){0,3}warrant\s+shares?\s+of\s+(?:approximately\s+)?$", near) \
+            and v is not None and v < 1000:
+        return "strike"                                   # 1.0.2: "at a price per Warrant Share of $0.85"
     if re.search(r"(?i)\bexercis\w*[^$]{0,60}$|\bexercise\s+price\b[^$]{0,80}$", before[-140:]) and v is not None and v < 1000 \
             and not re.match(r"(?i)\s*per\s+(?:FT\s+|flow-through\s+|NFT\s+|hard[\s\-]dollar\s+)?units?\b", after):
         return "strike"
-    if _RE_PER.match(after) or re.match(r"(?i)\s*(?:\(the\s+\"?(?:offering|issue|unit|subscription)\s+price)", after):
+    if _RE_PER.match(after) or _RE_PER.match(after_wide) or re.match(r"(?i)\s*(?:\(the\s+\"?(?:offering|issue|unit|subscription)\s+price)", after):
         return "price" if v is not None and v < 1000 else "other"
+    if v is not None and v < 1000 and re.match(r"(?i)\s*(?:FT\s+|NFT\s+|HD\s+|hard[\s\-]dollar\s+|flow-through\s+)?(?:unit|share|receipt|debenture)s?\b", after) \
+            and not re.search(r"(?i)\b(?:exercis\w*|conver\w*|strike)\b[^.$]{0,40}$", near):
+        return "price"                                    # 1.0.2: "structured as a $0.05 Unit"
+    if re.search(r"(?i)\bprice\s+per\s+(?:(?!warrant)\w+\s+){0,3}(?:share|unit|receipt|debenture)s?\s+of\s+(?:approximately\s+)?$", near) \
+            and v is not None and v < 1000:
+        return "price"                                    # 1.0.2: "at a price per FT Share of $0.40"
     if re.search(r"(?i)\bat\s+(?:a\s+(?:deemed\s+)?price\s+of\s+)?$", near) and v is not None and v < 1000 \
             and re.search(r"(?i)\b(?:units?|shares?|FT\s+shares?|common\s+shares?)\b[^.$]{0,60}$", before):
         return "price"
@@ -356,7 +367,8 @@ def classify(h: str, window: str):
         role = "amendment"
     if role == "final_close" and re.search(
             r"(?i)\b(?:first|initial)\s+(?:closing|close)\b|\bintends?\s+to\s+(?:proceed\s+with|close|complete)\s+(?:a\s+|the\s+)?(?:second|subsequent|additional|further)\s+(?:and\s+final\s+)?tranche",
-            h + " " + window[:1500]):
+            h + " " + window[:1500]) and not re.search(
+            r"(?i)\bfinal\s+(?:tranche|clos(?:e|ing))\b|\band\s+final\s+tranche\b|\bcompleted\s+its\s+final\b", h + " " + window[:1500]):
         role = "tranche_close"
     if role == "update" and re.search(r"(?i)\b(?:receives?|secures?|obtains?)\s+(?:\w+\s+){0,3}(?:financial\s+support|commitments?|investment|financing|funding|loan)\b", h) \
             and not re.search(r"(?i)\bupdat\w*", h):
@@ -377,6 +389,26 @@ def classify(h: str, window: str):
             window[:500]) and not re.search(r"(?i)\b(?:announces?|arranges?|proposes?|launch\w*)\b[^|]{0,60}"
                                             r"\b(?:new|second|additional)\b", h) and _RE_UPDATE_HEAD.search(h + " " + window[:300]):
         role = "update"
+    # 1.0.2 role wording
+    if re.search(r"(?i)\b(?:cancell?\w*|withdraw\w*|rescind\w*|terminat\w*)\b", h) and G._fin_noun(h):
+        role = "terminated"
+    elif re.search(r"(?i)\bwill\s+not\s+(?:be\s+)?proceed\w*\s+with\b[^.]{0,80}(?:private\s+placement|offering|financing)",
+                   window[:900]) and role in ("update", "mention"):   # a release that also announces its own raise is that announcement
+        role = "terminated"
+    if role in ("tranche_close", "update") and re.search(
+            r"(?i)\b(?:final|last)\s+clos(?:e|ing)\b(?!\s+(?:amounts?|figures?|numbers?|conditions?|costs?|dates?|prices?|process))"
+            r"|\bcompleted\s+its\s+final\b", h + " " + window[:900]) \
+            and not re.search(r"(?i)\b(?:first|initial|second|third)\s+(?:and\s+final\s+)?tranche\s+(?:of\s+)?(?:the\s+)?(?:offering|placement)\s+(?:is|are)\s+expected", window[:900]) \
+            and not re.search(r"(?i)\bexpects?\s+to\s+(?:complete|close)\s+(?:an?\s+)?(?:additional|further|second|another|final)\b", window[:1500]):
+        role = "final_close"
+    if role == "final_close" and re.search(
+            r"(?i)\bclosed\s+(?:an?|another)\s+(?:additional|further|subsequent)\s+tranche\b|\ban?\s+additional\s+tranche\s+of\b", window[:900]) \
+            and not re.search(r"(?i)\bfinal\s+tranche\b|\band\s+final\b", h + " " + window[:600]):
+        role = "tranche_close"
+    if role in ("announcement", "update") and re.search(
+            r"(?i)\bincreas(?:e|es|ed|ing)\b[^|]{0,40}\b(?:private\s+placement|offering|financing|raise)\b"
+            r"|\b(?:private\s+placement|offering|financing)\b[^|]{0,30}\bincreas(?:e|ed|ing)\b", h):
+        role = "upsize"
     return role, tranche
 
 
@@ -831,23 +863,24 @@ def prices(window: str):
 
 _RE_W_FRACTION = re.compile(
     r"(?i)\b(?P<frac>one[\s\-]half|1/2|½|one[\s\-]third|1/3|one[\s\-]quarter|one[\s\-]fourth|three[\s\-]quarters?"
-    r"|one\s*\(1\)|one|a|1|two|2)\s*(?:\(\s*(?:1/2|½|0\.5|1/3|1)\s*\)\s*)?(?:of\s+one\s+(?:\(1\)\s+)?)?"
+    r"|one\s*\(1\)|one|a|1|two|2)\s*(?:\(\s*(?:1/2|½|0\.5|1/4|1/3|2/3|3/4|1|2)\s*\)\s*)?(?:of\s+one\s+(?:\(1\)\s+)?)?"
     r"(?:(?:whole|transferable|non-transferable|common|share|stock|purchase|non-flow-through|NFT|FT|subscription)\s+){0,4}warrants?\b")
-_FRAC = {"one-half": 0.5, "one half": 0.5, "1/2": 0.5, "½": 0.5, "one-third": 1 / 3, "one third": 1 / 3, "1/3": 1 / 3,
+_FRAC = {"one-half": 0.5, "one half": 0.5, "a-half": 0.5, "a half": 0.5, "half": 0.5, "1/2": 0.5, "½": 0.5, "one-third": 1 / 3, "one third": 1 / 3, "1/3": 1 / 3,
          "one-quarter": 0.25, "one quarter": 0.25, "one-fourth": 0.25, "one fourth": 0.25, "three-quarters": 0.75,
          "three-quarter": 0.75, "three quarters": 0.75, "one (1)": 1.0, "one": 1.0, "a": 1.0, "1": 1.0, "two": 2.0, "2": 2.0}
 _RE_W_TERM = re.compile(
     r"(?i)\b(?:(?:for\s+a\s+(?:period|term)\s+of|for|within|until\s+the\s+date\s+that\s+is|ending\s+on\s+the\s+date\s+which\s+is"
     r"|(?:before|until|ending\s+on|on)\s+the\s+date\s+(?:that|which)\s+is|expir\w*\s+(?:on\s+the\s+date\s+that\s+is\s+)?|term\s+of|period\s+of|up\s+to)\s+)"
-    r"(?P<n>\d{1,2}|one|two|three|four|five|six|twelve|eighteen|twenty[\s\-]four|thirty[\s\-]six|forty[\s\-]eight|sixty)"
+    r"(?P<n>\d{1,2}|one|two|three|four|five|six|twelve|eighteen|twenty\s*[\s\-]\s*four|thirty\s*[\s\-]\s*six|forty\s*[\s\-]\s*eight|sixty)"
     r"\s*(?:\(\s*\d{1,2}\s*\)\s*)?(?P<u>months?|years?)\b"
-    r"|\b(?P<n2>\d{1,2}|two|three|five)[\s\-](?P<u2>month|year)\s+(?:term|period|warrants?|expiry)")
+    r"|\b(?P<n2>\d{1,2}|two|three|five)[\s\-](?P<u2>month|year)\s+(?:term|period|warrants?|expiry)"
+    r"|\(\s*(?P<n3>\d{1,2})\s*\)\s*(?P<u3>months?|years?)\b")
 
 
 def _term_months(m):
-    n = m.group("n") or m.group("n2")
-    u = (m.group("u") or m.group("u2") or "").lower()
-    n = n.lower().replace(" ", "-")
+    n = m.group("n") or m.group("n2") or m.groupdict().get("n3")
+    u = (m.group("u") or m.group("u2") or m.groupdict().get("u3") or "").lower()
+    n = re.sub(r"\s*-\s*", "-", n.lower().strip()).replace(" ", "-")
     v = int(n) if n.isdigit() else _WORD_NUM.get(n) or _WORD_NUM.get(n.replace("-", " "))
     if not v:
         return None
@@ -868,8 +901,9 @@ class _Frac:
 
 _RE_W_WORD = re.compile(r"(?i)\bwarrants?\b")
 _RE_W_FRAC_BEFORE = re.compile(
-    r"(?i)\b(one-half|one\s+half|1/2|½|one-third|one\s+third|1/3|one-quarter|one-fourth|three-quarters?|one|a|an|1|two|2)\b"
-    r"(?:\s*\(\s*(?:1/2|½|0\.5|1/3|1|2)\s*\))?(?:\s+of\s+(?:one|a)(?:\s*\(1\))?)?"
+    r"(?i)\b(one-half|one\s+half|a\s+half|half|1/2|½|one-third|one\s+third|1/3|one-quarter|one\s+quarter|one-fourth|three-quarters?"
+    r"|\d{1,3}(?:,\d{3})+|one|a|an|1|two|2)\b"
+    r"(?:\s*\(\s*(?:1/2|½|0\.5|1/4|1/3|2/3|3/4|1|2)\s*\))?(?:\s+of\s+(?:one|a)(?:\s*\(\s*(?:1/2|½|0\.5|1/4|1/3|2/3|3/4|1)\s*\))?)?"
     r"((?:\s+(?!and\b|or\b|share\b(?!\s+purchase)|shares\b|unit|flow)[\w\-]+){0,6})\s+$")
 
 
@@ -884,13 +918,57 @@ def _unit_warrant(seg):
             continue
         frac = fm.group(1).lower().replace(" ", "-") if fm.group(1).lower() not in ("a", "an") else "a"
         per = _FRAC.get(frac, _FRAC.get(frac.replace("-", " ")))
+        if per is None and re.match(r"^\d{1,3}(?:,\d{3})+$", frac):
+            if not re.match(r"(?i)\s*each\b", seg):      # "2,415,000 Units, comprised of ... and 1,207,500 Warrants" is a total
+                continue
+            per = float(frac.replace(",", ""))            # 1.0.2: "each Unit ... and 3,334 warrants"
         if per is None and frac in ("an",):
             per = 1.0
         return _Frac(per, wm.start() - len(pre) + fm.start() + max(0, 0), wm.end())
     return None
 
 
-_RE_W_TERM_STOP = re.compile(r"(?i)\bhold\s+period|four\s+months\s+and\s+(?:a|one)\s+day|accelerat\w*|insiders?\b|proceeds\b|finders?\b|related\s+party")
+_W_MONTHS = ("january|february|march|april|may|june|july|august|september|october|november|december"
+             "|jan\\.?|feb\\.?|mar\\.?|apr\\.?|jun\\.?|jul\\.?|aug\\.?|sept?\\.?|oct\\.?|nov\\.?|dec\\.?")
+_W_MONTH_NUM = {m: i for i, m in enumerate(["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"], 1)}
+_RE_DATE_TEXT = re.compile(r"(?i)\b(" + _W_MONTHS + r")\s+(\d{1,2})\s*(?:st|nd|rd|th)?\s*,?\s+(20\d{2})\b")
+_RE_W_EXPIRY = re.compile(r"(?i)\b(?:until|on\s+or\s+before|expir\w+\s+(?:on\s+|at\s+)?|through)\s+(?:5:00\s*[ap]\.?m\.?[^,]{0,25},?\s*)?"
+                          r"\b(" + _W_MONTHS + r")\s+(\d{1,2})\s*(?:st|nd|rd|th)?\s*,?\s+(20\d{2})\b")
+_TERM_SNAP = (6, 12, 18, 24, 30, 36, 48, 60)
+
+
+def _release_date(window: str):
+    """The release's own date, from its dateline, for warrant terms written as an expiry date."""
+    m = _RE_DATE_TEXT.search(window[:900])
+    if not m:
+        return None
+    try:
+        return date(int(m.group(3)), _W_MONTH_NUM[m.group(1).lower()[:3]], int(m.group(2)))
+    except (KeyError, ValueError):
+        return None
+
+
+def _term_from_expiry(seg: str, issued):
+    """term_months from '... until May 14, 2028' when the release dates itself."""
+    if issued is None:
+        return None
+    m = _RE_W_EXPIRY.search(seg)
+    if not m:
+        return None
+    try:
+        exp = date(int(m.group(3)), _W_MONTH_NUM[m.group(1).lower()[:3]], int(m.group(2)))
+    except (KeyError, ValueError):
+        return None
+    months = round((exp - issued).days / 30.44)
+    if not 6 <= months <= 120:
+        return None                                       # 4 months is the resale hold period, not a warrant term
+    near = min(_TERM_SNAP, key=lambda x: abs(x - months))
+    return near if abs(near - months) <= 2 else months
+
+
+_RE_W_TERM_STOP = re.compile(r"(?i)[\w\-]+\s*(?:\(\d+\)\s*)?months?(?:\s+and\s+[\w\(\)]+\s*(?:\(\d+\)\s*)?days?)?"
+                             r"\s+(?:hold|statutory)\b"                                     # 1.0.2: "a four (4) month [and one (1) day] hold period"
+                             r"|\bhold\s+period|four\s+months\s+and\s+(?:a|one)\s+day|accelerat\w*|insiders?\b|proceeds\b|finders?\b|related\s+party")
 
 
 def _warrant_term(seg):
@@ -904,9 +982,11 @@ def _warrant_term(seg):
 def warrants(window: str):
     """[{per_unit, strike, term_months}] one per unit type, in text order."""
     w = window[:4500]
+    issued = _release_date(window)
     out = []
-    for m in re.finditer(r"(?i)\beach\s+(?:\S+\s+){0,4}?(?:units?|FT\s+units?|flow-through\s+units?)\b[^.]{0,40}?\b(?:consist\w*|compris\w*|is\s+comprised|will\s+be\s+comprised|shall\s+consist)\b"
-                         r"|\bunits?\b[^.]{0,30}\b(?:each\s+)?(?:consisting|comprised|composed)\s+of\b", w):
+    for m in re.finditer(r"(?i)\beach\s+(?:\S+\s+){0,4}?(?:units?|FT\s+units?|flow-through\s+units?|[A-Z]{2,4}Us?)\b[^.]{0,40}?\b(?:consist\w*|compris\w*|is\s+comprised|will\s+be\s+comprised|shall\s+consist)\b"
+                         r"|\b(?:units?|[A-Z]{2,4}Us?)\b[^.]{0,30}\b(?:each\s+)?(?:consisting|comprised|composed)\s+of\b"
+                         r"|\b(?:units?|[A-Z]{2,4}Us?)\b[^.]{0,30}\b(?:will\s+|shall\s+)?consists?\s+of\b", w):
         seg_end = min(len(w), m.end() + 700)
         seg = w[m.start():seg_end]
         fm = _unit_warrant(seg[:320])
@@ -923,11 +1003,39 @@ def warrants(window: str):
                 if 0.001 <= v < 1000:
                     strike = v
                     break
-        tm = _warrant_term(seg[fm.start():])
+        tm = _warrant_term(seg[fm.start():]) or _term_from_expiry(seg[fm.start():fm.start() + 700], issued)
+        if strike is None or tm is None:                  # 1.0.2: "... and 3,334 warrants" described further down
+            wide = w[m.start():]
+            for wm2 in re.finditer(r"(?i)\bwarrants?\b(?:[^.]|\.(?=\d)){0,200}?(?:exercisable|entitl\w+|permit\w+|purchase)\b"
+                                   r"(?:[^.]|\.(?=\d)){0,240}", wide):
+                sent = wm2.group(0)
+                if _RE_EXCLUDE_WARRANT.search(sent) or re.search(r"(?i)\bconvers\w*|\bconvertible\b", sent):
+                    continue
+                if strike is None:
+                    for v, cur, s2, e2 in monies(sent):
+                        if 0.001 <= v < 1000 and money_kind(sent, v, s2, e2) in ("strike", "price", "other") \
+                                and re.search(r"(?i)(?:at|for|of)\s+(?:a\s+price\s+of\s+)?$", sent[max(0, s2 - 30):s2]):
+                            strike = v
+                            break
+                if tm is None and not re.search(r"(?i)\bhold\s+period|\bresale\b|\brestricted\s+period", sent):
+                    t2 = _warrant_term(sent) or _term_from_expiry(sent, issued)
+                    if t2 is not None and 6 <= t2 <= 120:   # 4 months is a hold period, not a warrant term
+                        tm = t2
+                if strike is not None and tm is not None:
+                    break
         key = (per, strike, tm)
         if strike is None and tm is None and per is None:
             continue
         if any((o["per_unit"], o["strike"], o["term_months"]) == key for o in out):
+            continue
+        same = next((o for o in out if o["per_unit"] == per
+                     and (o["strike"] is None or strike is None or o["strike"] == strike)
+                     and (o["term_months"] is None or tm is None or o["term_months"] == tm)), None)
+        if same is not None:                              # 1.0.2: one unit type described over two sentences
+            if same["strike"] is None:
+                same["strike"] = strike
+            if same["term_months"] is None:
+                same["term_months"] = tm
             continue
         out.append({"per_unit": per, "strike": strike, "term_months": tm})
         if len(out) >= 3:
@@ -978,6 +1086,16 @@ def ref_dates(window: str):
 
 
 # ------------------------------------------------------------------ the analysis
+# 1.0.2: Quebec issuers file the same release in French and English; the French copy parses to almost nothing,
+# so it is marked here and the publisher treats it as a copy of its English twin instead of a deal update.
+_RE_FR = re.compile(r"(?i)pour\s+diffusion\s+imm|produit\s+brut|placement\s+priv|ne\s+pas\s+distribuer\s+aux\s+services"
+                    r"|\bsociété\b|\bactions\s+ordinaires\b|\bdébénture|\bunités\b")
+
+
+def language(body: str) -> str:
+    return "fr" if len(_RE_FR.findall((body or "")[:3000])) >= 2 else "en"
+
+
 def analyse(headline: str, body: str) -> dict:
     b = clean((body or "")[:TEXT_CAP])
     h = clean(effective_headline(headline or "", body or ""))
@@ -989,7 +1107,7 @@ def analyse(headline: str, body: str) -> dict:
     res = {"is_financing": ok, "reason": reason, "headline_used": h, "role": role if ok else None,
            "tranche": tranche if ok else None, "types": [], "offering": None, "currency": None, "offered": None,
            "offered_alt": [], "this_close": None, "closed_total": None, "prices": [], "conversion": None,
-           "warrants": [], "refs": [], "parts": []}
+           "warrants": [], "refs": [], "parts": [], "lang": language(body)}
     if not ok:
         return res
     res["types"], res["offering"] = deal_types(h, w, h_main)
@@ -1020,6 +1138,8 @@ def extract(headline: str, body: str) -> list:
         if a["offering"]:
             fs.append(F.Fact("offering", value_text=a["offering"]))
         fs.append(F.Fact("currency", value_text=a["currency"] or "CAD"))
+        if a.get("lang") and a["lang"] != "en":
+            fs.append(F.Fact("lang", value_text=a["lang"]))
         for fld in ("offered", "this_close", "closed_total"):
             if a[fld] is not None:
                 fs.append(F.Fact("amount_" + fld, value_num=float(a[fld]), unit=a["currency"] or "CAD"))
@@ -1055,7 +1175,7 @@ def parse_facts(rows):
     """rows: (field, seq, value_num, value_text) -> the analyse()-shaped dict the publisher uses."""
     a = {"is_financing": False, "reason": None, "role": None, "tranche": None, "types": [], "offering": None,
          "currency": "CAD", "offered": None, "offered_alt": [], "this_close": None, "closed_total": None,
-         "prices": [], "conversion": None, "warrants": [], "refs": [], "parts": []}
+         "prices": [], "conversion": None, "warrants": [], "refs": [], "parts": [], "lang": "en"}
     ws = {}
     pts = {}
     alts, prs, refs = {}, {}, {}
@@ -1063,7 +1183,7 @@ def parse_facts(rows):
         seq = int(seq or 0)
         if field == "is_financing":
             a["is_financing"] = num == 1.0
-        elif field in ("reason", "role", "tranche", "offering", "currency"):
+        elif field in ("reason", "role", "tranche", "offering", "currency", "lang"):
             a[field] = text
         elif field == "types":
             a["types"] = (text or "").split("+") if text else []
