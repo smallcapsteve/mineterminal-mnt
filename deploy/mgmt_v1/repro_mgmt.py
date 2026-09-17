@@ -8,8 +8,10 @@ Run from the candidate tree. Reads portal.db read-only and writes nothing:
   3. the same fingerprint the workspace computed over every tagged release, so a file that
      travelled badly is caught before anything is installed
 
-The fingerprint covers the releases published up to CUTOFF, the moment the workspace exported
-its copy of the corpus; anything ingested since is real news, not a difference in the reader.
+Two things have to match for the fingerprint to mean anything. The releases are those
+published up to CUTOFF, the moment the workspace exported its copy of the corpus; anything
+ingested since is real news, not a difference in the reader. And the text is cut at BODY_CAP,
+because that is how much of each release the workspace copy held. The live reader reads more.
 """
 import hashlib
 import json
@@ -26,7 +28,7 @@ WORKSPACE_SET_SHA = "0b60368fc2458bb3fbffa4d750c9bc2b89925937fa94af146996ba163c9
 WORKSPACE_CORPUS_SHA = "6c9bc39912eecd9e76f467ae9f288c29cab0777b5b503a315990dc268968546d"
 WORKSPACE_RELEASES = 3107
 CUTOFF = "2026-09-17T13:00:00"
-BODY_CAP = 8000                              # the workspace corpus was exported with this cap
+BODY_CAP = 4000
 
 
 def main():
