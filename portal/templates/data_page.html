@@ -67,7 +67,9 @@
       </thead>
       <tbody>
         {% for r in rows %}
-          <tr>
+          {% set _rowi = loop.index %}
+          {% set _det = r[spec.detail] if spec.detail and r[spec.detail] and r[spec.detail]|length >= spec.detail_min else none %}
+          <tr{% if _det %} class="dp-has-detail"{% endif %}>
             {% for c in spec.columns %}
               {% set v = r[c.key] %}
               {% if c.kind == 'ticker' %}
@@ -77,7 +79,8 @@
               {% elif c.kind == 'date' %}
                 <td class="fin-date">{{ (v or "")[:10] }}</td>
               {% elif c.kind == 'strong' %}
-                <td{% if c.td_class %} class="{{ c.td_class }}"{% endif %}><strong>{{ v or "—" }}</strong></td>
+                <td{% if c.td_class %} class="{{ c.td_class }}"{% endif %}><strong>{{ v or "—" }}</strong>{% if _det and c.key == spec.detail_anchor %}
+                  <button type="button" class="dp-toggle" aria-expanded="false" aria-controls="dp-detail-{{ _rowi }}">{{ _det|length }} {{ spec.detail_noun }}</button>{% endif %}</td>
               {% elif c.kind == 'release' %}
                 <td>{% if v %}<a href="{{ v }}">View ↗</a>{% else %}—{% endif %}</td>
               {% else %}
@@ -85,10 +88,58 @@
               {% endif %}
             {% endfor %}
           </tr>
+          {% if _det %}
+          <tr class="dp-detail" id="dp-detail-{{ _rowi }}" hidden>
+            <td colspan="{{ spec.columns|length }}">
+              <table class="dp-sub">
+                {# a column that is empty for every interval of this release is left out (most releases give no depths) #}
+                {% set _dc = namespace(cols=[], w=0) %}
+                {% for c in spec.detail_columns %}
+                  {% set _any = namespace(v=(c.kind == 'strong')) %}
+                  {% for d in _det %}{% if d[c.key] is not none and d[c.key] != "" %}{% set _any.v = true %}{% endif %}{% endfor %}
+                  {% if _any.v %}{% set _dc.cols = _dc.cols + [c] %}{% set _dc.w = _dc.w + c.width %}{% endif %}
+                {% endfor %}
+                <colgroup>{% for c in _dc.cols %}<col style="width: {{ (c.width * 100 / _dc.w)|round|int }}%">{% endfor %}</colgroup>
+                <thead><tr>{% for c in _dc.cols %}<th>{{ c.label }}</th>{% endfor %}</tr></thead>
+                <tbody>
+                  {% for d in _det %}
+                  <tr class="{% if d.is_best %}dp-best{% endif %}{% if d.including %} dp-incl{% endif %}">
+                    {% for c in _dc.cols %}
+                      {% set dv = d[c.key] %}
+                      {% if c.kind == 'strong' %}
+                        <td>{% if d.including %}<span class="dp-incl-mark">incl.</span> {% endif %}{% if d.is_best %}<strong>{{ dv or "—" }}</strong>{% else %}{{ dv or "—" }}{% endif %}</td>
+                      {% elif c.kind == 'num' %}
+                        <td class="dp-num">{{ ('%g' % dv) if dv is not none else "—" }}</td>
+                      {% elif c.kind == 'plain' %}
+                        <td>{{ dv if dv else "" }}</td>
+                      {% else %}
+                        <td>{{ dv or "—" }}</td>
+                      {% endif %}
+                    {% endfor %}
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </td>
+          </tr>
+          {% endif %}
         {% endfor %}
       </tbody>
     </table>
     </div>
   {% endif %}
   {% include "_pager.html" %}
+  {% if spec.detail %}
+  <script id="dp-detail-toggle-v1">
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest ? e.target.closest(".dp-toggle") : null;
+    if (!b) return;
+    var row = document.getElementById(b.getAttribute("aria-controls"));
+    if (!row) return;
+    var open = b.getAttribute("aria-expanded") === "true";
+    b.setAttribute("aria-expanded", open ? "false" : "true");
+    row.hidden = open;
+  });
+  </script>
+  {% endif %}
 {% endblock %}

@@ -28,6 +28,11 @@ THE GATE (plan, "Auto-install gate"). All must pass:
   3. every key field: >= MIN_CLAIMS claims and precision >= THRESHOLD (90%)
   4. no page loses more than MAX_ROW_LOSS (2%) of its rows
   5. every page returns 200
+  6. REPLACED PAGE (REPLACED_PAGE_V1, 2026-09-17). An extractor that replaces what a page
+     shows (TagSpec.replaces, e.g. DRILL_V1 for /drills) may publish fewer rows than the
+     page has today, but only if its row recall on the confirmed set is at least the
+     current page's (min_row_recall; 93.1% for /drills, Justin 2026-09-16). The check
+     reports how many rows go and come, with a sample of removed rows to read.
 
 Self-tests: python3 -m portal.accuracy   (in-memory; touches nothing live)
 """
@@ -157,7 +162,11 @@ class TagSpec:
     judge(pred, expect) -> {field: ["tp" | "fp" | "fn", ...]} for every field in
     key_fields + report_fields (an empty list means "nothing to score here").
     stored(conn, event_id) -> pred or None: what a legacy table shows today.
-    from_records(records) -> pred or None: the same shape from facts Records."""
+    from_records(records) -> pred or None: the same shape from facts Records.
+    replaces: None, or {"page": key in PAGE_SOURCES, "min_row_recall": float,
+              "candidate": fn(conn, extractor, version) -> set of event_ids the version would show,
+              "current": fn(conn) -> set of event_ids the page shows now,
+              "describe": fn(conn, event_ids) -> [short text per event]} (check 6)."""
     name: str
     tag: str
     key_fields: tuple
@@ -166,6 +175,7 @@ class TagSpec:
     stored: object = None
     from_records: object = None
     describe: dict = field(default_factory=dict)
+    replaces: dict = None
 
 
 SPECS = {}
@@ -330,8 +340,40 @@ def page_statuses(base=PORTAL_URL, hrefs=None, timeout=30):
 
 
 # ------------------------------------------------------------------ the gate
-def gate_checks(rep, *, selftest_ok, rows_before, rows_after, pages):
-    """The five checks, each {name, passed, detail}. passed = all passed."""
+def replaced_info(conn, tagspec, extractor, version, sample=20):
+    """What switching the replaced page to this version would do. Reads only."""
+    r = tagspec.replaces
+    cur = set(r["current"](conn))
+    new = set(r["candidate"](conn, extractor, version))
+    removed = sorted(cur - new)
+    pick = removed[:: max(1, len(removed) // sample)][:sample] if removed else []
+    return {"page": r["page"], "before": len(cur), "after": len(new), "removed": len(removed),
+            "added": len(new - cur), "min_row_recall": r["min_row_recall"],
+            "removed_sample": r["describe"](conn, pick) if r.get("describe") else pick}
+
+
+def replaced_page_check(rep, info):
+    """Check 6: {name, passed, detail, removed_sample}."""
+    before, after = info["before"], info["after"]
+    loss = (before - after) / before if before else 0.0
+    recall = (rep["fields"].get("row") or {}).get("recall")
+    head = (f"{info['page']}: {before} -> {after} rows ({'-' if loss >= 0 else '+'}{abs(loss) * 100:.1f}%), "
+            f"{info['removed']} removed, {info['added']} added; ")
+    if loss <= MAX_ROW_LOSS:
+        ok, why = True, "within the 2% allowance"
+    elif recall is not None and recall >= info["min_row_recall"]:
+        ok, why = True, (f"allowed: row recall {recall * 100:.1f}% on the confirmed set is at least "
+                         f"{info['min_row_recall'] * 100:.1f}%")
+    else:
+        ok = False
+        why = (f"refused: loses more than 2% and row recall "
+               f"{'n/a' if recall is None else f'{recall * 100:.1f}%'} is below {info['min_row_recall'] * 100:.1f}%")
+    return {"name": f"replaced page: {info['page']}", "passed": ok, "detail": head + why,
+            "removed_sample": info.get("removed_sample", [])}
+
+
+def gate_checks(rep, *, selftest_ok, rows_before, rows_after, pages, replaced=None):
+    """The checks, each {name, passed, detail}. passed = all passed. replaced: replaced_info() or None."""
     checks = []
 
     def add(name, ok, detail):
@@ -359,6 +401,8 @@ def gate_checks(rep, *, selftest_ok, rows_before, rows_after, pages):
     add("no page loses >2% of rows", not lost, "; ".join(lost) if lost else f"{len(rows_before)} pages checked")
     bad = {h: s for h, s in pages.items() if s != 200}
     add("every page returns 200", pages and not bad, f"{len(pages)} pages" if not bad else json.dumps(bad))
+    if replaced is not None:
+        checks.append(replaced_page_check(rep, replaced))
     return {"passed": all(c["passed"] for c in checks), "checks": checks}
 
 
@@ -389,9 +433,11 @@ def gate_and_activate(conn, facts, tagspec, extractor_spec, aset, *, selftest_ok
     if facts.pending_events(conn, name, version, limit=1):
         raise AccuracyError(f"{name} {version} is not fully backfilled; run facts_sync.py --backfill {name} first")
     rep = evaluate(tagspec, aset, extractor_predictor(tagspec, extractor_spec), load_events(conn, aset))
+    replaced = replaced_info(conn, tagspec, name, version) if tagspec.replaces else None
     rows_before = page_row_counts(conn)
     pages_before = page_statuses(base, hrefs)
-    pre = gate_checks(rep, selftest_ok=selftest_ok, rows_before=rows_before, rows_after=rows_before, pages=pages_before)
+    pre = gate_checks(rep, selftest_ok=selftest_ok, rows_before=rows_before, rows_after=rows_before, pages=pages_before,
+                      replaced=replaced)
     subject = f"fx:{name}@{version}"
     if not pre["passed"]:
         rep["gate"] = dict(pre, stage="before activation")
@@ -401,7 +447,8 @@ def gate_and_activate(conn, facts, tagspec, extractor_spec, aset, *, selftest_ok
     prev = facts.activate(conn, name, version, gate_report={"summary": summary_lines(rep), "set_sha": rep["set_sha"]})
     rows_after = page_row_counts(conn)
     pages_after = page_statuses(base, hrefs)
-    post = gate_checks(rep, selftest_ok=selftest_ok, rows_before=rows_before, rows_after=rows_after, pages=pages_after)
+    post = gate_checks(rep, selftest_ok=selftest_ok, rows_before=rows_before, rows_after=rows_after, pages=pages_after,
+                       replaced=replaced)
     if not post["passed"]:
         if prev:
             facts.activate(conn, name, prev)
@@ -536,9 +583,36 @@ def stored_drill(conn, event_id):
             "n_intercepts": r[6]}
 
 
+def _drill_from_records(records):
+    from portal.extractors import drill_results as X
+    return X.to_prediction(records)
+
+
+def _drill_candidate(conn, extractor, version):
+    from portal import drill_publish as P
+    rows, _ivs, _st = P.compute(P.load_items(conn, version))
+    return {r["event_id"] for r in rows}
+
+
+def _drill_current(conn):
+    return {r[0] for r in conn.execute("SELECT event_id FROM drill_results")}
+
+
+def _drill_describe(conn, event_ids):
+    out = []
+    for eid in event_ids:
+        r = conn.execute("SELECT ticker, substr(published_at, 1, 10), top_summary, raw_headline FROM drill_results "
+                         "WHERE event_id=?", (eid,)).fetchone()
+        if r:
+            out.append(f"{eid[:8]} {r[0]} {r[1]} | was {r[2]} | {(r[3] or '')[:90]}")
+    return out
+
+
 register_spec(TagSpec(
     name="drill_results", tag="Drill Results", key_fields=("row", "intercept", "hole", "project"),
-    judge=judge_drill, stored=stored_drill,
+    judge=judge_drill, stored=stored_drill, from_records=_drill_from_records,
+    replaces={"page": "drills", "min_row_recall": 0.931, "candidate": _drill_candidate, "current": _drill_current,
+              "describe": _drill_describe},
     describe={"row": "a row is shown only for releases reporting new drill results",
               "intercept": "the headline intercept (grade, metal, length) is a real new intercept from the release",
               "hole": "the hole shown is the hole that intercept came from",
@@ -673,6 +747,22 @@ def _selftest():
     ok("gate allows a new page", gate_checks(rep, selftest_ok=True, rows_before=rows,
                                              rows_after=dict(rows, v_fx_x=5), pages=pages200)["passed"])
     ok("gate fails on selftest", not gate_checks(rep, selftest_ok=False, rows_before=rows, rows_after=rows, pages=pages200)["passed"])
+    # check 6: replaced page
+    info = {"page": "drills", "before": 100, "after": 90, "removed": 12, "added": 2, "min_row_recall": 0.931,
+            "removed_sample": ["a", "b"]}
+    c6 = replaced_page_check(rep, info)
+    ok("replaced: loss allowed when row recall high", c6["passed"] and "allowed" in c6["detail"]
+       and c6["removed_sample"] == ["a", "b"])
+    low = dict(rep, fields=dict(rep["fields"], row=dict(rep["fields"]["row"], recall=0.9)))
+    ok("replaced: loss refused when row recall low", not replaced_page_check(low, info)["passed"])
+    ok("replaced: small loss always fine", replaced_page_check(low, dict(info, after=99))["passed"])
+    ok("replaced: gain fine", replaced_page_check(low, dict(info, after=120))["passed"])
+    g6 = gate_checks(rep, selftest_ok=True, rows_before=rows, rows_after=rows, pages=pages200, replaced=info)
+    ok("replaced: gate carries check 6", g6["passed"] and len(g6["checks"]) == 10)
+    ok("replaced: gate fails with it", not gate_checks(low, selftest_ok=True, rows_before=rows, rows_after=rows,
+                                                        pages=pages200, replaced=info)["passed"])
+    ok("drill spec replaces /drills", SPECS["drill_results"].replaces["page"] == "drills"
+       and SPECS["drill_results"].from_records is not None)
     rep_draft = evaluate(SPECS["drill_results"], d, predict, events)
     ok("gate fails on draft set", not gate_checks(rep_draft, selftest_ok=True, rows_before=rows, rows_after=rows,
                                                   pages=pages200)["passed"])
@@ -772,6 +862,19 @@ def _selftest():
             r3 = gate_and_activate(c2, F, spec_bad, ex3, aset2, selftest_ok=True, log=lambda *_: None)
             ok("gate blocks low precision", not r3["passed"] and r3["stage"] == "before activation"
                and F.version_status(c2, "demo_ex", "1.0.2") == "candidate")
+            # a spec that replaces a page: removed rows allowed with high recall, sample reported
+            ex5 = F.ExtractorSpec("repl_ex", "1.0.0", "demo", "Drill Results", demo_extract, "sha5")
+            F.register_version(c2, "repl_ex", "1.0.0", "demo", "Drill Results", "sha5")
+            F.run_batch(c2, ex5, F.pending_events(c2, "repl_ex", "1.0.0", limit=1000))
+            spec_repl = TagSpec(name="demo_set", tag="Drill Results", key_fields=("row", "intercept", "hole", "project"),
+                                judge=judge_drill, from_records=from_records,
+                                replaces={"page": "drills", "min_row_recall": 0.931,
+                                          "current": lambda conn: {f"e{i}" for i in range(45)},
+                                          "candidate": lambda conn, n, v: {f"e{i}" for i in range(40)},
+                                          "describe": lambda conn, ids: [f"removed {i}" for i in ids]})
+            r5 = gate_and_activate(c2, F, spec_repl, ex5, aset2, selftest_ok=True, log=lambda *_: None)
+            c5 = [c for c in r5["checks"] if c["name"] == "replaced page: drills"]
+            ok("gate with replaced page installs", r5["passed"] and c5 and c5[0]["passed"] and len(c5[0]["removed_sample"]) == 5)
             # first-ever version failing after activation returns to candidate
             ex4 = F.ExtractorSpec("other_ex", "1.0.0", "demo", "Drill Results", demo_extract, "sha4")
             F.register_version(c2, "other_ex", "1.0.0", "demo", "Drill Results", "sha4")

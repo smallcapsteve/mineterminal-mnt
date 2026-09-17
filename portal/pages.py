@@ -96,6 +96,14 @@ class PageSpec:
     table_class: str = ""
     filters: list = field(default_factory=lambda: ["company", "window", "has_data"])
     windows: list = field(default_factory=list)
+    # DATA_PAGE_DETAIL_V1 (2026-09-17): optional expandable rows. The route puts a list of dicts
+    # under row[detail]; a toggle is drawn in the detail_anchor column when the list has at least
+    # detail_min entries, and the list is laid out with detail_columns in a row below.
+    detail: str = ""
+    detail_anchor: str = ""
+    detail_min: int = 2
+    detail_noun: str = "rows"
+    detail_columns: list = field(default_factory=list)
 
 
 PAGE_SPECS = {
@@ -104,8 +112,8 @@ PAGE_SPECS = {
         url="/drills",
         title="Drill Results",
         tag="Drill Results",
-        describe=("The best assay intercept from each news release tagged Drill Results. "
-                  "Figures are extracted from the release text; open the release for the full tables."),
+        describe=("The best new assay intercept from each news release tagged Drill Results. "
+                  "Open a row for every interval the release reports; figures are read from the release text."),
         empty_text="No drill results in this window.",
         table_class="drill-table",
         windows=[(0, "All time"), (7, "Last 7 days"), (30, "Last 30 days"),
@@ -118,6 +126,16 @@ PAGE_SPECS = {
             Col("top_summary", "Top Intercept", 23, kind="strong", td_class="drill-intercept"),
             Col("top_hole_id", "Hole", 14, td_class="fin-kind"),
             Col("url", "Release", 8, kind="release"),
+        ],
+        detail="intervals",
+        detail_anchor="top_summary",
+        detail_noun="intervals",
+        detail_columns=[
+            Col("hole_id", "Hole", 22),
+            Col("summary", "Interval", 38, kind="strong"),
+            Col("from_m", "From (m)", 13, kind="num"),
+            Col("to_m", "To (m)", 13, kind="num"),
+            Col("note", "", 14, kind="plain"),
         ],
     ),
 }

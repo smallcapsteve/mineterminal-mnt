@@ -1534,9 +1534,27 @@ def drills_page(
         "JOIN drill_results dr ON dr.event_id = e.event_id "
         "WHERE " + clause, args).fetchone()[0]
 
+    # DATA_PAGE_DETAIL_V1 (2026-09-17): every accepted interval of the releases on this page, for
+    # the expandable rows. One query for the page; absent table (before the new reader publishes)
+    # simply means no expandable rows.
+    _ivs = {}
+    _ids = [r["event_id"] for r in rows]
+    if _ids:
+        try:
+            for iv in conn.execute(
+                    "SELECT event_id, seq, hole_id, from_m, to_m, length_m, summary, including, is_best, reported_before "
+                    "FROM drill_intervals WHERE event_id IN (%s) ORDER BY event_id, seq" % ",".join("?" * len(_ids)),
+                    _ids):
+                ivd = dict(iv)
+                ivd["note"] = "best" if ivd["is_best"] else ("reported earlier" if ivd["reported_before"] else "")
+                _ivs.setdefault(ivd["event_id"], []).append(ivd)
+        except _sqlite3_co.OperationalError:
+            _ivs = {}
+
     decorated = []
     for r in rows:
         d = dict(r)
+        d["intervals"] = _ivs.get(d["event_id"], [])
         d["company_name"] = _ticker_to_name(d.get("ticker") or "") or (d.get("ticker") or "")
         # Build URL to article
         if d.get("ticker") and d.get("slug"):
