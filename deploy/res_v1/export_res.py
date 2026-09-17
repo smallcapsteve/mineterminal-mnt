@@ -6,7 +6,9 @@ sha256 and how many chunks it takes to carry back.
 
 Bodies are cut at BODY_CAP and the cap is recorded in the file, because a measurement taken on a
 truncated body cannot be compared with one taken on the whole text -- which is exactly what cost an
-hour on the management rebuild.
+hour on the management rebuild. The cap is set above the longest release in the corpus (98,939
+chars on 2026-09-17), so in practice nothing is cut: the first pass at 16,000 truncated 187 of 642
+releases, and resource tables sit as deep as char 14,846.
 """
 import gzip
 import hashlib
@@ -16,7 +18,7 @@ import sqlite3
 
 DB = "file:/opt/mnt/app/portal/portal.db?mode=ro"
 OUT = "/var/tmp/mnt-res"
-BODY_CAP = 16000
+BODY_CAP = 200000
 CHUNK = 520000
 TAG = "Resource Estimates"
 
@@ -67,6 +69,7 @@ def main():
     print("tagged", len(tagged), "control", len(control), "legacy rows", len(legacy))
     print("gz bytes", len(raw), "sha256", hashlib.sha256(raw).hexdigest())
     print("chunks of", CHUNK, ":", -(-len(raw) // CHUNK))
+    print("cut at cap:", sum(1 for x in tagged + control if x["body_len"] > BODY_CAP))
     return 0
 
 
