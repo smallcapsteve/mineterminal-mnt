@@ -95,7 +95,7 @@ _TITLECASE_FIX = {"of": "of", "and": "and", "the": "the", "for": "for"}
 
 def tidy(printed: str) -> str:
     """The role as the release printed it, with spacing and case cleaned up but the words kept."""
-    s = re.sub(r"\s+", " ", (printed or "").strip(" ,.;:-–—"))
+    s = re.sub(r"\s+", " ", (printed or "").strip(" ,.;:-\\u2013\\u2014"))
     if not s:
         return s
     if s.isupper() and len(s) > 4:                            # ALL-CAPS headlines: title-case, keeping CEO/CFO/VP/ESG
