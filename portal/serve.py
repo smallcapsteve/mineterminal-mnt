@@ -25,4 +25,13 @@ typeahead.register(app)
 from portal import link_preview
 link_preview.register(app, templates)
 
+# MNT_DRILLS_API_V1 (2026-09-17): /api/v1/drills JSON for MTP's /drilling and company pages.
+# Guarded like the news API hook: if this module ever fails to import, the site still serves.
+try:
+    from portal import drills_api
+    drills_api.register(app)
+except Exception:  # pragma: no cover
+    import logging
+    logging.getLogger(__name__).exception("drills_api register failed")
+
 __all__ = ["app"]
