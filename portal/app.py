@@ -285,27 +285,46 @@ def _fin_releases(conn, rows):
         return
     cols = {c[1] for c in conn.execute("PRAGMA table_info(financing_events)")}
     extra = ", amount_offered, amount_this_close, amount_closed_total, is_duplicate" if "amount_offered" in cols else ""
+    second = "second_financing_id" in cols
+    if second:
+        extra += ", second_financing_id, second_amount_this_close, second_amount_closed_total"
     by = {r["financing_id"]: r for r in rows}
+    marks = ",".join("?" * len(ids))
+    where = "financing_id IN (%s)" % marks + (" OR second_financing_id IN (%s)" % marks if second else "")
     q = ("SELECT event_id, financing_id, event_date, role, tranche_label, gross_total, unit_price, raw_headline%s "
-         "FROM financing_events WHERE financing_id IN (%s) ORDER BY event_date, event_id") % (extra, ",".join("?" * len(ids)))
-    for e in conn.execute(q, ids):
+         "FROM financing_events WHERE %s ORDER BY event_date, event_id") % (extra, where)
+    for e in conn.execute(q, ids + ids if second else ids):
         e = dict(e)
         role = e.get("role") or ""
         closing = role in ("tranche_close", "final_close")
-        if "amount_offered" in e:
-            amt = e.get("amount_this_close") if closing else e.get("amount_offered")
-            tot = e.get("amount_closed_total") if closing else None
-        else:
-            amt, tot = e.get("gross_total"), None
-        stage = _FIN_STAGE.get(role, role.replace("_", " ").capitalize())
-        if e.get("tranche_label") and closing and e["tranche_label"] != "final":
-            stage += " (" + e["tranche_label"] + ")"
-        by[e["financing_id"]]["releases"].append({
-            "event_id": e["event_id"], "date": (e.get("event_date") or "")[:10], "stage": stage,
-            "amount": fmt_money(amt) if amt else "",
-            "total": fmt_money(tot) if tot and tot != amt else "",
-            "price": ("$%.3f" % e["unit_price"]) if e.get("unit_price") else "",
-            "headline": (e.get("raw_headline") or "")[:160], "copy": bool(e.get("is_duplicate"))})
+        # FIN_DETAIL_V2: a release that closed two separate deals is listed under both, with each deal's own figures
+        targets = []
+        if e.get("financing_id") in by:
+            targets.append((e["financing_id"], False))
+        if e.get("second_financing_id") in by and e.get("second_financing_id") != e.get("financing_id"):
+            targets.append((e["second_financing_id"], True))
+        for fid, is_second in targets:
+            _fin_release_row(by[fid], e, role, closing, is_second)
+
+
+def _fin_release_row(row, e, role, closing, is_second):
+    """One line of a deal's release list (FIN_DETAIL_V2)."""
+    if is_second:
+        amt, tot = e.get("second_amount_this_close"), e.get("second_amount_closed_total")
+    elif "amount_offered" in e:
+        amt = e.get("amount_this_close") if closing else e.get("amount_offered")
+        tot = e.get("amount_closed_total") if closing else None
+    else:
+        amt, tot = e.get("gross_total"), None
+    stage = _FIN_STAGE.get(role, role.replace("_", " ").capitalize())
+    if e.get("tranche_label") and closing and e["tranche_label"] != "final":
+        stage += " (" + e["tranche_label"] + ")"
+    row["releases"].append({
+        "event_id": e["event_id"], "date": (e.get("event_date") or "")[:10], "stage": stage,
+        "amount": fmt_money(amt) if amt else "",
+        "total": fmt_money(tot) if tot and tot != amt else "",
+        "price": "" if is_second else (("$%.3f" % e["unit_price"]) if e.get("unit_price") else ""),
+        "headline": (e.get("raw_headline") or "")[:160], "copy": bool(e.get("is_duplicate"))})
 
 
 @app.get("/financings", response_class=HTMLResponse)

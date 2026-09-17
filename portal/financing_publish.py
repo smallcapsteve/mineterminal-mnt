@@ -98,7 +98,9 @@ ADD_COLS = {
                    ("unit_prices", "TEXT")],
     "financing_events": [("currency", "TEXT"), ("is_deal", "INTEGER"), ("amount_offered", "REAL"),
                          ("amount_this_close", "REAL"), ("amount_closed_total", "REAL"), ("is_duplicate", "INTEGER"),
-                         ("reason", "TEXT"), ("unit_prices", "TEXT"), ("extractor_version", "TEXT")],
+                         ("reason", "TEXT"), ("unit_prices", "TEXT"), ("extractor_version", "TEXT"),
+                         ("second_financing_id", "INTEGER"), ("second_amount_this_close", "REAL"),
+                         ("second_amount_closed_total", "REAL"), ("second_currency", "TEXT"), ("second_kind", "TEXT")],
 }
 
 STATUS_OF = {"announcement": "announced", "upsize": "upsized", "amendment": "amended",
@@ -179,7 +181,7 @@ def compute(items):
                                          x[0].get("published_at") or "", x[0]["event_id"]))
     deals, releases = [], []
     st = {"releases": 0, "not_financing": 0, "hidden_updates": 0, "duplicates": 0, "deals": 0, "joined": 0,
-          "continued": 0, "orphans": 0}
+          "continued": 0, "orphans": 0, "split_closes": 0}
     by_ticker = {}
     for ev, a in items:
         st["releases"] += 1
@@ -204,7 +206,7 @@ def compute(items):
                     continue
                 if (len(head) >= 15 and (r["head"] == head or (abs(dd) <= 3 and _similar(r["head"], head)))) or (
                         abs(dd) <= 3 and r["role"] == role and (r["price"] == price or not r["price"] or not price)
-                        and _same_amounts(r["amounts"], _amounts(a)) and (r["amounts"] != (None, None, None) or price)):
+                        and _same_amounts(r["amounts"], _amounts(a), 0.01 if dd == 0 else 0.002) and (r["amounts"] != (None, None, None) or price)):
                     dup = d
                     break
             if dup:
@@ -213,6 +215,19 @@ def compute(items):
             _attach(dup, rel, a, dt, head, duplicate=True)
             st["duplicates"] += 1
             continue
+
+        # 1b. one release closing two separate deals that are already on the page (1.0.1)
+        if role in ("tranche_close", "final_close") and len(a.get("parts") or []) >= 2:
+            sp = _split_close(mine, a, ev, dt)
+            if sp:
+                (d1, a1), (d2, a2) = sp
+                rel["a_full"] = a
+                rel["a"] = a1
+                _attach(d1, rel, a1, dt, head)
+                _attach(d2, rel, a2, dt, head, secondary=True)
+                st["joined"] += 1
+                st["split_closes"] += 1
+                continue
 
         # 2./3. candidate deals
         best, best_score = None, None
@@ -312,28 +327,90 @@ def compute(items):
     return deals, releases, st
 
 
+def _part_analysis(a, p):
+    """The release's facts narrowed to one separately closed part."""
+    q = dict(a)
+    q["types"] = list(p.get("types") or a.get("types") or [])
+    q["offering"] = p.get("offering")
+    q["currency"] = p.get("currency") or a.get("currency")
+    q["offered"], q["offered_alt"] = None, []
+    q["this_close"] = p.get("amount")
+    q["closed_total"] = p.get("amount") if a.get("role") == "final_close" else None
+    q["prices"] = [p["price"]] if p.get("price") else []
+    q["conversion"] = p.get("price") if "CD" in q["types"] else None
+    q["warrants"] = [] if set(q["types"]) & ({"CD"} | DEBTISH) else list(a.get("warrants") or [])
+    q["parts"] = []
+    return q
+
+
+def _split_close(mine, a, ev, dt):
+    """[(deal, part analysis), (deal, part analysis)] when two parts of a close release match two different open
+    deals of this ticker, each on its own evidence (type plus size, price or referenced release). Else None."""
+    parts = (a.get("parts") or [])[:3]
+    matches = []
+    for p in parts:
+        q = _part_analysis(a, p)
+        best, best_score = None, 0.0
+        for d in mine:
+            gap = _days(d["last_date"], dt)
+            if gap is None or gap < 0 or gap > 180 or d["terminated"] or d["final"]:
+                continue
+            if not d["types"] or not q["types"] or not types_compatible(d["types"], q["types"]):
+                continue
+            fam = lambda t: "debt" if set(t) & (DEBTISH | {"CD"}) else "equity"
+            if fam(d["types"]) != fam(q["types"]):
+                continue
+            score = 0.0
+            if d["offered"] and 0.6 * d["offered"] <= q["this_close"] <= 1.6 * d["offered"] and (
+                    not d["currency"] or not q["currency"] or d["currency"] == q["currency"]):
+                score += 3 + (2 if same_amount(d["offered"], q["this_close"], 0.02) else 0)
+            if q["prices"] and d["prices"]:
+                if any(same_price(x, y) for x in q["prices"] for y in d["prices"]):
+                    score += 3
+                else:
+                    continue
+            if any(_days(ref, r["date"]) is not None and abs(_days(ref, r["date"])) <= 5
+                   for ref in (a.get("refs") or []) for r in d["releases"]):
+                score += 2
+            if set(q["types"]) - {"PP"} and set(q["types"]) - {"PP"} <= set(d["types"]):
+                score += 1
+            if score >= 3 and score > best_score:
+                best, best_score = d, score
+        if best is not None:
+            matches.append((best, q, best_score))
+    for i in range(len(matches)):
+        for j in range(i + 1, len(matches)):
+            if matches[i][0] is not matches[j][0]:
+                return (matches[i][0], matches[i][1]), (matches[j][0], matches[j][1])
+    return None
+
+
 def _similar(x, y):
     import difflib
     return len(x) >= 20 and len(y) >= 20 and difflib.SequenceMatcher(None, x, y).ratio() >= 0.9
 
 
-def _same_amounts(p, q):
+def _same_amounts(p, q, rel=0.002):
     if p == q:
         return True
-    return all((a is None and b is None) or (a is not None and b is not None and same_amount(a, b, 0.002)) for a, b in zip(p, q))
+    return all((a is None and b is None) or (a is not None and b is not None and same_amount(a, b, rel)) for a, b in zip(p, q))
 
 
 def _amounts(a):
     return (a.get("offered"), a.get("this_close"), a.get("closed_total"))
 
 
-def _attach(d, rel, a, dt, head, duplicate=False):
+def _attach(d, rel, a, dt, head, duplicate=False, secondary=False):
     role = a.get("role") or "update"
-    rel["deal"] = d
-    rel["duplicate"] = duplicate
+    if secondary:
+        rel["second_deal"] = d
+        rel["a2"] = a
+    else:
+        rel["deal"] = d
+        rel["duplicate"] = duplicate
     d["releases"].append({"event_id": rel["event"]["event_id"], "date": dt, "head": head, "role": role,
                           "price": (a.get("prices") or [None])[0], "prices": a.get("prices") or [],
-                          "amounts": _amounts(a), "duplicate": duplicate})
+                          "amounts": _amounts(a), "duplicate": duplicate, "secondary": secondary})
     if dt > d["last_date"]:
         d["last_date"] = dt
     if duplicate:
@@ -417,7 +494,12 @@ def rows_for(deals, releases, version):
             "amount_offered": a.get("offered"), "amount_this_close": a.get("this_close"),
             "amount_closed_total": a.get("closed_total"), "is_duplicate": 1 if r["duplicate"] else 0,
             "reason": a.get("reason"), "unit_prices": "|".join("%g" % p for p in (a.get("prices") or [])) or None,
-            "extractor_version": version})
+            "extractor_version": version,
+            "second_financing_id": r["second_deal"]["id"] if r.get("second_deal") else None,
+            "second_amount_this_close": (r.get("a2") or {}).get("this_close"),
+            "second_amount_closed_total": (r.get("a2") or {}).get("closed_total"),
+            "second_currency": (r.get("a2") or {}).get("currency"),
+            "second_kind": "+".join(list((r.get("a2") or {}).get("types") or []) + ([r["a2"]["offering"]] if (r.get("a2") or {}).get("offering") else [])) or None})
     return fin_rows, ev_rows
 
 
@@ -576,6 +658,34 @@ def _selftest():
     ok("two copies of one close are one row", did["b1"] == did["b2"] and by[did["b1"]]["closed"] == 300_000)
     preds = predictions(deals, rels)
     ok("prediction members", set(preds["a3"]["members"]) == {"a1", "a1w", "a2", "a3", "a4"} and preds["n1"] is None)
+
+    # 1.0.1: one release closing two separately announced deals is listed under both
+    parts = [{"types": ["CD"], "offering": None, "currency": "USD", "amount": 25_000_000.0, "price": None},
+             {"types": ["FT", "LIFE"], "offering": "BROKERED", "currency": "CAD", "amount": 28_750_230.0, "price": None}]
+    close = A("final_close", None, 63_000_000, 63_000_000, types=("FT", "LIFE"), offering=None)
+    close["parts"] = parts
+    cd_up = A("upsize", 25_000_000, types=("CD",), offering=None)
+    cd_up["currency"] = "USD"
+    items2 = [(E("s1", "SSS", "2026-01-15", "SSS Announces $25 Million LIFE Private Placement of Flow-Through Shares"),
+               A("announcement", 25_000_200, prices=[1.02], types=("FT", "LIFE"), offering="BROKERED")),
+              (E("s2", "SSS", "2026-01-22", "SSS Announces Upsizing of Convertible Debenture Financing to USD$25 Million"), cd_up),
+              (E("s3", "SSS", "2026-02-05", "SSS Closes $63 Million In Financings"), close)]
+    deals2, rels2, st2 = compute(items2)
+    by2 = {d["seed"]: d for d in deals2}
+    r3 = [r for r in rels2 if r["event"]["event_id"] == "s3"][0]
+    ok("split close: joins the FT deal and the debenture deal", st2["split_closes"] == 1 and {r3["deal"]["seed"], r3["second_deal"]["seed"]} == {"s1", "s2"})
+    ok("split close: each deal has its own closed amount", (by2["s1"]["closed"], by2["s2"]["closed"], by2["s1"]["status"], by2["s2"]["status"])
+       == (28_750_230.0, 25_000_000.0, "closed", "closed"))
+    _f, ev2 = rows_for(deals2, rels2, "9.9.9")
+    e3 = [e for e in ev2 if e["event_id"] == "s3"][0]
+    ok("split close: release row carries the second deal", e3["second_financing_id"] is not None and e3["second_financing_id"] != e3["financing_id"]
+       and e3["second_amount_this_close"] in (25_000_000.0, 28_750_230.0))
+    lone = A("final_close", None, 5_000_000, 5_000_000, types=("PP",))
+    lone["parts"] = [{"types": ["PP"], "offering": "BROKERED", "currency": "CAD", "amount": 4_000_000.0, "price": None},
+                     {"types": ["PP"], "offering": "NON_BROKERED", "currency": "CAD", "amount": 1_000_000.0, "price": None}]
+    deals3, rels3, st3 = compute([(E("t1", "TTT", "2026-03-01", "TTT Announces Bought Deal and Concurrent Private Placement"), A("announcement", 5_000_000, types=("PP",))),
+                                  (E("t2", "TTT", "2026-03-20", "TTT Closes Bought Deal and Concurrent Private Placement"), lone)])
+    ok("parts without two matching deals do not split", st3["split_closes"] == 0 and len(deals3) == 1 and deals3[0]["closed"] == 5_000_000)
 
     # database path on an in-memory store
     from portal import facts as F

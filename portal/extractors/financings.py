@@ -38,7 +38,7 @@ from portal import facts as F
 from portal.extractors import fin_grammar as G
 
 NAME = "financings"
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 KIND = "financing"
 TAG = "Financings"
 TEXT_CAP = 8000
@@ -482,7 +482,8 @@ def _part(before):
 
 _RE_TOTAL_BEFORE = re.compile(
     r"(?i)\b(?:aggregate|total|combined|cumulative)\s+(?:gross\s+)?proceeds\b[^.$]{0,90}$|\btotal\s+(?:\w+\s+){0,2}raised\s+(?:aggregate\s+)?(?:gross\s+)?proceeds\s+of\s+$|\bbringing\s+(?:the\s+)?(?:total|aggregate)\b[^.$]{0,60}$"
-    r"|\bto\s+date\b[^.$]{0,40}$|\bin\s+(?:the\s+)?aggregate\s+(?:of\s+)?$|\bfor\s+(?:a\s+)?total\s+of\s+$|\bfor\s+aggregate\s+(?:gross\s+)?proceeds\s+of\s+$")
+    r"|\bto\s+date\b[^.$]{0,40}$|\bin\s+(?:the\s+)?aggregate\s+(?:of\s+)?$|\bfor\s+(?:a\s+)?total\s+of\s+$|\bfor\s+aggregate\s+(?:gross\s+)?proceeds\s+of\s+$"
+    r"|\baggregate\s+total\s+of\s+$|\b(?:raised|raising|brings?|bringing)\s+(?:an?\s+|the\s+)?(?:aggregate\s+)?total\s+(?:of\s+)?$")
 _RE_TOTAL_AFTER = re.compile(r"(?i)^\s*(?:\S+\s+){0,3}(?:in\s+(?:the\s+)?aggregate|to\s+date|in\s+total)\b")
 _RE_CLOSE_CTX = re.compile(r"(?i)\b(?:closed|completed|closing|issued|has\s+issued|completion|raised|sold)\b")
 _RE_FUTURE_CTX = re.compile(r"(?i)\b(?:will|intends?|expects?|anticipated|proposed|up\s+to|may|subject\s+to|to\s+be)\b")
@@ -494,7 +495,30 @@ def _sentence(text, start, end):
     return text[a + 1 if a >= 0 else 0: b if b >= 0 else len(text)]
 
 
-def amounts(h: str, window: str, role: str):
+_RE_COMBINED_TRANCHES = re.compile(
+    r"(?i)\b(?:(?:when\s+)?combined|together)\s+with\s+(?:the\s+)?(?:proceeds\s+(?:of|from)\s+(?:the\s+)?)?"
+    r"(?:(?:first|second|third|initial|previous|prior|earlier|other)\s+(?:and\s+(?:the\s+)?\w+\s+)?tranches?|tranches?\s+(?:1|one|i)\b)"
+    r"|^\W*in\s+total\b")
+_RE_TRANCHE_SCOPED = re.compile(r"(?i)^\W*(?:under|in|for|pursuant\s+to|with)\s+(?:the\s+|this\s+|such\s+)?(?:(?:first|second|third|fourth|fifth|final|initial)\s+)?tranche\b")
+
+
+def _sentence_start(text, pos):
+    a = max(text.rfind(". ", 0, pos), text.rfind("\n", 0, pos))
+    return a + 1 if a >= 0 else 0
+
+
+def _headline_copy(h, w):
+    """(start, end) of a copy of the headline at the top of the body, or None."""
+    words = re.findall(r"\w+", h)[:8]
+    if len(words) < 4:
+        return None
+    m = re.search(r"\W+".join(map(re.escape, words)), w[:1200], re.I)
+    if not m:
+        return None
+    return m.start(), m.start() + len(h) + 25
+
+
+def amounts(h: str, window: str, role: str, head_copy: bool = True):
     """{currency, offered, offered_alt[], this_close, closed_total} as numbers or None."""
     out = {"currency": None, "offered": None, "offered_alt": [], "this_close": None, "closed_total": None}
     closing = role in ("tranche_close", "final_close")
@@ -509,24 +533,49 @@ def amounts(h: str, window: str, role: str):
                    "closeverb": bool(re.search(r"(?i)\b(?:clos\w*|complet\w*|rais\w*)\s+(?:of\s+)?(?:an?\s+)?(?:\w+\s+){0,2}$", pre)),
                    "upto": bool(re.search(r"(?i)up\s+to\s+$", pre)),
                    "from": bool(re.search(r"(?i)\bfrom\s+(?:an?\s+)?$", pre)),
-                   "pre_tranche": bool(re.match(r"(?i)\s*(?:(?:first|second|third|fourth|final|initial|1st|2nd|3rd)\s+)?tranche\b", h[e:e + 25]))})
+                   "pre_tranche": bool(re.match(r"(?i)\s*(?:(?:first|second|third|fourth|final|initial|1st|2nd|3rd)\s+(?:and\s+final\s+)?)?tranche\b", h[e:e + 35])),
+                   "proceeds": bool(re.search(r"(?i)(?:\bproceeds|\bfinancing|\braise|\bfor|\btotal)\s+(?:of\s+)?(?:approximately\s+|approx\.?\s+|about\s+|over\s+)?$", pre)),
+                   "totalword": bool(re.search(r"(?i)\b(?:total|aggregate|cumulative|combined)\b[^$]{0,30}$", pre)),
+                   "tranche_of": bool(re.search(r"(?i)\btranche\s+of\s+(?:approximately\s+)?$", pre)
+                                      and re.match(r"(?i)\s*(?:million\s+|m\s+)?(?:for|and|,|raising|bringing)\b", h[e:e + 20]))})
     body = []
     w = window[:4000]
+    copy = _headline_copy(h, w) if head_copy and hd else None
+    hvals = [x["v"] for x in hd]
     for v, cur, s, e in monies(w):
         if not G.plausible_gross(v):
             continue
         k = money_kind(w, v, s, e)
         if k != "deal":
             continue
+        if copy and copy[0] <= s <= copy[1] and any(abs(v - x) <= 0.001 * x for x in hvals):
+            continue                                          # 1.0.1: the headline repeated at the top of the body
+        if re.search(r"\d\s*(?:million|billion|m|bn)?\s*(?:[A-Z]{3}\s*)?\(\s*(?:approximately\s+|approx\.?\s+|about\s+|or\s+|equivalent\s+to\s+)?[A-Z]{0,3}\$?$", w[max(0, s - 40):s]):
+            continue                                          # 1.0.1: "US$3,000,000 (CA$4,200,000)" - a bracketed conversion
         before = w[max(0, s - 160):s]
         sent = _sentence(w, s, e)
-        body.append({"v": v, "cur": cur, "s": s, "upto": bool(_RE_UPTO.search(before[-45:])),
+        pre_sent = w[max(_sentence_start(w, s), s - 300):s]
+        scoped = bool(_RE_TRANCHE_SCOPED.search(pre_sent))
+        # "it closed the second tranche ... for aggregate gross proceeds of $X": the tranche's own proceeds
+        tranche_sent = bool(re.search(r"(?i)\b(?:c\s?los\w*|com\s?plet\w*)\s+(?:of\s+)?(?:the\s+|its\s+|a\s+)?(?:\w+\s+){0,3}tranche\b", pre_sent)
+                            and not re.search(r"(?i)together|combined|to\s+date|in\s+total|bringing|cumulative|all\s+tranches|both\s+tranches|raised\s+(?:an?\s+)?(?:aggregate\s+)?total"
+                                              r"|(?:previously|earlier|prior)\s+(?:announced\s+)?(?:the\s+)?(?:c\s?los|complet)\w*|had\s+(?:been\s+)?closed|was\s+closed"
+                                              r"|fully\s+subscribed|total\s+(?:gross\s+)?(?:proceeds|financing)|\bnow\s+(?:raised|closed|completed)", pre_sent))
+        scoped = scoped or tranche_sent
+        size_ref = bool(re.search(r"(?i)\b(?:tranche|portion)\s+of\s+(?:the|its|a|an)\s+(?:previously\s+announced\s+|upsized\s+|oversubscribed\s+|over-subscribed\s+)?$", before[-70:])
+                        and re.match(r"(?i)\s*(?:million\s+|m\s+)?(?:[\w\-]+\s+){0,4}?(?:financing|offering|private\s+placement|placement)\b", w[e:e + 70]))
+        insider = bool(re.search(r"(?i)\binsiders?\b|\bdirectors?\b|\bofficers?\b|related\s+part|\bparticipat\w+|\bpurchas(?:ed|ing)\s+(?:an?\s+aggregate\s+of\s+)?[\d,]+", sent))
+        body.append({"v": v, "cur": cur, "s": s, "size_ref": size_ref, "scoped": scoped, "insider": insider, "upto": bool(_RE_UPTO.search(before[-45:]) or re.search(
+                         r"(?i)\bup\s+to\s+[\d,.]+\s+(?:million\s+)?(?:[\w\-\"'“”]+\s+){0,4}(?:for|with|representing)\s+(?:aggregate\s+|total\s+)?(?:gross\s+)?proceeds\s+of\s+(?:up\s+to\s+)?$", before[-120:])),
                      "minimum": bool(re.search(r"(?i)\bminimum\b[^$]{0,40}$", before[-60:])),
-                     "part": _part(before[-170:]), "combo": bool(re.search(r"(?i)non-dilutive|combined\s+with|together\s+with\s+(?:the\s+)?(?:\w+\s+)?(?:funding|grant|loan|facility)|when\s+combined", sent)),
+                     "part": _part(before[-170:]), "combo": bool(re.search(r"(?i)non-dilutive|(?:when\s+)?combined\s+with(?!\s+(?:the\s+)?(?:proceeds\s+(?:of|from)\s+(?:the\s+)?)?(?:first|second|third|initial|previous|prior|earlier|other)\s+(?:and\s+\w+\s+)?tranches?|\s+tranches?\b)|together\s+with\s+(?:the\s+)?(?:\w+\s+)?(?:funding|grant|loan|facility)", sent)),
                      "add": bool(_RE_ADDITIONAL.search(before[-70:])),
-                     "total": bool(_RE_TOTAL_BEFORE.search(before[-130:]) or _RE_TOTAL_AFTER.match(w[e:e + 40])),
-                     "gross": bool(re.search(r"(?i)\bproceeds\s+(?:to\s+the\s+company\s+)?(?:of\s+)?(?:up\s+to\s+|approximately\s+|a\s+(?:minimum|maximum)\s+of\s+|not\s+less\s+than\s+)?$", before[-60:])),
-                     "closed": bool(_RE_CLOSE_CTX.search(sent)), "future": bool(_RE_FUTURE_CTX.search(before[-100:])),
+                     "total": (not scoped) and bool(_RE_TOTAL_BEFORE.search(before[-130:]) or _RE_TOTAL_AFTER.match(w[e:e + 40])
+                                                    or _RE_COMBINED_TRANCHES.search(pre_sent)),
+                     "gross": bool(re.search(r"(?i)(?:\bproceeds|subscription\s+price|subscription\s+proceeds)\s+(?:to\s+the\s+company\s+)?(?:of\s+)?(?:up\s+to\s+|approximately\s+|a\s+(?:minimum|maximum)\s+of\s+|not\s+less\s+than\s+)?$", before[-60:])),
+                     "closed": (scoped and not _RE_UPTO.search(before[-45:]) and "up to" not in before[-45:].lower()) or bool(_RE_CLOSE_CTX.search(sent)),
+                     "future": bool(_RE_FUTURE_CTX.search(before[-100:])),
+                     "announced": size_ref or bool(re.search(r"(?i)\b(?:previously\s+)?announced\s+(?:an?\s+|its\s+|the\s+)?(?:up\s+to\s+)?$", before[-45:])),
                      "sent": sent})
     curs = [x["cur"] for x in hd + body if x["cur"]]
     out["currency"] = curs[0] if curs else "CAD"
@@ -581,7 +630,8 @@ def amounts(h: str, window: str, role: str):
         hc = pick(hd, closeverb=True)
         tranche_head = bool(re.search(r"(?i)\btranche\b", h))
         comp = bool(_RE_FT_WORD.search(w[:2500]) and _RE_NFT_WORD.search(w[:2500]))
-        bclose = [b for b in body if not b["add"] and not b["upto"] and b["closed"] and not b["total"] and not b["minimum"] and b["s"] < 2500]
+        bclose = [b for b in body if not b["add"] and not b["upto"] and b["closed"] and not b["total"] and not b["minimum"] and b["s"] < 2500
+                  and not b["announced"]]
         btot = [b for b in body if b["total"] and not b["upto"] and not b["add"] and not b["combo"] and b["s"] < 3000]
         whole = [b for b in bclose if not (comp and b["part"])]
         parts = [b for b in bclose if comp and b["part"]]
@@ -603,9 +653,22 @@ def amounts(h: str, window: str, role: str):
             out["this_close"] = hd[0]["v"]
         else:
             fb = next((b for b in body if b["gross"] and not b["add"] and not b["total"] and not b["minimum"]
-                       and (not b["upto"] or b["closed"]) and b["s"] < 2000), None)
+                       and (not b["upto"] or (b["closed"] and not b["scoped"])) and b["s"] < 2000 and not b["announced"]
+                       and not (b["insider"] and not b["closed"])), None)
             if fb:
                 out["this_close"] = fb["v"]
+        # 1.0.1: "Closing ... for Gross Proceeds of $2.18M" = brokered $1,703,695 + concurrent $480,000 in the body
+        hp0 = next((x for x in hd if x["proceeds"] and not x["upto"] and not x["from"]), None)
+        if hp0 is not None and not hp0["totalword"] and len(bclose) >= 2 and not any(b["scoped"] for b in bclose[:4]):
+            vals = []
+            for b in bclose[:4]:
+                if all(abs(b["v"] - x) > 0.001 * x for x in vals):
+                    vals.append(b["v"])
+            for n in (2, 3):
+                if len(vals) >= n and abs(sum(vals[:n]) - hp0["v"]) <= 0.01 * hp0["v"] and not any(
+                        abs(x - hp0["v"]) <= 0.01 * hp0["v"] for x in vals):
+                    out["this_close"] = round(sum(vals[:n]), 2)
+                    break
         if btot:
             t = max(btot, key=lambda b: b["v"])
             if out["this_close"] is None or t["v"] >= out["this_close"] - 1:
@@ -615,10 +678,40 @@ def amounts(h: str, window: str, role: str):
                 out["this_close"] = smaller[0]["v"]
             if out["this_close"] is None and len(btot) == 1 and not tranche_head:
                 out["this_close"] = t["v"]
+            elif out["this_close"] is None and role == "final_close" and not re.search(r"(?i)\btranche", h + " " + w[:2500]):
+                out["this_close"] = min(btot, key=lambda b: b["s"])["v"]   # 1.0.1: a single close stated only as an aggregate
+        # 1.0.1: a close headline that states the proceeds ("Closes Third and Final Tranche ... for Gross Proceeds of
+        # C$10.1 M", "... for Total Financing of $1.2 Million") when the body gives no closed figure of its own
+        hp = next((x for x in hd if x["proceeds"] and not x["upto"] and not x["pre_tranche"] and not x["from"]), None)
+        # "Closes Final Tranche of $1,011,135 for Aggregate Gross Proceeds of $2,313,136": the first figure is the tranche
+        ht = next((x for x in hd if x["tranche_of"]), None)
+        if ht is not None and hp is not None and hp is not ht and hp["v"] > ht["v"] * 1.01:
+            if out["this_close"] is None or abs(out["this_close"] - hp["v"]) <= 0.01 * hp["v"]:
+                out["this_close"] = ht["v"]
+        if hp is not None and out["closed_total"] is None:
+            final_head = bool(re.search(r"(?i)\bfinal\s+(?:tranche|closing)|\band\s+final\b", h)) or (
+                role == "final_close" and bool(re.search(r"(?i)\bfinal\s+tranche\b", w[:900])))
+            if hp["totalword"] or final_head:
+                if out["this_close"] is None or hp["v"] > out["this_close"] * 1.01:
+                    out["closed_total"] = hp["v"]
+                elif hp["totalword"] and abs(hp["v"] - out["this_close"]) <= 0.01 * hp["v"]:
+                    out["closed_total"] = out["this_close"]
+            elif out["this_close"] is None and tranche_head:
+                out["this_close"] = hp["v"]
+        if out["this_close"] is None and out["closed_total"] is not None and re.search(
+                r"(?i)\b(?:first|initial|1st)\s+tranche|tranche\s+(?:1|one|i)\b", h + " " + w[:600]) and not re.search(
+                r"(?i)\b(?:second|third|fourth|final|2nd|3rd|subsequent)\s+tranche", h + " " + w[:600]):
+            out["this_close"] = out["closed_total"]               # 1.0.1: a first tranche's aggregate is this close
         if out["closed_total"] is None and out["this_close"] is not None:
             first = re.search(r"(?i)\b(?:first|initial|1st)\s+tranche|tranche\s+(?:1|one|i)\b", h + " " + w[:600])
             later = re.search(r"(?i)\b(?:second|third|fourth|fifth|2nd|3rd|4th|5th|subsequent|additional|further)\s+(?:and\s+final\s+)?tranche"
                               r"|tranche\s+(?:2|3|4|two|three|four|ii|iii|iv)\b", h + " " + w[:600])
+            if later and first and re.search(r"(?i)\b(?:intends?|expects?|anticipates?|plans?)\s+to\s+close\s+(?:the\s+|a\s+)?$",
+                                             (h + " " + w[:600])[max(0, later.start() - 40):later.start()]):
+                later = None                                  # 1.0.1: "The Company intends to close the second and final tranche"
+            if later and first and re.match(r"(?i)[^.]{0,60}?\b(?:is|are)\s+(?:expected|anticipated|scheduled)|[^.]{0,25}?\b(?:to\s+follow|will\s+(?:close|be\s+completed))",
+                                            (h + " " + w[:600])[later.end():]):
+                later = None                                  # 1.0.1: "a second and final tranche is expected to close"
             if (role == "final_close" and not later and not tranche_head) or (first and not later):
                 out["closed_total"] = out["this_close"]
         # the deal's size, when the close release restates it
@@ -626,11 +719,85 @@ def amounts(h: str, window: str, role: str):
         bu = pick([b for b in body if not b["add"]], upto=True)
         ref = out["closed_total"] or out["this_close"]
         plaus = lambda v: ref is None or (ref * 0.3 <= v <= ref * 4)
-        if up and up["v"] != out["this_close"] and plaus(up["v"]):
+        near_closed = lambda v: any(x and abs(v - x) <= 0.01 * x for x in (out["this_close"], out["closed_total"]))
+        if up and up.get("proceeds") and not up.get("tranche_of"):
+            up = None                                         # 1.0.1: "... for Gross Proceeds of $X" in a close headline is money closed
+        if up and not near_closed(up["v"]) and plaus(up["v"]):
             out["offered"] = up["v"]
         elif bu and bu["v"] != out["this_close"] and plaus(bu["v"]) and bu["s"] < 2500:
             out["offered"] = bu["v"]
+        else:
+            ba = next((b for b in body if b["announced"] and not b["add"] and b["s"] < 1500), None)
+            if ba and not near_closed(ba["v"]) and plaus(ba["v"]) and (out["this_close"] is None or ba["v"] > out["this_close"]):
+                out["offered"] = ba["v"]                      # 1.0.1: "its previously announced $3,000,000 private placement"
     return out
+
+
+# ------------------------------------------------------------------ separately closed financings (1.0.1)
+_RE_PART_ANCH = re.compile(
+    r"(?i)\b(?:(?:has|have)\s+(?:now\s+|also\s+|successfully\s+|concurrently\s+)*(?:closed|completed)"
+    r"|(?<!previously\s)(?<!had\s)(?:also\s+)?closed\s+(?:its|the|a|an)\b|(?<!previously\s)completed\s+(?:its|the|a|an)\b"
+    r"|announces?\s+(?:the\s+)?(?:closing|completion)\s+of\s+(?:its|the|a|an)\b)")
+_RE_PART_TYPEWORD = re.compile(
+    r"(?i)private\s+placement|\boffering\b|debentures?\b|\bnotes?\b|flow-through|\bLIFE\b|\bfacility\b|\bloan\b|\bstream\b"
+    r"|\broyalty\b|bought\s+deal|subscription\s+receipts|strategic\s+investment")
+_RE_PART_HISTORY = re.compile(r"(?i)\b(?:previously|had|was|were|earlier|on\s+\w+\s+\d{1,2},?\s+\d{4},?\s+the\s+company)\s+$")
+
+
+def _part_amount(seg):
+    """(score, value, currency) of the segment's deal figure: gross proceeds / principal amount first."""
+    best = None
+    for v, cur, s, e in monies(seg):
+        if not G.plausible_gross(v) or money_kind(seg, v, s, e) != "deal":
+            continue
+        pre = seg[max(0, s - 60):s]
+        score = 0
+        if re.search(r"(?i)(?:gross\s+proceeds|principal\s+amount|proceeds)\s+(?:of\s+)?(?:approximately\s+|approx\.\s+|about\s+)?$", pre) \
+                or re.search(r"(?i)^\s*(?:million|m)?\s*(?:\([^)]{0,60}\)\s*)?(?:aggregate\s+)?principal\s+amount", seg[e:e + 90]):
+            score = 2
+        if re.search(r"(?i)\b(?:up\s+to|additional|option|total|combined|together)\b[^$]{0,30}$", pre):
+            score -= 3
+        if re.search(r"\(\s*(?:approximately\s+|approx\.?\s+|about\s+|or\s+)?$", pre):
+            score -= 1                                       # "USD$25 million (approximately C$34,130,000)"
+        if best is None or score > best[0]:
+            best = (score, v, cur)
+    return best if best is None or best[0] >= 2 else (best[0], best[1], best[2])
+
+
+def close_parts(window: str):
+    """Separately closed financings named in one close release, in text order: [{types, offering, currency, amount,
+    price}]. Empty unless at least two parts with different amounts are found. The publisher splits a release only
+    when two different existing deals match two parts; otherwise this is informational."""
+    w = window[:3000]
+    ms = list(_RE_PART_ANCH.finditer(w))
+    parts = []
+    for i, m in enumerate(ms):
+        if _RE_PART_HISTORY.search(w[max(0, m.start() - 40):m.start()]):
+            continue
+        end = min(ms[i + 1].start() if i + 1 < len(ms) else len(w), m.start() + 900)
+        seg = w[m.start():end]
+        if not _RE_PART_TYPEWORD.search(seg[:400]):
+            continue
+        amt = _part_amount(seg)
+        if amt is None or amt[0] < 2:
+            continue
+        t, off = deal_types(seg[:300], seg, seg[:300])
+        pr, conv = prices(seg)
+        if "CD" in t:
+            pr = [conv] if conv else []
+        parts.append({"types": t, "offering": off, "currency": amt[2] or None, "amount": amt[1],
+                      "price": pr[0] if pr else None})
+    # drop repeats and a combined figure (one part equal to the sum of the others)
+    uniq = []
+    for p in parts:
+        if all(abs(p["amount"] - q["amount"]) > 0.01 * q["amount"] for q in uniq):
+            uniq.append(p)
+    if len(uniq) >= 3:
+        tot = max(uniq, key=lambda p: p["amount"])
+        rest = sum(p["amount"] for p in uniq if p is not tot)
+        if abs(tot["amount"] - rest) <= 0.03 * tot["amount"]:
+            uniq = [p for p in uniq if p is not tot]
+    return uniq[:3] if len(uniq) >= 2 else []
 
 
 # ------------------------------------------------------------------ prices and warrants
@@ -822,11 +989,11 @@ def analyse(headline: str, body: str) -> dict:
     res = {"is_financing": ok, "reason": reason, "headline_used": h, "role": role if ok else None,
            "tranche": tranche if ok else None, "types": [], "offering": None, "currency": None, "offered": None,
            "offered_alt": [], "this_close": None, "closed_total": None, "prices": [], "conversion": None,
-           "warrants": [], "refs": []}
+           "warrants": [], "refs": [], "parts": []}
     if not ok:
         return res
     res["types"], res["offering"] = deal_types(h, w, h_main)
-    am = amounts(h, w, role)
+    am = amounts(h, w, role, head_copy=(flat(clean(headline or "")) == h))
     res.update(currency=am["currency"], offered=am["offered"], offered_alt=am["offered_alt"],
                this_close=am["this_close"], closed_total=am["closed_total"])
     res["prices"], res["conversion"] = prices(w)
@@ -834,6 +1001,8 @@ def analyse(headline: str, body: str) -> dict:
         res["prices"] = []
     res["warrants"] = warrants(w)
     res["refs"] = ref_dates(w)
+    if role in ("tranche_close", "final_close"):
+        res["parts"] = close_parts(w)
     return res
 
 
@@ -869,6 +1038,16 @@ def extract(headline: str, body: str) -> list:
                 fs.append(F.Fact("warrant_term_months", value_num=float(wt["term_months"]), seq=i))
         for i, d in enumerate(a["refs"]):
             fs.append(F.Fact("ref_date", value_text=d, seq=i))
+        for i, pt in enumerate(a["parts"]):
+            fs.append(F.Fact("part_amount", value_num=float(pt["amount"]), unit=pt["currency"] or a["currency"] or "CAD", seq=i))
+            if pt["types"]:
+                fs.append(F.Fact("part_types", value_text="+".join(pt["types"]), seq=i))
+            if pt["offering"]:
+                fs.append(F.Fact("part_offering", value_text=pt["offering"], seq=i))
+            if pt["currency"]:
+                fs.append(F.Fact("part_currency", value_text=pt["currency"], seq=i))
+            if pt["price"] is not None:
+                fs.append(F.Fact("part_price", value_num=float(pt["price"]), seq=i))
     return [F.Record(KIND, facts=fs, confidence=1.0 if a["is_financing"] else 0.0)]
 
 
@@ -876,8 +1055,9 @@ def parse_facts(rows):
     """rows: (field, seq, value_num, value_text) -> the analyse()-shaped dict the publisher uses."""
     a = {"is_financing": False, "reason": None, "role": None, "tranche": None, "types": [], "offering": None,
          "currency": "CAD", "offered": None, "offered_alt": [], "this_close": None, "closed_total": None,
-         "prices": [], "conversion": None, "warrants": [], "refs": []}
+         "prices": [], "conversion": None, "warrants": [], "refs": [], "parts": []}
     ws = {}
+    pts = {}
     alts, prs, refs = {}, {}, {}
     for field, seq, num, text in rows:
         seq = int(seq or 0)
@@ -899,10 +1079,20 @@ def parse_facts(rows):
             ws.setdefault(seq, {"per_unit": None, "strike": None, "term_months": None})[field[8:]] = num
         elif field == "ref_date":
             refs[seq] = text
+        elif field.startswith("part_"):
+            pt = pts.setdefault(seq, {"types": [], "offering": None, "currency": None, "amount": None, "price": None})
+            key = field[5:]
+            if key == "types":
+                pt["types"] = (text or "").split("+") if text else []
+            elif key in ("offering", "currency"):
+                pt[key] = text
+            else:
+                pt[key] = num
     a["offered_alt"] = [alts[k] for k in sorted(alts)]
     a["prices"] = [prs[k] for k in sorted(prs)]
     a["warrants"] = [ws[k] for k in sorted(ws)]
     a["refs"] = [refs[k] for k in sorted(refs)]
+    a["parts"] = [pts[k] for k in sorted(pts)]
     if a["warrants"]:
         for w_ in a["warrants"]:
             if w_["term_months"] is not None:
@@ -1001,6 +1191,42 @@ def self_test(verbose=False):
     recs = extract("Rise Gold Closes US$7,000,000 Financing", "Rise Gold Corp. has closed its private placement of units at US$0.25 per unit for gross proceeds of US$7,000,000.")
     p = to_prediction(recs)
     eq("prediction", (p["role"], p["amounts"], p["unit_price"]), ("final_close", [7000000.0, 7000000.0], 0.25))
+    # 1.0.1
+    a = analyse("Gold Terra Closes Third and Final Tranche of Its LIFE Offering for Gross Proceeds of Approximately C$10.1 M",
+                "This release is published on Accesswire. Click 'Original source' to read the full release.")
+    eq("101 headline-only final total", (a["role"], a["offered"], a["this_close"], a["closed_total"]), ("final_close", None, None, 10100000.0))
+    a = analyse("Nevada Organic Phosphate Increases Unit Offering and Closes Final Tranche of $1,011,135 for Aggregate Gross Proceeds of $2,313,136", "")
+    eq("101 tranche of X for aggregate Y", (a["this_close"], a["closed_total"], a["offered"]), (1011135.0, 2313136.0, None))
+    h = "GoldQuest Closes Third and Final Tranche of Private Placement for Gross Proceeds of Approximately C$3.3 Million"
+    a = analyse(h, h + " Vancouver, January 13, 2026 - GoldQuest Mining Corp. is pleased to announce the closing of the third and final "
+                "tranche of its previously announced non-brokered private placement. Under the Third Tranche, the Company issued "
+                "2,744,542 Units at a price of C$1.21 per Unit, for total gross proceeds of approximately C$3.3 million. Combined with "
+                "the First Tranche and Second Tranche, the Company has issued a total of 34,710,743 Units under the Private Placement, "
+                "for gross proceeds of approximately C$42 million.")
+    eq("101 headline copy, scoped tranche, combined total", (a["this_close"], a["closed_total"]), (3300000.0, 42000000.0))
+    a = analyse("South Star Closes Final Tranche", "South Star Battery Metals Corp. has completed the closing of the third and final tranche "
+                "of its non-brokered private placement for gross proceeds to the Company of US$879,449.45 (CA$1,231,229.06). When combined "
+                "with Tranche 1 and Tranche 2, the gross proceeds of the Private Placement to the Company total US$3,000,000 (CA$4,200,000).")
+    eq("101 bracketed conversion", (a["currency"], a["this_close"], a["closed_total"]), ("USD", 879449.45, 3000000.0))
+    a = analyse("Foremost Lithium Announces Closing of the Second Tranche of its Flow-Through Private Placement",
+                "Foremost announces that on April 29, 2024, it closed the second tranche of its non-brokered private placement for aggregate "
+                "gross proceeds of $1,455,129.48. Foremost issued 247,471 flow-through units at a price of $5.88 per FT Unit.")
+    eq("101 tranche sentence aggregate is this close", (a["this_close"], a["closed_total"]), (1455129.48, None))
+    a = analyse("ATHA Energy Closes $63 Million In Financings",
+                "ATHA Energy Corp. is pleased to announce that it has closed approximately C$63 million in new financing: further to its press "
+                "releases dated January 13 and January 22, 2026, the Company has closed its private placement of USD$25 million (approximately "
+                "C$34,130,000 million) principal amount of unsecured convertible debentures with Queen's Road Capital; and further to its press "
+                "release dated January 15, 2026, the Company has closed its best efforts brokered private placement of charity flow-through "
+                "common shares through the issuance of 28,186,500 FT Shares at a price per FT Share of C$1.02 for aggregate gross proceeds of "
+                "C$28,750,230 (the LIFE Offering).")
+    eq("101 close parts", [(x["types"], x["currency"], x["amount"]) for x in a["parts"]],
+       [(["CD"], "USD", 25000000.0), (["FT", "LIFE"], "CAD", 28750230.0)])
+    a = analyse("Gold X2 Announces Closing of First Tranche of Private Placement for Gross Proceeds of Approximately $43,160,000",
+                "Gold X2 has closed the first tranche of its non-brokered private placement. The Company issued 23,800,000 units at a price of "
+                "$0.95 per Unit for gross proceeds of $22,610,000 and 16,666,666 charity flow-through shares at a price of $1.233 per Charity FT "
+                "Share for gross proceeds of $20,549,999.18. The Company intends to close the second and final tranche of the Private Placement "
+                "on or about March 27, 2026.")
+    eq("101 headline = sum of body closes, first tranche", (a["this_close"], a["closed_total"]), (43159999.18, 43159999.18))
     print(f"financings self-test: {'ok' if not bad else str(bad) + ' failures'}")
     return bad
 
