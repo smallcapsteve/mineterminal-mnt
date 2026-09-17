@@ -196,8 +196,29 @@ def publish(conn, version, log=print):
     return st
 
 
+def _one_row_per_event(conn):
+    """True when the table can hold only one row per release: the legacy shape.
+
+    management_changes as the old backfill created it has UNIQUE on event_id, which is exactly what
+    this publisher replaces. SQLite cannot drop a constraint, so a table of that shape has to be
+    rebuilt rather than altered, and the first publish after the switch found out the hard way."""
+    for row in conn.execute("PRAGMA index_list(management_changes)"):
+        name, unique = row[1], row[2]
+        if not unique:
+            continue
+        cols = [r[2] for r in conn.execute('PRAGMA index_info("%s")' % str(name).replace('"', '""'))]
+        if cols == ["event_id"]:
+            return True
+    return False
+
+
 def _ensure_schema(conn):
-    """The legacy table has the same name and most of the same columns; add what it is missing."""
+    """The table this publisher needs: one row per person, so event_id repeats.
+
+    A legacy table of the same name is rebuilt (its rows come back from the facts store on this same
+    run); anything else just gains the columns it is missing."""
+    if _has_table(conn, "management_changes") and _one_row_per_event(conn):
+        conn.execute("DROP TABLE management_changes")
     conn.executescript(TABLE_SQL)
     cols = {r[1] for r in conn.execute("PRAGMA table_info(management_changes)")}
     for col, decl in (("ordinal", "INTEGER NOT NULL DEFAULT 0"), ("role_canon", "TEXT"),
@@ -300,7 +321,8 @@ def _selftest():
     F.ensure_schema(conn)
     conn.execute("CREATE TABLE events (event_id TEXT PRIMARY KEY, ticker TEXT, published_at TEXT, raw_headline TEXT, "
                  "raw_body TEXT, categories TEXT, review_status TEXT)")
-    conn.execute("CREATE TABLE management_changes (mgmt_id INTEGER PRIMARY KEY AUTOINCREMENT, event_id TEXT, "
+    conn.execute("CREATE TABLE management_changes (mgmt_id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                 "event_id TEXT NOT NULL UNIQUE, "   # the legacy shape: one row per release
                  "ticker TEXT, action TEXT, person TEXT, role TEXT, scope TEXT, n_changes INTEGER, "
                  "changes_json TEXT, raw_headline TEXT, published_at TEXT)")
     conn.execute("INSERT INTO management_changes(event_id, ticker, person) VALUES ('old1','AAA',NULL)")
@@ -325,6 +347,7 @@ def _selftest():
     st2 = publish(conn, X.VERSION, log=lambda s: None)
     got = [tuple(r) for r in conn.execute(
         "SELECT event_id, ordinal, person, role_canon, scope, action FROM management_changes ORDER BY event_id, ordinal")]
+    ok("the legacy one-row-per-release table was rebuilt", not _one_row_per_event(conn))
     ok("tagged releases only, legacy row gone",
        [g[0] for g in got] == ["x0", "x1", "x1"] and not any(g[0] == "old1" for g in got))
     ok("two people, two rows, one release",
