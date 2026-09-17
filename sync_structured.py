@@ -11,19 +11,24 @@ is not active it runs the legacy drill_backfill.py instead; once active, the leg
 never runs again.
 
 FIN_PUBLISH_V1 (2026-09-17): financings and financing_events are written by portal.financing_publish, after
-facts_sync, on the same terms: the legacy financing_backfill.py runs only until a financings version is active."""
+facts_sync, on the same terms: the legacy financing_backfill.py runs only until a financings version is active.
+
+MGMT_PUBLISH_V1 (2026-09-17): management_changes is written by portal.management_publish, on the same terms.
+It moved from first to last in this list because it now reads the facts store, which facts_sync fills."""
 import subprocess, time
 
 PY = '/opt/mnt/app/.venv/bin/python3'
 steps = [
     (['/opt/mnt/app/resource_backfill.py'],   'resource_estimates'),
-    (['/opt/mnt/app/management_backfill.py'], 'management_changes'),
     # FACTS_V1 (2026-09-16): incremental facts-store extraction for registered extractors
     (['/opt/mnt/app/facts_sync.py'],          'facts'),
     # DRILL_PUBLISH_V1 (2026-09-17): publish the active drill reader (or run the legacy backfill)
     (['-m', 'portal.drill_publish'],          'drill_results'),
     # FIN_PUBLISH_V1 (2026-09-17): publish the active financings reader (or run the legacy financing_backfill.py until one is active)
     (['-m', 'portal.financing_publish'],      'financings'),
+    # MGMT_PUBLISH_V1 (2026-09-17): publish the active management reader, one row per person (or run the
+    # legacy management_backfill.py until one is active)
+    (['-m', 'portal.management_publish'],     'management_changes'),
     # ACCURACY_V1 (2026-09-16): re-measure pages against their accuracy sets at most once per 20 hours; always exits 0
     (['/opt/mnt/app/accuracy_run.py'],        'accuracy'),
 ]
