@@ -34,7 +34,17 @@
         <option value="changed" {% if selected_action == 'changed' %}selected{% endif %}>Changed</option>
       </select>
 
-      {% if selected_ticker or selected_action or scope %}
+      {% if roles %}
+        <label for="role">Role:</label>
+        <select name="role" id="role" onchange="this.form.submit()">
+          <option value="">All roles</option>
+          {% for rl in roles %}
+            <option value="{{ rl }}" {% if rl == selected_role %}selected{% endif %}>{{ rl }}</option>
+          {% endfor %}
+        </select>
+      {% endif %}
+
+      {% if selected_ticker or selected_action or selected_role or scope %}
         <a class="cat-clear" href="/management-changes">Clear</a>
       {% endif %}
       <span class="muted">{{ rows|length }} shown · {{ total }} total</span>
@@ -50,10 +60,10 @@
         <col style="width: 8%">   <!-- Ticker  -->
         <col style="width: 9%">   <!-- Date    -->
         <col style="width: 9%">   <!-- Change  -->
-        <col style="width: 13%">  <!-- Person  -->
+        <col style="width: 15%">  <!-- Person  -->
         <col style="width: 18%">  <!-- Role    -->
-        <col style="width: 10%">  <!-- Where   -->
-        <col style="width: 33%">  <!-- Release -->
+        <col style="width: 9%">   <!-- Where   -->
+        <col style="width: 32%">  <!-- Release -->
       </colgroup>
       <thead>
         <tr>
@@ -70,14 +80,21 @@
         {% for r in rows %}
           <tr>
             <td class="fin-ticker">{% set _mtp = r["ticker"] | mtp_url('management') %}{% if _mtp %}<a class="mtp-co" href="{{ _mtp }}" target="_blank" rel="noopener" title="Open {{ r['ticker'] }} on MineTerminalPro">{{ r["ticker"] }}</a>{% else %}{{ r["ticker"] }}{% endif %}</td>
-            <td class="fin-date">{{ (r["published_at"] or "")[:10] }}</td>
+            <td class="fin-date">
+              {{ (r["published_at"] or "")[:10] }}
+              {% if r["effective_date"] and r["effective_date"][:10] != (r["published_at"] or "")[:10] %}
+                <span class="fin-tranches" title="Effective date stated in the release">eff. {{ r["effective_date"][:10] }}</span>
+              {% endif %}
+            </td>
             <td>
               <span class="fin-status fin-status-{{ 'closed' if r['action'] == 'departed' else 'announced' }}">
                 {{ {'departed': 'left', 'changed': 'changed'}.get(r['action'], 'joined') }}
               </span>
             </td>
             <td class="mgmt-person">{{ r["person"] or "—" }}</td>
-            <td class="mgmt-role">{{ r["role"] or "—" }}</td>
+            <td class="mgmt-role" {% if r["role"] and r["role_canon"] and r["role_canon"] != r["role"] %}title="the release says: {{ r['role'] }}"{% endif %}>
+              {{ r["role_canon"] or r["role"] or "—" }}{% if r["interim"] %} <span class="fin-tranches">interim</span>{% endif %}
+            </td>
             <td class="fin-kind">{{ (r["scope"] or "—")|title }}</td>
             <td class="mgmt-headline">
               <a href="/event/{{ r['event_id'] }}">{{ (r["raw_headline"] or "")[:95] }}</a>
