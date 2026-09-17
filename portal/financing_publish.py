@@ -172,12 +172,19 @@ _CONTINUES = re.compile(
     r"upsiz\w*|increas(?:es|ed|e)\s+(?:the\s+)?(?:size\s+of\s+)?(?:its\s+)?(?:previously|private|bought|offering|financing|non))")
 
 
+def _role_family(role):
+    """1.0.2: two same-day copies of one release can be read with different roles (announcement / upsize)."""
+    return "close" if role in ("tranche_close", "final_close") else "terminated" if role == "terminated" else "open"
+
+
 # ------------------------------------------------------------------ grouping
 def compute(items):
     """items: iterable of (event, a); event = {event_id, ticker, published_at, raw_headline};
     a = financings.parse_facts() output. Returns (deals, releases, stats); releases include every
     item (deal_id None when not shown)."""
     items = sorted(items, key=lambda x: (x[0].get("ticker") or "", (x[0].get("published_at") or "")[:10],
+                                         # 1.0.2: a French copy is read after its English twin the same day
+                                         1 if (x[1].get("lang") or "en") == "fr" else 0,
                                          x[0].get("published_at") or "", x[0]["event_id"]))
     deals, releases = [], []
     st = {"releases": 0, "not_financing": 0, "hidden_updates": 0, "duplicates": 0, "deals": 0, "joined": 0,
@@ -205,8 +212,10 @@ def compute(items):
                 if dd is None or abs(dd) > 7:
                     continue
                 if (len(head) >= 15 and (r["head"] == head or (abs(dd) <= 3 and _similar(r["head"], head)))) or (
-                        abs(dd) <= 3 and r["role"] == role and (r["price"] == price or not r["price"] or not price)
-                        and _same_amounts(r["amounts"], _amounts(a), 0.01 if dd == 0 else 0.002) and (r["amounts"] != (None, None, None) or price)):
+                        abs(dd) <= 3 and _role_family(r["role"]) == _role_family(role) and (r["price"] == price or not r["price"] or not price)
+                        and _same_amounts(r["amounts"], _amounts(a), 0.01 if dd == 0 else 0.002) and (r["amounts"] != (None, None, None) or price)) or (
+                        # 1.0.2: the French copy of a release filed the same day in English
+                        abs(dd) <= 1 and (a.get("lang") or "en") == "fr" and r.get("lang", "en") != "fr"):
                     dup = d
                     break
             if dup:
@@ -410,10 +419,17 @@ def _attach(d, rel, a, dt, head, duplicate=False, secondary=False):
         rel["duplicate"] = duplicate
     d["releases"].append({"event_id": rel["event"]["event_id"], "date": dt, "head": head, "role": role,
                           "price": (a.get("prices") or [None])[0], "prices": a.get("prices") or [],
+                          "lang": a.get("lang") or "en",
                           "amounts": _amounts(a), "duplicate": duplicate, "secondary": secondary})
     if dt > d["last_date"]:
         d["last_date"] = dt
     if duplicate:
+        # 1.0.2: a copy that words the same close as final ("Closes Oversubscribed Financing" beside
+        # "2nd Tranche Closed") still tells us the deal is done, so the status follows the stronger wording.
+        if role == "final_close" and not d["final"] and any(
+                r["role"] in ("tranche_close", "final_close") and r["date"] == dt for r in d["releases"] if not r["duplicate"]):
+            d["final"] = True
+            d["status"] = STATUS_OF["final_close"]
         return
     if not d["types"] and a.get("types"):
         d["types"] = list(a["types"])
