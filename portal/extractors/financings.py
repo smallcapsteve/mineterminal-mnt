@@ -48,7 +48,7 @@ ROLES = ("announcement", "upsize", "amendment", "tranche_close", "final_close", 
 
 
 # ------------------------------------------------------------------ text
-_WS = re.compile(r"[ \t  -​  　]+")
+_WS = re.compile(r"[ \t\xa0 -​  　]+")
 
 
 def clean(text: str) -> str:
