@@ -8,11 +8,12 @@ Items marked `complete: false` in the labels have a known-partial row list. Thei
 scored for precision and their unmatched predicted rows are set aside as unjudgeable rather than
 counted wrong; they are left out of recall entirely, so a partial list cannot flatter the score.
 
-Usage: score_res.py <predictions.json>
+Usage: score_res.py <predictions.json> [labels.json]
 """
 import json
 import re
 import sys
+import unicodedata
 
 KEY_FIELDS = ("row", "deposit", "category", "tonnes", "grade", "context")
 _DEP_NOISE = re.compile(r"(?i)\b(project|deposit|mine|property|zone|prospect|the|mineral|resources?|"
@@ -22,9 +23,22 @@ _DEP_NOISE = re.compile(r"(?i)\b(project|deposit|mine|property|zone|prospect|the
 def norm_dep(d):
     if not d:
         return ""
-    s = _DEP_NOISE.sub(" ", str(d))
+    s = "".join(c for c in unicodedata.normalize("NFKD", str(d)) if not unicodedata.combining(c))
+    s = _DEP_NOISE.sub(" ", s)
     s = re.sub(r"[^\w\s]", " ", s)
     return re.sub(r"\s+", " ", s).strip().lower()
+
+
+def dep_ok(want, got):
+    """Right when one name refines the other: 'Gate' against 'MPD - Gate', 'True North' against
+    'True North Gold'. A deposit name has no single correct spelling, and holding the reader to
+    the label's exact wording measures transcription, not reading."""
+    a, b = set(norm_dep(want).split()), set(norm_dep(got).split())
+    if not a and not b:
+        return True
+    if not a or not b:
+        return False
+    return a <= b or b <= a
 
 
 def close(a, b, tol=0.02):
@@ -32,20 +46,6 @@ def close(a, b, tol=0.02):
         return a is None and b is None
     hi = max(abs(a), abs(b))
     return hi == 0 or abs(a - b) <= tol * hi
-
-
-_UNIT_BASE = {"oz": 1.0, "koz": 1e3, "moz": 1e6, "lb": 1.0, "mlb": 1e6, "mlbs": 1e6, "lbs": 1.0,
-              "klb": 1e3, "t": 1.0, "kt": 1e3, "mt": 1e6, "kg": 1.0, "ct": 1.0}
-
-
-def base_of(v, unit):
-    if v is None:
-        return None
-    u = (unit or "").lower()
-    mult = _UNIT_BASE.get(u, 1.0)
-    fam = {"koz": "oz", "moz": "oz", "mlb": "lb", "mlbs": "lb", "lbs": "lb", "klb": "lb",
-           "kt": "t", "mt": "t"}.get(u, u)
-    return (fam, v * mult)
 
 
 def grades_agree(want, got):
@@ -91,7 +91,7 @@ def match(labels, preds):
             if pi in used or p["category"] != lab["category"] or p["basis"] != lab["basis"]:
                 continue
             score = 0
-            if norm_dep(p["deposit"]) == norm_dep(lab["deposit"]):
+            if dep_ok(lab["deposit"], p["deposit"]):
                 score += 2
             if lab["tonnes"] and close(p["tonnes"], lab["tonnes"]):
                 score += 2
@@ -154,7 +154,7 @@ def main(argv):
             if item["complete"]:
                 found["row"] += 1
             for f, ok, has_label, has_pred in (
-                    ("deposit", norm_dep(pr["deposit"]) == norm_dep(lab["deposit"]),
+                    ("deposit", dep_ok(lab["deposit"], pr["deposit"]),
                      bool(lab["deposit"]), bool(pr["deposit"])),
                     ("category", pr["category"] == lab["category"], True, True),
                     ("tonnes", close(pr["tonnes"], lab["tonnes"]),
