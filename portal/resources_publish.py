@@ -1,5 +1,5 @@
 """Publish the new Resource Estimates reader into the table /resources reads
-(RES_PUBLISH_V1, 2026-09-18).
+(RES_PUBLISH_V1 + RES_PAGE_V2, 2026-09-18).
 
 The facts store holds what RES_V1 (portal/extractors/resources.py) found in every release. The page
 does not read the facts store directly: it reads resource_estimates. This module turns the ACTIVE
@@ -13,10 +13,21 @@ Every resource figure the release states is published, and the ones that restate
 another project's estimate are marked (context = 'background') rather than dropped (Justin,
 2026-09-18).
 
+RES_PAGE_V2 (2026-09-18): a tagged release that states NO figures is written too, as a MARKER row
+-- category NULL, n_rows 0. That is what lets /resources be built from this table alone. It used to
+find those releases by scanning all 43,591 approved events with four LIKE patterns and a LEFT JOIN,
+which cost about 1.3 of the page's 2.0 seconds and could not use an index, because two of the four
+patterns start with a wildcard. Everything that consumes real estimates filters them out with
+`category IS NOT NULL`: the page's headline counts, /api/resources/recent.json, and
+/api/companies/stage-signals.json. Every row also carries the slug the page links with, and a
+published_at that is already COALESCE(published_at, classified_at) -- the date the page sorts and
+filters by -- so the page needs no expression on the column and no second table.
+
 Rules, in order, over tagged approved releases oldest first:
   1. the extractor found at least one figure (is_resource_estimate = 1)
-  2. a row needs a category; a release that gives a tonnage with no category is tagged but not shown
+  2. a row needs a category; a release that gives a tonnage with no category gets a marker instead
   3. no cross-release suppression: a restated estimate is a real thing to show, marked background
+  4. a tagged release with no figures at all gets a marker, so the page is one table
 
 compute() is a pure function of (events, facts) so the accuracy gate can count the rows a candidate
 version would publish without writing anything. publish() rebuilds the table in one short transaction.
@@ -53,6 +64,7 @@ CREATE TABLE IF NOT EXISTS resource_estimates (
     event_id          TEXT NOT NULL,
     ordinal           INTEGER NOT NULL DEFAULT 0,
     ticker            TEXT,
+    slug              TEXT,
     deposit           TEXT,
     project           TEXT,
     category          TEXT,
@@ -87,6 +99,9 @@ CREATE INDEX IF NOT EXISTS ix_res_oz_au     ON resource_estimates(headline_oz_au
 CREATE INDEX IF NOT EXISTS ix_res_category  ON resource_estimates(category);
 CREATE INDEX IF NOT EXISTS ix_res_deposit   ON resource_estimates(deposit);
 CREATE INDEX IF NOT EXISTS ix_res_context   ON resource_estimates(context);
+-- RES_PAGE_V2 (2026-09-18): the page's own ORDER BY, so 1,443 rows are read in order rather than
+-- sorted in a temp B-tree on every request.
+CREATE INDEX IF NOT EXISTS ix_res_page      ON resource_estimates(published_at DESC, event_id, ordinal);
 """
 
 LB_PER_T = 2204.62262
@@ -171,6 +186,18 @@ def metal_focus(r):
     return None
 
 
+def _marker(ev, p):
+    """One row standing for a tagged release that states no figures (RES_PAGE_V2, 2026-09-18)."""
+    return {"event_id": ev["event_id"], "ordinal": 0, "ticker": ev.get("ticker"),
+            "slug": ev.get("slug"), "deposit": None, "project": p.get("project"), "category": None,
+            "tonnes": None, "grades_json": "[]", "contained_json": "[]", "cut_off": None,
+            "basis": None, "context": None, "source_shape": None, "mre_type": p.get("mre_type"),
+            "n_rows": 0, "summary": None, "metal_focus": None, "headline_oz_au": None,
+            "headline_t_metal": None, "n_categories": 0, "categories_json": "[]",
+            "raw_headline": (ev.get("raw_headline") or "")[:500],
+            "published_at": ev.get("published_at")}
+
+
 def compute(items):
     """items: iterable of (event, parsed), event = {event_id, ticker, published_at, raw_headline},
     parsed = the analyse()-shaped dict. Returns (rows, stats); rows are dicts ready to insert."""
@@ -181,7 +208,14 @@ def compute(items):
         stats["releases"] += 1
         found = [r for r in (p.get("rows") or []) if r.get("category")]
         if not p.get("is_resource_estimate") or not found:
+            # RES_PAGE_V2 (2026-09-18): a tagged release that states no figures is still a row on
+            # the page, so it is written as a MARKER -- category NULL, n_rows 0. Before this the
+            # page had to LEFT JOIN all 43,591 approved releases to find them, which cost 1.3 of
+            # its 2.0 seconds. Everything that consumes real estimates filters on
+            # `category IS NOT NULL`: the page's own totals, /api/resources/recent.json, and
+            # /api/companies/stage-signals.json.
             stats["no_figures"] += 1
+            rows.append(_marker(ev, p))
             continue
         cats = [{"category": r.get("category"), "stat": summary_of(r) or ""} for r in found]
         cjson = json.dumps(cats, ensure_ascii=False)
@@ -189,6 +223,7 @@ def compute(items):
         for i, r in enumerate(found):
             rows.append({
                 "event_id": ev["event_id"], "ordinal": i, "ticker": ev.get("ticker"),
+                "slug": ev.get("slug"),
                 "deposit": r.get("deposit"), "project": p.get("project"), "category": r.get("category"),
                 "tonnes": r.get("tonnes"),
                 "grades_json": json.dumps(r.get("grades") or [], ensure_ascii=False),
@@ -226,12 +261,18 @@ def load_items(conn, version):
     version wrote records for. One release has one record per figure, so facts are grouped by ordinal."""
     from portal.extractors import resources as X
     evs = {}
-    for eid, tk, pub, hl in conn.execute(
-            "SELECT DISTINCT e.event_id, e.ticker, e.published_at, e.raw_headline FROM events e "
+    for eid, tk, pub, hl, slug in conn.execute(
+            "SELECT DISTINCT e.event_id, e.ticker, "
+            # the page sorts and filters on COALESCE(published_at, classified_at), so the table
+            # stores that, not the raw column -- otherwise a release with no publish date sorts
+            # to the bottom here and to its real place on the page (RES_PAGE_V2, 2026-09-18)
+            "COALESCE(e.published_at, e.classified_at) AS published_at, e.raw_headline, e.slug "
+            "FROM events e "
             "JOIN fx_records r ON r.event_id=e.event_id AND r.extractor=? AND r.version=? "
             "WHERE e.review_status='auto_approved' AND ('|' || COALESCE(e.categories,'') || '|') LIKE ?",
             (EXTRACTOR, version, "%|" + TAG + "|%")):
-        evs[eid] = {"event_id": eid, "ticker": tk, "published_at": pub, "raw_headline": hl}
+        evs[eid] = {"event_id": eid, "ticker": tk, "published_at": pub, "raw_headline": hl,
+                    "slug": slug}
     facts = {}
     for eid, ordinal, field_, seq, num, text, unit, metal in conn.execute(
             "SELECT r.event_id, r.ordinal, f.field, f.seq, f.value_num, f.value_text, f.unit, f.metal "
@@ -259,7 +300,7 @@ def current_event_ids(conn):
     return {r[0] for r in conn.execute("SELECT DISTINCT event_id FROM resource_estimates")}
 
 
-_COLS = ("event_id", "ordinal", "ticker", "deposit", "project", "category", "tonnes", "grades_json",
+_COLS = ("event_id", "ordinal", "ticker", "slug", "deposit", "project", "category", "tonnes", "grades_json",
          "contained_json", "cut_off", "basis", "context", "source_shape", "mre_type", "n_rows",
          "summary", "metal_focus", "headline_oz_au", "headline_t_metal", "n_categories",
          "categories_json", "raw_headline", "published_at")
@@ -316,6 +357,7 @@ def _ensure_schema(conn):
     conn.executescript(TABLE_SQL)
     cols = {r[1] for r in conn.execute("PRAGMA table_info(resource_estimates)")}
     for col, decl in (("ordinal", "INTEGER NOT NULL DEFAULT 0"), ("deposit", "TEXT"),
+                      ("slug", "TEXT"),
                       ("category", "TEXT"), ("tonnes", "REAL"), ("grades_json", "TEXT"),
                       ("contained_json", "TEXT"), ("cut_off", "TEXT"), ("basis", "TEXT"),
                       ("context", "TEXT"), ("source_shape", "TEXT"), ("mre_type", "TEXT"),
@@ -352,7 +394,8 @@ def _selftest():
                 "mre_type": mtype}
 
     def ev(eid, tk, pub):
-        return {"event_id": eid, "ticker": tk, "published_at": pub, "raw_headline": "H " + eid}
+        return {"event_id": eid, "ticker": tk, "published_at": pub, "raw_headline": "H " + eid,
+                "slug": "s-" + eid}
 
     items = [
         (ev("e1", "AAA", "2026-01-01"), parsed([
@@ -368,15 +411,25 @@ def _selftest():
     byid = {}
     for r in rows:
         byid.setdefault(r["event_id"], []).append(r)
-    ok("one row per deposit per category", [len(byid.get(e, [])) for e in ("e1", "e2", "e3", "e4")]
-       == [2, 2, 0, 0])
-    ok("a figure with no category is not published", "e4" not in byid)
-    ok("a release with no figures is not published", "e3" not in byid)
+    ok("one row per deposit per category", [len(byid.get(e, [])) for e in ("e1", "e2")] == [2, 2])
+    # RES_PAGE_V2: a tagged release stating no figures is a MARKER row, not an absent one, so the
+    # page can be built from this table alone instead of joining every approved release to find it
+    ok("a release with no figures is one marker row", [len(byid.get(e, [])) for e in ("e3", "e4")]
+       == [1, 1])
+    ok("a marker states nothing", [(r["category"], r["tonnes"], r["n_rows"], r["summary"])
+                                   for r in byid["e3"] + byid["e4"]]
+       == [(None, None, 0, None), (None, None, 0, None)])
+    ok("a figure with no category is a marker, not a figure",
+       byid["e4"][0]["category"] is None and byid["e4"][0]["tonnes"] is None)
+    ok("markers are what 'category IS NOT NULL' filters out",
+       len([r for r in rows if r["category"]]) == 4 and len(rows) == 6)
+    ok("every row carries the slug the page links with",
+       {r["slug"] for r in rows} == {"s-e1", "s-e2", "s-e3", "s-e4"})
     ok("ordinals are 0..n-1", sorted(r["ordinal"] for r in byid["e1"]) == [0, 1])
     ok("n_rows counts the rows of that release", {r["n_rows"] for r in byid["e1"]} == {2})
     ok("a restated estimate is published and marked",
        [r["context"] for r in byid["e2"]] == ["announced", "background"] and st["background"] == 1)
-    ok("counts add up", st["rows"] == len(rows) == 4 and st["published"] == 2
+    ok("counts add up", st["rows"] == 4 and len(rows) == 6 and st["published"] == 2
        and st["no_figures"] == 2 and st["with_tonnage"] == 4 and st["with_grade"] == 4)
     ok("summary reads the way the figure is said",
        byid["e1"][0]["summary"] == "6.30 Mt @ 1.85 g/t Au for 375 koz Au")
@@ -403,7 +456,8 @@ def _selftest():
     conn = F.connect(":memory:")
     F.ensure_schema(conn)
     conn.execute("CREATE TABLE events (event_id TEXT PRIMARY KEY, ticker TEXT, published_at TEXT, "
-                 "raw_headline TEXT, raw_body TEXT, categories TEXT, review_status TEXT)")
+                 "classified_at TEXT, slug TEXT, raw_headline TEXT, raw_body TEXT, categories TEXT, "
+                 "review_status TEXT)")
     # the legacy shape: one row per release, UNIQUE on event_id. This is the constraint that emptied
     # the management page for five minutes on 2026-09-17, so the test creates it deliberately.
     conn.execute("CREATE TABLE resource_estimates (res_id INTEGER PRIMARY KEY AUTOINCREMENT, "
@@ -428,7 +482,10 @@ def _selftest():
          "Gamma Mining Ltd. announces Indicated Mineral Resources of 4.0 million tonnes grading 0.90% Cu.",
          "Drill Results"),
     ]
-    conn.executemany("INSERT INTO events VALUES (?,?,?,?,?,?,'auto_approved')", rows_in)
+    conn.executemany("INSERT INTO events(event_id, ticker, published_at, classified_at, slug, "
+                     "raw_headline, raw_body, categories, review_status) "
+                     "VALUES (?,?,?,?,?,?,?,?,'auto_approved')",
+                     [(e, t, pub, pub, "slug-" + e, hl, body, cat) for e, t, pub, hl, body, cat in rows_in])
     F.run_batch(conn, X.SPEC, F.pending_events(conn, EXTRACTOR, X.VERSION))
     ok("no active version yet", active_version(conn) is None)
     F.activate(conn, EXTRACTOR, X.VERSION)
@@ -438,11 +495,12 @@ def _selftest():
         "ORDER BY event_id, ordinal")]
     ok("the legacy one-row-per-release table was rebuilt", not _one_row_per_event(conn))
     ok("tagged releases only, legacy row gone",
-       [x[0] for x in got] == ["x0", "x0"] and not any(x[0] == "old1" for x in got))
+       [x[0] for x in got] == ["x0", "x0", "x1"] and not any(x[0] == "old1" for x in got))
     ok("two categories, two rows, one release",
-       sorted((x[3], x[4]) for x in got) == [("Indicated", 6300000.0), ("Inferred", 2100000.0)])
-    ok("the deposit is named", {x[2] for x in got} == {"Foo"})
-    ok("a release that only promises an estimate is not published", not any(x[0] == "x1" for x in got))
+       sorted((x[3], x[4]) for x in got if x[3]) == [("Indicated", 6300000.0), ("Inferred", 2100000.0)])
+    ok("the deposit is named", {x[2] for x in got if x[3]} == {"Foo"})
+    ok("a release that only promises an estimate is a marker, not a figure",
+       [x[3] for x in got if x[0] == "x1"] == [None])
     ok("an untagged release is not published", not any(x[0] == "x2" for x in got))
     ok("extractor_version stamped",
        [tuple(r) for r in conn.execute("SELECT DISTINCT extractor_version FROM resource_estimates")]
