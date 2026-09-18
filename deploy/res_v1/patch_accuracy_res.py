@@ -10,6 +10,11 @@ Three small files, three exact anchors, each asserted before anything is written
                                 resource_backfill.py, and the step moves to the end of the list
                                 because it now reads the facts store that facts_sync fills
 
+No anchor includes a closing docstring quote: an earlier draft did, and the nested triple quotes
+did not survive being written out, so the file arrived on the box a byte different from the one
+that had been tested. The anchors below are unique without them, and each edit inserts before the
+quotes rather than rewriting them.
+
 Usage: patch_accuracy_res.py <accuracy.py> <extractors/__init__.py> <sync_structured.py>
 """
 import hashlib
@@ -34,7 +39,7 @@ It replaces what /drills shows once the accuracy gate activates it; until then
 the legacy drill_backfill.py keeps writing drill_results (portal/drill_publish.py
 decides which runs). Resources are NOT here yet; they keep their own table until
 they are rebuilt.
-\"\"\""""
+"""
 INIT_NEW_DOC = """DRILL_V1 (2026-09-17): the new Drill Results reader is the first extractor here.
 It replaces what /drills shows once the accuracy gate activates it; until then
 the legacy drill_backfill.py keeps writing drill_results (portal/drill_publish.py
@@ -44,7 +49,7 @@ RES_V1 (2026-09-18): the Resource Estimates reader completes the set -- financin
 management and now resources all read from the facts store. Every page MNT extracts
 is version-stamped, backfilled and gated; no legacy backfill writes a page any more
 once its reader is active.
-\"\"\""""
+"""
 
 INIT_OLD_IMP = "from portal.extractors import management as _management\n"
 INIT_NEW_IMP = INIT_OLD_IMP + "from portal.extractors import resources as _resources\n"
@@ -62,12 +67,12 @@ SYNC_NEW_LAST = SYNC_OLD_LAST + (
     "    # to last in this list because it now reads the facts store, which facts_sync fills.\n"
     "    (['-m', 'portal.resources_publish'],      'resource_estimates'),\n")
 
-SYNC_OLD_DOC = ('MGMT_PUBLISH_V1 (2026-09-17): management_changes is written by portal.management_publish, on the same terms.\n'
-                'It moved from first to last in this list because it now reads the facts store, which facts_sync fills.\"\"\"')
-SYNC_NEW_DOC = SYNC_OLD_DOC[:-3] + (
-    '\n\nRES_PUBLISH_V1 (2026-09-18): resource_estimates is written by portal.resources_publish, on the same\n'
-    'terms, and moved for the same reason. With it, every structured page MNT builds comes from a\n'
-    'version-stamped, gated reader rather than a backfill script.\"\"\"')
+SYNC_OLD_DOC = ("MGMT_PUBLISH_V1 (2026-09-17): management_changes is written by portal.management_publish, on the same terms.\n"
+                "It moved from first to last in this list because it now reads the facts store, which facts_sync fills.")
+SYNC_NEW_DOC = SYNC_OLD_DOC + (
+    "\n\nRES_PUBLISH_V1 (2026-09-18): resource_estimates is written by portal.resources_publish, on the same\n"
+    "terms, and moved for the same reason. With it, every structured page MNT builds comes from a\n"
+    "version-stamped, gated reader rather than a backfill script.")
 
 
 def edit(path, label, edits):
