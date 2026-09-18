@@ -14,12 +14,15 @@ FIN_PUBLISH_V1 (2026-09-17): financings and financing_events are written by port
 facts_sync, on the same terms: the legacy financing_backfill.py runs only until a financings version is active.
 
 MGMT_PUBLISH_V1 (2026-09-17): management_changes is written by portal.management_publish, on the same terms.
-It moved from first to last in this list because it now reads the facts store, which facts_sync fills."""
+It moved from first to last in this list because it now reads the facts store, which facts_sync fills.
+
+RES_PUBLISH_V1 (2026-09-18): resource_estimates is written by portal.resources_publish, on the same
+terms, and moved for the same reason. With it, every structured page MNT builds comes from a
+version-stamped, gated reader rather than a backfill script."""
 import subprocess, time
 
 PY = '/opt/mnt/app/.venv/bin/python3'
 steps = [
-    (['/opt/mnt/app/resource_backfill.py'],   'resource_estimates'),
     # FACTS_V1 (2026-09-16): incremental facts-store extraction for registered extractors
     (['/opt/mnt/app/facts_sync.py'],          'facts'),
     # DRILL_PUBLISH_V1 (2026-09-17): publish the active drill reader (or run the legacy backfill)
@@ -29,6 +32,10 @@ steps = [
     # MGMT_PUBLISH_V1 (2026-09-17): publish the active management reader, one row per person (or run the
     # legacy management_backfill.py until one is active)
     (['-m', 'portal.management_publish'],     'management_changes'),
+    # RES_PUBLISH_V1 (2026-09-18): publish the active resources reader, one row per deposit per
+    # category (or run the legacy resource_backfill.py until one is active). It moved from first
+    # to last in this list because it now reads the facts store, which facts_sync fills.
+    (['-m', 'portal.resources_publish'],      'resource_estimates'),
     # ACCURACY_V1 (2026-09-16): re-measure pages against their accuracy sets at most once per 20 hours; always exits 0
     (['/opt/mnt/app/accuracy_run.py'],        'accuracy'),
 ]

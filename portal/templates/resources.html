@@ -1,7 +1,18 @@
 {% extends "base.html" %}
 {% block title %}Resource Estimates — MiningNewsTerminal{% endblock %}
-{% block meta_description %}Mineral resource estimates announced by CSE, TSXV and TSX junior mining companies, extracted from their news releases.{% endblock %}
+{% block meta_description %}Mineral resource estimates announced by CSE, TSXV and TSX junior mining companies, one row per deposit and category, extracted from their news releases.{% endblock %}
 {% block content %}
+  <style>
+    .res-table td { vertical-align: top; }
+    .res-table .res-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .res-table .res-fig { display: block; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .res-table .res-deposit { font-weight: 600; }
+    .res-cat { white-space: nowrap; }
+    .res-bg-tag { display: inline-block; margin-left: .35em; padding: 0 .35em; border-radius: 3px;
+                  font-size: .75em; letter-spacing: .02em; opacity: .8; border: 1px solid currentColor; }
+    .res-table tr.res-cont td.res-quiet { opacity: .35; }
+  </style>
+
   <h2 class="page-title">Resource Estimates</h2>
 
   <section class="filters fin-filters">
@@ -30,7 +41,7 @@
       {% if selected_ticker or days or has == 'data' %}
         <a class="cat-clear" href="/resources">Reset</a>
       {% endif %}
-      <span class="muted">{{ rows|length }} shown · {{ total_filtered }} matching{% if has != 'data' and with_data is defined %} · {{ with_data }} with extracted data{% endif %}</span>
+      <span class="muted">{{ rows|length }} shown · {{ total_filtered }} rows matching{% if has != 'data' %} · {{ with_data }} releases with extracted data{% endif %}</span>
     </form>
   </section>
 
@@ -40,13 +51,17 @@
     <div class="table-scroll">
     <table class="fin-table res-table">
       <colgroup>
-        <col style="width: 8%">   <!-- Ticker            -->
-        <col style="width: 16%">  <!-- Company           -->
-        <col style="width: 8%">   <!-- Date              -->
-        <col style="width: 9%">   <!-- Type              -->
-        <col style="width: 15%">  <!-- Project           -->
-        <col style="width: 36%">  <!-- Resource Estimate -->
-        <col style="width: 8%">   <!-- View              -->
+        <col style="width: 6%">   <!-- Ticker    -->
+        <col style="width: 12%">  <!-- Company   -->
+        <col style="width: 7%">   <!-- Date      -->
+        <col style="width: 7%">   <!-- Type      -->
+        <col style="width: 15%">  <!-- Deposit   -->
+        <col style="width: 11%">  <!-- Category  -->
+        <col style="width: 8%">   <!-- Tonnage   -->
+        <col style="width: 13%">  <!-- Grade     -->
+        <col style="width: 11%">  <!-- Contained -->
+        <col style="width: 5%">   <!-- Cut-off   -->
+        <col style="width: 5%">   <!-- View      -->
       </colgroup>
       <thead>
         <tr>
@@ -54,34 +69,44 @@
           <th>Company</th>
           <th>Date</th>
           <th>Type</th>
-          <th>Project</th>
-          <th>Resource Estimate</th>
+          <th>Deposit</th>
+          <th>Category</th>
+          <th class="res-num">Tonnage</th>
+          <th>Grade</th>
+          <th>Contained</th>
+          <th>Cut-off</th>
           <th>View</th>
         </tr>
       </thead>
       <tbody>
         {% for r in rows %}
-          <tr>
-            <td class="fin-ticker">{% set _mtp = r["ticker"] | mtp_url('mining') %}{% if _mtp %}<a class="mtp-co" href="{{ _mtp }}" target="_blank" rel="noopener" title="Open {{ r['ticker'] }} mining data on MineTerminalPro">{{ r["ticker"] }}</a>{% else %}{{ r["ticker"] }}{% endif %}</td>
-            <td>{{ r["company_name"] }}</td>
-            <td class="fin-date">{{ (r["published_at"] or "")[:10] }}</td>
-            <td><span class="mre-type-badge mre-type-{{ (r["mre_type"] or "updated")|lower }}">{{ r["mre_type"] or "—" }}</span></td>
-            <td>{{ r["project"] or "—" }}</td>
-            <td class="resource-summary">
-              {% if r["categories_json"] %}
-                {% set cats = r["categories_json"] | from_json %}
-                {% for c in cats %}
-                  <div class="res-cat-block">
-                    <div class="res-cat-name">{{ c.category }}</div>
-                    <div class="res-cat-stat">{{ c.stat }}</div>
-                  </div>
-                {% endfor %}
-              {% else %}
-                <strong>{{ r["summary"] or "—" }}</strong>
-              {% endif %}
+          <tr class="{% if not r['first_of_release'] %}res-cont{% endif %}">
+            <td class="fin-ticker {% if not r['first_of_release'] %}res-quiet{% endif %}">
+              {%- if r['first_of_release'] -%}
+                {% set _mtp = r["ticker"] | mtp_url('mining') %}{% if _mtp %}<a class="mtp-co" href="{{ _mtp }}" target="_blank" rel="noopener" title="Open {{ r['ticker'] }} mining data on MineTerminalPro">{{ r["ticker"] }}</a>{% else %}{{ r["ticker"] }}{% endif %}
+              {%- else -%}
+                {{ r["ticker"] }}
+              {%- endif -%}
+            </td>
+            <td class="{% if not r['first_of_release'] %}res-quiet{% endif %}">{% if r['first_of_release'] %}{{ r["company_name"] }}{% endif %}</td>
+            <td class="fin-date {% if not r['first_of_release'] %}res-quiet{% endif %}">{% if r['first_of_release'] %}{{ (r["published_at"] or "")[:10] }}{% endif %}</td>
+            <td>{% if r['first_of_release'] and r["mre_type"] %}<span class="mre-type-badge mre-type-{{ r['mre_type']|lower }}">{{ r["mre_type"] }}</span>{% endif %}</td>
+            <td class="res-deposit">{{ r["deposit"] or r["project"] or "—" }}</td>
+            <td class="res-cat">
+              {{ r["category"] or "—" }}
+              {%- if r["context"] == "background" %}<span class="res-bg-tag" title="A previously reported estimate restated in this release, not what it announces">prior</span>{% endif -%}
+              {%- if r["basis"] and r["basis"] != "resource" %}<span class="res-bg-tag">{{ r["basis"] }}</span>{% endif -%}
+            </td>
+            <td class="res-num">{{ r["tonnes"] | res_t }}</td>
+            <td>
+              {%- for g in r["grades_json"] | res_grades %}<span class="res-fig">{{ g }}</span>{% else %}—{% endfor -%}
             </td>
             <td>
-              {% if r["url"] %}<a href="{{ r['url'] }}">View ↗</a>{% else %}—{% endif %}
+              {%- for c in r["contained_json"] | res_contained %}<span class="res-fig">{{ c }}</span>{% else %}—{% endfor -%}
+            </td>
+            <td class="res-num">{{ r["cut_off"] or "—" }}</td>
+            <td>
+              {% if r["url"] and r['first_of_release'] %}<a href="{{ r['url'] }}">View ↗</a>{% endif %}
             </td>
           </tr>
         {% endfor %}
