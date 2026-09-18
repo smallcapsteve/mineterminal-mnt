@@ -1,0 +1,380 @@
+"""Resource estimates extractor, facts-store version (RES_V1). Third of the three rebuilds.
+
+Replaces portal/resource_extract.py as the source of /resource-estimates once it passes the accuracy
+gate. The measured baseline for the live reader (2026-09-17, 642 tagged auto-approved releases):
+
+  rows on the page   179 releases, one row each, categories hidden in a JSON column
+  finds a table in   226 of 642, nothing in 416 -- and 116 of those 416 carry a category word,
+                     a tonnage and a grade, so the figures are there and are not being read
+  project            missing on 60 of 226
+  mre_type           169 Update against 57 Maiden, which is not what the releases say
+
+What this reader does differently:
+
+  1. ONE ROW PER DEPOSIT PER CATEGORY (Justin, 2026-09-17). Goldgroup states four deposits with four
+     categories each in a single table; West Red Lake states two deposits; Orogen puts the deposit
+     inside the category cell ("Inferred Ermitano"). One row per release flattened all of it.
+  2. FOUR SHAPES, NOT ONE. A release states its figures as a table flattened to one cell per line, or
+     as a whole row on one line, or in prose, or only in the headline -- Nord Resources' entire body
+     is a single sentence and every figure is in the headline. All four are read.
+  3. BACKGROUND IS MARKED, NOT DROPPED (Justin, 2026-09-17). Adyton restates a 2021 Feni Island
+     resource beside the 2026 Gameta one; both are published and only one is news.
+  4. NO INVENTED FIGURES. Where the column mapping cannot be established the row is still emitted with
+     its deposit and category and no numbers, rather than numbers guessed from magnitude.
+  5. NOTHING IS A ROW WITHOUT A CATEGORY AND A FIGURE. 263 of the 642 tagged releases -- filings with
+     no numbers, drill programmes, "we have engaged a consultant to update the estimate" -- state no
+     estimate at all, and the right answer for them is no rows.
+
+analyse(headline, body) -> dict        full result (pure; no database, no clock)
+extract(headline, body) -> [Record]    one record per row (ordinal 0..n-1)
+to_prediction(records) -> dict|None    what the accuracy judge compares
+
+Self-tests: python3 -m portal.extractors.resources
+"""
+from __future__ import annotations
+
+import re
+import unicodedata
+
+from portal import facts as F
+
+NAME = "resources"
+VERSION = "1.0.0"
+KIND = "resource_estimate"
+TAG = "Resource Estimates"
+MAX_ROWS = 40
+
+# ------------------------------------------------------------------ vocabulary
+# canonical category -> the spellings that mean it, longest first at match time
+_CAT_CANON = [
+    ("Measured & Indicated", r"measured\s*(?:&|and|\+|,)\s*indicated|m\s*(?:&|\+)\s*i\b"),
+    ("Proven & Probable", r"prove[nd]\s*(?:&|and|\+)\s*probable|p\s*(?:&|\+)\s*p\b"),
+    ("Measured", r"measured"),
+    ("Indicated", r"indicated"),
+    ("Inferred", r"inferred"),
+    ("Proven", r"prove[nd]"),
+    ("Probable", r"probable"),
+    ("Total", r"total|combined|grand\s+total|global"),
+]
+_CAT_ALT = "|".join("(?:%s)" % p for _, p in _CAT_CANON)
+
+# metal names and symbols -> the symbol the page shows
+_METAL = {
+    "gold": "Au", "silver": "Ag", "copper": "Cu", "lead": "Pb", "zinc": "Zn", "nickel": "Ni",
+    "cobalt": "Co", "antimony": "Sb", "tin": "Sn", "tungsten": "W", "molybdenum": "Mo",
+    "uranium": "U3O8", "lithium": "Li2O", "palladium": "Pd", "platinum": "Pt", "rhodium": "Rh",
+    "iron": "Fe", "manganese": "Mn", "vanadium": "V2O5", "graphite": "C", "caesium": "Cs2O",
+    "cesium": "Cs2O", "tantalum": "Ta2O5", "gallium": "Ga", "niobium": "Nb2O5", "phosphate": "P2O5",
+    "potash": "KCl", "scandium": "Sc2O3", "titanium": "TiO2", "chromium": "Cr2O3",
+    "rare earth": "TREO", "rare earths": "TREO", "bismuth": "Bi", "tellurium": "Te",
+    "platinum group": "PGE", "sulphur": "S", "sulfur": "S", "barite": "BaSO4", "fluorspar": "CaF2",
+}
+_SYMBOLS = ("Au", "Ag", "Cu", "Pb", "Zn", "Ni", "Co", "Sb", "Sn", "W", "Mo", "U", "U3O8", "Li",
+            "Li2O", "LCE", "Pd", "Pt", "Rh", "Ir", "Ru", "Os", "Fe", "Mn", "V", "V2O5", "TREO",
+            "TREO", "REO", "Nd2O3", "Pr6O11", "Dy2O3", "Tb4O7", "NdPr", "Cs2O", "Ta2O5", "Ga",
+            "Nb2O5", "P2O5", "KCl", "Sc2O3", "TiO2", "Cr2O3", "Bi", "Te", "Cd", "S", "C", "PGE",
+            "PGM", "3E", "4E", "6E", "BaSO4", "CaF2", "Zr", "Hf", "Be", "Sr", "Y", "La", "Ce")
+_EQ_SUFFIX = re.compile(r"(?i)^([A-Za-z0-9]{1,6})[-\s]?eq(?:uivalent)?$")
+
+_TONNAGE_WORD = re.compile(r"(?i)\b(tonnage|tonnes|tonne|tons|ton|mass|ore|material|quantity|"
+                           r"k\s*tonnes|m\s*tonnes|kt|mt)\b")
+_CLASS_WORD = re.compile(r"(?i)^\s*(classification|class|category|categories|resource\s+category|"
+                         r"confidence|type|zone|deposit|area|domain|pit)\s*:?\s*$")
+
+# unit -> (kind, multiplier to the base the page stores)
+#   tonnage base = tonnes, contained mass base = tonnes, contained count base = troy ounces
+_TONNAGE_UNITS = {
+    "t": 1.0, "tonne": 1.0, "tonnes": 1.0, "mt": 1e6, "kt": 1e3, "000s": 1e3, "000": 1e3,
+    "k": 1e3, "m": 1e6, "kilotonnes": 1e3, "megatonnes": 1e6, "million tonnes": 1e6,
+    "thousand tonnes": 1e3, "ktonnes": 1e3, "mtonnes": 1e6, "ton": 0.90718474, "tons": 0.90718474,
+    "short tons": 0.90718474, "st": 0.90718474,
+}
+_GRADE_UNITS = {"%": "%", "g/t": "g/t", "gpt": "g/t", "g per tonne": "g/t", "ppm": "ppm",
+                "ppb": "ppb", "oz/t": "oz/t", "opt": "oz/t", "kg/t": "kg/t", "g/m3": "g/m3",
+                "lb/t": "lb/t", "cpht": "cpht", "ct/t": "ct/t"}
+_CONTAINED_UNITS = {
+    "oz": ("oz", 1.0), "ozs": ("oz", 1.0), "ounces": ("oz", 1.0), "troy ounces": ("oz", 1.0),
+    "koz": ("oz", 1e3), "k oz": ("oz", 1e3), "moz": ("oz", 1e6), "m oz": ("oz", 1e6),
+    "lb": ("lb", 1.0), "lbs": ("lb", 1.0), "pounds": ("lb", 1.0), "mlb": ("lb", 1e6),
+    "mlbs": ("lb", 1e6), "m lbs": ("lb", 1e6), "klb": ("lb", 1e3), "klbs": ("lb", 1e3),
+    "kt": ("t", 1e3), "mt": ("t", 1e6), "t": ("t", 1.0), "tonnes": ("t", 1.0), "kg": ("kg", 1.0),
+    "carats": ("ct", 1.0), "mct": ("ct", 1e6),
+}
+
+
+def metal_of(text):
+    """('Au', False) for gold, ('CuEq', True) for a copper-equivalent, None for anything else."""
+    s = re.sub(r"[()\[\].,;:]", " ", (text or "")).strip()
+    if not s:
+        return None
+    m = _EQ_SUFFIX.match(s.replace(" ", ""))
+    if m:
+        base = m.group(1)
+        for sym in _SYMBOLS:
+            if sym.lower() == base.lower():
+                return (sym + "Eq", True)
+        low = base.lower()
+        if low in _METAL:
+            return (_METAL[low] + "Eq", True)
+        return None
+    low = s.lower()
+    if low in _METAL:
+        return (_METAL[low], False)
+    for sym in _SYMBOLS:
+        if sym.lower() == low:
+            return (sym, False)
+    words = low.split()
+    if len(words) <= 3:
+        for w in words:
+            if w in _METAL:
+                return (_METAL[w], False)
+            for sym in _SYMBOLS:
+                if sym.lower() == w:
+                    return (sym, False)
+    return None
+
+
+# ------------------------------------------------------------------ text
+_WS = re.compile("[ \\t\\xa0\\u2000-\\u200b\\u202f\\u205f\\u3000]+")
+
+
+def clean(text: str) -> str:
+    """Normalise punctuation and spacing WITHOUT touching line structure.
+
+    The management reader folds single newlines away, because a release lifted out of a PDF wraps
+    mid-sentence. Here the opposite is true: a table reaches us as one cell per line, so the line
+    breaks carry the table and must survive."""
+    t = unicodedata.normalize("NFKC", text or "")
+    for dash in (0x2010, 0x2011, 0x2012, 0x2013, 0x2212):
+        t = t.replace(chr(dash), "-")
+    t = t.replace(chr(0x2014), " - ").replace(chr(0xad), "")
+    t = t.replace(chr(0x2018), "'").replace(chr(0x2019), "'")
+    t = t.replace(chr(0x201c), '"').replace(chr(0x201d), '"')
+    t = t.replace(chr(0xfffc), " ")
+    t = re.sub(r"\r\n?", "\n", t)
+    t = _WS.sub(" ", t)
+    return "\n".join(ln.strip() for ln in t.split("\n"))
+
+
+def lines_of(text: str) -> list:
+    return [ln for ln in clean(text).split("\n")]
+
+
+_RE_NUM = re.compile(r"(?i)^[<>~]?\s*\(?\s*(-?\d[\d,\s]*(?:\.\d+)?)\s*\)?\s*"
+                     r"(%|g\s*/\s*t|gpt|ppm|ppb|oz\s*/\s*t|opt|kg\s*/\s*t|"
+                     r"k?\s*oz|m\s*oz|ounces|m?\s*lbs?|pounds|kt|mt|t|tonnes|kg|m|km|ft)?\s*$")
+_RE_BARE_UNIT = re.compile(r"(?i)^\s*\(?\s*("
+                           r"%|g\s*/\s*t|gpt|ppm|ppb|oz\s*/\s*t|opt|kg\s*/\s*t|"
+                           r"k?\s*oz|m\s*oz|ounces|troy\s+ounces|m?\s*lbs?|pounds|k?\s*t|mt|"
+                           r"tonnes?|000s?|k|m|kg|c\$?\s*/\s*t|us\$?\s*/\s*t|\$\s*/\s*t"
+                           r")\s*\)?\s*$")
+
+
+def is_number(line: str) -> bool:
+    return bool(line) and bool(_RE_NUM.match(line)) and any(c.isdigit() for c in line)
+
+
+def number_of(line: str):
+    """('6.5', 'mt') for '6.5 Mt'; None when the line is not a bare figure. '-' reads as empty."""
+    if not line:
+        return None
+    if line.strip() in ("-", "--", "n/a", "N/A", "nil", "—"):
+        return ("", None)
+    m = _RE_NUM.match(line)
+    if not m or not any(c.isdigit() for c in line):
+        return None
+    raw = m.group(1).replace(",", "").replace(" ", "")
+    unit = (m.group(2) or "").lower().replace(" ", "") or None
+    try:
+        float(raw)
+    except ValueError:
+        return None
+    return (raw, unit)
+
+
+_RE_CAT_LINE = re.compile(r"(?i)^\s*(?:total\s+)?(?P<cat>" + _CAT_ALT + r")"
+                          r"\s*(?:mineral\s*)?(?:resources?|reserves?)?"
+                          r"(?P<tail>[^\d]{0,40}?)\s*[:\-]?\s*$")
+
+
+def category_of(line: str):
+    """('Indicated', '') for an 'Indicated' cell, ('Inferred', 'Ermitano') when the deposit is in it."""
+    if not line or len(line) > 70:
+        return None
+    m = _RE_CAT_LINE.match(line)
+    if not m:
+        return None
+    raw = m.group("cat")
+    canon = None
+    for name, pat in _CAT_CANON:
+        if re.fullmatch("(?i)" + pat, raw.strip()):
+            canon = name
+            break
+    if canon is None:
+        return None
+    if canon != "Total" and re.match(r"(?i)^\s*total\b", line):
+        canon = canon  # "Total Inferred" is still the Inferred category
+    tail = re.sub(r"(?i)\b(mineral|resources?|reserves?|category|categories)\b", " ",
+                  m.group("tail") or "")
+    tail = re.sub(r"[\*†‡\+]+", " ", tail)
+    tail = _WS.sub(" ", tail).strip(" ,.;:()-")
+    return (canon, tail)
+
+
+# ------------------------------------------------------------------ table columns
+_RE_CUTOFF = re.compile(r"(?i)\bcut[\s\-]?off\b|\bcog\b|\bnsr\s*cut")
+_RE_PAREN = re.compile(r"\(([^)]*)\)")
+
+
+_TONNE_PHRASE = [
+    (re.compile(r"(?i)\b(?:k|thousand)\s+tonn?es?\b"), " kt "),
+    (re.compile(r"(?i)\b(?:m|million)\s+tonn?es?\b"), " mt "),
+    (re.compile(r"(?i)\btonn?es?\s*0{3}'?s?\b"), " kt "),
+]
+
+
+def _unit_in(s):
+    """(kind, unit, mult) for the first unit token in s, longest match first."""
+    low = " " + re.sub(r"[()\[\]]", " ", (s or "").lower()) + " "
+    low = low.replace("/ ", "/").replace(" /", "/")
+    # "K tonnes" is a thousand tonnes, not a tonne -- fold the phrase before any unit is matched
+    for rx, rep in _TONNE_PHRASE:
+        low = rx.sub(rep, low)
+    for key in sorted(_GRADE_UNITS, key=len, reverse=True):
+        if re.search(r"(?<![\w/])" + re.escape(key) + r"(?![\w/])", low):
+            return ("grade", _GRADE_UNITS[key], 1.0)
+    for key in sorted(_CONTAINED_UNITS, key=len, reverse=True):
+        if re.search(r"(?<![\w/])" + re.escape(key) + r"(?![\w/])", low):
+            u, mult = _CONTAINED_UNITS[key]
+            return ("mass", u, mult)
+    for key in sorted(_TONNAGE_UNITS, key=len, reverse=True):
+        if re.search(r"(?<![\w/])" + re.escape(key) + r"(?![\w/])", low):
+            return ("mass", "t", _TONNAGE_UNITS[key])
+    return (None, None, 1.0)
+
+
+def parse_col(label: str) -> dict:
+    """One table column: what it holds, for which metal, in what unit."""
+    col = {"label": label, "kind": "other", "metal": None, "eq": False, "unit": None, "mult": 1.0}
+    s = (label or "").strip()
+    if not s:
+        return col
+    if _CLASS_WORD.match(s):
+        col["kind"] = "class"
+        return col
+    inner = " ".join(_RE_PAREN.findall(s))
+    outer = _RE_PAREN.sub(" ", s)
+    kind, unit, mult = _unit_in(inner if inner else s)
+    if kind is None and inner:
+        kind, unit, mult = _unit_in(outer)
+    met = metal_of(outer) or metal_of(inner)
+    if met:
+        col["metal"], col["eq"] = met
+    col["unit"], col["mult"] = unit, mult
+    if _RE_CUTOFF.search(s):
+        col["kind"] = "cutoff"
+    elif kind == "grade":
+        col["kind"] = "grade"
+    elif kind == "mass":
+        # a mass column with a metal on it is contained metal; without one it is the tonnage
+        if col["metal"] and not _TONNAGE_WORD.search(outer):
+            col["kind"] = "contained"
+            if unit == "t" and mult == 1.0 and re.search(r"(?i)\b(kt|mt)\b", s):
+                pass
+        else:
+            col["kind"] = "tonnage"
+            col["metal"] = None
+    return col
+
+
+_HEADER_WORDS = set("""class classification category categories resource resources reserve reserves
+mineral tonnage tonnes tonne tons ton grade grades average avg contained metal metals cut cutoff
+cut-off off nsr cog quantity total troy ounces ounce oz pounds lbs lb million thousand k m t kt mt
+date dated effective unit units per and of the in type zone deposit pit domain area recovery price
+equivalent eq net smelter return value estimated rounded density tonnages cog. no. size""".split())
+
+
+def _is_header_material(ln: str) -> bool:
+    """True when the line is a column label rather than a deposit name or a sentence.
+
+    A keyword test is not enough: 'Mineral Resource Statement - Mt. Jamie Deposit' contains 'Mt'
+    and would read as a tonnage column, which is how West Red Lake's second deposit went missing.
+    So every word outside the parentheses has to be header vocabulary."""
+    if not ln or len(ln) > 60:
+        return False
+    if _CLASS_WORD.match(ln) or _RE_BARE_UNIT.match(ln):
+        return True
+    outside = _RE_PAREN.sub(" ", ln)
+    words = [w for w in re.split(r"[\s,;:/\\|\-]+", outside.lower()) if w]
+    words = [w.strip(".%$()") for w in words]
+    words = [w for w in words if w]
+    if not words:
+        return bool(_unit_in(ln)[0])
+    for w in words:
+        if w in _HEADER_WORDS or w.isdigit():
+            continue
+        if metal_of(w) or _unit_in(w)[0]:
+            continue
+        return False
+    return True
+
+
+def build_columns(run: list, n_values: int) -> list:
+    """Map a header run onto n_values data cells, or [] when it cannot be done honestly."""
+    run = [x for x in run if x]
+    if not run:
+        return []
+    # two-row header: every metal on one row, every unit on the next
+    tail = []
+    k = len(run) - 1
+    while k >= 0 and _RE_BARE_UNIT.match(run[k]):
+        tail.append(run[k])
+        k -= 1
+    tail.reverse()
+    if len(tail) == n_values and n_values >= 2:
+        heads = [x for x in run[:k + 1] if not _CLASS_WORD.match(x)][-n_values:]
+        if len(heads) == n_values:
+            return _one_tonnage([parse_col(h + " (" + u.strip("() ") + ")")
+                                 for h, u in zip(heads, tail)])
+        return _one_tonnage([parse_col("(" + u.strip("() ") + ")") for u in tail])
+
+    merged = []
+    for ln in run:
+        if _CLASS_WORD.match(ln):
+            continue
+        if _RE_BARE_UNIT.match(ln) and merged and merged[-1]["unit"] is None \
+                and (merged[-1]["metal"] or _TONNAGE_WORD.search(merged[-1]["label"])):
+            merged[-1] = parse_col(merged[-1]["label"] + " (" + ln.strip("() ") + ")")
+            continue
+        merged.append(parse_col(ln))
+    usable = [c for c in merged if c["unit"]]
+    if len(usable) == n_values:
+        return _one_tonnage(usable)
+    # the cut-off is often printed once per deposit block rather than once per row
+    if len(usable) == n_values + 1:
+        without = [c for c in usable if c["kind"] != "cutoff"]
+        if len(without) == n_values:
+            return _one_tonnage(without)
+        return _one_tonnage(usable[-n_values:])
+    if len(usable) > n_values:
+        return _one_tonnage(usable[-n_values:])
+    return []
+
+
+def _one_tonnage(cols):
+    """A row states one tonnage. Later mass columns are contained metal, whatever the header lost."""
+    seen = False
+    for c in cols:
+        if c["kind"] != "tonnage":
+            continue
+        if seen:
+            c["kind"] = "contained"
+        else:
+            seen = True
+    return cols
+
+
+# ------------------------------------------------------------------ table reading
+_RE_CAPTION = re.compile(r"(?i)^\s*table\s*\d*[a-z]?\s*[-:.]\s*(.*)$")
+_RE_STOP = re.compile(r"(?i)^\s*(notes?\b|notes to\b|qualified person|about \w|forward[\s-]?looking|"
+                      r"for (?:further|more) information|on behalf of|neither the\b|source:|"
