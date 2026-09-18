@@ -15,6 +15,7 @@ import importlib.util
 import json
 import sys
 
+sys.path.insert(0, "/opt/mnt/app")   # the reader imports portal.facts at module level
 SRC = "/var/tmp/mnt-res/corpus.json.gz"
 
 
