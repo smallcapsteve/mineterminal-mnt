@@ -7,61 +7,43 @@ def resources_page(
     page: int = 1,
     has: str = "all",
 ):
+    # RES_PAGE_V2 (2026-09-18): this page is built from resource_estimates alone. It used to be
+    # driven off events -- _cat_where() against 43,591 approved releases, four LIKEs per row, then
+    # a LEFT JOIN -- which cost about 1.3 of its 2.0 seconds and could not use an index, because
+    # two of those four patterns start with a wildcard. /financings has always read its own table
+    # and answers in 0.2s; this now does the same.
+    #
+    # What made it possible is that the publisher writes a MARKER row (category NULL, n_rows 0)
+    # for every tagged release that states no figures, so the set of rows the page shows lives
+    # entirely in one 1,443-row table: 1,100 real figures and 343 markers.
     conn = db.get_conn()
-    # RES_V1 (2026-09-18): resource_estimates now holds one row per deposit per category, so this
-    # LEFT JOIN yields one output row per resource figure, plus one row per tagged release that
-    # states none. Driven by the TAG: of 642 tagged releases only about 300 state any figures.
-    where, args = _cat_where("Resource Estimates", ticker)
-    # TICKER_QUALIFY_V1 (2026-09-16): the joined table also has a ticker column.
-    where = where.replace("(ticker = ?", "(e.ticker = ?")
-    where = [where]
+    where, args = ["1=1"], []
+    if ticker:
+        where.append("re.ticker = ?")
+        args.append(ticker)
     if days and days > 0:
         from datetime import datetime as _dt_res, timedelta as _td_res
-        cutoff = (_dt_res.utcnow() - _td_res(days=days)).strftime("%Y-%m-%d")
-        # RES_PAGER_V1 (2026-09-18): no substr(). Comparing the whole timestamp against a bare
-        # date is the same test for ISO-8601 text -- '2026-09-18T11:00' and '2026-09-18' both sort
-        # after '2026-09-18' -- and it saves building a new string for all 44,932 rows scanned.
-        where.append("COALESCE(e.published_at, e.classified_at) >= ?")
-        args.append(cutoff)
-    base = " AND ".join(where)
-    clause = base + (" AND re.event_id IS NOT NULL" if has == "data" else "")
-
-    # RES_PAGER_V1 (2026-09-18): the pager used to COUNT(*) the LEFT JOIN, which cost 0.64s. The
-    # plan was already optimal -- SCAN e, covering-index probe on re -- but the tag test is a LIKE
-    # on a built-up string, so it cannot be pushed ahead of the join and the probe ran for all
-    # 44,932 events rather than the 672 tagged ones. The same scan WITHOUT the join costs 0.017s.
-    #
-    # The page shows one row per resource figure, plus one row per tagged release that states
-    # none, so the total is an identity that needs no join over events at all:
-    #
-    #     tagged releases  +  resource rows  -  tagged releases that have rows
-    #
-    # The last two come off resource_estimates, which is 1,100 rows. Checked against the old count
-    # over 168 combinations of ticker, window and filter: identical every time, including releases
-    # with no publish date, which fall back to their classified date on one side of the sum only.
-    n_rows, n_with_rows = conn.execute(
-        "SELECT COUNT(*), COUNT(DISTINCT re.event_id) FROM resource_estimates re "
-        "JOIN events e ON e.event_id = re.event_id WHERE " + base, args).fetchone()
+        # re.published_at is already COALESCE(published_at, classified_at) -- the publisher stores
+        # the date this page sorts and filters by, so no expression is needed on the column here
+        where.append("re.published_at >= ?")
+        args.append((_dt_res.utcnow() - _td_res(days=days)).strftime("%Y-%m-%d"))
     if has == "data":
-        total_filtered = n_rows
-    else:
-        n_events = conn.execute("SELECT COUNT(*) FROM events e WHERE " + base, args).fetchone()[0]
-        total_filtered = n_events + n_rows - n_with_rows
+        where.append("re.category IS NOT NULL")
+    clause = " AND ".join(where)
+
+    total_filtered = conn.execute(
+        "SELECT COUNT(*) FROM resource_estimates re WHERE " + clause, args).fetchone()[0]
     pages, page_no, _off = _paginate(total_filtered, page)
-    sql = (
-        "SELECT e.event_id, e.ticker, e.slug, e.raw_headline, "
-        "       COALESCE(e.published_at, e.classified_at) AS published_at, "
-        "       re.project, re.deposit, re.category, re.tonnes, re.grades_json, "
-        "       re.contained_json, re.cut_off, re.basis, re.context, re.summary, "
-        "       re.mre_type, re.metal_focus, re.headline_oz_au, re.ordinal, re.n_rows "
-        "FROM events e "
-        "LEFT JOIN resource_estimates re ON re.event_id = e.event_id "
-        "WHERE " + clause +
-        " ORDER BY published_at DESC, e.event_id, re.ordinal LIMIT ? OFFSET ?"
-    )
-    rows = list(conn.execute(sql, args + [_PAGE_SIZE, _off]))
-    # the count above already worked this out, and it is the same number
-    with_data = n_with_rows
+    rows = list(conn.execute(
+        "SELECT event_id, ticker, slug, raw_headline, published_at, project, deposit, category, "
+        "       tonnes, grades_json, contained_json, cut_off, basis, context, summary, mre_type, "
+        "       metal_focus, headline_oz_au, ordinal, n_rows "
+        "FROM resource_estimates re WHERE " + clause +
+        " ORDER BY published_at DESC, event_id, ordinal LIMIT ? OFFSET ?",
+        args + [_PAGE_SIZE, _off]))
+    with_data = conn.execute(
+        "SELECT COUNT(DISTINCT re.event_id) FROM resource_estimates re "
+        "WHERE " + clause + " AND re.category IS NOT NULL", args).fetchone()[0]
 
     decorated = []
     last_event = None
@@ -79,8 +61,12 @@ def resources_page(
         last_event = d.get("event_id")
         decorated.append(d)
 
-    total = conn.execute("SELECT COUNT(*) FROM resource_estimates").fetchone()[0]
-    releases = conn.execute("SELECT COUNT(DISTINCT event_id) FROM resource_estimates").fetchone()[0]
+    # the headline counts describe real estimates, so they leave the markers out
+    total = conn.execute(
+        "SELECT COUNT(*) FROM resource_estimates WHERE category IS NOT NULL").fetchone()[0]
+    releases = conn.execute(
+        "SELECT COUNT(DISTINCT event_id) FROM resource_estimates "
+        "WHERE category IS NOT NULL").fetchone()[0]
     distinct_tickers = list(conn.execute(
         "SELECT DISTINCT ticker FROM resource_estimates "
         "WHERE ticker IS NOT NULL ORDER BY ticker"
