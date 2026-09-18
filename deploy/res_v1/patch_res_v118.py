@@ -33,33 +33,47 @@ TWO FIXES, both found by reading what 1.0.17 actually published rather than by m
    this reader's rule everywhere else -- "Better to state no figures than the wrong ones", from the
    comment that refuses a header with more columns than the row has values.
 
-   The arithmetic check runs on the metals where the release gives both halves, within a factor of
-   three, which is wide enough for contained metal quoted after recovery and for rounding, and far
-   inside the 40x error it is there to catch.
+   The arithmetic runs on the metals where the release gives both halves. Within 3x is agreement:
+   contained metal is often quoted after recovery and the grade is rounded. Beyond 20x nothing about
+   ore explains it and the row is refused outright, grades included, because a shifted block shifts
+   those too. In between, only the contained figures are condemned.
 
 2. A CLAUSE IS NOT A PLACE
 
-   Ten deposit names on the page are fragments of sentences -- five from the row-line path, three
-   from prose, two from tables, so it is not one path's bug but the absence of a shared test:
+   Seventeen of the 387 deposit names on the page are fragments of sentences -- from all three of
+   the paths that produce a deposit, so it is not one path's bug but the absence of a shared test:
 
        Accompany the Hollinger MRE" for additional information
        Consulting (Canada) Inc., effective July 31, 2026
        - The pit shell selected as the limit has a revenue factor of 1.00
        Acquire the Mirado - North Zone and South
        The Banio Potash Project Updated has an
-       position of the Shaakichiuwaanaan
+       resource. Fourteen ranked
+       wholly owned Eagle / wholly owned Diablillos / historic Bayhorse Silver
+       giant Thacker Pass lithium / basement shear hosted JR / its' AurMac
        tonnes in Alexo North / tonnes in Alexo South
+       position of the Shaakichiuwaanaan
        Reported at the Expanded Silicon Project1
        Guillermina Deposit (effective March 31, 2025)
 
-   `qualify()` is the one place every row's deposit passes through, so the test goes there. A name
-   that opens on a verb, opens on a lower-case word that is not a name particle, carries a finite
-   verb, carries company or qualified-person vocabulary, opens on a bullet or has an unbalanced
-   quote is a clause; the row falls back to the project name, which is what the ninety-eight rows
-   with no deposit at all already do and which the page already renders.
+   `qualify()` is the one place every row's deposit passes through, so the test goes there.
 
-   The last one is not a clause, only a name wearing a date, so an "effective <date>" tail is
-   stripped rather than the whole name rejected.
+   Most of these are a real name with the tail of a sentence stuck to the front, so the name is
+   RECOVERED rather than the deposit discarded: "wholly owned Eagle" is Eagle, "tonnes in Alexo
+   South" is Alexo South, "position of the Shaakichiuwaanaan" is Shaakichiuwaanaan. deposit_name()
+   already strips leading lower-case words for this reason; doing it in qualify() as well covers
+   the paths that never call deposit_name(). A particle is not a stray word -- "la Fortuna" and
+   "del Toro" keep theirs.
+
+   What is left after that -- a name opening on a verb, carrying a finite verb, carrying company or
+   qualified-person vocabulary, opening on a bullet, or with a quote that never closes -- is a
+   clause, and the row falls back to its project name, which is what the ninety-eight rows with no
+   deposit at all already do and which the page already renders.
+
+   "Guillermina Deposit (effective March 31, 2025)" is not a clause, only a name wearing a date, so
+   an "effective <date>" tail is stripped rather than the whole name rejected.
+
+   Checked against all 387 names the page carries: no real name is rejected or altered.
 
 Usage:  patch_res_v118.py resources.py
 """
@@ -141,8 +155,8 @@ OLD_NAMED = '''def _named(name):'''
 
 NEW_NAMED = '''# A deposit has a name. These say the candidate is a piece of a sentence instead: a verb it opens
 # on, a finite verb inside it, the vocabulary of a qualified person or a company, a bullet, or a
-# quote that never closes. Ten such fragments reached the page at 1.0.17, through all three of the
-# paths that produce a deposit, which is why the test lives in qualify() where they all meet.
+# quote that never closes. Seventeen such names reached the page at 1.0.17, through all three of
+# the paths that produce a deposit, which is why the test lives in qualify() where they all meet.
 _RE_CLAUSE_VERB = re.compile(r"(?i)^(?:accompany|acquire|acquires|announce[sd]?|based|comprise[sd]?|"
                              r"contain[sd]?|filed|includ(?:e|es|ing)|locat(?:e|ed)|please|prepared|"
                              r"present(?:s|ed)?|provide[sd]?|pursuant|refer|report(?:s|ed)?|represent[sd]?|"
@@ -169,11 +183,27 @@ def _place(name):
         return None
     if s[0] in "\\u2022\\u00b7*-\\u2013\\u2014" or s.count('"') % 2 or s.count("\\u201d") != s.count("\\u201c"):
         return None
+    # "wholly owned Eagle", "tonnes in Alexo South", "historic Bayhorse Silver" are a name with the
+    # tail of a sentence still attached to the front. deposit_name() strips leading lower-case words
+    # for exactly this reason; doing it here as well RECOVERS the name instead of discarding the
+    # row's deposit, which over the 387 names on the page is the difference between nine real
+    # deposits being kept and nine rows falling back to their project name.
+    while True:
+        m = re.match(r"^([a-z][\w'-]*)\s+(?=\S)", s)
+        # a particle belongs to the name it precedes: "la Fortuna", "del Toro"
+        if not m or m.group(1).lower() in _NAME_PARTICLE:
+            break
+        s = s[m.end():]
+    s = s.strip(" ,.;:-")
+    if not s:
+        return None
     if _RE_CLAUSE_VERB.match(s) or _RE_CLAUSE_IN.search(s) or _RE_CLAUSE_CORP.search(s):
         return None
     first = re.split(r"[\\s,;/]+", s)[0]
     if first[:1].islower() and first.lower() not in _NAME_PARTICLE:
         return None
+    # not _named() here: it rejects a name whose first word is descriptive, which is right for a
+    # project ("Highest-Grade Open Pitable Copper") and wrong for a deposit -- it turns down "Pit 1".
     return s
 
 
