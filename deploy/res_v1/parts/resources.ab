@@ -1,0 +1,380 @@
+                      r"cautionary|disclaimer|contact\b)")
+_RE_RESERVE_WORD = re.compile(r"(?i)\breserves?\b")
+_RE_RESOURCE_WORD = re.compile(r"(?i)\bresources?\b")
+_RE_CUTOFF_VAL = re.compile(
+    r"(?i)(?:cut[\s\-]?off[^.\n\d]{0,40}?(?P<a>[\d][\d,.]*)\s*(?P<au>%|g\s*/\s*t|gpt|ppm|c?\$?\s*/\s*t)"
+    r"|(?P<b>[\d][\d,.]*)\s*(?P<bu>%|g\s*/\s*t|gpt|ppm|c?\$?\s*/\s*t)[^.\n]{0,30}?cut[\s\-]?off)")
+
+
+def cutoff_in(text: str):
+    """'0.8% SbEq' from 'a break-even cut-off grade of 0.8% SbEq'."""
+    if not text:
+        return None
+    m = _RE_CUTOFF_VAL.search(text)
+    if not m:
+        return None
+    val = m.group("a") or m.group("b")
+    unit = (m.group("au") or m.group("bu") or "").replace(" ", "")
+    after = text[m.end():m.end() + 14]
+    met = None
+    mm = re.match(r"\s*([A-Za-z][A-Za-z0-9]{0,5}(?:Eq)?)", after)
+    if mm:
+        got = metal_of(mm.group(1))
+        if got:
+            met = got[0]
+    return (val + unit + (" " + met if met else "")).strip()
+
+
+_RE_DEP_NOISE = re.compile(
+    r"(?i)\b(summary of the|summary of|mineral resource statement|mineral resource estimate|"
+    r"resource estimate|mineral resources?|mineral reserves?|resources?|reserves?|statement|"
+    r"estimate[sd]?|classification|as at|as of|effective date)\b")
+
+
+def deposit_name(line: str):
+    """'Rowan Mine Deposit' out of 'Mineral Resource Statement - Rowan Mine Deposit'."""
+    if not line or len(line) > 110:
+        return None
+    s = _RE_CAPTION.sub(r"\1", line)
+    s = re.sub(r"(?i)\s*[@(]?\s*(?:at\s+)?[\d.,]+\s*(?:%|g/t|gpt|ppm|c?\$?\s*/\s*t)[^,]{0,30}?"
+               r"cut[\s\-]?off\s*\)?\s*$", " ", s)
+    s = re.sub(r"(?i)\bcut[\s\-]?off\b.*$", " ", s)
+    s = re.sub(r"(?i)[,\-\s]*(?:january|february|march|april|may|june|july|august|september|"
+               r"october|november|december)\s+\d{1,2},?\s+\d{4}\s*$", " ", s)
+    s = _RE_DEP_NOISE.sub(" ", s)
+    s = re.sub(r"[\*†‡]+", " ", s)
+    s = re.sub(r"^[\s\-:,.]+|[\s\-:,.]+$", "", s)
+    s = re.sub(r"\s+\d\s*$", "", s)
+    s = _WS.sub(" ", s).strip(" ,.;:-")
+    if len(s) < 2 or len(s) > 70 or s.isdigit():
+        return None
+    if _CLASS_WORD.match(s) or metal_of(s):
+        return None
+    return s
+
+
+def _row(deposit, category, source, pos):
+    return {"deposit": deposit, "category": category, "tonnes": None, "grades": [], "contained": [],
+            "cut_off": None, "basis": "resource", "context": "announced", "source": source,
+            "effective_date": None, "pos": pos, "confidence": "high", "_win": ""}
+
+
+def _fill(row, cols, vals):
+    for c, pair in zip(cols, vals):
+        raw, _ = pair
+        if raw == "":
+            continue
+        try:
+            v = float(raw)
+        except ValueError:
+            continue
+        if c["kind"] == "tonnage":
+            row["tonnes"] = v * c["mult"]
+        elif c["kind"] == "grade":
+            row["grades"].append({"metal": c["metal"], "value": v, "unit": c["unit"]})
+        elif c["kind"] == "contained":
+            row["contained"].append({"metal": c["metal"], "value": v * c["mult"], "unit": c["unit"]})
+        elif c["kind"] == "cutoff" and row["cut_off"] is None:
+            row["cut_off"] = ("%g" % v) + (c["unit"] or "")
+    return row
+
+
+def read_tables(ls: list) -> list:
+    """Rows from tables that reach us as one cell per line."""
+    rows, header, deposit, dep_cut, dep_basis = [], [], None, None, None
+    dep_line = ""
+    dirty = False
+    # Orogen prints its reserve rows and its resource rows under one header with a group label
+    # in between; the label resets the header run, so the last good mapping is kept and reused
+    # for any later row of the same width.
+    last_cols, last_n = [], 0
+    i = 0
+    while i < len(ls):
+        ln = ls[i]
+        if not ln:
+            i += 1
+            continue
+        wide = rowline_of(ln)
+        if wide and not category_of(ln):
+            canon, tail, vals = wide
+            cols = wide_columns([x for x in ls[max(0, i - 8):i] if x], len(vals)) \
+                or build_columns(header, len(vals)) \
+                or (last_cols if len(vals) == last_n else [])
+            r = _row(tail or deposit, canon, "rowline", i)
+            r["_win"] = dep_line
+            if cols:
+                _fill(r, cols, vals)
+                last_cols, last_n = cols, len(vals)
+            else:
+                r["confidence"] = "low"
+            if r["cut_off"] is None:
+                r["cut_off"] = dep_cut
+            if canon in ("Proven", "Probable", "Proven & Probable") or dep_basis == "reserve" \
+                    or (_RE_RESERVE_WORD.search(ln) and not _RE_RESOURCE_WORD.search(ln)):
+                r["basis"] = "reserve"
+            rows.append(r)
+            dirty = True
+            i += 1
+            continue
+        cat = category_of(ln)
+        if cat:
+            vals = []
+            j = i + 1
+            while j < len(ls):
+                if not ls[j]:
+                    j += 1
+                    continue
+                n = number_of(ls[j])
+                if n is None:
+                    break
+                vals.append(n)
+                j += 1
+            if len([v for v in vals if v[0]]) >= 2:
+                cols = build_columns(header, len(vals)) or (last_cols if len(vals) == last_n else [])
+                r = _row(cat[1] or deposit, cat[0], "table", i)
+                r["_win"] = dep_line
+                if cols:
+                    _fill(r, cols, vals)
+                    last_cols, last_n = cols, len(vals)
+                else:
+                    r["confidence"] = "low"
+                if r["cut_off"] is None:
+                    r["cut_off"] = dep_cut
+                if cat[0] in ("Proven", "Probable", "Proven & Probable") or dep_basis == "reserve":
+                    r["basis"] = "reserve"
+                rows.append(r)
+                dirty = True
+                i = j
+                continue
+            # A category line with no figures under it is not a row: Goldgroup's North Pit block
+            # prints "Measured" and then nothing. Only a Total heading above a block of categories
+            # is a heading -- treating any empty category line as one swallowed the deposit name.
+            nxt = next((x for x in ls[i + 1:i + 5] if x), "")
+            if cat[0] == "Total" and category_of(nxt):
+                d = deposit_name(ln)
+                deposit, dep_cut, dep_line = d, cutoff_in(ln), ln
+                dep_basis = "reserve" if _RE_RESERVE_WORD.search(ln) else None
+            i += 1
+            continue
+        if number_of(ln) is not None:
+            if dep_cut is None and is_number(ln):
+                dep_cut = ln.strip()
+            i += 1
+            continue
+        if _RE_STOP.match(ln) or (len(ln) > 90 and not _is_header_material(ln)):
+            header, deposit, dep_cut, dep_basis, dirty = [], None, None, None, False
+            i += 1
+            continue
+        if _is_header_material(ln):
+            if dirty:
+                header, dirty = [], False
+            header.append(ln)
+            del header[:-40]
+            i += 1
+            continue
+        d = deposit_name(ln)
+        if d:
+            deposit, dep_cut, dep_line = d, cutoff_in(ln), ln
+            dep_basis = "reserve" if _RE_RESERVE_WORD.search(ln) and not _RE_RESOURCE_WORD.search(ln) \
+                else None
+        i += 1
+    return rows
+
+
+# ------------------------------------------------------------------ a whole row on one line
+_RE_ROWLINE = re.compile(
+    r"(?i)^\s*(?P<cat>" + _CAT_ALT + r")"
+    r"(?P<tail>[^\d\n]{0,34}?)\s*"
+    r"(?P<vals>(?:[<>~]?\d[\d,.]*\s*(?:%|g/t|gpt|ppm|oz|koz|moz|kt|mt|t|lbs?|mlbs?)?[\s|]+){2,}"
+    r"[<>~]?\d[\d,.]*\s*(?:%|g/t|gpt|ppm|oz|koz|moz|kt|mt|t|lbs?|mlbs?)?)\s*$")
+_RE_CELL = re.compile(r"(?i)([<>~]?\d[\d,.]*)\s*(%|g/t|gpt|ppm|oz|koz|moz|kt|mt|t|lbs?|mlbs?)?")
+
+
+def rowline_of(line: str):
+    """('Indicated', 'Ermitano', [('797', None), ...]) for 'Inferred Ermitano 2,355 59.2 2.14'."""
+    if not line or len(line) > 260:
+        return None
+    m = _RE_ROWLINE.match(line)
+    if not m:
+        return None
+    canon = None
+    for name, pat in _CAT_CANON:
+        if re.fullmatch("(?i)" + pat, m.group("cat").strip()):
+            canon = name
+            break
+    if canon is None:
+        return None
+    tail = re.sub(r"(?i)\b(mineral|resources?|reserves?|category)\b", " ", m.group("tail") or "")
+    tail = re.sub(r"[\*†‡\+]+", " ", tail)
+    tail = _WS.sub(" ", tail).strip(" ,.;:()-")
+    # "Total M&I" and "Total Inferred" name a category, not a deposit called M&I
+    if canon == "Total" and tail:
+        inner = category_of(tail)
+        if inner:
+            canon, tail = inner[0], inner[1]
+    vals = [(c[0].lstrip("<>~").replace(",", ""), (c[1] or "").lower() or None)
+            for c in _RE_CELL.findall(m.group("vals"))]
+    vals = [v for v in vals if v[0] not in ("", ".")]
+    if len(vals) < 2:
+        return None
+    return (canon, tail, vals)
+
+
+def wide_columns(prev_lines: list, n_values: int) -> list:
+    """Columns for a one-line row, from header rows that are themselves whitespace-separated."""
+    cands = []
+    for ln in prev_lines:
+        toks = [t for t in re.split(r"\s{1,}", ln.strip()) if t]
+        if len(toks) >= max(3, n_values - 1) and not all(is_number(t) for t in toks):
+            cands.append(toks)
+    if not cands:
+        return []
+    units = None
+    labels = None
+    for toks in cands[::-1]:
+        if all(_RE_BARE_UNIT.match(t) or t in ("%",) for t in toks):
+            if units is None:
+                units = toks
+        elif labels is None:
+            labels = toks
+    if units and len(units) == n_values:
+        if labels and len(labels) >= n_values:
+            labels = labels[-n_values:]
+            return _one_tonnage([parse_col(l + " (" + u + ")") for l, u in zip(labels, units)])
+        return _one_tonnage([parse_col("(" + u + ")") for u in units])
+    if labels and len(labels) == n_values:
+        return _one_tonnage([parse_col(t) for t in labels])
+    return []
+
+
+# ------------------------------------------------------------------ prose
+_RE_CAT_WORD = re.compile(r"(?i)\b(measured\s+(?:and|&|\+)\s+indicated|measured|indicated|inferred|"
+                          r"proven|proved|probable)\b")
+_RE_RES_WORD = re.compile(r"(?i)\b(resources?|reserves?|mre\b)")
+# a trailing label: "... 66 ppm Ga, Indicated, and 33.4 Mt ... Inferred,"
+_RE_TRAILING = re.compile(r"(?i)^\s*(?:[,;.)]|and\b|category\b|classification\b|$)")
+_MULT_WORD = {"million": 1e6, "billion": 1e9, "thousand": 1e3, "m": 1e6, "k": 1e3, "b": 1e9}
+
+_RE_P_TONNES = re.compile(
+    r"(?i)(?P<pre>\b(?:containing|contains|comprising|including|includes|for|totalling|totaling|"
+    r"totals?|of\s+contained)\b[^.]{0,24})?"
+    r"\b(?P<n>\d[\d,.]*)\s*(?P<mult>million|billion|thousand)?\s*"
+    r"(?P<u>tonnes|tonne|tons|ton|mt|kt|t)\b")
+_RE_P_GRADE = re.compile(
+    r"(?i)\b(?P<n>\d[\d,.]*)\s*(?P<u>%|g\s*/\s*t|gpt|ppm|ppb|oz\s*/\s*t|opt)\s*"
+    r"(?P<m>[A-Za-z][A-Za-z0-9]{0,6}(?:\s?\d+[A-Za-z]?\d*)?)?")
+_RE_P_CONTAINED = re.compile(
+    r"(?i)\b(?P<n>\d[\d,.]*)\s*(?P<mult>million|billion|thousand)?\s*"
+    r"(?P<u>ounces|oz|koz|moz|pounds|lbs|lb|mlbs|mlb|klbs|klb|kt|kg|tonnes|t)\b"
+    r"(?:\s*(?:\(\"?[^)\"]{0,10}\"?\))?\s*(?:of\s+)?(?P<m>[A-Za-z][A-Za-z0-9]{0,8})?)?")
+_RE_CONTAINED_MARK = re.compile(
+    r"(?i)\b(containing|contains|comprising|for|totalling|totaling|totals?|includes?|including|"
+    r"contained)\b")
+
+
+def _num(raw, mult_word=None, unit_mult=1.0):
+    try:
+        v = float(str(raw).replace(",", "").rstrip("."))
+    except ValueError:
+        return None
+    if mult_word:
+        v *= _MULT_WORD.get(mult_word.lower(), 1.0)
+    return v * unit_mult
+
+
+_METAL_STOP = set("""and or of for the a an at with in to per from containing contains total
+grading averaging average grade cut off within including includes plus is are was were be been
+million thousand billion tonnes tonne ounces pounds category categories estimated""".split())
+
+
+def _metal_near(token, window, before_pos, after_text=""):
+    """The metal a figure belongs to: the word after it, else the nearest one before it.
+
+    'at 1.02% Sb and 1.06 g/t Au' reads Sb then Au. Getting this off by one -- which an over-greedy
+    capture did -- silently relabels every grade in the sentence."""
+    if token:
+        tok = token.strip()
+        if tok.lower().split()[0] not in _METAL_STOP:
+            got = metal_of(tok.replace(" ", ""))
+            if got and not got[1] and re.match(r"(?i)\s*(?:\w+\s+)?equiv|\s*eq\b", after_text or ""):
+                return (got[0] + "Eq", True)
+            if got:
+                return got
+    tail = window[max(0, before_pos - 60):before_pos]
+    for w in re.findall(r"[A-Za-z][A-Za-z0-9]{1,14}", tail)[::-1]:
+        got = metal_of(w)
+        if got:
+            return got
+    return (None, False)
+
+
+def _parse_window(win: str) -> dict:
+    out = {"tonnes": None, "grades": [], "contained": []}
+    for m in _RE_P_TONNES.finditer(win):
+        if m.group("pre"):
+            continue
+        u = (m.group("u") or "").lower()
+        mult = {"mt": 1e6, "kt": 1e3}.get(u, 1.0)
+        if u in ("tons", "ton"):
+            mult = 0.90718474
+        v = _num(m.group("n"), m.group("mult"), mult)
+        if v and v >= 1:
+            out["tonnes"] = v
+            break
+    for m in _RE_P_GRADE.finditer(win):
+        v = _num(m.group("n"))
+        if v is None:
+            continue
+        met, eq = _metal_near(m.group("m"), win, m.start(), win[m.end():m.end() + 16])
+        unit = _GRADE_UNITS.get((m.group("u") or "").lower().replace(" ", ""), m.group("u"))
+        out["grades"].append({"metal": met, "value": v, "unit": unit, "eq": eq})
+    mark = _RE_CONTAINED_MARK.search(win)
+    if mark:
+        for m in _RE_P_CONTAINED.finditer(win, mark.end()):
+            u = (m.group("u") or "").lower()
+            base, umult = _CONTAINED_UNITS.get(u, (None, None))
+            if base is None:
+                continue
+            v = _num(m.group("n"), m.group("mult"), umult)
+            if v is None:
+                continue
+            met, _eq = _metal_near(m.group("m"), win, m.start(), win[m.end():m.end() + 16])
+            out["contained"].append({"metal": met, "value": v, "unit": base})
+    return out
+
+
+def read_prose(text: str) -> list:
+    """Rows from sentences: 'Inferred Mineral Resource of 6.5 Mt at 1.02% Sb for 67 kt of antimony'."""
+    rows = []
+    for line in text.split("\n"):
+        for part in re.split(r"(?<=[.;])\s+", line):
+            part = part.strip()
+            if len(part) < 20 or len(part) > 460 or not _RE_RES_WORD.search(part):
+                continue
+            hits = list(_RE_CAT_WORD.finditer(part))
+            if not hits:
+                continue
+            for k, h in enumerate(hits):
+                canon = None
+                for name, pat in _CAT_CANON:
+                    if re.fullmatch("(?i)" + pat, h.group(1).strip()):
+                        canon = name
+                        break
+                if canon is None:
+                    continue
+                nxt = hits[k + 1].start() if k + 1 < len(hits) else len(part)
+                prv = hits[k - 1].end() if k else 0
+                trailing = bool(_RE_TRAILING.match(part[h.end():h.end() + 6]))
+                win = part[prv:h.start()] if trailing else part[h.end():nxt]
+                got = _parse_window(win)
+                if got["tonnes"] is None and not got["contained"]:
+                    continue
+                r = _row(None, canon, "prose", h.start())
+                r["_win"] = part
+                r["tonnes"] = got["tonnes"]
+                r["grades"] = [{"metal": x["metal"], "value": x["value"], "unit": x["unit"]}
+                               for x in got["grades"]]
+                r["contained"] = got["contained"]
+                r["cut_off"] = cutoff_in(part)
+                if canon in ("Proven", "Probable", "Proven & Probable") or (
+                        _RE_RESERVE_WORD.search(part) and not _RE_RESOURCE_WORD.search(part)):
