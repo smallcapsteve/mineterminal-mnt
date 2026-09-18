@@ -1,0 +1,360 @@
+                    r["basis"] = "reserve"
+                rows.append(r)
+    return rows
+
+
+# ------------------------------------------------------------------ release-level judgement
+_RE_ANNOUNCES = re.compile(r"(?i)\b(mineral\s+resources?|resource\s+estimate|mre\b|mineral\s+reserves?|"
+                           r"reserve\s+estimate|s-k\s*1300|resources?\s+and\s+reserves?|"
+                           r"(?:maiden|initial|inaugural|updated?|indicated|inferred|measured)\s+"
+                           r"(?:\w+\s+){0,2}resources?|resources?\s+of\s+\d)", re.I)
+_RE_NOT_ANNOUNCING = re.compile(
+    r"(?i)\b(drill(ing)?\s+(results?|programme?|intercepts?)|intersects?|intercepts?|"
+    r"commenc\w+|engages?\b|to\s+complete|nears?\s+completion|impending|imminent|upcoming|"
+    r"planned|set\s+to\b|moving\s+into|expansion\s+drill|infill\s+drill|"
+    r"exploration\s+potential|new\s+zones?\s+of)\b")
+_RE_MAIDEN = re.compile(r"(?i)\b(maiden|initial|inaugural|first(?:-ever)?|debut)\b")
+_RE_UPDATE = re.compile(r"(?i)\b(updated?|increases?|increased|expand\w*|grow\w*|revis\w*|"
+                        r"restat\w*|upgrad\w*|significantly\s+increases)\b")
+_RE_FILING = re.compile(r"(?i)\b(files?|filing|publishes?|submitt?ed)\b")
+_RE_BACKGROUND = re.compile(
+    r"(?i)\b(previously\s+(?:reported|announced|disclosed|stated|released)|historical(?:ly)?|"
+    r"historic\b|prior\s+(?:estimate|resource)|currently\s+(?:has|hosts|carries)|"
+    r"existing\s+(?:mineral\s+)?resource|was\s+first\s+reported|first\s+reported\s+in|"
+    r"inventory\b|portfolio\s+of\s+projects|across\s+its\s+projects|"
+    r"announcement\s+dated|report\s+dated|estimate\s+dated|in\s+accordance\s+with\s+ni\s*43\s*-?\s*101\s*,?\s*dated)\b")
+_RE_PROJECT = re.compile(
+    r"(?i)\b(?:at|for|on|of|to)\s+(?:its|the|their|our)?\s*"
+    r"((?:[A-Z][\w'’\-\.]*|\d+)(?:\s+(?:[A-Z][\w'’\-\.]*|de|del|la|el))??"
+    r"(?:\s+[A-Z][\w'’\-\.]*)??)\s+"
+    r"(project|deposit|mine|property|zone|prospect|royalty|vein|pit|target|district|complex|claims?)\b")
+
+
+def release_project(headline: str, body_head: str = "") -> str | None:
+    for src in (headline or "", body_head or ""):
+        m = _RE_PROJECT.search(src)
+        if m:
+            name = _WS.sub(" ", m.group(1)).strip(" ,.;:-")
+            name = re.sub(r"(?i)^(?:producing|past[\s-]?producing|former|new|flagship|"
+                          r"wholly[\s-]?owned|100%[\s-]?owned|its|the|company's)\s+", "", name)
+            if name and not _CLASS_WORD.match(name) and len(name) > 2:
+                return name
+    return None
+
+
+def release_announces(headline: str, body_head: str = "") -> bool:
+    """Is this release reporting an estimate, or only mentioning one?
+
+    Goldgroup's headline says only 'Files Updated Technical Report on San Francisco Gold Project'
+    and the estimate is announced in the first paragraph, so the body opening counts too. What
+    disqualifies a release is in the headline: drill results, a programme about to start, a
+    consultant engaged to prepare an update later."""
+    h = headline or ""
+    if _RE_NOT_ANNOUNCING.search(h):
+        return False
+    return bool(_RE_ANNOUNCES.search(h) or _RE_ANNOUNCES.search((body_head or "")[:900]))
+
+
+def mre_type(headline: str, body_head: str = "") -> str | None:
+    h = (headline or "") + " " + (body_head or "")[:400]
+    if _RE_MAIDEN.search(h):
+        return "Maiden"
+    if _RE_UPDATE.search(h):
+        return "Update"
+    if _RE_FILING.search(headline or ""):
+        return "Restated"
+    return None
+
+
+def _norm_dep(d):
+    if not d:
+        return ""
+    s = re.sub(r"(?i)\b(project|deposit|mine|property|zone|prospect|the)\b", " ", d)
+    return _WS.sub(" ", re.sub(r"[^\w\s]", " ", s)).strip().lower()
+
+
+_SRC_RANK = {"table": 0, "rowline": 1, "prose": 2, "headline": 3}
+
+
+def _dedupe(rows):
+    """One row per deposit, category and basis. A second figure for the same three is a different
+    cut-off, not a duplicate -- Cruz states its estimate at 500 ppm and again at 300 ppm."""
+    groups = {}
+    for r in rows:
+        groups.setdefault((_norm_dep(r["deposit"]), r["category"], r["basis"]), []).append(r)
+    out = []
+    for key in groups:
+        g = sorted(groups[key], key=lambda r: (_SRC_RANK.get(r["source"], 9), r["pos"]))
+        kept = []
+        for r in g:
+            same = next((k for k in kept if _same_figures(k, r)), None)
+            if same is None:
+                kept.append(r)
+            elif same["source"] != r["source"] and not same["grades"] and r["grades"]:
+                same["grades"] = r["grades"]
+        # the figure the release states in prose is the base case; the rest are other cut-offs
+        base = next((r for r in kept if r["source"] in ("prose", "headline")), kept[0] if kept else None)
+        for r in kept:
+            if r is not base and r["context"] == "announced":
+                r["context"] = "alternative cut-off"
+        out.extend(kept)
+    out.sort(key=lambda r: (r["pos"], r["category"]))
+    return out
+
+
+def _same_figures(a, b):
+    if a["tonnes"] and b["tonnes"]:
+        hi = max(a["tonnes"], b["tonnes"])
+        if abs(a["tonnes"] - b["tonnes"]) > 0.02 * hi:
+            return False
+        return True
+    if a["tonnes"] or b["tonnes"]:
+        return False
+    return (a["cut_off"] or "") == (b["cut_off"] or "")
+
+
+# ------------------------------------------------------------------ the whole release
+def analyse(headline: str, body: str) -> dict:
+    head = clean(headline or "")
+    text = clean(body or "")
+    res = {"is_resource_estimate": False, "rows": [], "project": None, "mre_type": None,
+           "announces": False, "reason": "no_figures"}
+
+    rows = read_tables(text.split("\n"))
+    rows += read_prose(text)
+    for r in read_prose(head + "."):
+        r["source"], r["pos"], r["_win"] = "headline", -1, head
+        rows.append(r)
+    if not rows:
+        return res
+
+    announces = release_announces(head, text)
+    project = release_project(head, text[:1500])
+    res["announces"] = announces
+    res["project"] = project
+    res["mre_type"] = mre_type(head, text)
+
+    # one cut-off stated anywhere and no column for it: Military Metals puts it in the notes
+    doc_cut = cutoff_in(text) or cutoff_in(head)
+    for r in rows:
+        if not r["deposit"] and project:
+            r["deposit"] = project
+        if r["cut_off"] is None:
+            r["cut_off"] = doc_cut
+        if not announces or _RE_BACKGROUND.search(r["_win"] or ""):
+            r["context"] = "background"
+
+    rows = _dedupe(rows)[:MAX_ROWS]
+    for r in rows:
+        r.pop("_win", None)
+    res["rows"] = rows
+    res["is_resource_estimate"] = bool(rows)
+    res["reason"] = "rows" if rows else "no_figures"
+    return res
+
+
+# ------------------------------------------------------------------ facts store adapter
+def extract(headline: str, body: str) -> list:
+    a = analyse(headline, body)
+    if not a["rows"]:
+        return [F.Record(KIND, facts=[F.Fact("is_resource_estimate", value_num=0.0),
+                                      F.Fact("reason", value_text=a["reason"])], confidence=0.0)]
+    out = []
+    for r in a["rows"]:
+        fs = [F.Fact("is_resource_estimate", value_num=1.0),
+              F.Fact("category", value_text=r["category"]),
+              F.Fact("context", value_text=r["context"]),
+              F.Fact("basis", value_text=r["basis"]),
+              F.Fact("source_shape", value_text=r["source"])]
+        if r["deposit"]:
+            fs.append(F.Fact("deposit", value_text=r["deposit"]))
+        if r["tonnes"] is not None:
+            fs.append(F.Fact("tonnes", value_num=float(r["tonnes"]), unit="t"))
+        for i, gr in enumerate(r["grades"]):
+            fs.append(F.Fact("grade", value_num=float(gr["value"]), unit=gr["unit"],
+                             metal=gr["metal"], seq=i))
+        for i, cm in enumerate(r["contained"]):
+            fs.append(F.Fact("contained", value_num=float(cm["value"]), unit=cm["unit"],
+                             metal=cm["metal"], seq=i))
+        if r["cut_off"]:
+            fs.append(F.Fact("cut_off", value_text=str(r["cut_off"])))
+        if a["mre_type"]:
+            fs.append(F.Fact("mre_type", value_text=a["mre_type"]))
+        if a["project"]:
+            fs.append(F.Fact("project", value_text=a["project"]))
+        out.append(F.Record(KIND, facts=fs,
+                            confidence=1.0 if r["confidence"] == "high" else 0.5))
+    return out
+
+
+def parse_records(rows_by_ordinal):
+    """{ordinal: [Fact]} -> the analyse()-shaped dict."""
+    rows, is_re, project, mtype = [], False, None, None
+    for ordinal in sorted(rows_by_ordinal):
+        r = {"deposit": None, "category": None, "tonnes": None, "grades": [], "contained": [],
+             "cut_off": None, "basis": "resource", "context": "announced", "source": None}
+        for f in rows_by_ordinal[ordinal]:
+            if f.field == "is_resource_estimate":
+                is_re = is_re or f.value_num == 1.0
+            elif f.field == "tonnes":
+                r["tonnes"] = f.value_num
+            elif f.field == "grade":
+                r["grades"].append({"metal": f.metal, "value": f.value_num, "unit": f.unit})
+            elif f.field == "contained":
+                r["contained"].append({"metal": f.metal, "value": f.value_num, "unit": f.unit})
+            elif f.field == "source_shape":
+                r["source"] = f.value_text
+            elif f.field == "project":
+                project = f.value_text
+            elif f.field == "mre_type":
+                mtype = f.value_text
+            elif f.field in r:
+                r[f.field] = f.value_text
+        if r["category"]:
+            rows.append(r)
+    return {"is_resource_estimate": is_re and bool(rows), "rows": rows, "project": project,
+            "mre_type": mtype}
+
+
+def to_prediction(records):
+    if not records:
+        return None
+    return prediction_from(parse_records({i: rec.facts for i, rec in enumerate(records)}))
+
+
+def prediction_from(a):
+    if not a.get("is_resource_estimate") or not a.get("rows"):
+        return None
+    return {"mre_type": a.get("mre_type"),
+            "rows": [{"deposit": r["deposit"], "category": r["category"], "tonnes": r["tonnes"],
+                      "grades": r["grades"], "contained": r["contained"], "cut_off": r["cut_off"],
+                      "basis": r["basis"], "context": r["context"]} for r in a["rows"]]}
+
+
+def _code_sha():
+    import hashlib
+    with open(__file__, "rb") as fh:
+        return hashlib.sha1(fh.read()).hexdigest()
+
+
+SPEC = F.ExtractorSpec(NAME, VERSION, KIND, TAG, extract, _code_sha())
+
+
+# ------------------------------------------------------------------ self-test
+def self_test(verbose=False):
+    bad = 0
+
+    def eq(name, got, want):
+        nonlocal bad
+        if got != want:
+            bad += 1
+            print(f"  FAIL {name}: got {got!r}, want {want!r}")
+        elif verbose:
+            print(f"  ok   {name}")
+
+    def sig(a):
+        return [(r["deposit"], r["category"], r["tonnes"]) for r in a["rows"]]
+
+    # a table flattened to one cell per line, with the group headers above the unit row
+    mili_body = "\n".join([
+        "Inferred Mineral Resource of 6.5 Mt at 1.02% Sb and 1.06 g/t Au for 67 kt of antimony",
+        "Table 1 - Trojarova Mineral Resource Estimate - April 6, 2026",
+        "Classification", "Tonnage", "Average Grade", "Contained Metal",
+        "(Mt)", "Sb (%)", "Au (g/t)", "Sb (kt)", "Au (koz)",
+        "Inferred", "6.5", "1.02", "1.06", "67", "222", "Notes:",
+        "Mineral Resources are estimated at a break-even cut-off grade of 0.8% SbEq."])
+    a = analyse("Military Metals Files Maiden Inferred Mineral Resource Estimate for Trojarova Project",
+                mili_body)
+    eq("one row, table beats the prose that repeats it", sig(a), [("Trojarova", "Inferred", 6500000.0)])
+    eq("cut-off from the notes", a["rows"][0]["cut_off"], "0.8% SbEq")
+    eq("maiden", a["mre_type"], "Maiden")
+    eq("grades keep their metals", [(g["metal"], g["value"]) for g in a["rows"][0]["grades"]],
+       [("Sb", 1.02), ("Au", 1.06)])
+    eq("contained is normalised to the base unit",
+       [(c["metal"], c["value"], c["unit"]) for c in a["rows"][0]["contained"]],
+       [("Sb", 67000.0, "t"), ("Au", 222000.0, "oz")])
+
+    # two deposits under one header: the second heading must not read as a tonnage column
+    wrlg = "\n".join([
+        "Mineral Resource Statement - Rowan Mine Deposit", "Classification", "Tonnes (t)",
+        "Gold Grade (g/t)", "Gold Troy Ounces (oz Au)",
+        "Indicated", "754,514", "13.03", "334,825", "Inferred", "360,323", "15.31", "179,013",
+        "Mineral Resource Statement - Mt. Jamie Deposit", "Classification", "Tonnes (t)",
+        "Gold Grade (g/t)", "Gold Troy Ounces (oz Au)",
+        "Indicated", "108,775", "14.13", "49,407", "Inferred", "92,972", "11.97", "35,791"])
+    eq("one row per deposit per category", sig(analyse("Gold Co Significantly Increases Rowan MRE", wrlg)),
+       [("Rowan Mine Deposit", "Indicated", 754514.0), ("Rowan Mine Deposit", "Inferred", 360323.0),
+        ("Mt. Jamie Deposit", "Indicated", 108775.0), ("Mt. Jamie Deposit", "Inferred", 92972.0)])
+
+    # a category line with nothing under it is not a row, and is not a deposit name either
+    gga = "\n".join(["Cut-off (Au g/t)", "Category", "K tonnes", "Au (g/t)", "Gold (K oz)",
+                     "North Pit Mine OP", "0.08", "Measured",
+                     "Indicated", "4,630", "0.30", "44.3", "Inferred", "8,764", "0.26", "72.7"])
+    a = analyse("Goldgroup Files Updated Technical Report on San Francisco Gold Project",
+                "The Company filed an updated technical report. Current Measured and Indicated "
+                "resources are stated below.\n" + gga)
+    eq("empty category line", sig(a), [("North Pit Mine OP", "Indicated", 4630000.0),
+                                       ("North Pit Mine OP", "Inferred", 8764000.0)])
+    eq("K tonnes is a thousand tonnes", a["rows"][0]["tonnes"], 4630000.0)
+    eq("block cut-off", a["rows"][0]["cut_off"], "0.08")
+
+    # a whole row on one line, with the deposit inside the category cell
+    ogn = "\n".join(["Tonnes", "(k)", "Ag", "(g/t)", "Au", "(g/t)", "Silver", "(Koz)", "Gold", "(Koz)",
+                     "Proven  797 85 3.65 2,173 93", "Resources (inclusive of reserve)",
+                     "Inferred Ermitano* 2,355 59.2 2.14 4,480 162",
+                     "Inferred Navidad 2,267 81 3.42 5,910 249"])
+    a = analyse("Orogen Announces Mineral Resource and Reserve Update on Producing Ermitano Royalty", ogn)
+    eq("deposit inside the category cell",
+       [(r["deposit"], r["category"], r["basis"]) for r in a["rows"]],
+       [("Ermitano", "Proven", "reserve"), ("Ermitano", "Inferred", "resource"),
+        ("Navidad", "Inferred", "resource")])
+
+    # prose, including a category that trails its figures
+    a = analyse("Patriot Files Technical Report on the Shaakichiuwaanaan Mineral Resource Estimate",
+                "The Project hosts mineral resources of 108.0 Mt at 1.40% Li2O and 166 ppm Ta2O5, "
+                "Indicated, and 33.4 Mt at 1.33% Li2O and 155 ppm Ta2O5, Inferred.")
+    eq("trailing category", [(r["category"], r["tonnes"]) for r in a["rows"]],
+       [("Indicated", 108000000.0), ("Inferred", 33400000.0)])
+
+    a = analyse("Fathom Announces Maiden Mineral Resource Estimate, Gochager Lake Deposit",
+                "Total Indicated Mineral Resources of 858,701 tonnes at 0.41% Ni, 0.12% Cu and "
+                "0.03% Co (0.57% NiEq), containing 7.7 million pounds of nickel.")
+    eq("metals do not slide along the sentence",
+       [(g["metal"], g["value"]) for g in a["rows"][0]["grades"]],
+       [("Ni", 0.41), ("Cu", 0.12), ("Co", 0.03), ("NiEq", 0.57)])
+
+    # releases that state no estimate
+    eq("a filing with no figures", analyse(
+        "Kuya Silver Files NI 43-101 Technical Report for Silver Kings Project",
+        "The Company today filed on a voluntary basis a technical report with an effective date of "
+        "September 5, 2021.")["rows"], [])
+    eq("an intention is not an estimate", analyse(
+        "Minaurum Engages SGS to Complete Mineral Resource Update on the Alamos Silver Project",
+        "The Company has engaged SGS to update its mineral resource estimate on Alamos.")["rows"], [])
+    eq("boilerplate states nothing", analyse(
+        "Company Reports Drill Results",
+        "An Inferred Mineral Resource has a lower level of confidence relative to a Measured or "
+        "Indicated Mineral Resource.")["rows"], [])
+
+    # a drill-results release that restates the existing resource is background, not news
+    a = analyse("Outstanding drilling results from high-grade core to drive impending resource update",
+                "The Ming Mine currently hosts 50.4 Mt of Measured and Indicated Mineral Resources "
+                "at 2.0% for 1,016 kt copper equivalent.")
+    eq("background when the release announces nothing",
+       [(r["category"], r["context"]) for r in a["rows"]],
+       [("Measured & Indicated", "background")])
+
+    recs = extract("Military Metals Files Maiden Inferred Mineral Resource Estimate for Trojarova Project",
+                   mili_body)
+    eq("one record per row", len(recs), 1)
+    p = to_prediction(recs)
+    eq("prediction shape", (p["rows"][0]["deposit"], p["rows"][0]["category"], p["mre_type"]),
+       ("Trojarova", "Inferred", "Maiden"))
+
+    print(f"resources self-test: {'ok' if not bad else str(bad) + ' failures'}")
+    return bad
+
+
+if __name__ == "__main__":
+    import sys as _sys
+    _sys.exit(1 if self_test() else 0)
