@@ -55,4 +55,14 @@ except Exception:  # pragma: no cover
     import logging
     logging.getLogger(__name__).exception("economics_api register failed")
 
+
+# MNT_PRODUCTION_API_V1 (2026-09-21): /api/v1/production JSON for MTP company pages.
+# Guarded like the other API hooks: if this module ever fails to import, the site still serves.
+try:
+    from portal import production_api
+    production_api.register(app)
+except Exception:  # pragma: no cover
+    import logging
+    logging.getLogger(__name__).exception("production_api register failed")
+
 __all__ = ["app"]
