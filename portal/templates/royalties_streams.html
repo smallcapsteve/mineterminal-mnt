@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}Royalties & Streams — MiningNewsTerminal{% endblock %}
+{% block meta_description %}Royalty and stream deals from CSE, TSXV and TSX mining companies: NSRs, gross revenue royalties and metal streams bought, sold, granted, bought back or amended, with rate, property, parties and price, read from their news releases.{% endblock %}
+{% block content %}
+  <style>
+    .rd-table td { vertical-align: top; }
+    .rd-table .rd-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .rd-table .rd-sub { display: block; font-size: .8em; opacity: .7; }
+    .rd-kind { display: inline-block; padding: 0 .4em; border-radius: 3px; font-size: .75em; letter-spacing: .02em;
+               border: 1px solid currentColor; opacity: .85; white-space: nowrap; }
+    .rd-table tr.rd-cont td.rd-quiet { opacity: .35; }
+    .rd-none { opacity: .55; font-style: italic; }
+    .rd-arrow { opacity: .55; }
+  </style>
+
+  <h2 class="page-title">Royalties &amp; Streams</h2>
+
+  <section class="filters fin-filters">
+    <form method="get" action="/royalties-streams">
+      <label for="ticker">Company:</label>
+      <select name="ticker" id="ticker" onchange="this.form.submit()">
+        <option value="">All companies</option>
+        {% for t in tickers %}
+          <option value="{{ t }}" {% if t == selected_ticker %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="type">Interest:</label>
+      <select name="type" id="type" onchange="this.form.submit()">
+        {% for v, label in [('', 'All royalties and streams'), ('NSR', 'NSR'), ('GRR', 'Gross revenue royalty'), ('NPI', 'Net profits interest'), ('stream', 'Stream'), ('other', 'Other royalty')] %}
+          <option value="{{ v }}" {% if v == rtype %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="action">Deal:</label>
+      <select name="action" id="action" onchange="this.form.submit()">
+        {% for v, label in [('', 'All deals'), ('new', 'New / granted'), ('transfer', 'Bought / sold'), ('buyback', 'Buyback / buy-down'), ('amendment', 'Amended')] %}
+          <option value="{{ v }}" {% if v == action %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="days">Window:</label>
+      <select name="days" id="days" onchange="this.form.submit()">
+        {% for d, label in [(0, 'All time'), (30, 'Last 30 days'), (90, 'Last 90 days'), (180, 'Last 6 months'), (365, 'Last year')] %}
+          <option value="{{ d }}" {% if d == days %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="show">Show:</label>
+      <select name="show" id="show" onchange="this.form.submit()">
+        <option value="deals" {% if show == 'deals' %}selected{% endif %}>Latest news on each deal</option>
+        <option value="releases" {% if show == 'releases' %}selected{% endif %}>Every release about a deal</option>
+        <option value="all" {% if show == 'all' %}selected{% endif %}>Also tagged releases with no deal</option>
+      </select>
+
+      {% if selected_ticker or days or rtype or action or show != 'deals' %}
+        <a class="cat-clear" href="/royalties-streams">Reset</a>
+      {% endif %}
+      <span class="muted">{{ rows|length }} shown · {{ total_filtered }} matching · {{ total }} deals from {{ releases }} releases</span>
+    </form>
+  </section>
+
+  {% if not rows %}
+    <p class="empty">No royalty or stream deals in this window.</p>
+  {% else %}
+    <div class="table-scroll">
+    <table class="fin-table rd-table">
+      <colgroup>
+        <col style="width: 7%">   <!-- Ticker    -->
+        <col style="width: 12%">  <!-- Company   -->
+        <col style="width: 8%">   <!-- Date      -->
+        <col style="width: 10%">  <!-- Interest  -->
+        <col style="width: 15%">  <!-- Property  -->
+        <col style="width: 22%">  <!-- Parties   -->
+        <col style="width: 9%">   <!-- Price     -->
+        <col style="width: 11%">  <!-- Deal      -->
+        <col style="width: 6%">   <!-- View      -->
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Ticker</th>
+          <th>Company</th>
+          <th>Date</th>
+          <th title="The kind of interest and its rate">Interest</th>
+          <th>Property</th>
+          <th title="Who holds the interest after the deal, and who gave it up or granted it">Buyer ← Seller</th>
+          <th class="rd-num" title="The cash price the release states">Price</th>
+          <th>Deal</th>
+          <th>View</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr class="{% if not r['first_of_release'] %}rd-cont{% endif %}">
+            <td class="fin-ticker {% if not r['first_of_release'] %}rd-quiet{% endif %}">
+              {%- if r['first_of_release'] -%}
+                {% set _mtp = r["ticker"] | mtp_url('mining') %}{% if _mtp %}<a class="mtp-co" href="{{ _mtp }}" target="_blank" rel="noopener" title="Open {{ r['ticker'] }} mining data on MineTerminalPro">{{ r["ticker"] }}</a>{% else %}{{ r["ticker"] }}{% endif %}
+              {%- else -%}
+                {{ r["ticker"] }}
+              {%- endif -%}
+            </td>
+            <td class="{% if not r['first_of_release'] %}rd-quiet{% endif %}">{% if r['first_of_release'] %}{{ r["company_name"] }}{% endif %}</td>
+            <td class="fin-date {% if not r['first_of_release'] %}rd-quiet{% endif %}">{% if r['first_of_release'] %}{{ (r["published_at"] or "")[:10] }}{% endif %}</td>
+            {% if r["type"] %}
+              <td>
+                {{ r["rate_pct"] | rd_rate }} {{ r["type"] | rd_type }}
+                {%- if r["metal"] %}<span class="rd-sub">{{ r["metal"] }}</span>{% endif -%}
+              </td>
+              <td>
+                {{ r["property"] or "—" }}
+                {%- if r["operator"] %}<span class="rd-sub">{{ r["operator"] }}</span>{% endif -%}
+              </td>
+              <td>{{ r["buyer"] or "—" }} <span class="rd-arrow">←</span> {{ r["seller"] or "—" }}</td>
+              <td class="rd-num">{% if r["price"] is not none %}{{ r["price"] | rd_money(r["currency"]) }}{% else %}—{% endif %}</td>
+              <td>
+                <span class="rd-kind">{{ r["action"] | rd_action }}</span>
+                {%- if r["status"] %}<span class="rd-sub">{{ r["status"] }}</span>{% endif -%}
+                {%- if r["deal_releases"] and r["deal_releases"] > 1 %}<span class="rd-sub" title="Releases about this deal">{{ r["deal_releases"] }} releases since {{ r["first_reported"] }}</span>{% endif -%}
+              </td>
+            {% else %}
+              <td colspan="5" class="rd-none">Reports no royalty or stream deal</td>
+            {% endif %}
+            <td>
+              {% if r["url"] and r['first_of_release'] %}<a href="{{ r['url'] }}">View ↗</a>{% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  {% endif %}
+  {% include "_pager.html" %}
+{% endblock %}

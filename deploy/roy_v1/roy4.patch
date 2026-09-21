@@ -1,0 +1,30 @@
+--- a/portal/extractors/royalties.py
++++ b/portal/extractors/royalties.py
+@@ -369,6 +369,8 @@
+             continue
+-        if re.match(r"(?i)(?:net|gross|royalt|stream|nsr|the)\b", name):
+-            continue
++        if re.match(r"(?i)(?:net|gross|royalt|stream|nsr|the)\b", name) or \
++                re.search(r"\b(?:Mining|Resources|Metals|Minerals|Royalties|Exploration|Explorers)$", name):
++            continue          # a company's name read as a property ('Bunker Hill Mining')
+         d = defs.get(name.lower())
+-        if d and not re.search(r"(?i)\b" + _SUFFIX + r"\b", d) and len(d) > len(name):
++        if d and not re.search(r"(?i)\b" + _SUFFIX + r"\b", d) and len(d) > len(name) and \
++                not re.search(r"\b(?:Mining|Resources|Metals|Minerals|Royalties|Exploration|Explorers|Gold|Silver)$", d):
+             d = re.split(r"['’]s\s+", d)[-1]
+@@ -643,3 +645,4 @@
+                                r"royalt\w*|stream|gross)", tm + " " + D) or
+-                     re.search(r"(?i)\b(?:held\s+by|currently\s+being|under\s+option)\b", D)):
++                     re.search(r"(?i)\b(?:held\s+by|currently\s+being|under\s+option)\b", D) or
++                     re.search(r"(?i)\bnon[\s\-]core\s+(?:\S+\s+){0,2}?(?:royalt|NSR|stream)", tm)):
+         action = "transfer"
+@@ -656,4 +659,7 @@
+     if _same(buyer, seller):
+-        seller = None if action in ("transfer", "buyback") else seller
+-        buyer = None if action in ("new", "amendment") else buyer
++        # the same company on both sides: keep it where the release puts its own name -- a royalty company buys
++        if issuer_royco or action in ("transfer", "buyback"):
++            seller = None
++        else:
++            buyer = None
+     # a property is not a party ('Eskay Creek' read as the seller of the Eskay Creek stream)
