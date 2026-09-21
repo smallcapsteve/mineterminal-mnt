@@ -45,6 +45,7 @@ TICKERS_PATH = "/opt/mnt/app/tickers.json"
 MTP_UNIVERSE_PATH = "/var/lib/mnt-portal/mtp-companies.json"
 SITE_BASE = "https://miningnewsterminal.com"
 API_VERSION = "1"
+IRR_TOL = 0.5          # IRR points two releases of one study may differ by (rounding)
 MAX_LIMIT = 100
 DEFAULT_LIMIT = 20
 STUDIES = ("PEA", "PFS", "FS")
@@ -236,6 +237,46 @@ def _scenario(r) -> dict:
     }
 
 
+_STAGE = {"PEA": 0, "PFS": 1, "FS": 2}
+_NOT_RESULT = re.compile(r"commenc|update|begin|initiat|launch|underway|progress|toward|contract|award|"
+                         r"engag|\bstart|\bplans?\b|expect|to complete|\bwork", re.I)
+# Checked by hand against the company's own release where the releases we hold cannot settle the type:
+# (bare ticker, after-tax NPV to three significant figures) -> type.
+TYPE_OVERRIDES = {
+    ("GPH", 5.03e9): "FS",     # Graphite One bankable feasibility study, 2025 (our releases label it PFS/FS)
+}
+
+
+def _headline_type(headline: Optional[str]) -> str:
+    """The study type a headline announces, or ''. 'Commences feasibility study' and 'provides DFS update'
+    announce nothing."""
+    h = (headline or "")
+    if not h or _NOT_RESULT.search(h):
+        return ""
+    low = h.lower()
+    if re.search(r"pre[- ]?feasibility|\bpfs\b", low):
+        return "PFS"
+    if re.search(r"\bpea\b|preliminary economic assessment", low):
+        return "PEA"
+    if re.search(r"feasibility|\bdfs\b|\bbfs\b|\bfs\b", low):
+        return "FS"
+    return ""
+
+
+def _study_type(members: list) -> str:
+    """members: (published_at, label, announced, headline) in date order. When the releases of one study
+    disagree on its type, the announcement whose headline names that same type decides; otherwise the
+    earliest-stage label wins, because a restatement is mislabelled toward the study the company is
+    working on next (a PFS restated in a 'DFS update'), not back toward an earlier one."""
+    labels = {m[1] for m in members if m[1]}
+    if len(labels) <= 1:
+        return next(iter(labels), "")
+    for _, label, announced, headline in members:
+        if announced and label and _headline_type(headline) == label:
+            return label
+    return min(labels, key=lambda x: _STAGE.get(x, 9))
+
+
 def build_studies(rows, names: dict) -> list[dict]:
     """rows in (published_at, event_id, ordinal) order -> studies, newest first."""
     releases: dict[str, dict] = {}
@@ -257,31 +298,50 @@ def build_studies(rows, names: dict) -> list[dict]:
             rel["project"] = clean_project(r["project"])
         rel["scenarios"].append(_scenario(r))
 
-    # A restatement often drops the study type or the discount rate ("the Feasibility Study's US$984M
-    # NPV"). Releases therefore match on company, NPV and IRR, and then on study type and discount
-    # only where both sides state them; a blank on one side is filled from the other. (2026-09-21)
+    # Matching (v1.2, 2026-09-21). A study's after-tax NPV to three significant figures is close to
+    # unique within one company, so releases that share it are the same study when their IRRs agree to
+    # within 0.5 points (restatements round: 61.2% vs 61%) and their discount rates agree where both
+    # state one. The study TYPE is not part of the match: restatements are often labelled with the study
+    # the company is working on next ("provides DFS update" restating PFS figures); _study_type() settles
+    # the type. With no NPV, releases match on IRR (to 0.1) and a compatible type, as before.
     studies: list[dict] = []
-    by_core: dict[Any, list] = {}
+    by_key: dict[Any, list] = {}
     for eid in order:                      # chronological
         rel = releases[eid]
-        fp = fingerprint(rel["ticker"], rel["study_type"], rel["scenarios"][0]) if rel["scenarios"] else None
-        st = None
+        base = rel["scenarios"][0] if rel["scenarios"] else {}
+        fp = fingerprint(rel["ticker"], rel["study_type"], base) if rel["scenarios"] else None
+        st, key = None, None
         if fp is not None:
-            core, typ, disc = fp[0:1] + fp[2:4], fp[1], fp[4]
-            for cand in by_core.get(core, []):
-                if (not typ or not cand["type"] or typ == cand["type"]) and \
-                   (disc is None or cand["disc"] is None or float(disc) == float(cand["disc"])):
+            tk, typ, npv, irr, disc = fp
+            key = (tk, "npv", npv) if npv is not None else (tk, "irr", irr)
+            for cand in by_key.get(key, []):
+                if npv is not None:
+                    ok_irr = irr is None or cand["irr"] is None or abs(irr - cand["irr"]) <= IRR_TOL + 1e-9
+                    ok_typ = True
+                else:
+                    ok_irr = True
+                    ok_typ = not typ or not cand["type"] or typ == cand["type"]
+                ok_disc = disc is None or cand["disc"] is None or float(disc) == float(cand["disc"])
+                if ok_irr and ok_typ and ok_disc:
                     st = cand
                     break
         if st is None:
             st = {"rep": rel, "first": rel["published_at"], "last": rel["published_at"], "n": 1,
-                  "type": fp[1] if fp else "", "disc": fp[4] if fp else None, "project": rel["project"]}
+                  "type": fp[1] if fp else (rel["study_type"] or "").upper(), "irr": fp[3] if fp else None,
+                  "disc": fp[4] if fp else None, "project": rel["project"], "labels": set(), "members": []}
+            if st["type"]:
+                st["labels"].add(st["type"])
+            st["members"].append((rel["published_at"], st["type"], rel["announced"], rel["headline"]))
             studies.append(st)
-            if fp is not None:
-                by_core.setdefault(core, []).append(st)
+            if key is not None:
+                by_key.setdefault(key, []).append(st)
             continue
-        st["type"] = st["type"] or typ
-        st["disc"] = st["disc"] if st["disc"] is not None else disc
+        typ = fp[1]
+        if typ:
+            st["labels"].add(typ)
+        st["members"].append((rel["published_at"], typ or "", rel["announced"], rel["headline"]))
+        st["irr"] = st["irr"] if st["irr"] is not None else fp[3]
+        st["disc"] = st["disc"] if st["disc"] is not None else fp[4]
         st["project"] = st["project"] or rel["project"]
         st["n"] += 1
         st["last"] = rel["published_at"]
@@ -291,14 +351,18 @@ def build_studies(rows, names: dict) -> list[dict]:
 
     out = []
     for st in studies:
+        st["type"] = _study_type(st["members"]) or st["type"]
         rel = st["rep"]
+        base = rel["scenarios"][0] if rel["scenarios"] else {}
+        st["type"] = TYPE_OVERRIDES.get((bare(rel["ticker"]), _sig(base.get("npv_after_tax"))), st["type"])
         t = rel["ticker"]
         out.append({
             "study_id": rel["event_id"],
             "ticker": t,
             "bare_ticker": bare(t),
             "company": company_name(t, names),
-            "study_type": rel["study_type"] or st["type"] or "",
+            "study_type": st["type"] or "",
+            "other_labels": sorted(st["labels"] - {st["type"]}),
             "project": rel["project"] or st["project"] or "",
             "source": "announced" if rel["announced"] else "restated",
             "date": rel["published_at"][:10],
@@ -322,9 +386,6 @@ def query_studies(conn, p: dict, names: dict, universe: Optional[frozenset]) -> 
     if t:
         where.append("(upper(ticker) = ? OR upper(ticker) LIKE ?)")
         args += [t, bare(t) + ".%"]
-    if p.get("study"):
-        where.append("upper(COALESCE(study_type, '')) = ?")
-        args.append(p["study"])
     if universe:
         where.append("(CASE WHEN instr(ticker, '.') > 0 THEN upper(substr(ticker, 1, instr(ticker, '.') - 1)) "
                      "ELSE upper(ticker) END) IN (SELECT value FROM json_each(?))")
@@ -334,6 +395,8 @@ def query_studies(conn, p: dict, names: dict, universe: Optional[frozenset]) -> 
     studies = build_studies(rows, names)
     if p.get("since"):
         studies = [s for s in studies if s["date"] >= p["since"]]
+    if p.get("study"):                     # on the study's own type, after grouping (v1.2)
+        studies = [s for s in studies if s["study_type"] == p["study"]]
     total, limit, page = len(studies), p["limit"], p["page"]
     items = studies[(page - 1) * limit: page * limit]
     return {
@@ -509,13 +572,46 @@ def _selftest() -> int:
     ok("universe", [s["study_id"] for s in r["items"]] == ["a4", "a1", "c2"] and r["universe_applied"])
 
     # FFF.TO: the announcement states FS at 5%; a later release restates the same NPV/IRR with no type or rate
-    row("f1", "FFF.TO", "2026-05-27", st="FS", npv=984e6, irr=61.2, disc=5.0, project="Cabacal")
+    row("f1", "FFF.TO", "2026-05-27", st="FS", npv=984e6, irr=61.2, disc=5.0, project="Cabacal", head="FFF Feasibility Study Results")
     row("f2", "FFF.TO", "2026-06-01", ctx="background", st="", npv=984e6, irr=61.2, disc=None, project="")
-    # ...and a PEA with the same NPV/IRR but a different stated type stays separate
-    row("f3", "FFF.TO", "2026-07-01", st="PEA", npv=984e6, irr=61.2, disc=5.0)
+    # ...a later release labels the same figures PEA (mislabelled) and one rounds IRR to 61%: all one study
+    row("f3", "FFF.TO", "2026-07-01", st="PEA", npv=984e6, irr=61.2, disc=5.0, head="FFF Corporate Update")
+    row("f4", "FFF.TO", "2026-08-01", ctx="background", st="FS", npv=984e6, irr=61.0, disc=5.0)
+    # ...and a genuinely new study (new NPV) stays separate
+    row("f5", "FFF.TO", "2026-09-01", st="FS", npv=1.31e9, irr=48.0, disc=5.0)
     r = query_studies(conn, P(ticker="FFF.TO"), names, None)
-    ok("a restatement missing type and rate folds in", [s["study_id"] for s in r["items"]] == ["f3", "f1"]
-       and r["items"][1]["releases"] == 2 and r["items"][1]["study_type"] == "FS")
+    ok("same NPV and IRR within 0.5: one study whatever the label", [s["study_id"] for s in r["items"]] == ["f5", "f1"]
+       and r["items"][1]["releases"] == 4 and r["items"][1]["study_type"] == "FS"
+       and r["items"][1]["other_labels"] == ["PEA"])
+    ok("study filter uses the study's own type", [s["study_id"] for s in query_studies(conn, P(ticker="FFF.TO", study="pea"), names, None)["items"]] == [])
+    # HHH.V: the PFS is announced first; later "DFS update" releases restate its figures labelled FS
+    row("h1", "HHH.V", "2025-03-10", st="PFS", npv=984e6, irr=61.2, disc=5.0, head="HHH Pre-Feasibility Study Delivers US$984M NPV")
+    row("h2", "HHH.V", "2025-04-15", ctx="background", st="FS", npv=984e6, irr=61.2, disc=5.0)
+    row("h3", "HHH.V", "2026-05-27", ctx="announced", st="FS", npv=984e6, irr=61.2, disc=5.0, head="HHH Provides DFS Update")
+    row("h4", "HHH.V", "2026-04-27", ctx="background", st="", npv=984e6, irr=61.0, disc=None)
+    r = query_studies(conn, P(ticker="HHH.V"), names, None)
+    ok("the original announcement and its label win", r["total"] == 1 and r["items"][0]["study_id"] == "h1"
+       and r["items"][0]["study_type"] == "PFS" and r["items"][0]["releases"] == 4 and r["items"][0]["other_labels"] == ["FS"])
+    # JJJ.V: first seen labelled FS in a restatement, later PEA; no announcement names it - the earlier stage wins
+    row("j1", "JJJ.V", "2025-01-08", ctx="background", st="FS", npv=1.1e9, irr=86.0, head="JJJ Royalties Update On Principal Asset")
+    row("j2", "JJJ.V", "2025-02-20", ctx="background", st="PEA", npv=1.1e9, irr=86.0, head="JJJ Files Technical Report")
+    r = query_studies(conn, P(ticker="JJJ.V"), names, None)
+    ok("no deciding announcement: earliest-stage label", r["total"] == 1 and r["items"][0]["study_type"] == "PEA"
+       and r["items"][0]["other_labels"] == ["FS"])
+    # KKK.V: the real FS announcement outranks an earlier PFS label in a restatement
+    row("k1", "KKK.V", "2025-01-01", ctx="background", st="PFS", npv=5.03e9, irr=27.0)
+    row("k2", "KKK.V", "2025-03-01", ctx="announced", st="FS", npv=5.03e9, irr=27.0, head="KKK Announces Positive Feasibility Study")
+    ok("an announcement naming the type decides", query_studies(conn, P(ticker="KKK.V"), names, None)["items"][0]["study_type"] == "FS")
+    ok("headline types", _headline_type("Avalon Announces the Commencement of Feasibility Study") == ""
+       and _headline_type("Graphite One Advances its Supply Chain with Completion of a Bankable Feasibility Study") == "FS"
+       and _headline_type("Canadian Copper Discusses the Murray Brook Project and Past-Producing Caribou Plant PEA") == "PEA"
+       and _headline_type("Meridian's Cabacal Pre-Feasibility Study Delivers") == "PFS"
+       and _headline_type("RPX Gold Delivers Robust Preliminary Economic Assessment") == "PEA"
+       and _headline_type("Positive Definitive Feasibility Study") == "FS")
+    # III.V: same NPV but IRR 5 points apart - not the same study
+    row("i1", "III.V", "2025-01-01", npv=200e6, irr=20.0)
+    row("i2", "III.V", "2026-01-01", npv=200e6, irr=25.0)
+    ok("IRR far apart stays separate", query_studies(conn, P(ticker="III.V"), names, None)["total"] == 2)
     # GGG.V: the only release we have left out the type; a later one names it
     row("g1", "GGG.V", "2026-01-01", ctx="background", st="", npv=50e6, irr=20.0, disc=None, project="")
     row("g2", "GGG.V", "2026-02-01", ctx="background", st="PFS", npv=50e6, irr=20.0, disc=8.0, project="Gee Hill")
