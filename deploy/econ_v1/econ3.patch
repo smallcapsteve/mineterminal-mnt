@@ -1,0 +1,166 @@
+--- a/portal/extractors/econ_core.py
++++ b/portal/extractors/econ_core.py
+@@ -902,7 +902,8 @@
+ _RE_CASE_NAME = re.compile(r"(?ix)\b(base|spot|low|high|medium|consensus|upside|downside|"
+                            r"current)\d?\s*(?:case|price|scenario)?\b")
+ _RE_NUM_TOK = re.compile(r"""(?ix)(?<![\w.])
+-    (?P<neg>[-−](?=[\d$]))?(?P<cur>US\$|C\$|CA\$|A\$|\$)?\s?(?P<num>\d[\d,]*(?:\.\d+)?)\s?(?P<suf>%|x)?(?![\w.])""")
++    (?P<neg>[-−](?=[\d$]))?(?P<cur>US\$|C\$|CA\$|A\$|\$)?\s?(?P<num>\d[\d,]*(?:\.\d+)?)
++    (?:\s?(?P<mag>M|B|million|billion)\b)?\s?(?P<suf>%|x)?(?![\w.])""")
+ _RE_PAREN_PCT = re.compile(r"\(\s*\d{1,2}(?:\.\d+)?\s*%\s*\)")
+ _RE_RATIO_ROW = re.compile(r"(?i)(?:NPV|IRR)\s*(?:/|per\b)|ratio|\bper\s+share\b")
+ _ROW_FIELDS = (
+@@ -962,9 +963,29 @@
+         rows = column_table(names, flat[end:end + 1100])
+         if rows:
+             out.append(rows)
++    # A table whose two columns are the TAX BASES of one scenario: Northcliff heads its results
++    # 'Pre-Tax | Post-Tax' and writes 'Net Present Value (8%) | $ 12,290 M | $ 6,915 M'. Read as a
++    # stranded label, the pre-tax C$12.29 billion became an after-tax figure on a scenario of its own.
++    for m in _RE_TAX_HEADER.finditer(flat):
++        rows = column_table(["pre", "post"], flat[m.end():m.end() + 900])
++        if not rows:
++            continue
++        pre, post = rows
++        one = {"scenario": "base case", "currency": post["currency"] or pre["currency"],
++               "discount_pct": post["discount_pct"] or pre["discount_pct"],
++               "npv_pre_tax": pre["npv_after_tax"] if pre["npv_pre_tax"] is None else pre["npv_pre_tax"],
++               "npv_after_tax": post["npv_after_tax"],
++               "irr_pre_tax_pct": pre["irr_after_tax_pct"] if pre["irr_pre_tax_pct"] is None else pre["irr_pre_tax_pct"],
++               "irr_after_tax_pct": post["irr_after_tax_pct"],
++               "payback_years": post["payback_years"]}
++        if one["npv_after_tax"] is not None:
++            out.append([one])
+     return out
+ 
+ 
++_RE_TAX_HEADER = re.compile(r"(?i)\bpre[\s-]{0,2}tax\s*\|\s*(?:post|after)[\s-]{0,2}tax\s*\|")
++
++
+ def column_table(names, body):
+     """One row per column of a case table, or None when this clause is not one.
+ 
+@@ -1032,12 +1053,17 @@
+                 continue
+             if tk.group("neg") and field == "npv":
+                 v = -v
++            # Northcliff's '$ 12,290 M  $ 6,915 M' carries its magnitude on each figure
++            tmag = (tk.group("mag") or "").lower()
++            tmult = {"m": 1e6, "million": 1e6, "b": 1e9, "billion": 1e9}.get(tmag)
+             if field == "npv":
+                 mk = tk.group("cur")
+                 key = "npv_pre_tax" if tax == "pre" else "npv_after_tax"
+                 # RPX's summary table writes '$523  $935' with no magnitude anywhere on the row: a
+                 # figure the row does not scale is left to the prose, which states it in millions
+-                if r[key] is None and not (mult == 1.0 and abs(v) < _MIN_BARE):
++                if r[key] is None and tmult:
++                    r[key] = v * tmult
++                elif r[key] is None and not (mult == 1.0 and abs(v) < _MIN_BARE):
+                     r[key] = v * mult
+                 r["currency"] = r["currency"] or cur or (
+                     {"US$": "USD", "C$": "CAD", "CA$": "CAD", "A$": "AUD"}.get(mk or ""))
+@@ -1316,6 +1342,10 @@
+     return out
+ 
+ 
++_RE_CHANGE_TO = re.compile(r"(?i)\b(?:increas|ris|grow|improv|climb|jump|ris)\w*\s+to\s*$")
++_RE_AT_PRICE = re.compile(r"(?i)^[\s,/]*(?:at|using|with)\b[^.;]{0,30}$")
++
++
+ def scenarios(text, skip_prior=False):
+     """One row per scenario, pre-tax and after-tax on the same row (Justin, 2026-09-18).
+ 
+@@ -1423,6 +1453,33 @@
+                 stranded.append((sentence, key0))
+             if not vals:
+                 continue
++            # Omai: '$4.0 billion after-tax net present value at a 5% discount rate at base case
++            # $3,600/oz gold, increasing to $5.5 billion at $4,200/oz gold'. The figure after
++            # 'increasing to' is the NPV at the price that follows it, not at the base case, which
++            # was published at $5.5 billion. That figure goes to its own price's row, and this label
++            # keeps the one written before it.
++            moved = None
++            if not back and len(vals) == 1 and vals[0][3] is not None:
++                vstart = m.end() + vals[0][3]
++                if _RE_CHANGE_TO.search(look[m.end():vstart]):
++                    vm = _RE_MONEY.match(look, vstart)
++                    rest = (look[vm.end():] if vm else "") + " " + " ".join(segs[i + 1:j])
++                    d2 = deck_in(rest[:60])
++                    if d2 and _RE_AT_PRICE.match(rest[:d2.start()]):
++                        moved = (" ".join(d2.group(0).split()), vals[0])
++                        prev = segs[i - 1] if i > 0 else ""
++                        b2 = _money_just_before(prev + " " + seg, len(prev) + 1 + m.start()) \
++                            if prev and _RE_ONLY_TAX.match(seg[:m.start()]) else None
++                        vals = [b2[:3] + (None,)] if b2 else []
++            if moved:
++                r2 = row_for((moved[0], _basis_near(look, None)))
++                fld2 = "npv_pre_tax" if _tax_near(look, m.start(), m.end()) == "pre" else "npv_after_tax"
++                if r2[fld2] is None:
++                    r2[fld2] = moved[1][0]
++                r2["currency"] = r2["currency"] or moved[1][1]
++                r2["discount_pct"] = r2["discount_pct"] or discount_of(look[max(0, m.start() - 20):m.end() + 60])
++            if not vals:
++                continue
+             disc = discount_of(look[max(0, m.start() - 20):m.end() + 60])
+             if widened:
+                 stranded.append((widened, key0))
+@@ -1513,6 +1570,10 @@
+         one = {0: r}
+         for seg in segments(text):
+             if _RE_NPV_AT.search(seg):
++                # a clause a table already read is skipped above, payback and all: Northcliff's
++                # '...49.8% and a 1.6-year payback' sits in the clause its table figures came from
++                if seg in _done:
++                    _apply_payback(seg, one, [0])
+                 continue
+             for m in _RE_IRR_AT.finditer(seg):
+                 for v, _tag, off in _tagged_percents(seg[m.end():], limit=60):
+--- a/portal/extractors/economics.py
++++ b/portal/extractors/economics.py
+@@ -40,7 +40,7 @@
+ from portal.extractors import resources as RES
+ 
+ NAME = "economics"
+-VERSION = "1.0.0"
++VERSION = "1.0.1"
+ KIND = "economic_study"
+ TAG = "Economic Studies"
+ TEXT_CAP = 20000
+@@ -66,7 +66,10 @@
+                 "context": None, "project": None, "owner_name": None, "scenarios": []}
+     head = headline or ""
+     text = C.economics_text(head, body)
+-    full = head + "\n" + text
++    # a blank line, so the headline is never joined to the first line of the body: Freeman's
++    # headline ends '...at US$4,350/oz Gold - PR Newswire Canada' and its body opens with the base case
++    # at US$3,650, and read as one clause the base case took the headline's price
++    full = head + "\n\n" + text
+     res = {"is_economic_study": False, "reason": None, "study_type": None,
+            "context": None, "project": None, "owner_name": None, "scenarios": []}
+ 
+@@ -329,6 +332,25 @@
+                 "price of US$4,550/ounce.")
+     eq("two priced scenarios in one sentence", [(x["npv_after_tax"], x["irr_after_tax_pct"]) for x in a["scenarios"]],
+        [(523e6, 99.7), (935e6, 181.0)])
++    # from the live page after the first publish (1.0.1)
++    a = analyse("Omai Gold Announces Preliminary Economic Assessment for Its Omai Project",
++                "$4.0 billion\n\nafter-tax net present value at a 5% discount rate at base case $3,600/oz gold, "
++                "increasing to\n\n$5.5 billion\n\nat $4,200/oz gold")
++    eq("a figure 'increasing to' belongs to the price after it",
++       sorted((x["scenario"], x["npv_after_tax"]) for x in a["scenarios"]),
++       [("$4,200/oz", 5.5e9), ("base case $3,600/oz", 4.0e9)])
++    a = analyse("Freeman Gold Files Technical Report -- After-Tax NPV(5%) of Approximately US$1.03 Billion "
++                "and ~45.4% IRR at US$4,350/oz Gold - PR Newswire Canada",
++                "Feasibility Study base case confirms US$695.6 million after-tax NPV(5%), 34.4% IRR and "
++                "2.5-year payback at US$3,650/oz gold, with a 15.2-year mine life")
++    eq("the headline is not joined to the body", sorted(x["npv_after_tax"] for x in a["scenarios"]),
++       [695.6e6, 1.03e9])
++    a = analyse("Northcliff Announces Results of Feasibility Study Update",
++                "Financial Results\nPre-Tax\nPost-Tax\nUndiscounted Cash Flow\n$ 34,527 M\n$ 19,896 M\n"
++                "Net Present Value (8%)\n$ 12,290 M\n$ 6,915 M\nInternal Rate of Return (IRR)\n68.3 %\n49.8 %")
++    eq("a pre-tax / post-tax table is one scenario",
++       [(x["npv_pre_tax"], x["npv_after_tax"], x["irr_pre_tax_pct"], x["irr_after_tax_pct"]) for x in a["scenarios"]],
++       [(12.29e9, 6.915e9, 68.3, 49.8)])
+ 
+     # the facts-store round trip has to come back the same
+     recs = extract("Standard Lithium Announces PEA for the Smackover Project",
