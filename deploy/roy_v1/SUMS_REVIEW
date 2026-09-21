@@ -1,0 +1,3 @@
+5c60d1e3169c6e3e46d8eddf16205007b12296cc8668baaaeb829be83f3a39a6  /var/tmp/mnt-roy1/tools/repro_roy.py
+57ddefa565668fc0d8e8e72c58b47f0b1bf50db18b5a596140f221e26c53d5db  portal/extractors/royalties.py
+e05662b6332b382a34b8a32edf9ed35bc938aa1edda78f37417f125c6699009b  portal/royalties_publish.py
