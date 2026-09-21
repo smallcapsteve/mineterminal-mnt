@@ -277,6 +277,32 @@ def _study_type(members: list) -> str:
     return min(labels, key=lambda x: _STAGE.get(x, 9))
 
 
+_FILL = ("discount_pct", "npv_pre_tax", "irr_after_tax_pct", "irr_pre_tax_pct", "initial_capex", "payback_years",
+         "aisc", "mine_life_years")
+
+
+def _filled(rep: dict, rels: list) -> list:
+    """The representative release's scenarios, with gaps in its base case filled from the other releases
+    of the same study (earliest first, same currency): an announcement headline often carries NPV and IRR
+    while a later restatement gives capex and mine life."""
+    out = [dict(x) for x in rep["scenarios"]]
+    if not out:
+        return out
+    base = out[0]
+    for other in rels:
+        if other is rep or not other["scenarios"]:
+            continue
+        ob = other["scenarios"][0]
+        if base["currency"] and ob["currency"] and base["currency"] != ob["currency"]:
+            continue
+        for k in _FILL:
+            if base.get(k) is None and ob.get(k) is not None:
+                base[k] = ob[k]
+                if k == "aisc":
+                    base["aisc_unit"] = ob.get("aisc_unit") or base.get("aisc_unit") or ""
+    return out
+
+
 def build_studies(rows, names: dict) -> list[dict]:
     """rows in (published_at, event_id, ordinal) order -> studies, newest first."""
     releases: dict[str, dict] = {}
@@ -328,7 +354,8 @@ def build_studies(rows, names: dict) -> list[dict]:
         if st is None:
             st = {"rep": rel, "first": rel["published_at"], "last": rel["published_at"], "n": 1,
                   "type": fp[1] if fp else (rel["study_type"] or "").upper(), "irr": fp[3] if fp else None,
-                  "disc": fp[4] if fp else None, "project": rel["project"], "labels": set(), "members": []}
+                  "disc": fp[4] if fp else None, "project": rel["project"], "labels": set(), "members": [],
+                  "rels": [rel]}
             if st["type"]:
                 st["labels"].add(st["type"])
             st["members"].append((rel["published_at"], st["type"], rel["announced"], rel["headline"]))
@@ -340,6 +367,7 @@ def build_studies(rows, names: dict) -> list[dict]:
         if typ:
             st["labels"].add(typ)
         st["members"].append((rel["published_at"], typ or "", rel["announced"], rel["headline"]))
+        st["rels"].append(rel)
         st["irr"] = st["irr"] if st["irr"] is not None else fp[3]
         st["disc"] = st["disc"] if st["disc"] is not None else fp[4]
         st["project"] = st["project"] or rel["project"]
@@ -373,7 +401,7 @@ def build_studies(rows, names: dict) -> list[dict]:
             "restated": st["n"] - 1,
             "headline": _title(rel["headline"] or ""),
             "release_url": release_url(t, rel["slug"], rel["event_id"]),
-            "scenarios": rel["scenarios"],
+            "scenarios": _filled(rel, st["rels"]),
         })
     out.sort(key=lambda s: (s["published_at"], s["study_id"]), reverse=True)
     return out
@@ -608,6 +636,15 @@ def _selftest() -> int:
        and _headline_type("Meridian's Cabacal Pre-Feasibility Study Delivers") == "PFS"
        and _headline_type("RPX Gold Delivers Robust Preliminary Economic Assessment") == "PEA"
        and _headline_type("Positive Definitive Feasibility Study") == "FS")
+    # LLL.V: the announcement has NPV/IRR only; a restatement adds capex and mine life -> filled in
+    conn.execute("INSERT INTO economic_studies (event_id, ticker, slug, study_type, context, scenario, currency, "
+                 "npv_after_tax, irr_after_tax_pct, raw_headline, published_at) VALUES "
+                 "('l1','LLL.V','s-l1','PFS','announced','base case','USD',984e6,61.2,'LLL PFS Delivers','2025-03-10T12:00:00')")
+    row("l2", "LLL.V", "2025-06-01", ctx="background", st="FS", npv=984e6, irr=61.0, disc=None, capex=248e6)
+    r = query_studies(conn, P(ticker="LLL.V"), names, None)["items"]
+    ok("base case gaps filled from restatements", len(r) == 1 and r[0]["study_id"] == "l1"
+       and r[0]["scenarios"][0]["initial_capex"] == 248e6 and r[0]["scenarios"][0]["mine_life_years"] == 12.0
+       and r[0]["scenarios"][0]["irr_after_tax_pct"] == 61.2 and r[0]["scenarios"][0]["aisc_unit"] == "/oz")
     # III.V: same NPV but IRR 5 points apart - not the same study
     row("i1", "III.V", "2025-01-01", npv=200e6, irr=20.0)
     row("i2", "III.V", "2026-01-01", npv=200e6, irr=25.0)
