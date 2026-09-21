@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Production Results — MiningNewsTerminal{% endblock %}
+{% block meta_description %}Quarterly and annual production, guidance and mine milestones from CSE, TSXV and TSX mining companies: ounces, pounds and tonnes by metal, read from their news releases.{% endblock %}
+{% block content %}
+  <style>
+    .pr-table td { vertical-align: top; }
+    .pr-table .pr-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .pr-table .pr-sub { display: block; font-size: .8em; opacity: .7; white-space: nowrap; }
+    .pr-kind { display: inline-block; padding: 0 .4em; border-radius: 3px; font-size: .75em; letter-spacing: .02em;
+               border: 1px solid currentColor; opacity: .85; white-space: nowrap; }
+    .pr-tag { display: inline-block; margin-left: .35em; padding: 0 .35em; border-radius: 3px; font-size: .75em;
+              opacity: .75; border: 1px solid currentColor; }
+    .pr-table tr.pr-cont td.pr-quiet { opacity: .35; }
+    .pr-none { opacity: .55; font-style: italic; }
+  </style>
+
+  <h2 class="page-title">Production Results</h2>
+
+  <section class="filters fin-filters">
+    <form method="get" action="/production-results">
+      <label for="ticker">Company:</label>
+      <select name="ticker" id="ticker" onchange="this.form.submit()">
+        <option value="">All companies</option>
+        {% for t in tickers %}
+          <option value="{{ t }}" {% if t == selected_ticker %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="kind">Kind:</label>
+      <select name="kind" id="kind" onchange="this.form.submit()">
+        {% for v, label in [('', 'Production, guidance and milestones'), ('actual', 'Production'), ('guidance', 'Guidance'), ('milestone', 'Milestones')] %}
+          <option value="{{ v }}" {% if v == kind %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="metal">Metal:</label>
+      <select name="metal" id="metal" onchange="this.form.submit()">
+        <option value="">All metals</option>
+        {% for m in metals %}
+          <option value="{{ m }}" {% if m == metal %}selected{% endif %}>{{ m }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="days">Window:</label>
+      <select name="days" id="days" onchange="this.form.submit()">
+        {% for d, label in [(0, 'All time'), (30, 'Last 30 days'), (90, 'Last 90 days'), (180, 'Last 6 months'), (365, 'Last year')] %}
+          <option value="{{ d }}" {% if d == days %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="show">Show:</label>
+      <select name="show" id="show" onchange="this.form.submit()">
+        <option value="rows" {% if show == 'rows' %}selected{% endif %}>Releases stating figures</option>
+        <option value="all" {% if show == 'all' %}selected{% endif %}>Also tagged releases with none</option>
+      </select>
+
+      {% if selected_ticker or days or kind or metal or show != 'rows' %}
+        <a class="cat-clear" href="/production-results">Reset</a>
+      {% endif %}
+      <span class="muted">{{ rows|length }} shown · {{ total_filtered }} rows matching · {{ releases }} releases</span>
+    </form>
+  </section>
+
+  {% if not rows %}
+    <p class="empty">No production results in this window.</p>
+  {% else %}
+    <div class="table-scroll">
+    <table class="fin-table pr-table">
+      <colgroup>
+        <col style="width: 7%">   <!-- Ticker   -->
+        <col style="width: 14%">  <!-- Company  -->
+        <col style="width: 8%">   <!-- Date     -->
+        <col style="width: 9%">   <!-- Kind     -->
+        <col style="width: 9%">   <!-- Period   -->
+        <col style="width: 12%">  <!-- Metal    -->
+        <col style="width: 17%">  <!-- Figure   -->
+        <col style="width: 10%">  <!-- Sold     -->
+        <col style="width: 8%">   <!-- AISC     -->
+        <col style="width: 6%">   <!-- View     -->
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Ticker</th>
+          <th>Company</th>
+          <th>Date</th>
+          <th>Kind</th>
+          <th>Period</th>
+          <th>Metal</th>
+          <th class="pr-num" title="Quantity produced, or the guidance range; for a finished period, the guidance it was measured against beneath">Figure</th>
+          <th class="pr-num">Sold</th>
+          <th class="pr-num" title="All-in sustaining cost per ounce, where the release states it with the figure">AISC</th>
+          <th>View</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr class="{% if not r['first_of_release'] %}pr-cont{% endif %}">
+            <td class="fin-ticker {% if not r['first_of_release'] %}pr-quiet{% endif %}">
+              {%- if r['first_of_release'] -%}
+                {% set _mtp = r["ticker"] | mtp_url('mining') %}{% if _mtp %}<a class="mtp-co" href="{{ _mtp }}" target="_blank" rel="noopener" title="Open {{ r['ticker'] }} mining data on MineTerminalPro">{{ r["ticker"] }}</a>{% else %}{{ r["ticker"] }}{% endif %}
+              {%- else -%}
+                {{ r["ticker"] }}
+              {%- endif -%}
+            </td>
+            <td class="{% if not r['first_of_release'] %}pr-quiet{% endif %}">{% if r['first_of_release'] %}{{ r["company_name"] }}{% endif %}</td>
+            <td class="fin-date {% if not r['first_of_release'] %}pr-quiet{% endif %}">{% if r['first_of_release'] %}{{ (r["published_at"] or "")[:10] }}{% endif %}</td>
+            {% if r["kind"] == "milestone" %}
+              <td><span class="pr-kind">Milestone</span></td>
+              <td colspan="5">{{ r["milestone"] | pr_milestone }}{% if r["asset"] %} · {{ r["asset"] }}{% endif %}</td>
+            {% elif r["kind"] %}
+              <td><span class="pr-kind">{{ 'Guidance' if r["kind"] == 'guidance' else 'Produced' }}</span></td>
+              <td>{{ r["period"] or "—" }}</td>
+              <td>
+                {{ r["metal"] or "—" }}
+                {%- if r["basis"] %}<span class="pr-tag" title="{{ r['basis'] }}">{{ 'sold' if r['basis'] == 'sold' else r['basis'] }}</span>{% endif -%}
+              </td>
+              <td class="pr-num">
+                {% if r["kind"] == "guidance" %}{{ r["low"] | pr_range(r["high"], r["unit"]) }}{% else %}{% if r["approx"] %}~{% endif %}{{ r["qty"] | pr_qty(r["unit"]) }}{% endif %}
+                {% if r["guided_low"] is not none or r["guided_high"] is not none %}<span class="pr-sub" title="The guidance this period was measured against">guided {{ r["guided_low"] | pr_range(r["guided_high"], r["unit"]) }}</span>{% endif %}
+              </td>
+              <td class="pr-num">{% if r["sold"] is not none %}{{ r["sold"] | pr_qty(r["unit"]) }}{% else %}—{% endif %}</td>
+              <td class="pr-num">{% if r["aisc"] is not none %}${{ "{:,.0f}".format(r["aisc"]) }}/oz{% else %}—{% endif %}</td>
+            {% else %}
+              <td colspan="6" class="pr-none">States no production figures</td>
+            {% endif %}
+            <td>
+              {% if r["url"] and r['first_of_release'] %}<a href="{{ r['url'] }}">View ↗</a>{% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  {% endif %}
+  {% include "_pager.html" %}
+{% endblock %}
