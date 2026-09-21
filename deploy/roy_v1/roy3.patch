@@ -1,0 +1,79 @@
+--- a/portal/extractors/royalties.py
++++ b/portal/extractors/royalties.py
+@@ -143,2 +143,5 @@
+     s = " ".join(w)
++    s = re.sub(r"['’]$", "", s)
++    s = re.sub(r"\s+(?:The|A|An)$", "", s)
++    s = re.sub(r"^(?:Company|Corporation)\s+and\s+", "", s)
+     return s or None
+@@ -148,3 +151,4 @@
+                         r"the\s+company|shareholders?|management|board|tsx|cse|nyse|asx)\b|newsfile|information\s+circular|"
+-                        r"globe\s*newswire|pr\s*newswire|\b(?:mine|project|property|complex|deposit|claims)$|^.{0,2}$")
++                        r"globe\s*newswire|pr\s*newswire|\b(?:mine|project|property|complex|deposit|claims)$|^.{0,2}$|"
++                        r"\.\s+[A-Z]")
+ 
+@@ -253,3 +257,3 @@
+                       r"\bapprov(?:al|es|ed)\b|\bmail(?:s|ing)\b|\beffective\s+date\b|\bupdates?\b|\bprogress\b|"
+-                      r"\bsecuring\b|\bforward\s+pays?\b|\bprepay\w*")
++                      r"\bsecuring\b|\bforward\s+pays?\b|\bprepay\w*|\broyalty\s+companies\b|\btalks\b|\bcontinues\s+to\b")
+ _H_FIN = re.compile(r"(?i)\b(?:financing|spin\s*-?\s*out|restructur\w*|transaction)\b")
+@@ -270,3 +274,3 @@
+ # 2026-09-21). 'Acquires Half of the Manicouagan Project Royalty' is a royalty deal: the royalty is the object.
+-_PROPERTY_DEAL = re.compile(r"(?i)\b(?:sells?|sale\s+of|to\s+sell|acquir\w*|acquisition\s+of|purchase\s+of|ownership\s+of|"
++_PROPERTY_DEAL = re.compile(r"(?i)\b(?:sells?|sale\s+of|to\s+sell|acquir\w*|acquisition\s+of|purchase\s+of|ownership\s+of|agreement\s+for|"
+                             r"interest\s+in|option\s+(?:on|to\s+acquire))\s+(?:(?!royalt|nsr|stream|grr|npi|net\s)\S+\s+){0,6}?"
+@@ -283,3 +287,3 @@
+     pd, hd = _PROPERTY_DEAL.search(h), _HEAD_DEAL.search(h)
+-    if pd and (not hd or pd.start() < hd.start()):
++    if pd and (not hd or pd.start() <= hd.start()):
+         return False, "a property deal; the royalty rides along"
+@@ -362,2 +366,3 @@
+         name = re.split(r"['’]s\s+", name)[-1]
++        name = re.sub(r"\s+(?:Zinc|Gold|Silver|Copper|Nickel)?['’]s?$", "", name).strip()
+         if _BAD_PROP.match(name.split()[0]) or _BAD_PROP.match(name) or re.search(r"Zorg", name):
+@@ -471,6 +476,10 @@
+         return defs.get("optionee"), issuer
+-    m = re.search(r"pursuant\s+to\s+which\s+" + _PARTY + r"\s+(?:will|has\s+agreed\s+to|shall)\s+(?:acquire|purchase)", s)
++    m = re.search(r"(?:pursuant\s+to\s+which|whereby|under\s+which)\s+(?:the\s+)?" + _PARTY +
++                  r"\s+(?:will|would|has\s+agreed\s+to|agreed\s+to|shall)\s+(?:acquire|purchase|buy)", s)
+     if m:
+         buyer = _alias(m.group(1), defs, issuer)
+-        return buyer, (issuer if buyer != issuer else None)
++        if buyer != issuer:
++            return buyer, issuer
++        # '... with Grupo Minero Bacis, pursuant to which the Company will acquire': the other party sells
++        return issuer, (_named_after(r"from", s, defs, issuer) or _named_after(r"with", s, defs, issuer))
+     if re.search(r"(?i)\bthe\s+Optionee\s+(?:has|will\s+have)\s+(?:the\s+)?option\s+to\s+acquire", s):
+@@ -604,3 +613,7 @@
+     hd = tm + " " + D
+-    buy_back = re.search(r"(?i)\b(?:repurchas\w*|reacquir\w*|buys?[\s\-]?backs?|buying\s+back|buy[\s\-]?downs?|underlying)\b", hd)
++    buy_back = re.search(r"(?i)\b(?:repurchas\w*|reacquir\w*|buys?[\s\-]?backs?|buying\s+back|buy[\s\-]?downs?)\b(?!\s+(?:of\s+)?(?:its\s+)?"
++                         r"(?:common\s+)?shares?)|\bunderlying\s+(?:\w+\s+){0,4}(?:royalt|NSR|net\s+smelter)", hd)
++    if buy_back and re.search(r"(?i)\bshare\s+(?:re)?purchase|\bshare\s+buy", hd) and not re.search(
++            r"(?i)(?:repurchas\w*|buys?[\s\-]?back|buy[\s\-]?down)\w*\s+(?:\S+\s+){0,5}?(?:royalt|NSR|net\s+smelter|stream)", hd):
++        buy_back = None
+     sell_title = re.search(r"(?i)\b(?:sale|sells?|sold|purchas\w*|acquir\w*|acquisition|buy|buys|bought)\b", tm)
+@@ -621,5 +634,5 @@
+         # 'Abcourt Exercises Option to Buy-Back 0.5% NSR': the company whose headline it is buys it back
+-        if buy_back and seller == issuer and buyer and buyer != issuer and \
++        if buy_back and seller == issuer and buyer != issuer and \
+                 re.search(r"(?i)\b(?:repurchas\w*|reacquir\w*|buys?[\s\-]?backs?|buy[\s\-]?back)\b", tm) and \
+-                not re.search(r"(?i)\bsale\s+of\s+(?:an?\s+)?option|\bsells?\s+(?:an?\s+)?option|\boption\s+to\s+buy", tm):
++                not re.search(r"(?i)\bsale\s+of\s+(?:an?\s+)?option|\bsells?\s+(?:an?\s+)?option", tm):
+             buyer, seller = issuer, buyer
+@@ -629,3 +642,3 @@
+                      re.search(r"(?i)\b(?:its|an\s+existing)\s+(?:\S+\s+){0,3}?(?:\d[\d.]*\s?%\s+)?(?:NSR|net\s+smelter|"
+-                               r"royalt\w*|stream|gross)", D) or
++                               r"royalt\w*|stream|gross)", tm + " " + D) or
+                      re.search(r"(?i)\b(?:held\s+by|currently\s+being|under\s+option)\b", D)):
+@@ -640,2 +653,10 @@
+         action = "transfer"
++    def _same(a, c):
++        return bool(a and c and (a == c or a.split()[0].lower() == c.split()[0].lower()))
++    if _same(buyer, seller):
++        seller = None if action in ("transfer", "buyback") else seller
++        buyer = None if action in ("new", "amendment") else buyer
++    # a property is not a party ('Eskay Creek' read as the seller of the Eskay Creek stream)
++    pl = (prop or "").lower()
++    buyer, seller, operator = [None if (v and v.lower() == pl) else v for v in (buyer, seller, operator)]
+     price, cur = _price(tm, D + " " + " ".join(sents[di + 1:di + 3]), b, _default_currency(b))
