@@ -1,8 +1,6 @@
 --- a/portal/extractors/econ_core.py
 +++ b/portal/extractors/econ_core.py
-@@ -28,20 +28,35 @@
- 
- 
+@@ -30,7 +30,16 @@
  # ---------------------------------------------------------------- numbers
 -_MULT = {"k": 1e3, "thousand": 1e3, "m": 1e6, "mm": 1e6, "million": 1e6,
 -         "b": 1e9, "bn": 1e9, "billion": 1e9}
@@ -20,49 +18,35 @@
      (?<![A-Za-z])                # 'CA$' must not be entered at its 'A$': Lomiko writes CA$797.5 M
 -    (?P<cur>CDN\s*\$?|CA\$|CAD\s*\$?|C\$|US\$|USD\s*\$?|AUD\s*\$?|A\$|\$)?\s*
 +    (?:(?P<cur>CDN\s*\$?|CA\$|CAD\s*\$?|C\$|US\$|USD\s*\$?|AUD\s*\$?|A\$|\$)
-+       (?:\s*(?P<neg>[-\\u2212]))?)?\s*   # Arizona Metals' base case is 'US$-6 million': a loss, not a gain
++       (?:\s*(?P<neg>[-−]))?)?\s*   # Arizona Metals' base case is 'US$-6 million': a loss, not a gain
      (?<![\d.,])                  # never start inside a number: Doubleview's typo 'C13.53 billion'
-                                  # was read from its second digit as 3.53 billion
+@@ -38,3 +47,5 @@
      (?P<num>\d[\d,]*(?:\.\d+)?)\s*
 -    (?P<mult>billion|million|thousand|bn|mm|[KMB])?\b
 +    (?:(?P<mult>billions?|millions?|thousands?|bn|mm|[KMB])\d?)?\b
 +                                 # 'C$992 million3' carries a footnote digit on its magnitude,
 +                                 # and without it the capital cost was read as C$992
      (?!\s*%)                    # a percentage is not money: 'NPV (5%) of C$24.27 million'
-                                  # would otherwise return 5, which is the discount rate
-     """)
- 
+@@ -44,2 +55,6 @@
  
 +def _signed(m, v):
 +    return -v if m.groupdict().get("neg") else v
 +
 +
  def numval(raw):
-     """A number as written. '5,323' is five thousand three hundred and twenty-three; Tantalex
-     writes its capital cost as 'US$147,7M', where the comma is a decimal point -- read as a
-@@ -75,7 +90,7 @@
-         except ValueError:
-             continue
+@@ -77,3 +92,3 @@
          v *= _MULT.get(mult, 1.0) if mult else (scale or 1.0)
 -        return v, {"C": "CAD", "CA": "CAD", "CAD": "CAD", "CDN": "CAD",
 +        return _signed(m, v), {"C": "CAD", "CA": "CAD", "CAD": "CAD", "CDN": "CAD",
                     "US": "USD", "USD": "USD", "A": "AUD", "AUD": "AUD"}.get(cur_raw)
-     return None, None
- 
-@@ -116,8 +131,8 @@
- 
- 
+@@ -118,4 +133,4 @@
  # ---------------------------------------------------------------- which basis a figure is on
 -_RE_AFTER = re.compile(r"(?i)\b(after[\s-]?tax|post[\s-]?tax)\b")
 -_RE_PRE = re.compile(r"(?i)\bpre[\s-]?tax\b")
 +_RE_AFTER = re.compile(r"(?i)\b(after[\s-]{0,2}tax|post[\s-]{0,2}tax)\b")   # TRX writes 'pre -tax'
 +_RE_PRE = re.compile(r"(?i)\bpre[\s-]{0,2}tax\b")
  _RE_NOMINAL = re.compile(r"(?i)\bnominal\b")
- _RE_REAL = re.compile(r"(?i)\breal\b(?!\s*estate)")
- 
-@@ -159,13 +174,15 @@
-     """An NPV without its rate is not comparable to anything. The rate is usually welded to the
-     label -- NPV5, NPV10%, NPV @ 7%, 'using an 8% discount' -- and West Red Lake states it only in
+@@ -161,9 +176,11 @@
      prose, never in the table its NPV sits in."""
 -    m = _RE_DISCOUNT.search(text or "")
 -    if not m:
@@ -81,11 +65,7 @@
 +                    return v
 +                break
      return None
- 
- 
-@@ -399,15 +416,24 @@
-     Only these two explicit forms count. 'the Madsen PFS' names a project, not a company, and
-     reading it as an owner would take West Red Lake's own study off the page."""
+@@ -401,6 +418,11 @@
      m = _RE_OWNER_HEAD.search(headline or "")
 -    if m:
 +    if m and _one_name(m.group("name")):
@@ -100,42 +80,28 @@
 +        if not _one_name(m.group("name")):
 +            continue
          name = m.group("name").strip()
-         return name + (" (%s)" % m.group("alias") if m.group("alias") else "")
-     return None
- 
+@@ -410,2 +432,6 @@
  
 +def _one_name(name):
 +    return not re.search(r"\n|[.;:]\s", name or "")
 +
 +
  # words that say what kind of company it is, not which one
- _GENERIC_CO = set("""inc incorporated corp corporation ltd limited llc plc co company the and of
-     metals metal mining mines minerals mineral resources resource gold golds silver copper lithium battery
-@@ -485,8 +511,8 @@
-                           r"|\d{1,2}(?:\.\d+)?\s*%\s*\))\s*$")
- _RE_MAG_CELL = re.compile(r"""(?ix)^\s*\(?\s*
+@@ -487,4 +513,4 @@
      (?: (?P<cur>US\$|C\$|CA\$|A\$|\$) \s*
 -        (?P<mag1>million|billion|thousand|M|B|bn)? |
 -        (?P<mag2>million|billion|thousand|M|B|bn|%|years?|yrs?|months?|mths?|
 +        (?P<mag1>millions?|billions?|thousands?|M|B|bn)? |
 +        (?P<mag2>millions?|billions?|thousands?|M|B|bn|%|years?|yrs?|months?|mths?|
             t|tpd|tpa|Mtpa|oz|koz|Moz|klbs?|lbs?|\$/t|/t|\$/oz|\$/lb|/lb) )
-     (?:\s*(?:LCE|Au|Ag|Cu|Li|Ni|Zn|Pb|Mo|U3O8|eq))?     # '$/t LCE' is one header cell
-     \s*\)?\s*$""")
-@@ -494,8 +520,8 @@
-                           r"[\d][\d,]*(?:\.\d+)?\s*%?\s*\)?\s*$")
- _RE_TAX_CELL = re.compile(r"(?ix)^\s*\(?\s*(pre[\s-]?tax|post[\s-]?tax|after[\s-]?tax)\s*\)?\s*$")
+@@ -496,4 +522,4 @@
  _RE_HAS_ALPHA = re.compile(r"[A-Za-z]{3}")
 -_MAG_WORD = {"m": "million", "b": "billion", "bn": "billion",
 -             "million": "million", "billion": "billion", "thousand": "thousand"}
 +_MAG_WORD = {"m": "million", "b": "billion", "bn": "billion", "millions": "million", "billions": "billion",
 +             "thousands": "thousand", "million": "million", "billion": "billion", "thousand": "thousand"}
  
- 
- def _reflow(label, quals, val):
-@@ -545,7 +571,13 @@
- 
-     A table's cells are short and must stay apart, so two lines are only joined when BOTH are
+@@ -547,3 +573,9 @@
      long enough to be prose and the first does not end a sentence."""
 -    lines = (text or "").split("\n")
 +    # 'US$1.74\nbillion', 'US$696\n\nmillion': a magnitude a line break took from its figure, which
@@ -146,11 +112,7 @@
 +
 +    lines = text.split("\n")
      out = []
-     for ln in lines:
-         t = ln.rstrip()
-@@ -589,7 +621,11 @@
-                          or (_RE_MAG_CELL.match(raw[j]) and not _RE_VAL_CELL.match(raw[j]))):
-                 quals.append(raw[j])
+@@ -591,3 +623,7 @@
                  j += 1
 -            if quals and j < len(raw) and _RE_VAL_CELL.match(raw[j]):
 +            # A row with a figure per column is a case table and is read as one (column_tables):
@@ -159,67 +121,43 @@
 +            if quals and j < len(raw) and _RE_VAL_CELL.match(raw[j]) \
 +                    and not (j + 1 < len(raw) and _RE_VAL_CELL.match(raw[j + 1])):
                  seg = _reflow(cell, quals, raw[j])
-                 if tax_ctx and i - tax_at <= 8 and not _RE_AFTER.search(seg) \
-                         and not _RE_PRE.search(seg):
-@@ -724,7 +760,7 @@
- # NOT r"\s+per\s+": the money match has already eaten the space after the figure, so a rule
- # that needs one never fires and 'US$2,400 per ounce gold' is counted as a result.
+@@ -726,3 +762,3 @@
  _RE_UNIT_TAIL = re.compile(r"""(?ix)^\s*(?:/|\bper\b\s*)\s*
 -    (?:oz|ounce|t|tonne|lb|pound|klb|mtu|unit|LCE)\b""")
 +    (?:oz|ounce|t|tonne|lb|pound|klb|mtu|unit|LCE|kg|g|dmt|wmt)\d?\b""")
  
- 
- _RE_PRICE_WORD = re.compile(r"(?i)^[^.;|]{0,26}?\bprice\b")
-@@ -748,7 +784,7 @@
- # 'capital cost of US$290 million and an after-tax NPV of US$24 million' the words 'and an' are
- # that difference, and without the test the capital cost is published as the NPV.
- _RE_ONLY_TAX = re.compile(r"""(?ix)^[\s,;:\-\\u2013\\u2014()\[\]]*
--    (?:(?:after|post|pre)[\s-]?tax)?[\s,;:\-\\u2013\\u2014()\[\]]*$""")
-+    (?:(?:after|post|pre)[\s-]{0,2}tax)?[\s,;:\-\\u2013\\u2014()\[\]]*$""")
- 
- 
- def _money_just_before(seg, pos, reach=48):
-@@ -769,7 +805,9 @@
-             v = numval(m.group("num")) * (_MULT.get(mult, 1.0) if mult else 1.0)
-         except ValueError:
+@@ -771,3 +807,5 @@
              continue
 -        best = (v, {"C": "CAD", "CA": "CAD", "CAD": "CAD", "CDN": "CAD", "US": "USD", "USD": "USD",
 +        if (not mult and v < _MIN_BARE) or v > _MAX_RESULT:
 +            continue
 +        best = (_signed(m, v), {"C": "CAD", "CA": "CAD", "CAD": "CAD", "CDN": "CAD", "US": "USD", "USD": "USD",
                      "A": "AUD", "AUD": "AUD"}.get(cur_raw), None, base + m.start())
-     return best
+@@ -776,2 +814,6 @@
  
-@@ -806,12 +844,16 @@
-             continue
-         if _is_unit_price(seg, m.end(), mult):
++# 'Cdn$454 million after- tax NPV6%': a tax label with a stray space in it is still only a tax label
++_RE_ONLY_TAX = re.compile(_RE_ONLY_TAX.pattern.replace(r"[\s-]?tax", r"[\s-]{0,2}tax"), _RE_ONLY_TAX.flags)
++
++
+ def _only_real_lists(vals, tag_at):
+@@ -808,2 +850,6 @@
              continue                      # a price per ounce is an assumption, not a result
 +        if v > _MAX_RESULT:
 +            break                         # the label's figure, misprinted; not the one after it
 +        if not mult and v < _MIN_BARE:
 +            continue
          if out and _RE_CONVERSION.match(seg[out[-1][3]:m.start()]):
-             continue                      # 'C$1.36 billion (US$1.01 billion)' is one figure
-         tag = _RE_OPTION.search(seg[m.end():m.end() + 14])
-         cur = {"C": "CAD", "CA": "CAD", "CAD": "CAD", "CDN": "CAD", "US": "USD", "USD": "USD",
+@@ -813,3 +859,3 @@
                 "A": "AUD", "AUD": "AUD"}.get(cur_raw)
 -        out.append((v, cur, tag.group(1) if tag else None, m.start()))
 +        out.append((_signed(m, v), cur, tag.group(1) if tag else None, m.start()))
          if not out[-1][2] and len(out) == 1:
-             break                      # no tag on the first value means there is no list
-     return _only_real_lists(out, 2)
-@@ -856,7 +898,7 @@
- _RE_CASE_NAME = re.compile(r"(?ix)\b(base|spot|low|high|medium|consensus|upside|downside|"
-                            r"current)\d?\s*(?:case|price|scenario)?\b")
+@@ -858,3 +904,3 @@
  _RE_NUM_TOK = re.compile(r"""(?ix)(?<![\w.])
 -    (?P<cur>US\$|C\$|CA\$|A\$|\$)?\s?(?P<num>\d[\d,]*(?:\.\d+)?)\s?(?P<suf>%|x)?(?![\w.])""")
-+    (?P<neg>[-\\u2212](?=[\d$]))?(?P<cur>US\$|C\$|CA\$|A\$|\$)?\s?(?P<num>\d[\d,]*(?:\.\d+)?)\s?(?P<suf>%|x)?(?![\w.])""")
++    (?P<neg>[-−](?=[\d$]))?(?P<cur>US\$|C\$|CA\$|A\$|\$)?\s?(?P<num>\d[\d,]*(?:\.\d+)?)\s?(?P<suf>%|x)?(?![\w.])""")
  _RE_PAREN_PCT = re.compile(r"\(\s*\d{1,2}(?:\.\d+)?\s*%\s*\)")
- _RE_RATIO_ROW = re.compile(r"(?i)(?:NPV|IRR)\s*(?:/|per\b)|ratio|\bper\s+share\b")
- _ROW_FIELDS = (
-@@ -952,7 +994,16 @@
-         if len(run) != n or len(label) > 160:
-             pos = run[-1].end()
+@@ -954,3 +1000,12 @@
              continue
 -        field = next((f for rx, f in _ROW_FIELDS if rx.search(label)), None)
 +        # The metric is named by the row's own label cell, the last worded cell before its figures
@@ -233,29 +171,20 @@
 +        if field == "npv" and re.search(r"(?i)NPV\s*(?:@|at)?\s*\(?\s*0(?:\.0+)?\s*%|undiscounted", key_cell):
 +            field = None     # undiscounted: a cash flow, not a net present value
          if field is not None and _RE_RATIO_ROW.search(label):
-             field = None     # 'After-Tax NPV/Initial Capex 1.1 1.7 2.3 3.2' is a ratio, not an NPV
-         if field is None:
-@@ -972,6 +1023,8 @@
-                 v = numval(tk.group("num"))
-             except ValueError:
+@@ -974,2 +1029,4 @@
                  continue
 +            if tk.group("neg") and field == "npv":
 +                v = -v
              if field == "npv":
-                 mk = tk.group("cur")
-                 key = "npv_pre_tax" if tax == "pre" else "npv_after_tax"
-@@ -1050,7 +1103,7 @@
+@@ -1055,2 +1112,7 @@
  
- _FIG_FIELDS = ("npv_after_tax", "npv_pre_tax", "irr_after_tax_pct", "irr_pre_tax_pct")
- # a clause that carries on the sentence before it rather than starting a new one
--_RE_CONTINUES = re.compile(r"""^\s*(?:[\d(\[)\]"'\\u201c\\u201d\\u2019,;:%$]|[a-z]|US\$|C\$|CA\$|A\$)""")
-+_RE_CONTINUES = re.compile(r"""^\s*(?:[\d(\[)\]"'\\u201c\\u201d\\u2019,;:%$/]|[a-z]|US\$|C\$|CA\$|A\$)""")
- 
- 
++# ...and a clause that opens with a unit is still the sentence before it: Cascadia breaks 'US$3.75'
++# from '/lb copper', and the price was read as the NPV
++_RE_CONTINUES = re.compile(_RE_CONTINUES.pattern.replace("%$]", "%$/]"))
++
++
  def _same_scenario(a, b):
-@@ -1194,6 +1247,16 @@
-       generated|delivered|indicated)\b""")
- 
+@@ -1196,2 +1258,12 @@
  
 +# 'a US$0.25/lb increase in copper price increased the after-tax NPV by approximately US$90 million'
 +# -- Copper Fox describing a sensitivity. The figure is a change, and the price is a change too.
@@ -268,20 +197,12 @@
 +
 +
  def scenarios(text, skip_prior=False):
-     """One row per scenario, pre-tax and after-tax on the same row (Justin, 2026-09-18).
- 
-@@ -1272,6 +1335,8 @@
-         for m in _RE_NPV_AT.finditer(seg):
-             if skip_prior and _RE_PRIOR_REPORTED.search(seg[max(0, m.start() - 160):m.start()]):
+@@ -1274,2 +1346,4 @@
                  continue
 +            if _RE_NPV_DELTA.match(seg[m.end():m.end() + 30]) or _RE_NPV_ZERO.match(seg[m.end():m.end() + 14]):
 +                continue
              back = _money_just_before(seg, m.start())
-             vals = [back[:3] + (back[3] - m.end(),)] if back else _tagged_money(seg[m.end():])
-             look = seg
-@@ -1284,6 +1349,15 @@
-                 if _scenario_key(" ".join(segs[max(0, i - 1):i + 4])) is None:
-                     continue
+@@ -1286,2 +1360,11 @@
                  look, vals = tail, _tagged_money(tail[m.end():])
 +                if not vals and i > 0 and _RE_ONLY_TAX.match(seg[:m.start()]) \
 +                        and _RE_HAS_ALPHA.search(re.sub(r"(?i)\b(?:million|billion|US|CAD|USD)\b", "", segs[i - 1])):
@@ -293,11 +214,7 @@
 +                    if b2:
 +                        look, vals = seg, [b2[:3] + (None,)]
                  named = _scenario_key(sentence)
-                 if named and named != "base case":
-                     key0 = named
-@@ -1336,26 +1410,6 @@
-                     r[fld] = item[0]
-         _apply_payback(sentence, rows, mine)
+@@ -1338,22 +1421,2 @@
  
 -    # An IRR or a payback often sits in its own clause, away from the NPV it belongs to: Lomiko
 -    # and ESGold both put every figure on its own bullet. Attach those afterwards, by tax basis,
@@ -320,11 +237,7 @@
 -                    r["discount_pct"] = d
 -
      # A release states its discount rate once and every NPV in it is on that rate. West Red Lake
-     # writes 'all net present values are stated at a 5% discount rate' in a sentence that states
-     # no figure, so neither the window around an NPV nor the orphan pass above ever reaches it.
-@@ -1389,6 +1443,29 @@
-             for k in plain:
-                 rows[k]["scenario"] = "base case " + deck
+@@ -1391,2 +1454,25 @@
      out = _consolidate(_merge_scenarios(order, rows))
 +    # An IRR or a payback often sits in its own clause, away from the NPV it belongs to: Lomiko
 +    # and ESGold both put every figure on its own bullet. Attach those afterwards, by tax basis,
@@ -350,11 +263,7 @@
 +                if d is not None:
 +                    r["discount_pct"] = d
      for r in out:
-         r.pop("_pay_pre", None)
-     return out
-@@ -1443,6 +1520,13 @@
-             v = numval(m.group("num")) * (_MULT.get(mult, 1.0) if mult else 1.0)
-         except ValueError:
+@@ -1445,2 +1531,9 @@
              continue
 +        if m.group("neg"):
 +            continue
@@ -364,13 +273,9 @@
 +        if (not mult and v < _MIN_BARE) or v > _MAX_RESULT:
 +            continue
          return v, {"C": "CAD", "CA": "CAD", "CAD": "CAD", "CDN": "CAD", "US": "USD", "USD": "USD",
-                    "A": "AUD", "AUD": "AUD"}.get(cur_raw)
-     return None, None
 --- a/portal/extractors/economics.py
 +++ b/portal/extractors/economics.py
-@@ -303,6 +303,27 @@
-                 "after-tax IRR of 17.9%.")
-     eq("background is not announced", a["context"], "background")
+@@ -305,2 +305,23 @@
  
 +    # from the corpus review on the live database, 2026-09-21: figures that are not the NPV
 +    a = analyse("Fuerte Announces a Positive Preliminary Economic Assessment for the Coffee Gold Project",
@@ -394,5 +299,3 @@
 +    eq("a change in NPV is not a scenario", a["scenarios"], [])
 +
      # the facts-store round trip has to come back the same
-     recs = extract("Standard Lithium Announces PEA for the Smackover Project",
-                    "The PEA uses a discount rate of 8%. NPV (After-Tax) | $ million | 4,992")
