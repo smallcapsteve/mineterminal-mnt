@@ -1,0 +1,15 @@
+--- a/portal/production_publish.py
++++ b/portal/production_publish.py
+@@ -132,2 +132,4 @@
+ def _stale(r, day):
++    """A quarter, half or month that ended more than seven months before the release, or a year more than fifteen,
++    is a comparison or history: quarterly results come out within three months of the quarter's end."""
+     end = period_end(r.get("period"))
+@@ -136,4 +138,5 @@
+     y, mth = int(day[:4]), int(day[5:7])
+-    y2, m2 = (y - 1, mth - 3) if mth > 3 else (y - 2, mth + 9)
+-    return end < "%04d-%02d-01" % (y2, m2)
++    back = 15 if (r.get("period") or "").startswith("FY") else 7
++    tot = y * 12 + (mth - 1) - back
++    return end < "%04d-%02d-01" % (tot // 12, tot % 12 + 1)
+ 
