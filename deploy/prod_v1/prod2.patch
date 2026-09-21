@@ -1,0 +1,157 @@
+--- a/portal/extractors/production.py
++++ b/portal/extractors/production.py
+@@ -421,2 +421,33 @@
+ 
++_NOT_SUBJECT = {"the", "company", "we", "it", "production", "record", "total", "consolidated", "gold", "silver",
++                "copper", "quarterly", "annual", "first", "second", "third", "fourth", "q1", "q2", "q3", "q4", "this",
++                "operations", "operation", "group", "corporation", "mine", "mines", "segment", "our", "combined",
++                "during", "in", "for", "full", "year", "highlights", "overall", "attributable", "payable"}
++
++
++def _issuer_words(headline):
++    """The first capitalised words of the headline: 'Sierra Madre Reports ...' -> {'sierra', 'madre'}."""
++    words = []
++    for w in re.findall(r"[A-Za-z][\w'’&\-]*", headline or "")[:4]:
++        if w.lower() in ("reports", "announces", "provides", "delivers", "achieves", "presents", "releases", "inc",
++                         "corp", "ltd", "the"):
++            break
++        words.append(w.lower())
++    return set(words)
++
++
++def _subject(pre, issuer):
++    """The named asset a clause says produced a figure ('Kiaka produced', 'the La Colorada mine produced', 'At the
++    CDI Complex, total production was'), or None when the subject is the company itself."""
++    m = re.search(r"(?:^|[,;:.]\s*|\b(?:the|at|from)\s+)((?:[A-Z][\w'’\-]+\s+){0,3}[A-Z][\w'’\-]+)"
++                  r"(?:\s+(?:mine|Mine|operations?|Operations?|complex|Complex))?\s*(?:,\s*)?(?:has\s+)?"
++                  r"(?:produced|poured|total\s+production|production\s+(?:was|of|totall?ed))", pre)
++    if not m:
++        return None
++    words = [w.lower() for w in m.group(1).split()]
++    if all(w in _NOT_SUBJECT or w in issuer for w in words):
++        return None
++    return " ".join(words)
++
++
+ # ------------------------------------------------------------------ milestones
+@@ -425,3 +456,4 @@
+     ("first_pour", re.compile(r"(?i)\bfirst\s+(?:gold\s+|silver\s+|doré\s+|dore\s+)?pour\b|\bpours?\s+first\s+(?:gold|doré|dore)")),
+-    ("resumption", re.compile(r"(?i)\b(resumes|resumed|restarts|restarted|resumption\s+of\s+\w+\s+(?:achieved|complete))")),
++    ("resumption", re.compile(r"(?i)\b(?:resumes|resumed|restarts|restarted|resumption\s+of)\s+(?:\w+\s+){0,2}?(?:production|operations?|mining|milling|processing|shipments?)\b"
++                                r"|\b(?:mine|operations?|mill|plant)\s+(?:resumes|resumed|restarts|restarted)\b")),
+     ("first_production", re.compile(r"(?i)\bproduction\s+(?:and\s+shipment\s+)?of\s+first\b|\bfirst\s+production\b|\bbegins?\s+production\b|\bcommences?\s+production\b")),
+@@ -429,3 +461,3 @@
+ ]
+-_MS_NOT = re.compile(r"(?i)\b(toward|towards|on\s+track|expects?|expected|planned|plans|prepar\w*|ahead\s+of|approach\w*|nears?|nearing|moving|path\s+to|targets?|targeting|anticipat\w*|will|decision|update\s+on\s+the\s+restart|suspend\w*)\b")
++_MS_NOT = re.compile(r"(?i)\b(toward|towards|on\s+track|expects?|expected|planned|plans|prepar\w*|ahead\s+of|approach\w*|nears?|nearing|moving|path\s+to|targets?|targeting|anticipat\w*|will|decision|update\s+on\s+the\s+restart|suspend\w*|drill\w*|exploration|trading)\b")
+ _ASSET = re.compile(r"\b(?:at|from)\s+(?:the\s+|its\s+)?((?:[A-Z][\w'’\-]+\s+){0,3}[A-Z][\w'’\-]+?)(?:\s+(?:Gold|Graphite|Copper|Silver))?(?:\s+(?:Mine|Project|Operations?|Complex|Plant))?\b")
+@@ -470,2 +502,3 @@
+     text = _prepare(headline, body)
++    issuer = _issuer_words(head)
+     rows = []
+@@ -563,6 +596,7 @@
+                 continue      # in a sentence about plans, only a figure the release says was produced is an actual
++            subj = _subject(pre_long, issuer)
+             row = {"kind": "actual", "period": period, "metal": metal, "qty": men["value"], "unit": men["unit"],
+-                   "role": role, "approx": men["approx"], "_clause": ci,
++                   "role": role, "approx": men["approx"], "_clause": ci, "_subject": subj,
+                    "_mine": bool(re.search(r"(?i)\b(?:the\s+)?[A-Z][\w'’\-]+(?:\s+[A-Z][\w'’\-]+){0,2}\s+mine\s+(?:has\s+)?(?:produced|production)\b", pre_long)
+-                                 or re.match(r"(?:At|From)\s+(?:the\s+)?[A-Z]", clause))}
++                                 or re.match(r"(?:At|From)\s+(?:the\s+)?[A-Z]", clause) or bool(subj))}
+             if role == "produced":
+@@ -590,2 +624,7 @@
+ 
++_CAP = {("oz", "gold"): 8e6, ("oz", "AuEq"): 8e6, ("oz", "GEO"): 3e6, ("oz", "silver"): 1.2e8, ("oz", "AgEq"): 1.5e8,
++        ("oz", "palladium"): 4e6, ("oz", "platinum"): 4e6, ("lb", "U3O8"): 4e7, ("t", "copper"): 2.5e6,
++        ("lb", "copper"): 5e9, ("t", "lithium concentrate"): 2e6}
++
++
+ def _unit_fits(metal, unit):
+@@ -598,2 +637,12 @@
+ 
++def _plausible(r):
++    """A quantity inside what one producer can report for one period (and not a zero or a footnote mark)."""
++    vals = [v for v in (r.get("qty"), r.get("low"), r.get("high")) if v is not None]
++    if not vals:
++        return True
++    cap = _CAP.get((r["unit"], r["metal"]), 4e9 if r["unit"] == "lb" else 2e6 if r["unit"] == "t" else 1e8)
++    floor = 100 if r["unit"] == "oz" else 1
++    return all(floor <= v <= cap for v in vals)
++
++
+ def _consolidate(rows, doc_metal=None):
+@@ -607,3 +656,3 @@
+             r["metal"] = ms.pop() if len(ms) == 1 else (doc_metal if r["unit"] == "oz" else None)
+-    rows = [r for r in rows if r.get("metal") and _unit_fits(r["metal"], r["unit"])]
++    rows = [r for r in rows if r.get("metal") and _unit_fits(r["metal"], r["unit"]) and _plausible(r)]
+     # a royalty company reporting GEOs quotes its partners' mines in ounces: those are not its production
+@@ -639,2 +688,6 @@
+             out.append(row)
++    # a release naming two or more producing assets is a multi-mine company's: an asset's figure is not the total
++    subjects = {r.get("_subject") for r in out if r["kind"] == "actual" and r.get("_subject")}
++    if len(subjects) >= 2:
++        out = [r for r in out if r["kind"] != "actual" or not r.get("_mine")]
+     for r in out:
+@@ -642,2 +695,3 @@
+         r.pop("_clause", None)
++        r.pop("_subject", None)
+         r.pop("_mine", None)
+--- a/portal/production_publish.py
++++ b/portal/production_publish.py
+@@ -107,2 +107,31 @@
+ 
++_HEADLINE_PROD = re.compile(r"(?i)produc|\boperat\w*\s+(?:results|update|highlights)|\bquarter|\bQ[1-4]\b|\b[1-4]Q\d\d|"
++                            r"\bH[12]\b|guidance|\bresults\b|first\s+(?:gold\s+)?pour|\bgeos?\b|year[\s\-]+end|"
++                            r"\bfull[\s\-]+year|\bannual\b|resum|restart")
++
++
++def _ptype(period):
++    p = period or ""
++    return "FQ" if "FY20" in p else p[:1] if p[:1] in "QHF" else "M"
++
++
++def _pkey(period):
++    """A sortable key within one kind of period: 'Q3 2025' -> '2025-3', 'FY 2024' -> '2024', '2025-03' -> '2025-03'."""
++    p = period or ""
++    m = re.match(r"([QH])([1-4]) (?:FY)?(20\d\d)", p)
++    if m:
++        return "%s-%s" % (m.group(3), m.group(2))
++    m = re.search(r"20\d\d(?:-\d\d)?", p)
++    return m.group(0) if m else p
++
++
++def _stale(r, day):
++    end = period_end(r.get("period"))
++    if not end or not day:
++        return False
++    y, mth = int(day[:4]), int(day[5:7])
++    y2, m2 = (y - 1, mth - 3) if mth > 3 else (y - 2, mth + 9)
++    return end < "%04d-%02d-01" % (y2, m2)
++
++
+ def fold_past_guidance(rows, published_at):
+@@ -184,4 +213,24 @@
+         rows = keep
++        # of two actuals for one metal and one kind of period (Q1 2026 and Q1 2025, FY 2025 and FY 2024) the
++        # earlier is the comparison the release draws, not its news; and a figure for a period that ended more
++        # than fifteen months before the release is history ('the mine produced 5.47 Moz to 2016')
++        latest = {}
++        for r in rows:
++            if r["kind"] == "actual":
++                k = (r["metal"], _ptype(r["period"]))
++                latest[k] = max(latest.get(k, ""), _pkey(r["period"]))
++        n1 = len(rows)
++        rows = [r for r in rows if r["kind"] != "actual" or
++                (_pkey(r["period"]) == latest[(r["metal"], _ptype(r["period"]))] and not _stale(r, day))]
++        # guidance more than two years out is a study's plan, not guidance
++        rows = [r for r in rows if r["kind"] != "guidance" or not day or not period_end(r.get("period"))
++                or period_end(r["period"])[:4] <= str(int(day[:4]) + 2)]
++        st["history"] = st.get("history", 0) + n1 - len(rows)
+         st["folded"] += n0 - sum(1 for r in rows if r["kind"] == "guidance")
+         tagged = bool(ev.get("tagged"))
++        if not tagged and not _HEADLINE_PROD.search(ev.get("raw_headline") or ""):
++            # outside the tag, only a release whose headline is about production or results is read: the rest
++            # quote production in passing -- a property's history, an acquisition target, a market article
++            st["untagged_skipped"] = st.get("untagged_skipped", 0) + (1 if rows else 0)
++            rows = []
+         if not rows:
