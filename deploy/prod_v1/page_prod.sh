@@ -45,8 +45,9 @@ install -o mnt -g mnt -m 644 $W/cand/portal/app.py $LIVE/portal/app.py
 find $LIVE/portal -name '__pycache__' -type d -exec rm -rf {} + 2>/dev/null
 systemctl restart mnt-portal
 sleep 4
-for i in 1 2 3 4 5 6 7 8 9 10; do
-  code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8001/healthz)
+# the portal takes 12-30 s to answer after a restart while backfills are running
+for i in $(seq 1 45); do
+  code=$(curl -s -m 5 -o /dev/null -w '%{http_code}' http://127.0.0.1:8001/healthz)
   [ "$code" = "200" ] && break
   sleep 2
 done
@@ -60,14 +61,17 @@ for p in / /production-results "/production-results?kind=guidance" "/production-
 done
 curl -s http://127.0.0.1:8001/production-results > $W/page.html
 grep -q 'pr-table' $W/page.html || bad=1
+code=$(curl -s -m 10 -o /dev/null -w '%{http_code}' http://127.0.0.1:8001/healthz)
 echo "healthz: $code   rows on page one: $(grep -c '<tr class=' $W/page.html)"
 if [ "$code" != "200" ] || [ "$bad" != "0" ]; then
   echo "ROLLING BACK THE PAGE"
   install -o mnt -g mnt -m 644 $B/app.py $LIVE/portal/app.py
   find $LIVE/portal -name '__pycache__' -type d -exec rm -rf {} + 2>/dev/null
   systemctl restart mnt-portal
-  sleep 4
-  echo "healthz after rollback: $(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8001/healthz)"
+  for i in $(seq 1 45); do
+    c=$(curl -s -m 5 -o /dev/null -w '%{http_code}' http://127.0.0.1:8001/healthz); [ "$c" = "200" ] && break; sleep 2
+  done
+  echo "healthz after rollback: $c"
   exit 3
 fi
 $PY - $W/page.html <<'PY'
