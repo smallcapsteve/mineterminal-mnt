@@ -1,0 +1,146 @@
+--- a/portal/extractors/econ_core.py
++++ b/portal/extractors/econ_core.py
+@@ -483,7 +483,7 @@
+ # a price deck is a scenario too, and is how most releases name theirs
+ _RE_DECK = re.compile(r"""(?ix)
+     (?:US|C|CA|A)?\$\s*[\d,]+(?:\.\d+)?\s*(?:/|\s+per\s+)\s*
+-    (?:oz|ounce|lb|pound|t|tonne|mtu|unit)\b
++    (?:oz|ounce|lb|pound|t|tonne|mtu)\b
+     (?:\s*(?:Au|Ag|Cu|Li|Ni|Zn|Pb|Mo|Cg|LCE|U3O8))?""")   # 'US$1,524/t Cg' names the metal too
+ # a base case says which price it is on, and it usually says so somewhere other than the sentence
+ # stating the NPV: Surge writes 'the base case uses a lithium price of US$24,000/t LCE' a
+@@ -937,7 +937,10 @@
+             continue
+         # the footnote digit is not part of the name: Gunnison's 'SPOT2' is the Spot column
+         label = re.sub(r"^([a-z]+)\d", r"\1", raw.lower())
+-        deck = _RE_DECK.search(flat[max(0, m.start() - 26):m.start()])
++        win = flat[max(0, m.start() - 26):m.start()]
++        deck = _RE_DECK.search(win)
++        if deck and not re.fullmatch(r"[\s|]*", win[deck.end():]):
++            deck = None      # the price has to head this column, not end the sentence before it
+         cur.append((label + " " + " ".join(deck.group(0).split())).strip() if deck else label)
+         end = m.end()
+     if len(cur) >= 2:
+@@ -1032,7 +1035,9 @@
+             if field == "npv":
+                 mk = tk.group("cur")
+                 key = "npv_pre_tax" if tax == "pre" else "npv_after_tax"
+-                if r[key] is None:
++                # RPX's summary table writes '$523  $935' with no magnitude anywhere on the row: a
++                # figure the row does not scale is left to the prose, which states it in millions
++                if r[key] is None and not (mult == 1.0 and abs(v) < _MIN_BARE):
+                     r[key] = v * mult
+                 r["currency"] = r["currency"] or cur or (
+                     {"US$": "USD", "C$": "CAD", "CA$": "CAD", "A$": "AUD"}.get(mk or ""))
+@@ -1042,10 +1047,14 @@
+                 if r[key] is None:
+                     r[key] = v
+             elif field == "payback":
+-                if r["payback_years"] is None or tax != "pre":
+-                    r["payback_years"] = v / 12.0 if re.search(r"(?i)month", label) else v
++                y = v / 12.0 if re.search(r"(?i)month", key_cell) else v
++                if y <= _MAX_PAYBACK and (r["payback_years"] is None or tax != "pre"):
++                    r["payback_years"] = y
+         got = True
+         pos = label_start = run[-1].end()
++    # a case table whose net present values could not be read is left to the prose
++    if not any(r["npv_after_tax"] is not None or r["npv_pre_tax"] is not None for r in rows):
++        return None
+     return rows if got else None
+ 
+ 
+@@ -1198,6 +1207,10 @@
+                                r"(?P<to>to)\s+\d")
+ 
+ 
++# no study pays back after a quarter of a century; a bigger figure is some other row's
++_MAX_PAYBACK = 25
++
++
+ def _apply_payback(seg, rows, order, key0=""):
+     """The payback figures in a clause, filed onto every row the clause is about.
+ 
+@@ -1220,6 +1233,8 @@
+         if adj is not None:
+             v = float(adj.group("num"))
+             y = round(v / 12.0, 2) if adj.group("unit").lower().startswith(("month", "mth")) else v
++            if y > _MAX_PAYBACK:
++                continue
+             pre = _tax_near(seg, pm.start(), pm.end()) == "pre"
+             for k in order:
+                 if key0 and not k[0].startswith(key0):
+@@ -1235,7 +1250,7 @@
+             after = after[ft.start("to"):]
+         ym = _RE_YEARS.search(after) or _RE_YEARS_REV.search(after)
+         y = years(after)
+-        if y is None or ym is None:
++        if y is None or ym is None or y > _MAX_PAYBACK:
+             continue
+         # the basis is written inside the label, after the word: 'Payback Period (After-Tax)'
+         pre = _tax_near(seg, pm.start(), pm.end(), pm.end() + ym.start()) == "pre"
+@@ -1266,6 +1281,41 @@
+ _RE_NPV_ZERO = re.compile(r"(?i)^\s*(?:@|at)?\s*\(?\s*0(?:\.0+)?\s*%")
+ 
+ 
++_RE_TAX_LEAD = re.compile(r"(?i)(?:\b(?:and|with|an?|the|of)\s+)*(?:(?:after|post|pre)[\s-]{0,2}tax\s*)?$")
++
++
++def _split_cases(segs):
++    """One clause stating two scenarios becomes two clauses.
++
++    RPX writes 'After-tax NPV5% C$523 million and after-tax IRR of 99.7% at a base case gold price
++    of US$3,500/ounce and an after-tax NPV5% of C$935 million and IRR of 181% at an upside gold price
++    of US$4,550/ounce' -- one clause, so both NPVs were filed under the first price and the second
++    was dropped as a duplicate. Split only where each NPV carries its own figure after it and each
++    part names a different case or price; otherwise the clause is left whole."""
++    out = []
++    for seg in segs:
++        ms = list(_RE_NPV_AT.finditer(seg))
++        if len(ms) < 2:
++            out.append(seg)
++            continue
++        cuts = []
++        for m in ms[1:]:
++            if _money_just_before(seg, m.start()) or not _tagged_money(seg[m.end():m.end() + 80]):
++                cuts = []
++                break
++            lead = _RE_TAX_LEAD.search(seg[:m.start()])
++            cuts.append(lead.start() if lead else m.start())
++        parts = [seg[a:b] for a, b in zip([0] + cuts, cuts + [len(seg)])] if cuts else [seg]
++        keys = [_scenario_key(p_) for p_ in parts]
++        if len(parts) > 1 and None not in keys and len(set(keys)) == len(keys) \
++                and all(_tagged_money(p_[_RE_NPV_AT.search(p_).end():]) or _money_just_before(p_, _RE_NPV_AT.search(p_).start())
++                        for p_ in parts if _RE_NPV_AT.search(p_)):
++            out.extend(parts)
++        else:
++            out.append(seg)
++    return out
++
++
+ def scenarios(text, skip_prior=False):
+     """One row per scenario, pre-tax and after-tax on the same row (Justin, 2026-09-18).
+ 
+@@ -1297,7 +1347,7 @@
+         if figs:
+             _done.update(sg for sg in segments(text) if any(f in sg for f in figs))
+ 
+-    segs = segments(text)
++    segs = _split_cases(segments(text))
+     stranded = []
+     for i, seg in enumerate(segs):
+         if seg in _done:
+--- a/portal/extractors/economics.py
++++ b/portal/extractors/economics.py
+@@ -323,6 +323,12 @@
+     a = analyse("Copper Fox Assembles Project Team",
+                 "a US$0.25/lb. increase in copper price increased the after-tax NPV by approximately US$90 million")
+     eq("a change in NPV is not a scenario", a["scenarios"], [])
++    a = analyse("RPX Gold Inc. Delivers Robust Preliminary Economic Assessment",
++                "After-tax NPV5% C$523 million and after-tax IRR of 99.7% at a base case gold price of "
++                "US$3,500/ounce and an after-tax NPV5% of C$935 million and IRR of 181% at an upside gold "
++                "price of US$4,550/ounce.")
++    eq("two priced scenarios in one sentence", [(x["npv_after_tax"], x["irr_after_tax_pct"]) for x in a["scenarios"]],
++       [(523e6, 99.7), (935e6, 181.0)])
+ 
+     # the facts-store round trip has to come back the same
+     recs = extract("Standard Lithium Announces PEA for the Smackover Project",
