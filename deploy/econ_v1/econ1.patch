@@ -20,7 +20,7 @@
      (?<![A-Za-z])                # 'CA$' must not be entered at its 'A$': Lomiko writes CA$797.5 M
 -    (?P<cur>CDN\s*\$?|CA\$|CAD\s*\$?|C\$|US\$|USD\s*\$?|AUD\s*\$?|A\$|\$)?\s*
 +    (?:(?P<cur>CDN\s*\$?|CA\$|CAD\s*\$?|C\$|US\$|USD\s*\$?|AUD\s*\$?|A\$|\$)
-+       (?:\s*(?P<neg>[-−]))?)?\s*   # Arizona Metals' base case is 'US$-6 million': a loss, not a gain
++       (?:\s*(?P<neg>[-\\u2212]))?)?\s*   # Arizona Metals' base case is 'US$-6 million': a loss, not a gain
      (?<![\d.,])                  # never start inside a number: Doubleview's typo 'C13.53 billion'
                                   # was read from its second digit as 3.53 billion
      (?P<num>\d[\d,]*(?:\.\d+)?)\s*
@@ -173,9 +173,9 @@
 @@ -748,7 +784,7 @@
  # 'capital cost of US$290 million and an after-tax NPV of US$24 million' the words 'and an' are
  # that difference, and without the test the capital cost is published as the NPV.
- _RE_ONLY_TAX = re.compile(r"""(?ix)^[\s,;:\-–—()\[\]]*
--    (?:(?:after|post|pre)[\s-]?tax)?[\s,;:\-–—()\[\]]*$""")
-+    (?:(?:after|post|pre)[\s-]{0,2}tax)?[\s,;:\-–—()\[\]]*$""")
+ _RE_ONLY_TAX = re.compile(r"""(?ix)^[\s,;:\-\\u2013\\u2014()\[\]]*
+-    (?:(?:after|post|pre)[\s-]?tax)?[\s,;:\-\\u2013\\u2014()\[\]]*$""")
++    (?:(?:after|post|pre)[\s-]{0,2}tax)?[\s,;:\-\\u2013\\u2014()\[\]]*$""")
  
  
  def _money_just_before(seg, pos, reach=48):
@@ -213,7 +213,7 @@
                             r"current)\d?\s*(?:case|price|scenario)?\b")
  _RE_NUM_TOK = re.compile(r"""(?ix)(?<![\w.])
 -    (?P<cur>US\$|C\$|CA\$|A\$|\$)?\s?(?P<num>\d[\d,]*(?:\.\d+)?)\s?(?P<suf>%|x)?(?![\w.])""")
-+    (?P<neg>[-−](?=[\d$]))?(?P<cur>US\$|C\$|CA\$|A\$|\$)?\s?(?P<num>\d[\d,]*(?:\.\d+)?)\s?(?P<suf>%|x)?(?![\w.])""")
++    (?P<neg>[-\\u2212](?=[\d$]))?(?P<cur>US\$|C\$|CA\$|A\$|\$)?\s?(?P<num>\d[\d,]*(?:\.\d+)?)\s?(?P<suf>%|x)?(?![\w.])""")
  _RE_PAREN_PCT = re.compile(r"\(\s*\d{1,2}(?:\.\d+)?\s*%\s*\)")
  _RE_RATIO_ROW = re.compile(r"(?i)(?:NPV|IRR)\s*(?:/|per\b)|ratio|\bper\s+share\b")
  _ROW_FIELDS = (
@@ -248,8 +248,8 @@
  
  _FIG_FIELDS = ("npv_after_tax", "npv_pre_tax", "irr_after_tax_pct", "irr_pre_tax_pct")
  # a clause that carries on the sentence before it rather than starting a new one
--_RE_CONTINUES = re.compile(r"""^\s*(?:[\d(\[)\]"'“”’,;:%$]|[a-z]|US\$|C\$|CA\$|A\$)""")
-+_RE_CONTINUES = re.compile(r"""^\s*(?:[\d(\[)\]"'“”’,;:%$/]|[a-z]|US\$|C\$|CA\$|A\$)""")
+-_RE_CONTINUES = re.compile(r"""^\s*(?:[\d(\[)\]"'\\u201c\\u201d\\u2019,;:%$]|[a-z]|US\$|C\$|CA\$|A\$)""")
++_RE_CONTINUES = re.compile(r"""^\s*(?:[\d(\[)\]"'\\u201c\\u201d\\u2019,;:%$/]|[a-z]|US\$|C\$|CA\$|A\$)""")
  
  
  def _same_scenario(a, b):
