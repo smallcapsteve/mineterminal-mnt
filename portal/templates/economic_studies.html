@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}Economic Studies — MiningNewsTerminal{% endblock %}
+{% block meta_description %}PEA, pre-feasibility and feasibility study economics from CSE, TSXV and TSX junior mining companies: NPV, IRR, capital cost and payback for every scenario, read from their news releases.{% endblock %}
+{% block content %}
+  <style>
+    .es-table td { vertical-align: top; }
+    .es-table .es-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .es-table .es-sub { display: block; font-size: .8em; opacity: .7; white-space: nowrap; }
+    .es-table .es-scen { font-weight: 600; }
+    .es-tag { display: inline-block; margin-left: .35em; padding: 0 .35em; border-radius: 3px;
+              font-size: .75em; letter-spacing: .02em; opacity: .8; border: 1px solid currentColor; }
+    .es-table tr.es-cont td.es-quiet { opacity: .35; }
+    .es-none { opacity: .55; font-style: italic; }
+  </style>
+
+  <h2 class="page-title">Economic Studies</h2>
+
+  <section class="filters fin-filters">
+    <form method="get" action="/economic-studies">
+      <label for="ticker">Company:</label>
+      <select name="ticker" id="ticker" onchange="this.form.submit()">
+        <option value="">All companies</option>
+        {% for t in tickers %}
+          <option value="{{ t }}" {% if t == selected_ticker %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="study">Study:</label>
+      <select name="study" id="study" onchange="this.form.submit()">
+        {% for v, label in [('', 'All studies'), ('PEA', 'PEA'), ('PFS', 'Pre-feasibility'), ('FS', 'Feasibility')] %}
+          <option value="{{ v }}" {% if v == study %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="days">Window:</label>
+      <select name="days" id="days" onchange="this.form.submit()">
+        {% for d, label in [(0, 'All time'), (90, 'Last 90 days'), (180, 'Last 6 months'), (365, 'Last year'), (730, 'Last 2 years')] %}
+          <option value="{{ d }}" {% if d == days %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="show">Show:</label>
+      <select name="show" id="show" onchange="this.form.submit()">
+        <option value="announced" {% if show == 'announced' %}selected{% endif %}>Studies announced in the release</option>
+        <option value="studies" {% if show == 'studies' %}selected{% endif %}>Also studies a release restates</option>
+        <option value="all" {% if show == 'all' %}selected{% endif %}>Also tagged releases with no figures</option>
+      </select>
+
+      {% if selected_ticker or days or study or show != 'announced' %}
+        <a class="cat-clear" href="/economic-studies">Reset</a>
+      {% endif %}
+      <span class="muted">{{ rows|length }} shown · {{ total_filtered }} rows matching · {{ announced }} releases announcing a study</span>
+    </form>
+  </section>
+
+  {% if not rows %}
+    <p class="empty">No economic studies in this window.</p>
+  {% else %}
+    <div class="table-scroll">
+    <table class="fin-table es-table">
+      <colgroup>
+        <col style="width: 6%">   <!-- Ticker     -->
+        <col style="width: 11%">  <!-- Company    -->
+        <col style="width: 7%">   <!-- Date       -->
+        <col style="width: 6%">   <!-- Study      -->
+        <col style="width: 11%">  <!-- Project    -->
+        <col style="width: 15%">  <!-- Scenario   -->
+        <col style="width: 9%">   <!-- NPV        -->
+        <col style="width: 7%">   <!-- IRR        -->
+        <col style="width: 8%">   <!-- Capex      -->
+        <col style="width: 6%">   <!-- Payback    -->
+        <col style="width: 7%">   <!-- AISC       -->
+        <col style="width: 5%">   <!-- Mine life  -->
+        <col style="width: 4%">   <!-- View       -->
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Ticker</th>
+          <th>Company</th>
+          <th>Date</th>
+          <th>Study</th>
+          <th>Project</th>
+          <th>Scenario</th>
+          <th class="es-num" title="After-tax net present value; pre-tax beneath where the release states it">NPV</th>
+          <th class="es-num" title="After-tax internal rate of return; pre-tax beneath where stated">IRR</th>
+          <th class="es-num" title="Initial capital cost">Capex</th>
+          <th class="es-num">Payback</th>
+          <th class="es-num" title="All-in sustaining cost">AISC</th>
+          <th class="es-num">Life</th>
+          <th>View</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr class="{% if not r['first_of_release'] %}es-cont{% endif %}">
+            <td class="fin-ticker {% if not r['first_of_release'] %}es-quiet{% endif %}">
+              {%- if r['first_of_release'] -%}
+                {% set _mtp = r["ticker"] | mtp_url('mining') %}{% if _mtp %}<a class="mtp-co" href="{{ _mtp }}" target="_blank" rel="noopener" title="Open {{ r['ticker'] }} mining data on MineTerminalPro">{{ r["ticker"] }}</a>{% else %}{{ r["ticker"] }}{% endif %}
+              {%- else -%}
+                {{ r["ticker"] }}
+              {%- endif -%}
+            </td>
+            <td class="{% if not r['first_of_release'] %}es-quiet{% endif %}">{% if r['first_of_release'] %}{{ r["company_name"] }}{% endif %}</td>
+            <td class="fin-date {% if not r['first_of_release'] %}es-quiet{% endif %}">{% if r['first_of_release'] %}{{ (r["published_at"] or "")[:10] }}{% endif %}</td>
+            <td>
+              {%- if r['first_of_release'] and r["study_type"] %}<span class="mre-type-badge">{{ r["study_type"] }}</span>{% endif -%}
+              {%- if r['first_of_release'] and r["context"] == "background" %}<span class="es-tag" title="A study published earlier and restated in this release, not what it announces">restated</span>{% endif -%}
+            </td>
+            <td>{{ r["project"] or "—" }}</td>
+            {% if r["scenario"] %}
+              <td class="es-scen">
+                {{ r["scenario"] | es_scenario }}
+                {%- if r["basis"] == "nominal" %}<span class="es-tag" title="Stated in nominal rather than real terms">nominal</span>{% endif -%}
+              </td>
+              <td class="es-num">
+                {{ r["npv_after_tax"] | es_money(r["currency"]) }}{% if r["discount_pct"] is not none and r["npv_after_tax"] is not none %} <span title="discounted at {{ r['discount_pct'] | es_pct }}">@{{ r["discount_pct"] | es_pct }}</span>{% endif %}
+                {% if r["npv_pre_tax"] is not none %}<span class="es-sub" title="Pre-tax">pre-tax {{ r["npv_pre_tax"] | es_money(r["currency"]) }}</span>{% endif %}
+              </td>
+              <td class="es-num">
+                {{ r["irr_after_tax_pct"] | es_pct }}
+                {% if r["irr_pre_tax_pct"] is not none %}<span class="es-sub">pre-tax {{ r["irr_pre_tax_pct"] | es_pct }}</span>{% endif %}
+              </td>
+              <td class="es-num">
+                {{ r["initial_capex"] | es_money(r["currency"]) }}
+                {% if r["capex_sensitivity"] is not none %}<span class="es-sub" title="The unswung row of the release's capital-cost sensitivity table, which differs from the capital cost it states">sensitivity {{ r["capex_sensitivity"] | es_money(r["currency"]) }}</span>{% endif %}
+              </td>
+              <td class="es-num">{{ r["payback_years"] | es_years }}</td>
+              <td class="es-num">{{ r["aisc"] | es_unit(r["aisc_unit"]) }}</td>
+              <td class="es-num">{{ r["mine_life_years"] | es_years }}</td>
+            {% else %}
+              <td colspan="7" class="es-none">{% if r["other_owner"] %}Reports {{ r["other_owner"] }}'s study, not this company's{% else %}States no study figures{% endif %}</td>
+            {% endif %}
+            <td>
+              {% if r["url"] and r['first_of_release'] %}<a href="{{ r['url'] }}">View ↗</a>{% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  {% endif %}
+  {% include "_pager.html" %}
+{% endblock %}
