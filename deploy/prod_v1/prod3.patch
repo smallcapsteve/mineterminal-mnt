@@ -1,0 +1,27 @@
+--- a/portal/production_publish.py
++++ b/portal/production_publish.py
+@@ -107,3 +107,3 @@
+ 
+-_HEADLINE_PROD = re.compile(r"(?i)produc|\boperat\w*\s+(?:results|update|highlights)|\bquarter|\bQ[1-4]\b|\b[1-4]Q\d\d|"
++_HEADLINE_PROD = re.compile(r"(?i)(?<![\w-])produc|\boperat\w*\s+(?:results|update|highlights)|\bquarter|\bQ[1-4]\b|\b[1-4]Q\d\d|"
+                             r"\bH[12]\b|guidance|\bresults\b|first\s+(?:gold\s+)?pour|\bgeos?\b|year[\s\-]+end|"
+@@ -112,2 +112,6 @@
+ 
++_HEADLINE_NOT = re.compile(r"(?i)\b(?:mineral\s+)?(?:reserves?|resources?)\s+(?:and\s+(?:mineral\s+)?(?:reserves?|resources?)\s+)?"
++                           r"(?:update|estimate|statement)|\bmeeting\b|\bAGM\b|webinar|conference\s+call\s+details")
++
++
+ def _ptype(period):
+@@ -230,3 +234,11 @@
+         tagged = bool(ev.get("tagged"))
+-        if not tagged and not _HEADLINE_PROD.search(ev.get("raw_headline") or ""):
++        hl = ev.get("raw_headline") or ""
++        if _HEADLINE_NOT.search(hl):
++            # a reserve and resource update, a meeting notice: the figures in it are not this period's production
++            st["headline_skipped"] = st.get("headline_skipped", 0) + (1 if rows else 0)
++            rows = [r for r in rows if r["kind"] == "milestone"]
++        if re.search(r"(?i)royalt", hl) and not any(r.get("metal") == "GEO" for r in rows):
++            # a royalty company quoting its operators' ounces: not its own production
++            rows = [r for r in rows if r["kind"] != "actual"]
++        if not tagged and not _HEADLINE_PROD.search(hl):
+             # outside the tag, only a release whose headline is about production or results is read: the rest
