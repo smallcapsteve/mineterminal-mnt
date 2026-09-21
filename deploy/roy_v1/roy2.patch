@@ -1,0 +1,253 @@
+--- a/portal/extractors/royalties.py
++++ b/portal/extractors/royalties.py
+@@ -61,2 +61,13 @@
+ 
++_NOT_PLACE = ("Silver", "Gold", "Copper", "Precious", "Metals", "Metal", "Mine", "Life", "Royalty", "Platinum", "Palladium",
++              "Cobalt", "Nickel", "Zinc", "Graphite", "Uranium", "Lithium", "Tin", "Tungsten", "Definitive", "New", "Its",
++              "The", "A", "Additional", "Second", "Third", "First", "Mineral", "Minerals", "Polymetallic", "Revenue")
++
++
++def _places(t):
++    """'Clarence Stream North Gold Project' is a place, not a stream."""
++    return re.sub(r"\b([A-Z][a-z]+)\s+Stream\b(?!\s+(?:Agreement|Financing|Transaction|Interest|Deal))",
++                  lambda m: m.group(0) if m.group(1) in _NOT_PLACE else m.group(1) + " Strm", t)
++
++
+ def _prepare(headline, body):
+@@ -69,3 +80,3 @@
+     h = re.sub(r"\s+", " ", unicodedata.normalize("NFKC", headline or ""))
+-    return h.strip(), b.strip()
++    return _places(h.strip()), _places(b.strip())
+ 
+@@ -75,4 +86,14 @@
+     or the “Company”) is pleased to announce ...')."""
+-    m = re.search(r"\s(?=(?:[A-Z][\w&'’.\-]*\s+){0,5}" + _SUFFIX + r"\.?\s*[,(])", h[10:])
+-    t = h[:10 + m.start()] if m else h
++    t = h
++    # the lead starts with the company's name, which it then defines: '... Mine Franco-Nevada Corporation
++    # ("Franco-Nevada" or the "Company")' -- cut at the last place the defined name starts before that
++    a = re.search(r"\(\s*[" + Q + r"]\s*([^" + Q + r"]{3,40}?)\s*[" + Q + r"]\s*(?:,|or)\s*(?:the\s+)?[" + Q + r"]\s*Company", h)
++    if a and re.search(r"[a-z]", a.group(1)):
++        w = re.escape(a.group(1).split()[0])
++        starts = [m.start() for m in re.finditer(r"(?<![\w-])" + w, h[:a.start()])]
++        if starts and starts[-1] > 10:
++            t = h[:starts[-1]]
++    if t == h:
++        m = re.search(r"\s(?=(?:[A-Z][\w&'’.\-]*\s+){0,5}" + _SUFFIX + r"\.?\s*[,(])", h[10:])
++        t = h[:10 + m.start()] if m else h
+     m = re.search(r"\s(?:is\s+pleased\s+to|announces?\s+that|\(\s*[" + Q + r"]|\((?:TSX|CSE|NYSE|NASDAQ))", t)
+@@ -117,3 +138,7 @@
+     if k >= 2 and k < len(w):
+-        s = " ".join(w[k:])
++        w = w[k:]
++    # a dateline or banner in capitals after the name: 'Sprott Streaming KELLOGG'
++    while len(w) > 1 and re.fullmatch(r"[A-Z]{4,},?", w[-1]) and any(re.search(r"[a-z]", x) for x in w[:-1]):
++        w = w[:-1]
++    s = " ".join(w)
+     return s or None
+@@ -121,2 +146,11 @@
+ 
++_BAD_PARTY = re.compile(r"(?i)^(?:newsfile|canada|ontario|quebec|nevada|british\s+columbia|mexico|australia|under|or|and|"
++                        r"the\s+company|shareholders?|management|board|tsx|cse|nyse|asx)\b|newsfile|information\s+circular|"
++                        r"globe\s*newswire|pr\s*newswire|\b(?:mine|project|property|complex|deposit|claims)$|^.{0,2}$")
++
++
++def _ok_party(n):
++    return n if n and not _BAD_PARTY.search(n) else None
++
++
+ def _definitions(text):
+@@ -135,2 +169,4 @@
+             continue
++        if alias in name and not name.startswith(alias) and re.search(r"[a-z]", alias):
++            name = name[name.index(alias):]          # 'Ontario Franco-Nevada Corporation ("Franco-Nevada")'
+         if len(alias) <= 40 and name and alias.lower() not in out:
+@@ -148,2 +184,4 @@
+                          r"(?:Company|Corporation|Issuer)\s*[" + Q + r"]", body[:4000]):
++        al = re.findall(r"[" + Q + r"]\s*([^" + Q + r"]{3,40}?)\s*[" + Q + r"]", m.group(0))
++        al = [a for a in al if a.lower() not in ("company", "corporation", "issuer") and re.search(r"[a-z]", a)]
+         pre = body[max(0, m.start() - 400):m.start()]
+@@ -157,3 +195,6 @@
+         if orgs:
+-            return _clean_org(orgs[-1].group(1))
++            full = _clean_org(orgs[-1].group(1)) or ""
++            if al and al[0] in full and not full.startswith(al[0]):
++                return al[0]
++            return full or None
+         tail = re.findall(r"((?:[A-Z][\w&'’.\-]*\s+){0,4}[A-Z][\w&'’.\-]*)\s*$", pre)
+@@ -210,3 +251,5 @@
+                       r"^market\s+one\b|\bmarket\s+one:|\binclusion\s+in\b|\bpresenting\s+at\b|\bconference\b|\bwebinar\b|"
+-                      r"\blawsuit|\bcourt\b|\barbitration\b|\bdispute")
++                      r"\blawsuit|\bcourt\b|\barbitration\b|\bdispute|\bmeeting\b|\bcircular\b|\bshareholders\s+approve|"
++                      r"\bapprov(?:al|es|ed)\b|\bmail(?:s|ing)\b|\beffective\s+date\b|\bupdates?\b|\bprogress\b|"
++                      r"\bsecuring\b|\bforward\s+pays?\b|\bprepay\w*")
+ _H_FIN = re.compile(r"(?i)\b(?:financing|spin\s*-?\s*out|restructur\w*|transaction)\b")
+@@ -214,12 +257,34 @@
+ 
++_INT_W = r"(?:royalt(?:y|ies)|streams?|NSRs?|GRR|GOR|NPI|net\s+smelter|net\s+profits?)"
++_DV_W = (r"(?:acquir\w*|acquisition|purchas\w*|sale|sells?|sold|buys?(?:[\s\-]?(?:backs?|downs?))?|buy[\s\-]?(?:back|down)s?|"
++         r"bought|repurchas\w*|reacquir\w*|grant(?:s|ed|ing)|spin\s*-?\s*out|financing|amend\w*|restructur\w*|expand\w*|extension|"
++         r"extend\w*|transaction|agreement|closes|closing|completes|completion|signs?|executes?|enters?)")
++_HEAD_DEAL = re.compile(r"(?i)\b" + _DV_W + r"\b\W+(?:\S+\s+){0,9}?(?:\d[\d.,/]*\s?%\s+)?" + _INT_W + r"\b|\b" + _INT_W +
++                        r"\b\W+(?:\S+\s+){0,6}?" + _DV_W + r"\b")
++_LINK = re.compile(r"(?i)\b(?:streams?|royalt\w*|NSR|net\s+smelter|net\s+profits?)\b[^.]{0,80}?\b(?:financing|transaction|spin\s*-?\s*out)\b|"
++                   r"\b(?:financing|transaction|spin\s*-?\s*out)\b[^.]{0,80}?\b(?:streams?|royalt\w*|NSR|net\s+smelter|net\s+profits?)\b")
++
++
++# 'Sells Lauriston Project ... While Retaining 2% NSR', 'Acquisition of Agnico Eagle's 55% Interest ... Agnico to
++# Retain a 2% NSR': the deal is a property, and the royalty the vendor keeps is a mention in passing (Justin,
++# 2026-09-21). 'Acquires Half of the Manicouagan Project Royalty' is a royalty deal: the royalty is the object.
++_PROPERTY_DEAL = re.compile(r"(?i)\b(?:sells?|sale\s+of|to\s+sell|acquir\w*|acquisition\s+of|purchase\s+of|ownership\s+of|"
++                            r"interest\s+in|option\s+(?:on|to\s+acquire))\s+(?:(?!royalt|nsr|stream|grr|npi|net\s)\S+\s+){0,6}?"
++                            r"(?:project|property|properties|claims|interest)\b(?!\s+(?:royalt|nsr|net\s+smelter|stream))")
++
++
+ def _in_scope(h, lead):
+-    """(ok, reason). The headline carries the deal, or names a financing/spin-out the lead calls a stream/royalty."""
++    """(ok, reason). The headline carries the deal (a royalty or stream is what is bought, sold, granted, bought back
++    or amended), or names a financing/spin-out the opening sentences tie to a stream or royalty."""
+     if _RESULTS.search(h):
+-        return False, "results, recap, promotion or dispute"
++        return False, "results, recap, meeting, update, promotion or dispute"
+     if _OUT_OF_SCOPE.search(h) or _OUT_OF_SCOPE.search(lead[:900]):
+         return False, "oil and gas or non-mining"
+-    if _INTEREST.search(h) and _DEAL.search(h):
++    pd, hd = _PROPERTY_DEAL.search(h), _HEAD_DEAL.search(h)
++    if pd and (not hd or pd.start() < hd.start()):
++        return False, "a property deal; the royalty rides along"
++    if _HEAD_DEAL.search(h):
+         return True, "headline"
+-    if _H_FIN.search(h) and _INTEREST.search(lead[:1200]) and _DEAL.search(lead[:1200]):
+-        return True, "headline financing, lead interest"
++    if _H_FIN.search(h) and _INTEREST.search(lead[:1500]):
++        return True, "headline financing"
+     return False, "no royalty or stream deal in the headline"
+@@ -301,4 +366,7 @@
+             continue
+-        if name.lower() in defs and defs[name.lower()] and not re.search(r"(?i)\b" + _SUFFIX + r"\b", defs[name.lower()]):
+-            return defs[name.lower()]
++        d = defs.get(name.lower())
++        if d and not re.search(r"(?i)\b" + _SUFFIX + r"\b", d) and len(d) > len(name):
++            d = re.split(r"['’]s\s+", d)[-1]
++            d = re.sub(r"\s+(?:Gold|Silver|Copper)?\s*(?:Project|Mine|Property|Deposit)$", "", d)
++            return d if name.lower() in d.lower() else name
+         return name
+@@ -311,3 +379,3 @@
+ # ------------------------------------------------------------------ price
+-_MONEY = r"((?:US|U\.S\.|C|CA|CAD|CDN|A|AU|AUD)?\s?\$|USD\s?|CAD\s?)\s?(\d[\d,]*(?:\.\d+)?)\s*(million|billion|M|MM|B|k)?\b"
++_MONEY = r"((?-i:US|U\.S\.|C|CA|CAD|CDN|A|AU|AUD)?\$|(?-i:USD|CAD|AUD)\s?)\s?(\d[\d,]*(?:\.\d+)?)\s*(million|billion|M|MM|B|k)?\b"
+ 
+@@ -463,2 +531,4 @@
+ def analyse(headline, body):
++    if not (_INTEREST.search(headline or "") or _H_FIN.search(headline or "")):
++        return {"rows": [], "reason": "no royalty or stream deal in the headline"}     # the fast path: most releases
+     h, b = _prepare(headline, body)
+@@ -469,6 +539,7 @@
+     roy_orgs = _royalty_orgs(h + " " + b[:12000]) | {n for n in def_orgs if n and re.search(r"(?i)royalt|stream", n)}
++    roy_orgs = {n for n in roy_orgs if len(n.split()) > 1 or re.search(r"(?i)royalt|stream", n) is None or
++                re.search(r"(?i)" + re.escape(n) + r"\s+(?:" + _SUFFIX + r")\b", h + " " + b[:3000])}
+     table = {}
+-    hm, bm = _mask_orgs(h, roy_orgs, table), _mask_orgs(b, roy_orgs, table)
+-    lead = bm[:1500]
+-    ok, reason = _in_scope(hm, lead)
++    tm, bm = _mask_orgs(title, roy_orgs, table), _mask_orgs(b, roy_orgs, table)
++    ok, reason = _in_scope(tm, bm[:1500])
+     if not ok:
+@@ -477,7 +548,17 @@
+     D = None
+-    for s in sents:
+-        if _INTEREST.search(s) and _DEAL.search(s) and not re.match(r"(?i)about\s", s) and \
+-                not re.search(r"Zorg\w*\s+(?:is|was)\s+an?\s", s):
+-            D = s
+-            break
++    if reason == "headline financing":
++        # the release is a financing, a spin-out or a transaction: one of its opening sentences has to say it is
++        # a stream or royalty (Franco-Nevada's '$100 million gold stream financing transaction with Orezone')
++        for s in sents[:3]:
++            if _LINK.search(s) and not re.search(r"(?i)\bretain\w*\b", s):
++                D = s
++                break
++        if D is None:
++            return {"rows": [], "reason": "financing or transaction without a stream or royalty"}
++    else:
++        for s in sents:
++            if _INTEREST.search(s) and _DEAL.search(s) and not re.match(r"(?i)about\s", s) and \
++                    not re.search(r"Zorg\w*\s+(?:is|was)\s+an?\s", s):
++                D = s
++                break
+     if D is None:
+@@ -488,6 +569,7 @@
+         return {"rows": [], "reason": "oil and gas or non-mining"}
+-    U = lambda v: _unmask(v, table)     # noqa: E731
+-    issuer_royco = bool(issuer and (re.search(r"(?i)royalt|stream", issuer) or _ROYCO.search(b[-4000:] + b[:3000])))
++    U = lambda v: _ok_party(_unmask(v, table))     # noqa: E731
++    issuer_royco = bool(issuer and (re.search(r"(?i)royalt|stream", issuer) or re.search(
++        r"(?i)\babout\s+" + re.escape(issuer.split()[0]) + r"\b[^.]{0,200}?" + _ROYCO.pattern.replace("(?i)", ""), b)))
+     # the interest: the most specific typed mention in the deal sentence, the headline, then the next sentences
+-    ments = _interest_mentions(D) + _interest_mentions(hm) + _interest_mentions(ctx)
++    ments = _interest_mentions(D) + _interest_mentions(tm) + _interest_mentions(ctx)
+     typed = [x for x in ments if x[1] != "royalty"]
+@@ -508,2 +590,5 @@
+         rate, metal = r2, metal or m2
++    # a royalty over 15% is a share of one ('50% of the NSR'), not a rate; a stream or NPI can reach 100%
++    if rate is not None and (rate <= 0 or rate > (100 if typ in ("stream", "NPI") else 15)):
++        rate = None
+     if metal is None:
+@@ -514,11 +599,15 @@
+             metal = "all minerals"
+-    prop = _property(D, defs) or _property(hm, defs) or _property(ctx, defs)
++    prop = _property(D, defs) or _property(tm, defs) or _property(ctx, defs)
+     buyer, seller = _parties(D, defs, issuer, issuer_royco, ctx)
+-    operator = _operator(D, b, defs, issuer, prop) or _operator(ctx, b, defs, issuer, prop)
+-    hd = hm + " " + D
+-    if re.search(r"(?i)\b(?:amend\w*|expands?\s+(?:\w+\s+){0,2}agreement|extend\w*|restructur\w*)\b", hd) and \
+-            not re.search(r"(?i)\bsale\s+of\s+(?:an?\s+)?option|\boption\s+to\s+(?:buy|acquire)", hd):
++    buyer, seller = _ok_party(buyer), _ok_party(seller)
++    operator = _ok_party(_operator(D, b, defs, issuer, prop) or _operator(ctx, b, defs, issuer, prop))
++    hd = tm + " " + D
++    buy_back = re.search(r"(?i)\b(?:repurchas\w*|reacquir\w*|buys?[\s\-]?backs?|buying\s+back|buy[\s\-]?downs?|underlying)\b", hd)
++    sell_title = re.search(r"(?i)\b(?:sale|sells?|sold|purchas\w*|acquir\w*|acquisition|buy|buys|bought)\b", tm)
++    if (re.search(r"(?i)\b(?:amend\w*|restructur\w*|extension|extend\w*|expands?\s+(?:\w+\s+){0,2}agreement)\b", tm) or
++            (re.search(r"(?i)\bamend\w*[^.]{0,80}\b(?:royalt\w*|stream\w*|NSR)\b", D) and not sell_title)) and \
++            not re.search(r"(?i)\bsale\s+of\s+(?:an?\s+)?option|\boption\s+to\s+(?:buy|acquire)", hd) and not buy_back:
+         action = "amendment"
+         if not buyer or buyer == issuer:
+-            buyer = _named_after(r"with", hd, defs, issuer) or buyer
++            buyer = _ok_party(_named_after(r"with", hd, defs, issuer)) or buyer
+         if buyer == issuer:
+@@ -527,4 +616,3 @@
+         operator = operator or issuer
+-    elif re.search(r"(?i)\b(?:repurchas\w*|reacquir\w*|buy[\s\-]?back|buy[\s\-]?down|underlying)\b", hd) or \
+-            (buyer and operator and buyer == operator) or \
++    elif buy_back or (buyer and operator and buyer == operator) or \
+             (buyer == issuer and re.search(r"(?i)\b(?:on|over)\s+(?:its|the\s+Company['’]s)\s+", hd)) or \
+@@ -532,9 +620,17 @@
+         action = "buyback"
++        # 'Abcourt Exercises Option to Buy-Back 0.5% NSR': the company whose headline it is buys it back
++        if buy_back and seller == issuer and buyer and buyer != issuer and \
++                re.search(r"(?i)\b(?:repurchas\w*|reacquir\w*|buys?[\s\-]?backs?|buy[\s\-]?back)\b", tm) and \
++                not re.search(r"(?i)\bsale\s+of\s+(?:an?\s+)?option|\bsells?\s+(?:an?\s+)?option|\boption\s+to\s+buy", tm):
++            buyer, seller = issuer, buyer
+         operator = operator or buyer
+         buyer = buyer or operator
++    elif seller and ((issuer_royco and seller == issuer) or re.search(r"(?i)royalt|stream", seller) or
++                     re.search(r"(?i)\b(?:its|an\s+existing)\s+(?:\S+\s+){0,3}?(?:\d[\d.]*\s?%\s+)?(?:NSR|net\s+smelter|"
++                               r"royalt\w*|stream|gross)", D) or
++                     re.search(r"(?i)\b(?:held\s+by|currently\s+being|under\s+option)\b", D)):
++        action = "transfer"
+     elif (seller and operator and seller == operator) or \
+             re.search(r"(?i)\b(?:grant\w*|creat\w*|spin\s*-?\s*out|(?:stream|royalty)\s+financing|financing\s+transaction)\b", D) or \
+-            (typ in ("stream", "NPI") and not re.search(r"(?i)\bexisting\b", D)) or \
+-            (seller == issuer and not re.search(r"(?i)\b(?:sale\s+of\s+its|its\s+existing|held\s+by|an\s+existing|currently\s+being|"
+-                                                 r"under\s+option)\b", D)):
++            (typ in ("stream", "NPI") and not re.search(r"(?i)\bexisting\b", D)) or seller == issuer:
+         action = "new"
+@@ -544,5 +640,5 @@
+         action = "transfer"
+-    price, cur = _price(hm, D + " " + " ".join(sents[di + 1:di + 3]), b, _default_currency(b))
+-    status = _status(hm, D)
+-    base = dict(type=typ, rate_pct=rate, metal=metal, property=U(prop), operator=U(operator), buyer=U(buyer),
++    price, cur = _price(tm, D + " " + " ".join(sents[di + 1:di + 3]), b, _default_currency(b))
++    status = _status(tm, D)
++    base = dict(type=typ, rate_pct=rate, metal=metal, property=_unmask(prop, table), operator=U(operator), buyer=U(buyer),
+                 seller=U(seller), price=price, currency=cur if price is not None else None, action=action,
