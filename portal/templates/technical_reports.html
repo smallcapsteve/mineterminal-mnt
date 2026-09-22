@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Technical Reports (NI 43-101) — MiningNewsTerminal{% endblock %}
+{% block meta_description %}NI 43-101 technical reports from CSE, TSXV and TSX mining companies: property reports, resource estimates, PEAs, pre-feasibility and feasibility studies filed, commissioned or withdrawn, with effective dates, authors and headline numbers, read from news releases and SEDAR+ filings.{% endblock %}
+{% block content %}
+  <style>
+    .tr-table td { vertical-align: top; }
+    .tr-table .tr-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .tr-table .tr-sub { display: block; font-size: .8em; opacity: .7; }
+    .tr-kind { display: inline-block; padding: 0 .4em; border-radius: 3px; font-size: .75em; letter-spacing: .02em;
+               border: 1px solid currentColor; opacity: .85; white-space: nowrap; }
+    .tr-flag { display: inline-block; padding: 0 .35em; border-radius: 3px; font-size: .7em; opacity: .75;
+               border: 1px dashed currentColor; white-space: nowrap; }
+    .tr-title { display: block; font-size: .8em; opacity: .7; font-style: italic; }
+    .tr-table tr.tr-cont td.tr-quiet { opacity: .35; }
+    .tr-none { opacity: .55; font-style: italic; }
+  </style>
+
+  <h2 class="page-title">Technical Reports (NI 43-101)</h2>
+
+  <section class="filters fin-filters">
+    <form method="get" action="/technical-reports">
+      <label for="ticker">Company:</label>
+      <select name="ticker" id="ticker" onchange="this.form.submit()">
+        <option value="">All companies</option>
+        {% for t in tickers %}
+          <option value="{{ t }}" {% if t == selected_ticker %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="type">Report:</label>
+      <select name="type" id="type" onchange="this.form.submit()">
+        {% for v, label in [('', 'All reports'), ('property', 'Property'), ('resource', 'Resource estimate'), ('PEA', 'PEA'), ('PFS', 'Pre-feasibility'), ('FS', 'Feasibility'), ('other', 'Other')] %}
+          <option value="{{ v }}" {% if v == rtype %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="status">Status:</label>
+      <select name="status" id="status" onchange="this.form.submit()">
+        {% for v, label in [('', 'Any status'), ('filed', 'Filed'), ('commissioned', 'Commissioned'), ('withdrawn', 'Withdrawn')] %}
+          <option value="{{ v }}" {% if v == status %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="days">Window:</label>
+      <select name="days" id="days" onchange="this.form.submit()">
+        {% for d, label in [(0, 'All time'), (30, 'Last 30 days'), (90, 'Last 90 days'), (180, 'Last 6 months'), (365, 'Last year')] %}
+          <option value="{{ d }}" {% if d == days %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="show">Show:</label>
+      <select name="show" id="show" onchange="this.form.submit()">
+        <option value="reports" {% if show == 'reports' %}selected{% endif %}>Latest news on each report</option>
+        <option value="items" {% if show == 'items' %}selected{% endif %}>Every release and filing about a report</option>
+        <option value="all" {% if show == 'all' %}selected{% endif %}>Also tagged items with no report</option>
+      </select>
+
+      {% if selected_ticker or days or rtype or status or show != 'reports' %}
+        <a class="cat-clear" href="/technical-reports">Reset</a>
+      {% endif %}
+      <span class="muted">{{ rows|length }} shown · {{ total_filtered }} matching · {{ total }} reports from {{ releases }} items</span>
+    </form>
+  </section>
+
+  {% if not rows %}
+    <p class="empty">No technical reports in this window.</p>
+  {% else %}
+    <div class="table-scroll">
+    <table class="fin-table tr-table">
+      <colgroup>
+        <col style="width: 7%">   <!-- Ticker   -->
+        <col style="width: 11%">  <!-- Company  -->
+        <col style="width: 8%">   <!-- Date     -->
+        <col style="width: 10%">  <!-- Report   -->
+        <col style="width: 17%">  <!-- Project  -->
+        <col style="width: 10%">  <!-- Status   -->
+        <col style="width: 10%">  <!-- Dates    -->
+        <col style="width: 21%">  <!-- Details  -->
+        <col style="width: 6%">   <!-- View     -->
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Ticker</th>
+          <th>Company</th>
+          <th>Date</th>
+          <th title="Property report, resource estimate, PEA, pre-feasibility, feasibility or other">Report</th>
+          <th>Project</th>
+          <th title="Filed, commissioned (being prepared or due within 45 days) or withdrawn, as of this item">Status</th>
+          <th title="Effective date and filing date">Dates</th>
+          <th>Authors and headline numbers</th>
+          <th>View</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr class="{% if not r['first_of_release'] %}tr-cont{% endif %}">
+            <td class="fin-ticker {% if not r['first_of_release'] %}tr-quiet{% endif %}">
+              {%- if r['first_of_release'] -%}
+                {% set _mtp = r["ticker"] | mtp_url('mining') %}{% if _mtp %}<a class="mtp-co" href="{{ _mtp }}" target="_blank" rel="noopener" title="Open {{ r['ticker'] }} mining data on MineTerminalPro">{{ r["ticker"] }}</a>{% else %}{{ r["ticker"] }}{% endif %}
+              {%- else -%}
+                {{ r["ticker"] }}
+              {%- endif -%}
+            </td>
+            <td class="{% if not r['first_of_release'] %}tr-quiet{% endif %}">{% if r['first_of_release'] %}{{ r["company_name"] }}{% endif %}</td>
+            <td class="fin-date {% if not r['first_of_release'] %}tr-quiet{% endif %}">{% if r['first_of_release'] %}{{ (r["published_at"] or "")[:10] }}{% endif %}</td>
+            {% if r["status"] %}
+              <td>
+                {{ r["report_type"] | tr_type }}
+                {%- if r["amended"] %}<span class="tr-flag" title="An amended or revised report">amended</span>{% endif -%}
+                {%- if r["doc_kind"] in ('consent', 'cover') %}<span class="tr-sub" title="Read from the SEDAR+ filing itself">{{ 'QP consent' if r["doc_kind"] == 'consent' else 'report pages' }}</span>{% endif -%}
+              </td>
+              <td>
+                {{ r["project"] or "—" }}
+                {%- if r["metal"] %}<span class="tr-sub">{{ r["metal"] | replace('+', ', ') }}</span>{% endif -%}
+                {%- if r["title"] %}<span class="tr-title" title="{{ r['title'] }}">“{{ r["title"] | truncate(110) }}”</span>{% endif -%}
+              </td>
+              <td>
+                <span class="tr-kind">{{ r["status"] | tr_status }}</span>
+                {%- if r["status"] == 'commissioned' and r["expected"] %}<span class="tr-sub">expected {{ r["expected"] }}</span>{% endif -%}
+              </td>
+              <td class="tr-num">
+                {%- if r["effective_date"] %}<span class="tr-sub" title="Effective date">effective {{ r["effective_date"] }}</span>{% endif -%}
+                {%- if r["filing_date"] %}<span class="tr-sub" title="Filing date">filed {{ r["filing_date"] }}</span>{% endif -%}
+                {%- if not r["effective_date"] and not r["filing_date"] %}—{% endif -%}
+              </td>
+              <td>
+                {%- if r["author_firm"] %}<span class="tr-sub">{{ r["author_firm"] }}</span>{% endif -%}
+                {%- if r["qps"] %}<span class="tr-sub" title="Qualified persons">QPs: {{ r["qps"] | truncate(90) }}</span>{% endif -%}
+                {%- if r["npv"] is not none %}<span class="tr-sub">NPV{% if r["npv_discount"] %}{{ r["npv_discount"] | int }}{% endif %} {{ r["npv"] | tr_money(r["currency"]) }}{% if r["after_tax"] == 1 %} after-tax{% elif r["after_tax"] == 0 %} pre-tax{% endif %}{% if r["irr"] is not none %} · IRR {{ '%.1f' | format(r["irr"]) }}%{% endif %}{% if r["capex"] is not none %} · capex {{ r["capex"] | tr_money(r["currency"]) }}{% endif %}</span>{% endif -%}
+                {%- if r["resource_text"] %}<span class="tr-sub">{{ r["resource_text"] }}</span>{% endif -%}
+                {%- if r["report_items"] and r["report_items"] > 1 %}<span class="tr-sub" title="Releases and filings about this report">{{ r["report_items"] }} items since {{ r["first_reported"] }}</span>{% endif -%}
+              </td>
+            {% else %}
+              <td colspan="5" class="tr-none">Reports no technical report</td>
+            {% endif %}
+            <td>
+              {% if r["url"] and r['first_of_release'] %}<a href="{{ r['url'] }}">View ↗</a>{% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  {% endif %}
+  {% include "_pager.html" %}
+{% endblock %}
