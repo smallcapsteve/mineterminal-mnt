@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}Exploration Programs — MiningNewsTerminal{% endblock %}
+{% block meta_description %}Exploration programs from CSE, TSXV and TSX mining companies: drill programs, geophysical surveys and field work planned, started, underway or completed, with metres, holes, season and project, read from their news releases.{% endblock %}
+{% block content %}
+  <style>
+    .ep-table td { vertical-align: top; }
+    .ep-table .ep-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .ep-table .ep-sub { display: block; font-size: .8em; opacity: .7; }
+    .ep-kind { display: inline-block; padding: 0 .4em; border-radius: 3px; font-size: .75em; letter-spacing: .02em;
+               border: 1px solid currentColor; opacity: .85; white-space: nowrap; }
+    .ep-hist { display: inline-block; padding: 0 .35em; border-radius: 3px; font-size: .7em; opacity: .75;
+               border: 1px dashed currentColor; white-space: nowrap; }
+    .ep-table tr.ep-cont td.ep-quiet { opacity: .35; }
+    .ep-none { opacity: .55; font-style: italic; }
+  </style>
+
+  <h2 class="page-title">Exploration Programs</h2>
+
+  <section class="filters fin-filters">
+    <form method="get" action="/exploration-programs">
+      <label for="ticker">Company:</label>
+      <select name="ticker" id="ticker" onchange="this.form.submit()">
+        <option value="">All companies</option>
+        {% for t in tickers %}
+          <option value="{{ t }}" {% if t == selected_ticker %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="type">Program:</label>
+      <select name="type" id="type" onchange="this.form.submit()">
+        {% for v, label in [('', 'All programs'), ('drilling', 'Drilling'), ('geophysics', 'Geophysics'), ('ground', 'Ground work')] %}
+          <option value="{{ v }}" {% if v == ptype %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="status">Status:</label>
+      <select name="status" id="status" onchange="this.form.submit()">
+        {% for v, label in [('', 'Any status'), ('planned', 'Planned'), ('started', 'Started'), ('underway', 'Underway'), ('completed', 'Completed')] %}
+          <option value="{{ v }}" {% if v == status %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="work">Work:</label>
+      <select name="work" id="work" onchange="this.form.submit()">
+        <option value="current" {% if work == 'current' %}selected{% endif %}>The company's own</option>
+        <option value="historical" {% if work == 'historical' %}selected{% endif %}>Previous owners' work</option>
+        <option value="both" {% if work == 'both' %}selected{% endif %}>Both</option>
+      </select>
+
+      <label for="days">Window:</label>
+      <select name="days" id="days" onchange="this.form.submit()">
+        {% for d, label in [(0, 'All time'), (30, 'Last 30 days'), (90, 'Last 90 days'), (180, 'Last 6 months'), (365, 'Last year')] %}
+          <option value="{{ d }}" {% if d == days %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="show">Show:</label>
+      <select name="show" id="show" onchange="this.form.submit()">
+        <option value="programs" {% if show == 'programs' %}selected{% endif %}>Latest news on each program</option>
+        <option value="releases" {% if show == 'releases' %}selected{% endif %}>Every release about a program</option>
+        <option value="all" {% if show == 'all' %}selected{% endif %}>Also tagged releases with no program</option>
+      </select>
+
+      {% if selected_ticker or days or ptype or status or work != 'current' or show != 'programs' %}
+        <a class="cat-clear" href="/exploration-programs">Reset</a>
+      {% endif %}
+      <span class="muted">{{ rows|length }} shown · {{ total_filtered }} matching · {{ total }} programs from {{ releases }} releases</span>
+    </form>
+  </section>
+
+  {% if not rows %}
+    <p class="empty">No exploration programs in this window.</p>
+  {% else %}
+    <div class="table-scroll">
+    <table class="fin-table ep-table">
+      <colgroup>
+        <col style="width: 7%">   <!-- Ticker   -->
+        <col style="width: 12%">  <!-- Company  -->
+        <col style="width: 8%">   <!-- Date     -->
+        <col style="width: 12%">  <!-- Program  -->
+        <col style="width: 15%">  <!-- Project  -->
+        <col style="width: 10%">  <!-- Status   -->
+        <col style="width: 9%">   <!-- Size     -->
+        <col style="width: 21%">  <!-- Details  -->
+        <col style="width: 6%">   <!-- View     -->
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Ticker</th>
+          <th>Company</th>
+          <th>Date</th>
+          <th title="Drilling, geophysics or ground work (sampling, mapping, prospecting, trenching)">Program</th>
+          <th>Project</th>
+          <th title="The program's state as of this release">Status</th>
+          <th class="ep-num" title="Metres and holes for drilling, line-km for surveys">Size</th>
+          <th>Details</th>
+          <th>View</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr class="{% if not r['first_of_release'] %}ep-cont{% endif %}">
+            <td class="fin-ticker {% if not r['first_of_release'] %}ep-quiet{% endif %}">
+              {%- if r['first_of_release'] -%}
+                {% set _mtp = r["ticker"] | mtp_url('mining') %}{% if _mtp %}<a class="mtp-co" href="{{ _mtp }}" target="_blank" rel="noopener" title="Open {{ r['ticker'] }} mining data on MineTerminalPro">{{ r["ticker"] }}</a>{% else %}{{ r["ticker"] }}{% endif %}
+              {%- else -%}
+                {{ r["ticker"] }}
+              {%- endif -%}
+            </td>
+            <td class="{% if not r['first_of_release'] %}ep-quiet{% endif %}">{% if r['first_of_release'] %}{{ r["company_name"] }}{% endif %}</td>
+            <td class="fin-date {% if not r['first_of_release'] %}ep-quiet{% endif %}">{% if r['first_of_release'] %}{{ (r["published_at"] or "")[:10] }}{% endif %}</td>
+            {% if r["program_type"] %}
+              <td>
+                {{ r["program_type"] | ep_type }}
+                {%- if r["drill_method"] or r["survey_type"] %}<span class="ep-sub">{{ r["drill_method"] or r["survey_type"] }}</span>{% endif -%}
+                {%- if r["historical"] %}<span class="ep-hist" title="Work by a previous owner of the project">previous owner</span>{% endif -%}
+              </td>
+              <td>
+                {{ r["project"] or "—" }}
+                {%- if r["target_metal"] %}<span class="ep-sub">{{ r["target_metal"] | replace('+', ', ') }}</span>{% endif -%}
+              </td>
+              <td>
+                <span class="ep-kind">{{ r["status"] | ep_status }}</span>
+                {%- if r["season"] or r["phase"] %}<span class="ep-sub">{{ [r["phase"], r["season"]] | select | join(' · ') }}</span>{% endif -%}
+              </td>
+              <td class="ep-num">
+                {%- if r["metres"] is not none %}{{ r["metres"] | ep_int }} m{% endif -%}
+                {%- if r["holes"] is not none %}<span class="ep-sub">{{ r["holes"] }} holes</span>{% endif -%}
+                {%- if r["line_km"] is not none %}{{ r["line_km"] | ep_int }} line-km{% endif -%}
+                {%- if r["metres"] is none and r["holes"] is none and r["line_km"] is none %}—{% endif -%}
+              </td>
+              <td>
+                {%- if r["historical"] and r["operator"] %}<span class="ep-sub">by {{ r["operator"] }}</span>{% endif -%}
+                {%- if r["budget"] is not none %}<span class="ep-sub">budget {{ r["budget"] | ep_money(r["currency"]) }}</span>{% endif -%}
+                {%- if r["contractor"] %}<span class="ep-sub">{{ r["contractor"] }}</span>{% endif -%}
+                {%- if r["rigs"] %}<span class="ep-sub">{{ r["rigs"] }} rig{% if r["rigs"] > 1 %}s{% endif %}</span>{% endif -%}
+                {%- if r["program_releases"] and r["program_releases"] > 1 %}<span class="ep-sub" title="Releases about this program">{{ r["program_releases"] }} releases since {{ r["first_reported"] }}</span>{% endif -%}
+              </td>
+            {% else %}
+              <td colspan="5" class="ep-none">Reports no exploration program</td>
+            {% endif %}
+            <td>
+              {% if r["url"] and r['first_of_release'] %}<a href="{{ r['url'] }}">View ↗</a>{% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  {% endif %}
+  {% include "_pager.html" %}
+{% endblock %}
