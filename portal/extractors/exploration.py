@@ -32,7 +32,7 @@ import unicodedata
 from portal import facts as F
 
 NAME = "exploration"
-VERSION = "1.0.0"
+VERSION = "1.1.1"
 KIND = "expl_program"
 TAG = "Exploration Programs"
 TEXT_CAP = 40000
@@ -75,6 +75,8 @@ def _prepare(headline, body):
     m = _ABOUT.search(b, 800)
     if m:
         b = b[:m.start()]
+    b = re.sub(r"(?i)To\s+view\s+an\s+enhanced\s+version\s+of\s+(?:this|the)\s+\w+[^.]{0,40}?https?://\S+", " . ", b)
+    b = re.sub(r"https?://\S+", " ", b)
     b = re.sub(r"\s+", " ", b)
     h = re.sub(r"\s+", " ", unicodedata.normalize("NFKC", headline or ""))
     return h.strip(), b.strip()
@@ -97,11 +99,21 @@ def _drop_title(b, title):
     return b[:m.start()] + " . " + rest
 
 
+_ACRO = {"IP", "EM", "RC", "JV", "NI", "CU", "PGE", "REE", "VMS", "TSX", "CSE", "BC", "B.C.", "MT", "VTEM", "ZTEM",
+         "HQ", "NQ", "RAB", "LIDAR", "UAV", "NI-CU-PGE", "CU-AU", "AU", "AG", "U3O8", "Q1", "Q2", "Q3", "Q4", "USA", "US",
+         "NWT", "NT", "NU", "BC's"}
+
+
 def _title(h):
     """The headline without the lead some feeds append to it."""
     m = re.search(r"\s(?:is\s+pleased\s+to|announces?\s+that|\(\s*[\"“]|\((?:TSX|CSE|NYSE|NASDAQ|OTC)|[A-Z][\w&.'’\-]*"
                   r"(?:\s+[A-Z][\w&.'’\-]*){0,4}\s+(?:Inc|Corp|Ltd|Limited)\.?\s*\()", h[15:])
-    return (h[:15 + m.start()] if m else h).strip()
+    t = (h[:15 + m.start()] if m else h).strip()
+    letters = [c for c in t if c.isalpha()]
+    if letters and sum(c.isupper() for c in letters) > 0.8 * len(letters):
+        t = " ".join(w if w in _ACRO or re.match(r"^(?:\d.*|I{1,3}V?|[A-Z]+\d.*)$", w) else
+                     "-".join(p.capitalize() for p in w.split("-")) for w in t.split())
+    return t
 
 
 def _sentences(text):
@@ -114,7 +126,7 @@ _NUMW = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven"
          "eleven": 11, "twelve": 12, "thirteen": 13, "fourteen": 14, "fifteen": 15, "sixteen": 16, "seventeen": 17,
          "eighteen": 18, "nineteen": 19, "twenty": 20, "thirty": 30, "forty": 40, "fifty": 50, "a single": 1,
          "single": 1}
-_NUM = r"(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?|" + "|".join(sorted(_NUMW, key=len, reverse=True)) + r")"
+_NUM = r"(?<![\d,.])(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?|" + "|".join(sorted(_NUMW, key=len, reverse=True)) + r")"
 
 _DRILL = re.compile(r"(?i)\b(?:drill(?:ing)?\s+(?:program(?:me)?|campaign|plan)|(?:diamond|core|RC|reverse\s+circulation|"
                     r"sonic|aircore|air\s+core|RAB|auger|percussion)\s+drill(?:ing|holes?)?|drill\s*holes?|drilling|"
@@ -127,13 +139,13 @@ _GRD = re.compile(r"(?i)\b(?:soil\s+(?:sampl\w+|geochem\w*|survey|grid|program)|
                   r"prospecting(?:\s+program)?|geological\s+mapping|mapping\s+program|trench(?:es|ing)?(?:\s+program)?|"
                   r"channel\s+sampl\w+|rock\s+(?:chip\s+|grab\s+)?sampl\w+|grab\s+sampl\w+|field\s+(?:program(?:me)?|work|"
                   r"season|campaign|crews?)|fieldwork|sampling\s+program|geochemical\s+(?:survey|sampling|program)|"
-                  r"surface\s+(?:sampl\w+|exploration))\b")
+                  r"surface\s+(?:sampl\w+|exploration)|ground\s+exploration(?:\s+program)?)\b")
 _EXPLPROG = re.compile(r"(?i)\b(?:exploration\s+(?:program(?:me)?|campaign|work\s+program)|work\s+program)\b")
 
 _ST = {
     "completed": re.compile(r"(?i)\b(?:successful(?:ly)?|complet(?:ed|es|ion)|concluded|finished|wrapped\s+up|were\s+(?:collected|drilled|"
                             r"completed)|was\s+(?:flown|completed|conducted)|has\s+drilled|drilled\s+(?:in\s+)?(?:19|20)\d\d|"
-                            r"carried\s+out|conducted|totall?ing)\b"),
+                            r"carried\s+out|conducted|totall?(?:ing|ed))\b"),
     "started": re.compile(r"(?i)\b(?:commenc(?:ed|es|ing|ement)|began|begun|begins|started|starts|mobiliz\w+|mobilis\w+|"
                           r"launch(?:ed|es|ing)?|initiat(?:ed|es|e)|kick(?:ed|s)?\s+off|resum(?:ed|es|ption)|is\s+now\s+"
                           r"underway|has\s+begun|have\s+begun)\b"),
@@ -149,7 +161,7 @@ _HL_ST = [
     ("completed", re.compile(r"(?i)\b(?:complet(?:es|ed|ion\s+of)|concludes|finishes|wraps\s+up)\b")),
     ("started", re.compile(r"(?i)\b(?:commenc(?:es|ed|ement\s+of|ing)|begins|began|starts|started|start\s+of|mobiliz\w+|"
                            r"mobilis\w+|launch(?:es|ed)|initiat(?:es|ed)|kicks\s+off|resum(?:es|ption)|underway|is\s+on)\b")),
-    ("underway", re.compile(r"(?i)\b(?:update|continues|progress|progressing|ongoing|expands)\b")),
+    ("underway", re.compile(r"(?i)\b(?:update|continues|progress|progressing|ongoing|expands|advances(?=\s+(?:\w+\s+)?drill))\b")),
     ("planned", re.compile(r"(?i)\b(?:plans?|planned|prepares|preparations|to\s+commence|to\s+begin|to\s+start|ready\s+for|"
                            r"announces\s+(?:(?:its|a|an|the|new|\d{4})\s+)*(?:[\w-]+\s+){0,2}(?:drill(?:ing)?\s+(?:program|plans?|campaign)|exploration\s+program|field\s+program|sampling\s+program|survey)|receives\s+"
                            r"(?:\w+\s+){0,3}permit|permit\s+to\s+drill|financing\s+for|funded\s+for|ahead\s+of|approval\s+"
@@ -160,9 +172,10 @@ _RESULTS_HL = re.compile(r"(?i)(?:g/t|\d\s?%\s?(?:Cu|Ni|Li2?O?|Zn|Pb|U3O8|Sb|WO3
 _NOT_PROGRAM = re.compile(r"(?i)\b(?:resource\s+estimate|feasibility|pre-feasibility|PEA|metallurg\w*|bulk\s+sampl\w+|"
                           r"test\s+mining|mine\s+(?:plan|development|construction)|underground\s+development|"
                           r"production|processing\s+plant|option\s+agreement|work\s+commitments?|expenditures?\s+of|"
-                          r"exploration\s+expenditures?|must\s+(?:incur|spend))\b")
-_HIST = re.compile(r"(?i)\b(?:historic(?:al)?\s+(?:\w+\s+){0,2}?(?:drill\w*|diamond\s+drill\w*|trench\w*|soil\s+\w+|"
-                   r"surveys?|sampling|geophysic\w*|mapping|exploration\s+(?:work|programs?))|(?:by|from)\s+(?:the\s+)?"
+                          r"exploration\s+expenditures?|must\s+(?:incur|spend)|geotechnical|hydrogeolog\w*|condemnation|site\s+prep\w*|"
+                          r"resampl\w*|re-sampl\w*|re-?logg\w*|royalt\w*|NSR)\b")
+_HIST = re.compile(r"(?i)(?!historic\w*\s+(?:\w+\s+){0,2}?drill\w*\s+(?:samples?|core|data|logs?|results?|intercepts?|assays?)\b)\b(?:historically\s+(?:been\s+)?(?:drill\w*|complet\w*|conduct\w*|carried|explor\w*|sampl\w*)|historic(?:al)?\s+(?:\w+\s+){0,2}?(?:drill\w*|diamond\s+drill\w*|trench\w*|soil\s+\w+|"
+                   r"surveys?|sampling|geophysic\w*|mapping|exploration\s+(?:work|programs?))|(?:by|from)\s+(?:the\s+|a\s+)?"
                    r"previous\s+(?:operators?|owners?|explorers?)|previous\s+(?:operators?|owners?|explorers?)\s+(?:\w+\s+)"
                    r"{0,3}?(?:drill\w*|complet\w*|conduct\w*|carried)|predecessors?|prior\s+(?:operators?|owners?))\b")
 _METALS = ("gold", "silver", "copper", "nickel", "zinc", "lead", "cobalt", "lithium", "uranium", "antimony", "tungsten",
@@ -183,7 +196,7 @@ def _num(s):
 _METRES = re.compile(r"(?i)(?<![\w.])" + _NUM + r"(?:\+)?\s*(?:-\s*)?(?:line[\s-]*)?(?:metres?|meters?|m)\b(?!\s*(?:wide|"
                      r"long|deep|thick|below|above|depth|interval|of\s+\d|at\s+\d|grading|@|\(|apart|spacings?|east|west|"
                      r"north|south|from|to\s+the)|\s*\w*\s*(?:g/t|%))")
-_HOLES = re.compile(r"(?i)(?<![\w.#])" + _NUM + r"\s+(?:\d+(?:,\d{3})*\s*(?:-\s*)?(?:m|metres?|meters?)\s+(?:long\s+|deep\s+)?)?(?:(?!(?:metres?|meters?|m|km|deep|long)\b)[a-z][\w-]*[\s-]+){0,3}?(?:drill\s*)?holes?\b|(?<![\w.])" + _NUM +
+_HOLES = re.compile(r"(?i)(?<![\w.#\-/])" + _NUM + r"\s+(?:\d+(?:,\d{3})*\s*(?:-\s*)?(?:m|metres?|meters?)\s+(?:long\s+|deep\s+)?)?(?:(?!(?:metres?|meters?|m|km|deep|long)\b)[a-z][\w-]*[\s-]+){0,3}?(?:drill\s*)?holes?\b|(?<![\w.])" + _NUM +
                     r"-hole\b|(?<![\w.])" + _NUM + r"\s+drillholes?\b")
 _LINEKM = re.compile(r"(?i)(?<![\w.])" + _NUM + r"\s*(?:-\s*)?line[\s-]*(?:kilomet(?:re|er)s?|km)\b|(?<![\w.])" + _NUM +
                      r"\s*(?:kilomet(?:re|er)s?|km)\s+of\s+(?:IP\s+)?lines?\b")
@@ -252,6 +265,9 @@ def _holes(s):
         if re.search(r"^\s*(?:returned|intersected|of\s+the|grading|with)", tail) and v <= 3:
             continue
         seg = m.group(0).lower()
+        if re.search(r"(?i)\b(?:these|those|both|standout|discovery|best|deepest|third|fourth|fifth|last|first)\s+(?:\w+\s+)?$",
+                     s[max(0, m.start() - 22):m.start()]):
+            continue
         if re.search(r"\b(?:historic|previous|last|first|final|remaining|pending|deepening|reported|assayed)\b", seg):
             if "historic" in seg or "previous" in seg:
                 pass
@@ -385,7 +401,7 @@ _BAD_PROJ = {"The", "Our", "This", "Its", "Company", "Company's", "Company’s",
              "Manitoba", "Newfoundland", "Labrador", "Nunavut", "Brazil", "Mexico", "Peru", "Argentina", "Chile", "Idaho",
              "Wisconsin", "Advanced", "Stage", "Historic", "Historical", "Additional", "Two", "Three", "Both", "These",
              "Other", "Mining", "Mines", "Owned", "Road", "Accessible", "Adjacent", "Neighbouring", "Past", "Producing",
-             "Former", "Large", "District", "Scale", "High", "Grade", "Underexplored", "Under", "Explored", "Key",
+             "Former", "RC", "Successfully", "Program", "Past-Producing", "Wholly-Owned", "Wholly-owned", "100%-Owned", "Large", "District", "Scale", "High", "Grade", "Underexplored", "Under", "Explored", "Key",
              "Several", "Multiple", "Such", "Operating", "Current", "Early", "Northern", "Southern", "Western", "Eastern",
              "Central", "Rich", "Ni", "Co", "Energy", "Metals", "Resources", "Corp", "Inc", "Ltd", "Group", "Tsx", "TSX",
              "CSE", "Newfoundland’s", "Sb", "Ag", "Au", "Cu", "Zn", "Pb", "REE", "VMS", "In", "At", "On", "For", "To",
@@ -401,7 +417,15 @@ _HL_VERB = {"Receives", "Expands", "Announces", "Announce", "Commences", "Comple
             "Inaugural", "Delineate", "Potential", "Highgrade", "High-Grade", "Mineralization", "Crews", "Drill-Ready",
             "Receipt", "Permit", "Permits", "Approval", "Approvals", "Ahead", "Area", "Areas", "Strategy", "Achievements",
             "Reviews", "Ready", "First", "Ever", "Exploration", "From", "Recent", "Ongoing", "Additional", "Summer",
-            "Winter", "Spring", "Fall", "Q1", "Q2", "Q3", "Q4", "Deep-Test", "Return", "Returns"}
+            "Winter", "Spring", "Fall", "Q1", "Q2", "Q3", "Q4", "Deep-Test", "Return", "Returns", "Metres", "Meters",
+            "Geophysical", "Strategically", "Locate", "Located", "Positive", "Past-Producing", "Producing",
+            "Completion", "Commencement", "Completed", "Commenced", "Advances", "Advancing", "Outlines", "Defines",
+            "Expanded", "Extends", "Significant", "Encouraging", "Robust", "Strong", "Successful", "Kicks", "Off",
+            "Wraps", "Up", "Engages", "Over", "Confirm", "Confirms", "Spodumene", "Newly", "Acquired", "About", "Multi-Year", "Controlled", "Owned", "Hosted", "Signs", "Welcomes", "Adds", "Enters", "Mobilization", "Mobilisation", "Its",
+            "On", "Across", "New", "Assays", "Assay", "Rig", "Rigs", "Diamond", "Core"}
+
+
+_PLACE_PREFIX = {"St.", "St", "Saint", "Mt.", "Mt", "Mount", "Port", "Fort", "Lake", "Cape", "Ste.", "Sainte"}
 
 
 def _clean_proj(name):
@@ -410,10 +434,16 @@ def _clean_proj(name):
     for i, w in enumerate(toks):
         if w in _HL_VERB or re.match(r"^(?:19|20)\d\d$", w):
             cut = i + 1
+        elif w.endswith(("’s", "'s", "s’", "s'")) and i < len(toks) - 1 and toks[0] not in _PLACE_PREFIX and (
+                i >= 1 or w[:-2] in ("Gold", "Metals", "Resources", "Mining", "Power", "Energy", "Minerals", "Copper",
+                                     "Silver", "Uranium", "Lithium", "Exploration", "Ventures", "Company")):
+            cut = i + 1
     toks = toks[cut:]
-    while toks and (toks[0].strip("’'s") in _BAD_PROJ or re.match(r"^\d", toks[0]) or toks[0].endswith(("’s", "'s"))):
+    while toks and toks[0] in ("and", "&", "of", "de", "la", "del", "y"):
         toks = toks[1:]
-    while toks and toks[-1] in _BAD_PROJ:
+    while toks and (toks[0].strip("’'s") in _BAD_PROJ or re.match(r"^\d", toks[0])):
+        toks = toks[1:]
+    while toks and (toks[-1] in _BAD_PROJ or toks[-1] in ("JV", "Joint", "Venture")):
         toks = toks[:-1]
     if not toks:
         return None
@@ -500,16 +530,70 @@ def _status(s):
     return best[1] if best else None
 
 
-def _hl_status(t):
+_TENTATIVE = re.compile(r"(?i)\b(?:(?-i:may|might|could)|potential(?:ly)?|possible|planning|contemplat\w+|consider\w*|"
+                        r"propos\w+|evaluat\w+\s+(?:a|the)?\s*(?:potential|possible))\b")
+
+
+_PREP_HL = re.compile(r"(?i)\b(?:earthworks?|trails?|roads?|camp|pads?|access|permits?|preparations?|site\s+work|line[\s-]*cutting|grid)\s+(?:\w+\s+){0,3}?"
+                      r"(?:for|ahead\s+of|in\s+preparation\s+for|to\s+support)\s+(?:the\s+|its\s+|a\s+)?(?:upcoming\s+|planned\s+|"
+                      r"\d{4}\s+)?(?:drill\w*|exploration|field|IP|geophysic\w*|survey)")
+_PROG_WORD = re.compile(r"(?i)\b(?:program(?:me)?s?|campaign|survey|drill\w*|trench\w*|sampling|field\s*work|fieldwork|"
+                        r"exploration|geophysic\w*|mapping|prospecting)\b")
+
+
+def _hl_status(t, ptype=None, results=False):
+    if re.search(r"(?i)\bcomplet\w*\s+(?:the\s+)?first\s+(?:\w+\s+){0,2}holes?\b", t):
+        return "underway"
+    pm = _PREP_HL.search(t)
+    if pm and not re.search(r"(?i)\b(?:launch\w*|commenc\w*|begins?|starts?|initiat\w*|kicks?\s+off|complet\w*|mobiliz\w*)\b"
+                            r"(?=.{25,}$)", t[:pm.start()]):
+        return "planned"
+    verbs = []
     for st, rx in _HL_ST:
-        if rx.search(t):
-            if st == "completed" and re.search(r"(?i)\b(?:update|progress\w*|to\s+date|nearly|so\s+far)\b", t):
-                return "underway"
-            return st
-    return None
+        for m in rx.finditer(t):
+            if st == "planned" and m.group(0).lower().startswith("announces") and re.search(
+                    r"(?i)\b(?:program(?:me)?|campaign|survey)\s+(?:discover\w*|intersect\w*|returns?|confirms?|results?)", t):
+                continue
+            if re.match(r"(?i)\s+(?:trading|operations|production|construction|mining|processing|milling)\b", t[m.end():m.end() + 16]):
+                continue
+            verbs.append((m.start(), m.end(), st))
+    verbs = [v for v in verbs if not (v[2] == "planned" and t[v[0]:v[1]].lower().startswith("announces") and any(
+        o[2] in ("started", "completed") and v[0] < o[0] < v[1] for o in verbs))]
+    if not verbs:
+        tm, pw0 = _TENTATIVE.search(t), _PROG_WORD.search(t)
+        return "planned" if tm and pw0 and tm.start() < pw0.start() else None
+    rx = {"drilling": _DRILL, "geophysics": _GEO, "ground": _GRD}.get(ptype)
+    pw = (rx.search(t) if rx else None) or _PROG_WORD.search(t)
+    if pw:
+        def dist(v):
+            if v[1] <= pw.start():
+                return pw.start() - v[1]
+            if v[0] >= pw.end():
+                return (v[0] - pw.end()) + 40
+            return 0
+        best = min(verbs, key=lambda v: (dist(v), v[2] not in ("started", "completed"), v[0]))
+        if results and dist(best) > 45:
+            return None
+    else:
+        if results:
+            return None
+        best = min(verbs, key=lambda v: (v[2] not in ("completed", "started"), v[0]))
+    tm = _TENTATIVE.search(t)
+    if tm and best[2] != "completed" and (tm.start() < best[0] or tm.start() - best[0] < 25) and \
+            (not pw or tm.start() < max(pw.end(), best[1]) + 5):
+        return "planned"
+    st = best[2]
+    if st == "completed" and re.search(r"(?i)\b(?:update|progress\w*|to\s+date|nearly|so\s+far)\b", t):
+        return "underway"
+    if st == "underway" and results and re.search(r"(?i)\bcontinues\s+to\s+(?:intersect|return|expand|define|deliver|hit)", t):
+        return None
+    return st
 
 
 def _hl_type(t, body):
+    if re.search(r"(?i)\b(?:geophysic\w*|survey|geological|geochemical|drill(?:ing)?)\s+(?:data\s+)?(?:interpretation|modell?ing|model|"
+                 r"inversion|review|compilation|re-?processing)\b", t):
+        return None
     m_d, m_g, m_r = _DRILL.search(t), _GEO.search(t), _GRD.search(t)
     if m_d:
         return "drilling"
@@ -592,10 +676,17 @@ _OPERATOR = re.compile(r"(?:by|for)\s+((?:[A-Z][\w&'’.\-]*\s+){0,4}?(?:[A-Z][\
                        r"Limited|Resources|Mines|Mining|Exploration|Explorations|Gold|Metals|Minerals|Ventures)\.?)")
 
 
-def _hist_operator(s):
-    m = _OPERATOR.search(s)
-    if m:
-        return m.group(1).strip(" .")
+def _hist_operator(s, issuer=None):
+    ik = set(re.findall(r"[a-z]{3,}", (issuer or "").lower())) - {"inc", "corp", "ltd", "the", "resources", "mining", "metals",
+                                                                   "gold", "minerals", "exploration", "limited", "silver",
+                                                                   "copper", "corporation", "ventures"}
+    for m in _OPERATOR.finditer(s):
+        n = m.group(1).strip(" .")
+        if _NOT_OPERATOR.search(n) or re.search(r"(?i)\b(?:project|update|property|news|release)\b", n):
+            continue
+        if ik and ik & set(re.findall(r"[a-z]{3,}", n.lower())):
+            continue
+        return n
     return "previous owner (unnamed)"
 
 
@@ -609,10 +700,72 @@ def _nearest(rx, s, a, b, span=110):
 
 
 _WILL = re.compile(r"(?i)\b(?:plan(?:s|ned)?\s+to|expects?\s+to|intends?\s+to|will|to\s+be|would|anticipat\w+\s+to|scheduled\s+to|"
-                   r"aims?\s+to|looks?\s+forward\s+to|prepar\w+\s+to|in\s+order\s+to|to)\s+(?:\w+\s+){0,3}$")
+                   r"aims?\s+to|looks?\s+forward\s+to|prepar\w+\s+to|in\s+order\s+to|to(?!\s+(?:announce|report|provide|update|inform|share|present|disclose|confirm)))\s+(?:(?-i:(?![A-Z0-9]))\w+\s+){0,3}$")
 
 
 def _near_status(s, a, b):
+    st = _near_status1(s, a, b)
+    w = s[max(0, a - 120):b + 160]
+    if st == "completed" and re.search(r"(?i)\b(?:following|upon|after|once|until)\s+(?:the\s+)?complet\w*", w) and \
+            re.search(r"(?i)\bwill\b|\bplan(?:s|ned)?\b|\bto\s+(?:commence|begin|start|initiate)\b", w):
+        return "planned"
+    if st in ("completed", "started") and re.search(r"(?i)\bsince\s+(?:the\s+)?(?:commencement|start|beginning)\s+of\s+(?:the\s+|its\s+)?"
+                                                     r"(?:[\w-]+\s+){0,3}?(?:program|campaign|drilling)", w):
+        return "underway"
+    if st == "planned" and re.search(r"(?i)\b(?:assay\s+)?results?\s+(?:from|of)\s+(?:its|the|our)\s+(?:[\w,\-()\"“”]+\s+){0,14}?"
+                                     r"(?:program(?:me)?|campaign)", w) and not re.search(r"(?i)\bwill\s+(?:commence|begin|start)", w):
+        return "underway"
+    if re.search(r"(?i)[\d,.]+\s*(?:m|metres?|meters?)\s+of\s+(?:the\s+)?(?:a\s+)?(?:planned\s+)?[\d,.]+\s*(?:-\s*)?(?:m|metres?|meters?)\b", w) \
+            and st in ("completed", "planned", "started"):
+        return "underway"
+    if st in ("underway", "started") and re.search(r"(?i)\bpermit\w*\s+for\b|\breceived\s+(?:a\s+|the\s+)?(?:drill\w*\s+)?permit", w):
+        return "planned"
+    if st in ("completed", "planned") and re.search(r"(?i)\bcomplet\w*\s+(?:the\s+)?first\s+(?:\w+\s+){0,2}(?:drill\s*)?holes?\s+of\b|"
+                                                   r"\bcomplet\w*\s+(?:over\s+|approximately\s+|about\s+|nearly\s+)?(?:a\s+|one\s+)?"
+                                                   r"(?:half|third|quarter|\d+\s*%)\s+of\s+(?:the|its|our)\s+(?:[\w-]+\s+){0,3}?(?:planned|program(?:me)?|campaign)", w):
+        return "underway"
+    if st == "completed" and re.search(r"(?i)\b(?:if|unless|once|until)\s+(?:\w+\s+){0,5}?(?:is\s+|are\s+)?(?:not\s+)?complet", w):
+        return "planned"
+    if st in ("completed", "started") and not re.search(r"(?i)\bresults?\s+(?:from|for|of)\s+(?:the\s+)?remaining\b", s) \
+            and re.search(r"(?i)\b(?:bringing\s+the\s+total|to\s+date|so\s+far)\b",
+                                                     s[max(0, a - 60):b + 160]) and not re.search(
+            r"(?i)\b(?:program|campaign)\s+(?:was|has\s+been)\s+complet", s):
+        return "underway"
+    if st == "underway" and re.search(r"(?i)\b(?:plans?|preparations?|planning|permitting)\s+(?:are|is)\s+(?:now\s+|well\s+)?underway|"
+                                      r"\bunderway\s+(?:in\s+preparation|ahead\s+of|for\s+the\s+upcoming)", w):
+        return "planned"
+    if st in ("underway", "started", "completed") and re.search(
+            r"(?i)\b(?:program(?:me)?|campaign|survey|drilling)\s+(?:is|are)\s+(?:now\s+|currently\s+)?(?:planned|scheduled|proposed)\b",
+            s[max(0, a - 20):b + 80]):
+        return "planned"
+    if st in ("planned", "completed") and re.search(r"(?i)\bfirst\s+(?:\w+\s+){0,2}holes?\s+(?:to\s+be\s+)?completed\b|"
+                                                   r"\bfirst\s+[\d,.]+\s*(?:m|metres?|meters?)\s+of\s+(?:its|the|our)\s+planned", w):
+        return "underway"
+    if st in ("planned", "completed") and re.search(
+            r"(?i)\bhave\s+been\s+drilled\b|\bstart\s+of\s+(?:a|the|its)\s+planned\b|\bremaining\s+(?:~|approximately\s+|about\s+)?\d+\s*%|"
+            r"\b\d+\s*%\s+of\s+the\s+(?:planned|program|total)|\bfirst\s+\w+\s+holes?\s+(?:that\s+)?(?:have\s+been\s+|were\s+)?drilled|"
+            r"\bresults?\s+(?:for|from)\s+the\s+first\s+\w+\s+holes", w):
+        return "underway"
+    if st == "completed" and re.search(r"(?i)\bcomplet\w*\s+(?:all\s+)?(?:the\s+)?preparations?\s+for\b", w):
+        return "planned"
+    if st == "started" and re.search(
+            r"(?i)\b(?:approaching|near-term|upcoming|as\s+the\s+(?:[\w-]+\s+){0,3}(?:program\s+|campaign\s+)?commences|"
+            r"commencement\s+(?:[\w(),-]+\s+){0,10}?in\s+(?:early\s+|late\s+|mid-?)?(?:January|February|March|April|June|July|August|"
+            r"September|October|November|December)\b(?!\s+(?:19|20)\d\d))", w):
+        return "planned"
+    if st in ("started", "underway") and _TENTATIVE.search(s[max(0, a - 70):b + 50]):
+        return "planned"
+    # 1.1: a program part-way through its planned metres is underway (TXG.TO: 'on track to achieve the planned
+    # 12,000 m of drilling ... by the end of the year, with 9,430 m completed by mid-May over 12 drill holes')
+    if st in ("planned", "completed") and re.search(
+            r"(?i)\bon\s+track\s+to\s+(?:achieve|complete|finish|deliver|meet)\s+(?:the|its|our)\s+(?:planned\s+)?|"
+            r"\bwith\s+(?:approximately\s+|about\s+|over\s+)?[\d,.]+\s*(?:m|metres?|meters?|holes?)\s+(?:\w+\s+){0,2}"
+            r"(?:completed|drilled)\s+(?:to\s+date|so\s+far|by|as\s+of)", w):
+        return "underway"
+    return st
+
+
+def _near_status1(s, a, b):
     if re.search(r"(?i)\b(?:nearly|almost|substantially)\s+complete", s[a:b + 40]):
         return "underway"
     m = re.search(r"(?i)\b(?:survey|program(?:me)?|campaign|work|sampling|drilling|drill\s+program)\s+(?:was\s+|were\s+|has\s+been\s+|have\s+been\s+)?"
@@ -661,6 +814,150 @@ def _near_season(s, a, b):
     return _season(m.group(0)) if m else None
 
 
+_ELSEWHERE = re.compile(r"(?i)(?:\b(?:on|at)\s+(?:the\s+)?(?:adjacent|adjoining|neighbou?ring|nearby)\b|\bthe\s+nearby\b|"
+                        r"\b(?:adjacent|adjoining|neighbou?ring)\s+(?:property|properties|claims?|projects?)\b|"
+                        r"\balong\s+strike\s+(?:from|of)\b|\blocated\s+[\d.]+\s*km\s+(?:along|from|away|to)\b|\banalogous\b)")
+_ISSUER = re.compile(r"^\W*(?:[\w./\-]+\s*,\s*[\w ./\-]+\s*[-–—:(/]?\s*)?(?:DATE\s*)?(?:/\w+/\s*)?[-–—:]?\s*"
+                     r"([A-Z][\w&'’.\-]*(?:\s+[A-Z][\w&'’.\-]*){0,5})\s*\(")
+_CUMULATIVE = re.compile(r"(?i)\b(?:since\s+(?:its\s+|the\s+)?(?:(?:19|20)\d\d|inception|acquisition|discovery)|to\s+date|"
+                         r"historically|over\s+the\s+(?:past|last)\s+(?:\w+\s+)?(?:years|decades)|cumulative|in\s+total\s+"
+                         r"since|over\s+the\s+(?:life|history)|a\s+total\s+of\s+[\d,.]+\s*(?:m|metres?|meters?)\s+(?:\w+\s+)"
+                         r"{0,4}since|(?:was|were)\s+(?:first\s+)?discovered)\b")
+_DISCLAIM = re.compile(r"(?i)\b(?:for\s+information(?:al)?\s+purposes|(?:has|have)\s+not\s+(?:been\s+)?(?:independently\s+)?"
+                       r"verif\w+|not\s+been\s+verified|should\s+not\s+be\s+relied|cannot\s+be\s+relied|not\s+necessarily\s+"
+                       r"indicative|is\s+not\s+(?:necessarily\s+)?indicative)\b")
+_NON_EXPL_HL = re.compile(r"(?i)\b(?:resource\s+estimate|mineral\s+resource|feasibility|PEA|preliminary\s+economic|"
+                          r"private\s+placement|financing|flow[\s-]*through|bought\s+deal|offering|royalt\w*|stream|"
+                          r"acqui(?:re|res|red|sition)|arrangement|merger|amalgamation|option\s+agreement|quarter(?:ly)?|"
+                          r"financial\s+(?:results|statements)|MD&A|annual\s+(?:general\s+)?meeting|AGM|shareholder|"
+                          r"warrants?|listing|grant\s+of\s+options|stock\s+options|name\s+change|webinar|conference|"
+                          r"production\s+(?:results|update)|Q[1-4]\b|reserves?|construction|advisory|appoint\w*|board|director|CEO|CFO|"
+                          r"symbol|OTCQB|DTC|tenures?|clarif\w*|corporate\s+update|metallurg\w*)\b")
+_OTHER_OP = re.compile(r"(?:(?:completed|conducted|drilled|carried\s+out|undertaken|performed|flown|operated)\s+(?:[\w,]+\s+){0,3}?by|"
+                       r"(?:owned|held)\s+by)\s+(?:the\s+)?([A-Z][\w&'’.\-]*(?:\s+(?:[A-Z][\w&'’.\-]*|and|&)){0,4})|"
+                       r"\b([A-Z][\w&'’.\-]+(?:\s+[A-Z][\w&'’.\-]+){0,3})\s+(?:conducted|completed|drilled|carried\s+out|"
+                       r"undertook|flew)\b")
+_NOT_OPERATOR = re.compile(r"(?i)^(?:the\s+)?(?:company|corporation|we|it|our|they|management|DATE|in|during|between|"
+                           r"geologists?|crews?|teams?|contractors?)\b|drill|geophys|survey|geotech|consult|service|"
+                           r"forage|laborator|labs?\b|geoscien|helicopter|aviation|expert|geolog|\bQP\b|qualified")
+
+
+_ISSUER2 = re.compile(r"([A-Z][\w&'’.\-]*(?:\s+[A-Z][\w&'’.\-]*){0,5})\s*\((?:[\"“]|the\s+|TSX|CSE|NYSE|NASDAQ|"
+                      r"OTC|ASX|AIM|NEO|Cboe|FSE|FRA)")
+
+
+_PP = re.compile(r"(?i)(?:\bdrill(?:ing)?\s+(?:program(?:me)?|campaign|phase)|\b(?:diamond|core|RC|reverse\s+circulation|sonic|"
+                 r"auger|aircore|air\s+core|RAB)\s+(?:drill(?:ing)?\s+)?(?:program(?:me)?|campaign)|[\d,.]+\s*(?:-\s*)?(?:m|metres?|meters?)"
+                 r"\s+(?:of\s+)?(?:\w+\s+){0,2}drill(?:ing)?\b|\b\d+\s*(?:-\s*)?(?:\w+\s+){0,2}(?:drill\s*)?holes?\b|\b\w+-hole\b|"
+                 r"\b(?:survey|trenching|sampling|mapping|prospecting|field|exploration|work|geophysical|geochemical)\s+"
+                 r"(?:program(?:me)?|campaign|season)|\bsurveys?\b|\bfield\s*work\b|\bfieldwork\b|\bprogram(?:me)?\b|\bcampaign\b)")
+_ANY_ST = re.compile("|".join("(?:%s)" % rx.pattern.replace("(?i)", "") for rx in _ST.values()), re.I)
+_SINCE_EVENT = re.compile(r"(?i)^\W*since\s+(?:[\w.&-]+['’]s\s+|[\w.&-]+\s+){0,5}?(?:(?:19|20)\d\d|initial\s+|first\s+)?"
+                          r"(?:acquisition|acquir\w+|inception|discovery|option\w*|IPO|listing|commencement|(?:19|20)\d\d)")
+_THIS_YEAR = re.compile(r"(?i)\b(?:this|the\s+current)\s+(?:calendar\s+|field\s+)?(?:year|season)\b|"
+                        r"\b(?:by|before)\s+(?:the\s+)?end\s+of\s+(?:the|this)\s+year\b|\bfor\s+the\s+(?:calendar\s+)?year\b|"
+                        r"\b(?:later|earlier)\s+(?:in\s+)?(?:the|this)\s+year\b")
+_SUBAREA_AT = re.compile(r"\b(?:[Pp]lanned|[Dd]rill(?:ing|ed)?|[Mm]etres|[Mm]eters|m)\b[^.;]{0,60}?\b(?:at|on)\s+(?:the\s+)?"
+                         r"([A-Z][\w'-]+(?:\s+[A-Z][\w'-]+){0,2})\s+(?:and|&)\s+([A-Z][\w'-]+)")
+_SUBAREA_TO = re.compile(r"(?i)\bspecific(?:ally)?\s+to\s+(?:the\s+)?(?:[\w-]+\s+){0,3}?(?:of\s+)?(?:the\s+)?(?-i:([A-Z][\w'-]+))")
+_NOT_AREA = re.compile(r"(?i)^(?:the|property|project|company|phase|DATE|Q[1-4]|January|February|March|April|May|June|July|"
+                       r"August|September|October|November|December)$")
+
+
+def _part_of_property(s, project):
+    """1.1: metres stated for named parts of a larger property are that part's program, not the property's. TXG.TO:
+    'More broadly across the Morelos Property, approximately 15,000 m of drilling is planned for this year at El
+    Naranjo and Atzcala'; 'the planned 12,000 m of drilling specific to the northern extension of EPO'. The row keeps
+    its status and season; its size is left to the release that states the property's program."""
+    pk = _proj_key(project or "")
+    if not pk:
+        return False
+    m = _SUBAREA_TO.search(s)
+    if m and _proj_key(m.group(1)) != pk and not _NOT_AREA.match(m.group(1)):
+        return True
+    m = _SUBAREA_AT.search(s)
+    whole = re.search(r"(?i)\b(?:across|throughout)\s+(?:the\s+)?(?:broader\s+|wider\s+|entire\s+)?([\w'-]+)", s)
+    if m and whole and _proj_key(whole.group(1)) == pk and not re.search(
+            r"(?i)\b(?:includ\w*|compris\w*|such\s+as|consist\w*)\b", s[whole.end():m.end()]) and all(_proj_key(g) != pk and not _NOT_AREA.match(g.split()[0]) for g in m.groups()):
+        return True
+    return False
+
+
+# 1.1.1: 'With approximately 125,000 metres of drilling planned in 2025' is the program even when the same sentence
+# talks about production (TXG.TO's year-end reserves release)
+_METRES_PLANNED = re.compile(r"(?i)\b[\d,.]+\s*(?:m|metres?|meters?)\s+of\s+(?:\w+\s+)?drilling\s+(?:is\s+|are\s+)?"
+                             r"planned\s+(?:in|for)\s+(?:19|20)\d\d\b")
+_HL_TARGET = re.compile(r"\b(?:[Ff]rom|[Aa]t)\s+(?:the\s+)?([A-Z][\w'-]+(?:\s+[A-Z][\w'-]+){0,3})")
+_NOT_TARGET = re.compile(r"(?i)^(?:surface|depth|the|results?|drill\w*|new|high|its|our|DATE|Q[1-4]|\d)")
+
+
+def _target_of_complex(title, project, s, body):
+    """1.1.1: a release headlined on one target of a multi-deposit complex reports that target's drilling, not the
+    project's. TXG.TO 'Reports Promising Drill Results from Media Luna West': 'A total of 10,744 m of drilling was
+    conducted across 23 drill holes during 2025' is Media Luna West's ('The Media Luna West target is part of the Media
+    Luna Cluster'), not the Morelos Property's 2025 program. Returns the target's name, used as the row's project, or
+    None. Only when the headline and the sentence do not name the project, and the release says the target is part of
+    a cluster, complex, district or camp."""
+    pk = _proj_key(project or "")
+    if not pk or pk in re.findall(r"[a-z0-9]+", _fold_words(title)) or pk in re.findall(r"[a-z0-9]+", _fold_words(s)):
+        return None
+    for m in _HL_TARGET.finditer(title or ""):
+        name = m.group(1).strip()
+        name = re.sub(r"\s+(?:Results?|Drill\w*|Program\w*|Target|Deposit|Zone)\b.*$", "", name)
+        if not name or _NOT_TARGET.match(name) or _proj_key(name) == pk:
+            continue
+        if re.search(re.escape(name) + r"\s+(?:target|deposit|zone|prospect|area)?\s*(?:is|forms)\s+(?:a\s+)?(?:part\s+of|"
+                     r"within|located\s+(?:with)?in)\s+the\s+(?:[\w'-]+\s+){0,4}?(?:Cluster|Complex|District|Camp)\b", body or ""):
+            return name
+    return None
+
+
+def _fold_words(t):
+    t = unicodedata.normalize("NFKD", t or "").lower()
+    return "".join(c for c in t if not unicodedata.combining(c))
+
+
+_CUMUL2 = re.compile(r"(?i)\b(?:invested|in\s+aggregate|there\s+has\s+been|have\s+been\s+drilled\s+on\s+the\s+(?:project|property)|"
+                     r"over\s+the\s+(?:years|life)|historical\s+total|including\s+the\s+recent)\b")
+
+
+def _strong(w):
+    """A program phrase with a status word close to it, and no running-total wording."""
+    if _CUMUL2.search(w):
+        return False
+    sts = [m.start() for m in _ANY_ST.finditer(w)]
+    for m in _PP.finditer(w):
+        if any(abs(p - m.start()) < 70 or abs(p - m.end()) < 70 for p in sts):
+            return True
+    return False
+
+
+def _issuer(b):
+    m = _ISSUER.search(b[:400]) or _ISSUER2.search(b[:1500])
+    return m.group(1) if m else None
+
+
+def _other_operator(s, issuer):
+    """A company other than the issuer that ran the work ("drilled by Kennecott in 2022", "Ethos conducted ...")."""
+    ik = set(re.findall(r"[a-z]{3,}", (issuer or "").lower())) - {"inc", "corp", "ltd", "the", "resources", "mining",
+                                                                   "metals", "gold", "minerals", "exploration", "limited",
+                                                                   "silver", "copper", "corporation", "ventures"}
+    ms = sorted([m for i in range(len(s)) for m in [_OTHER_OP.match(s, i)] if m and (m.group(1) or m.group(2))
+                 and (i == 0 or not s[i - 1].isalnum())], key=lambda m: (m.group(1) is None, m.start()))
+    for m in ms:
+        n = (m.group(1) or m.group(2) or "").strip(" .,")
+        if not n or _NOT_OPERATOR.search(n) or n.split()[0] in _BAD_PROJ or n.split()[0] in _HL_VERB:
+            continue
+        if re.match(r"^(?:19|20)\d\d$", n) or len(n) < 3 or re.match(r"^[A-Z]{2,5}$", n):
+            continue
+        if m.group(2) and len(n.split()) < 2 and not re.search(r"(?:Gold|Mines|Mining|Resources|Metals|Minerals|Corp|Inc|Ltd)$", n):
+            continue
+        if ik and ik & set(re.findall(r"[a-z]{3,}", n.lower())):
+            continue
+        return n, m.start()
+    return None
+
+
 # ------------------------------------------------------------------ the reader
 def analyse(headline, body):
     h, b = _prepare(headline, body)
@@ -671,6 +968,7 @@ def analyse(headline, body):
     if len(b) < 200 and not title:
         return {"rows": [], "reason": "no text"}
     primary = _primary_project(title, b)
+    issuer = _issuer(b)
     sents = _sentences(b)
     date_year = None
     rows = []
@@ -678,11 +976,21 @@ def analyse(headline, body):
 
     # 1. the program the headline is about
     ptype = _hl_type(title, b)
+    other_news = bool(_NON_EXPL_HL.search(title)) and not ptype
+    acq_hl = bool(re.search(r"(?i)\b(?:to\s+acquire|acquires|acquisition\s+of|agreement\s+to\s+acquire|options?\s+(?:the|its|a)\b|"
+                            r"definitive\s+agreement|purchase\s+agreement)", title))
+    deal_hl = bool(re.search(r"(?i)\b(?:options?|optioned|acquir\w+|acquisition|agreement|earn-?in|purchase\w*|LOI)\b", title))
     hl_results = bool(_RESULTS_HL.search(title))
-    if ptype and not re.search(r"(?i)\b(?:resource\s+estimate|feasibility|PEA|technical\s+report|production)\b", title):
-        st = _hl_status(title)
+    if ptype and not re.search(r"(?i)\b(?:resource\s+estimate|feasibility|PEA|technical\s+report|production|"
+                               r"(?:mineral\s+)?reserves?\s*(?:&|and)\s*(?:mineral\s+)?resources?|"
+                               r"year[\s-]+end\s+(?:19|20)\d\d\s+(?:results|reserves?|financial|mineral)|"
+                               r"(?:first|second|third|fourth|Q[1-4])\s+quarter|annual\s+results)\b", title) \
+            and not re.search(r"(?i)\bhistoric\w*\s+(?:\w+\s+){0,2}(?:drill\w*|samples?|sampling|trench\w*|data|work|surveys?)",
+                              title):
+        st = _hl_status(title, ptype, hl_results)
         if st is None and hl_results:
-            st = "completed" if ptype != "drilling" else None
+            st = "completed" if ptype != "drilling" or re.search(
+                r"(?i)\b(?:final|complete|all|remaining)\s+(?:\w+\s+){0,2}(?:results|assays)\b", title) else None
         if st:
             # the body sentences about this program give its facts
             text = title
@@ -690,7 +998,7 @@ def analyse(headline, body):
                 own = _status(s)
                 if own and ((own == "completed") != (st == "completed")) and st != "underway":
                     continue
-                if ptype in _types(s) and not _HIST.search(s) and not _RESULTS_HL.search(s[:60]):
+                if ptype in _types(s) and not _HIST.search(s) and not _RESULTS_HL.search(s[:60]) and not _ELSEWHERE.search(s):
                     text += " " + _fact_window(sents, i, ptype)
                     if _metres(s) or _holes(s) or _linekm(s):
                         break
@@ -709,13 +1017,24 @@ def analyse(headline, body):
     # 2. programs the body states with a clear status and a distinguishing fact
     now = rel_year
     for i, s in enumerate(sents):
-        if _NOT_PROGRAM.search(s) and not re.search(r"(?i)drill(?:ing)?\s+program", s):
+        if _NOT_PROGRAM.search(s) and not re.search(r"(?i)drill(?:ing)?\s+program", s) and not _METRES_PLANNED.search(s):
             continue
-        if re.match(r"(?i)^(?:figure|fig\.|table|photo|plate|map|source|note)\b", s):
+        if re.match(r"(?i)^(?:figure|fig\.|table|photo|plate|map|source|note|plan\s+view|cross[\s-]+section|long[\s-]+section|"
+                    r"location\s+of|image)\b", s):
+            continue
+        if re.search(r"(?i)\bno\s+(?:additional\s+|further\s+|new\s+)?"
+                     r"(?:drill|exploration)", s):
+            continue
+        if re.search(r"(?i)\b(?:included|reported|presented)\s+(?:in|with)\s+this\s+(?:news\s+)?release\b|\breported\s+here(?:in)?\b", s):
+            continue
+        if _DISCLAIM.search(s) and not (_metres(s) or _holes(s)):
             continue
         seen = set()
         for t, rx in (("drilling", _DRILL), ("geophysics", _GEO), ("ground", _GRD)):
             m = rx.search(s)
+            while m and re.match(r"(?i)\s*(?:\w+\s+)?(?:anomal\w*|targets?|results?|data(?:\s*sets?)?|highs?|lows?|responses?|signatures?|"
+                                 r"interpretation|models?|inversions?|features?)\b", s[m.end():m.end() + 30]):
+                m = rx.search(s, m.end())
             if not m or t in seen:
                 continue
             seen.add(t)
@@ -723,7 +1042,38 @@ def analyse(headline, body):
             w = s[a0:a1]
             hm = _HIST.search(s)
             hist = bool(hm) and abs(hm.start() - m.start()) < 90
+            if hist and hm.group(0).lower().startswith("historic") and hm.start() > m.start() + 15 and \
+                    re.search(r"(?i)\b(?:targeted|tested|followed\s+up|test|follow|twin\w*|confirm\w*|validat\w*|extend\w*)\b",
+                              s[m.start():hm.start()]):
+                hist = False
+            if hist and re.search(r"(?i)\b(?:tested|targeted|test|follow\w*|twin\w*|confirm\w*|where|near)\b", s[max(0, hm.start() - 60):hm.start()]) \
+                    and (_metres(s[:hm.start()]) or _holes(s[:hm.start()])):
+                continue
             st = _near_status(s, m.start(), m.end())
+            oper = None
+            yr0 = _near_year(s, m.start(), m.end())
+            if not hist and st == "completed" and deal_hl and not (yr0 and now and int(yr0) >= now - 1):
+                oo = _other_operator(s[a0:a1], issuer)
+                if oo:
+                    hist, oper = True, oo[0]
+            if not hist and st == "completed" and yr0 and now and int(yr0) < now - 1 and acq_hl:
+                hist = True
+            if not hist and st == "completed" and yr0 and now and int(yr0) < now - 1:
+                oo = _other_operator(s[a0:a1], issuer)
+                if oo:
+                    hist, oper = True, oo[0]
+                elif int(yr0) < now - 15:
+                    hist = True
+            if not hist and st == "completed" and re.search(r"(?i)\bsince\s+(?:the\s+)?(?:19[0-8]\d|199[0-5])s?\b", w):
+                hist = True
+            if not hist and st == "completed" and _CUMULATIVE.search(w):
+                continue
+            # 1.1: a sentence that opens 'Since <an event two or more years back>, the Company has completed ...' is a
+            # running total over several seasons, however far the event is from the drilling words (AEM.TO Hope Bay: 'Since Agnico Eagle's acquisition of the Hope
+            # Bay project in February 2021, the Company has completed more than 1,239 diamond drill holes')
+            if not hist and st == "completed" and now and _SINCE_EVENT.match(s) and any(
+                    int(y) <= now - 2 for y in _YEAR.findall(s[:m.end() + 110])):
+                continue
             if hist:
                 years = sorted(set(y.group(1) for y in _YEAR.finditer(s)
                                    if a0 <= y.start() < a1 and (now is None or int(y.group(1)) < now - 1)
@@ -732,12 +1082,15 @@ def analyse(headline, body):
                 has_fact = bool(years) or _metres(w) or _holes(w) or _OPERATOR.search(w)
                 if not has_fact or (t != "drilling" and not years):
                     continue
-                if re.search(r"(?i)\b(?:adjacent|neighbou?ring|nearby|along\s+strike\s+from|government|geological\s+"
+                if re.search(r"(?i)\b(?:adjacent|neighbou?ring|nearby|along\s+strike\s+from|government|USGS|USBM|"
+                             r"universit\w+|academic|geological\s+"
                              r"survey|GSC|OGS|provincial)\b", w):
                     continue
                 season = years[0] if len(years) == 1 else None
+                if other_news and not (_metres(w) or _holes(w) or _linekm(w)):
+                    continue
                 r = _row(t, _project_in(s, [primary] if primary else [], primary), "completed", w,
-                         historical=True, operator=_hist_operator(w), season=season)
+                         historical=True, operator=oper or _hist_operator(w, issuer), season=season)
                 r["season"] = season
                 if r["metres"] is None and r["holes"] is None and season is None and r["operator"].startswith("previous"):
                     continue
@@ -745,6 +1098,8 @@ def analyse(headline, body):
                 rows.append(r)
                 continue
             if st is None:
+                continue
+            if _ELSEWHERE.search(w):
                 continue
             if re.search(r"(?i)\b(?:talks|discussions|negotiat\w*|contractors?\s+to\s+undertake)\b", w) and st != "completed":
                 continue
@@ -755,6 +1110,9 @@ def analyse(headline, body):
                 continue
             if st != "completed" and yr and now and int(yr[-4:]) < now - 1:
                 continue
+            if other_news and not (yr and (_PHASE.search(w) or (t == "drilling" and (_metres(w) or _holes(w))) or
+                                           (t == "geophysics" and _linekm(w)))):
+                continue
             if st == "planned" and not re.search(r"(?i)\b(?:program(?:me)?|campaign|survey|drill(?:ing)?)\b", w):
                 continue
             text = w
@@ -762,7 +1120,16 @@ def analyse(headline, body):
                 text = w + " " + sents[i + 1][:200]
             r = _row(t, _project_in(s, [primary] if primary else [], primary), st, text)
             r["season"] = _near_season(s, m.start(), m.end()) or yr
+            if not r["season"] and now and _THIS_YEAR.search(w):
+                r["season"] = str(now)
+            if t == "drilling" and (r["metres"] or r["holes"]) and _part_of_property(s, r["project"]):
+                r["metres"] = r["holes"] = None
+            tgt = _target_of_complex(title, r["project"], s, b) if t == "drilling" else None
+            if tgt:
+                r["project"] = tgt
             if t != "drilling" and st == "planned" and not (r["season"] or r["phase"]):
+                continue
+            if not _strong(w):
                 continue
             r["_src"] = s
             rows.append(r)
@@ -772,6 +1139,8 @@ def analyse(headline, body):
     for r in rows:
         if not r["project"]:
             r["project"] = primary
+        if not r["project"]:
+            continue
         for o in out:
             if _same_program(o, r):
                 _merge(o, r)
@@ -892,6 +1261,46 @@ def self_test(verbose=False):
     r = rows("Company Reports Results", "The option agreement requires exploration expenditures of $1,000,000 including "
              "a drilling program by 2027. " + "Filler. " * 20)
     eq("work commitment, no rows", r, [])
+
+    # 1.1 (Justin, 2026-09-22): a running total is not a program; 'this year' is the release's year; part of a
+    # property is not the property's program; part-way through planned metres is underway
+    r = rows("Agnico Eagle Approves Hope Bay Investment Decision",
+             "TORONTO, May 19, 2026 -- Agnico Eagle Mines Limited announced today its decision to build Hope Bay. "
+             "Between August 2025 and the end of April 2026, the Company completed more than 130 diamond drill holes at "
+             "Madrid and across the broader project area, totalling more than 100,000 metres of drilling. Since Agnico "
+             "Eagle's acquisition of the Hope Bay project in February 2021, the Company has completed more than 1,239 "
+             "diamond drill holes totalling 522,634 metres. " + "Filler about the mine plan. " * 12)
+    eq("AEM running total is not a row", sorted(x["holes"] for x in r if x["holes"]), [130])
+    eq("TXG part of the property", _part_of_property(
+        "More broadly across the Morelos Property, approximately 15,000 m of drilling is planned for this year at El "
+        "Naranjo and Atzcala, focused on confirming the continuity of mineralization.", "Morelos"), True)
+    r = rows("Torex Gold Reports Excellent Drilling Results from EPO",
+             "TORONTO, July 16, 2025 -- Torex Gold Resources Inc. reports results from the Morelos Property. The Company is "
+             "on track to achieve the planned 12,000 m of drilling specific to the northern extension of EPO by the end "
+             "of the year, with 9,430 m completed by mid-May over 12 drill holes. " + "Filler geology. " * 12)
+    eq("TXG part-way is underway", [(x["status"], x["season"]) for x in r if x["program_type"] == "drilling"][-1:],
+       [("underway", "2025")])
+    eq("this year pattern", bool(_THIS_YEAR.search("planned for this year at El Naranjo")), True)
+    eq("drilling that includes named deposits is the whole program", _part_of_property(
+        "We are now excited to complete our 7,000 m drill program across the Cassiar Gold Property that will include "
+        "drilling at the Taurus Deposit and Newcoast.", "Cassiar"), False)
+    eq("a sub-area needs the whole property named", _part_of_property(
+        "Follow up drilling at Balla Balla Project is planned with 6,000 m of Aircore drilling at the Babbage and Ramquarry "
+        "Prospects.", "Balla Balla"), False)
+    r = rows("Abitibi Metals Drills 9.75 Metres at 3.97% CuEq at the B26 Deposit",
+             "MONTREAL, June 20, 2024 -- Abitibi Metals Corp. reports results. Phase 1 Highlights: Since optioning B26, the "
+             "Company completed 13,529 metres of drilling in 44 holes. " + "Filler geology. " * 12)
+    eq("headline on a target of a complex", _target_of_complex(
+        "Torex Gold Reports Promising Drill Results from Media Luna West", "Morelos",
+        "A total of 10,744 m of drilling was conducted across 23 drill holes (including eight parent holes) during 2025.",
+        "The Media Luna West target is part of the Media Luna Cluster, which also includes EPO."), "Media Luna West")
+    eq("a target not said to be part of a complex keeps the project", _target_of_complex(
+        "Goliath Reports Drill Results from Surebet", "Golddigger",
+        "The fully funded drill program will include approximately 50,000 meters of systematic drilling.",
+        "The Surebet discovery is on the Golddigger Property."), None)
+    eq("metres planned in a year", bool(_METRES_PLANNED.search(
+        "With approximately 125,000 metres of drilling planned in 2025, almost double the metres drilled in 2024")), True)
+    eq("a recent 'since' is the program, not a running total", [x["holes"] for x in r if x["holes"]], [44])
 
     eq("metres not a depth", _metres("to a depth of 450 m below surface"), None)
     eq("metres of drilling", _metres("a 5,000 metre drill program"), 5000.0)
