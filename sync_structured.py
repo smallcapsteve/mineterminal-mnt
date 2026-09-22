@@ -36,6 +36,21 @@ steps = [
     # category (or run the legacy resource_backfill.py until one is active). It moved from first
     # to last in this list because it now reads the facts store, which facts_sync fills.
     (['-m', 'portal.resources_publish'],      'resource_estimates'),
+    # ECON_PUBLISH_V1 (2026-09-21): publish the active economics reader, one row per scenario. There is
+    # no legacy reader: until a version is active it does nothing.
+    (['-m', 'portal.economics_publish'],     'economic_studies'),
+    # PROD_PUBLISH_V1 (2026-09-21): publish the active production reader, one row per metal per period.
+    # There is no legacy reader: until a version is active it does nothing.
+    (['-m', 'portal.production_publish'],    'production_results'),
+    # ROY_PUBLISH_V1 (2026-09-21): publish the active royalties reader, one row per interest in a deal.
+    # There is no legacy reader: until a version is active it does nothing.
+    (['-m', 'portal.royalties_publish'],     'royalty_deals'),
+    # EXPL_PUBLISH_V1 (2026-09-21): publish the active exploration reader, one row per field program.
+    # There is no legacy reader: until a version is active it does nothing.
+    (['-m', 'portal.exploration_publish'],   'exploration_programs'),
+    # TECH_PUBLISH_V1 (2026-09-22): publish the active technical-reports reader, one row per report.
+    # There is no legacy reader: until a version is active it does nothing.
+    (['-m', 'portal.technical_publish'],     'technical_reports'),
     # ACCURACY_V1 (2026-09-16): re-measure pages against their accuracy sets at most once per 20 hours; always exits 0
     (['/opt/mnt/app/accuracy_run.py'],        'accuracy'),
 ]

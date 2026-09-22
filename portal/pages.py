@@ -29,7 +29,7 @@ MNT_NAV = [
             {"label": "Exploration", "href": "/exploration-programs", "key": "exploration"},
             {"label": "Permits", "href": "/permits-approvals", "key": "permits"},
             {"label": "Metallurgy & Processing"},
-            {"label": "Technical Reports"},
+            {"label": "Technical Reports", "href": "/technical-reports", "key": "technical"},
         ],
     },
     {
@@ -40,7 +40,7 @@ MNT_NAV = [
             {"label": "Share Capital", "href": "/share-capital", "key": "sharecap"},
             {"label": "Mergers & Acquisitions", "href": "/mergers-acquisitions", "key": "mna"},
             {"label": "Debt & Credit"},
-            {"label": "Royalties & Streams"},
+            {"label": "Royalties & Streams", "href": "/royalties-streams", "key": "royalties"},
             {"label": "Partnerships & JV"},
             {"label": "Property Options"},
             {"label": "Financials"},
