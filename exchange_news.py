@@ -503,9 +503,15 @@ def pull_tmx(tsx_universe: dict, cutoff: str, only: set | None) -> list[dict]:
     except sqlite3.Error as e:
         log(f"WARNING: could not read the TMX filings store ({e}) — TSX/TSXV half will be empty")
         return rows
+    # NRFIX_V1 (2026-09-24): match TMX's form type for an English news release, not the category label.
+    # Before SEDAR+ (~2024-09-30) TMX files news releases under "Continuous Disclosure", so the category rule
+    # found none of 2010-2023; and since SEDAR+ the "News releases" category also holds QP consents, cover
+    # letters, "Other" documents and French copies (-004001), which the category rule let onto the site.
+    # 002-002-001089-003001 is the form every English news release carries (1:1 with the name "News release");
+    # 001-002-001089-003001 is the same form as filed by one issuer (IGO). Probe: mnt-relay payloads/tmx_nrfix.
     q = ("SELECT ticker, filing_date, name, url FROM filings "
-         "WHERE lower(category) LIKE ? AND filing_date >= ? ORDER BY filing_date DESC")
-    for t, d, name, url in con.execute(q, ("%news release%", cutoff)):
+         "WHERE form_type IN (?, ?) AND filing_date >= ? ORDER BY filing_date DESC")
+    for t, d, name, url in con.execute(q, ("002-002-001089-003001", "001-002-001089-003001", cutoff)):
         b = bare(t)
         if b not in tsx_universe:
             continue
@@ -576,14 +582,14 @@ def find_match(pcon: sqlite3.Connection, rel: dict,
     if _w:
         own = pcon.execute(
             "SELECT event_id, raw_headline, ticker FROM events "
-            "WHERE ticker LIKE ? AND published_at >= ? AND published_at < ?",
-            (rel["bare"] + "%", _w[0], _w[1]),
+            "WHERE (ticker = ? OR ticker LIKE ?) AND published_at >= ? AND published_at < ?",
+            (rel["bare"], rel["bare"] + ".%", _w[0], _w[1]),
         ).fetchall()
     else:
         own = pcon.execute(
             "SELECT event_id, raw_headline, ticker FROM events "
-            "WHERE ticker LIKE ? AND date(published_at) BETWEEN date(?,'-3 day') AND date(?,'+3 day')",
-            (rel["bare"] + "%", d, d),
+            "WHERE (ticker = ? OR ticker LIKE ?) AND date(published_at) BETWEEN date(?,'-3 day') AND date(?,'+3 day')",
+            (rel["bare"], rel["bare"] + ".%", d, d),
         ).fetchall()
     eid, tk = scan(own)
     if eid:
@@ -629,19 +635,24 @@ def covered_by_count(pcon: sqlite3.Connection, rels: list[dict]) -> set:
     for r in rels:
         by_day.setdefault((r["bare"], r["published_date"]), []).append(r)
     out = set()
+    # SHORTFIX_V1 (2026-09-24): the company's own events only - exact ticker or ticker plus exchange suffix. A prefix
+    # match ('K%') counted KRY and KNT events as Kinross's and marked its releases covered. Events rejected as not
+    # being releases (NRHIDE_V1) do not count either.
     for (b, d), group in by_day.items():
         _w = _win(d, 1, 1)
         if _w:
             have = pcon.execute(
-                "SELECT COUNT(*) FROM events WHERE ticker LIKE ? "
+                "SELECT COUNT(*) FROM events WHERE (ticker = ? OR ticker LIKE ?) "
+                "AND COALESCE(review_status, '') <> 'rejected' "
                 "AND published_at >= ? AND published_at < ?",
-                (b + "%", _w[0], _w[1]),
+                (b, b + ".%", _w[0], _w[1]),
             ).fetchone()[0]
         else:
             have = pcon.execute(
-                "SELECT COUNT(*) FROM events WHERE ticker LIKE ? "
+                "SELECT COUNT(*) FROM events WHERE (ticker = ? OR ticker LIKE ?) "
+                "AND COALESCE(review_status, '') <> 'rejected' "
                 "AND date(published_at) BETWEEN date(?,'-1 day') AND date(?,'+1 day')",
-                (b + "%", d, d),
+                (b, b + ".%", d, d),
             ).fetchone()[0]
         if have >= len(group):
             for r in group:

@@ -182,8 +182,8 @@ def find_twin(pcon, rel: dict, headline: str, published: dt.date):
     iso = published.isoformat()
     rows = pcon.execute(
         "SELECT event_id, raw_headline, date(published_at) FROM events "
-        "WHERE ticker LIKE ? AND date(published_at) BETWEEN date(?,?) AND date(?,?)",
-        (rel["bare"] + "%", iso, f"-{TWIN_WIDE_DAYS} day", iso, f"+{TWIN_WIDE_DAYS} day"),
+        "WHERE (ticker = ? OR ticker LIKE ?) AND date(published_at) BETWEEN date(?,?) AND date(?,?)",  # SHORTFIX_V1
+        (rel["bare"], rel["bare"] + ".%", iso, f"-{TWIN_WIDE_DAYS} day", iso, f"+{TWIN_WIDE_DAYS} day"),
     ).fetchall()
     for eid2, hl, other_day in rows:
         n2 = X.norm(hl)
