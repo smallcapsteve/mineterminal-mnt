@@ -105,4 +105,14 @@ except Exception:  # pragma: no cover
     import logging
     logging.getLogger(__name__).exception("permits_api register failed")
 
+
+# MNT_PROPERTY_OPTIONS_API_V1 (2026-09-23): /api/v1/property-options JSON for MTP company pages.
+# Guarded like the other API hooks: if this module ever fails to import, the site still serves.
+try:
+    from portal import property_options_api
+    property_options_api.register(app)
+except Exception:  # pragma: no cover
+    import logging
+    logging.getLogger(__name__).exception("property_options_api register failed")
+
 __all__ = ["app"]
