@@ -423,6 +423,14 @@ def _block_from(lines: list[str], start: int) -> tuple[str, int]:
     return _clean_block(block), len(lines)
 
 
+def _trim_glued(h: str) -> str:
+    try:
+        from gluetrim import trim_glued      # GLUETRIM_V1, /opt/mnt/app/gluetrim.py
+    except ImportError:                       # never let a missing helper stop the collector
+        return h
+    return trim_glued(h, doc_headline_is_hollow)
+
+
 def headline_from_body(body: str, fallback: str = "") -> str:
     """The headline of a news-release PDF, including its wrapped continuation."""
     if not body:
@@ -455,7 +463,7 @@ def headline_from_body(body: str, fallback: str = "") -> str:
     # the caller can apply its own judgement with reads_as_prose().
     if fallback and reads_as_prose(out):
         return fallback
-    return out[:300]
+    return _trim_glued(out)[:300]        # GLUETRIM_V1: drop the release's opening line glued onto the title
 
 
 SELF_TEST = [
