@@ -137,7 +137,11 @@ def headline_for(rel: dict, body: str) -> tuple[str, str]:
     if not T.title_is_hollow(t):
         return t, ("feed" if t == (rel.get("title") or "").strip() else "feed_cleaned")
     from_pdf = D.trim_at_dateline(T.headline_from_body(body, "")) if body else ""
-    if from_pdf and not T.title_is_hollow(from_pdf):
+    # TITLES_SPACED_V1: a headline read from the document is judged as one,
+    # not by the 28-character rule for feed titles ("Wealth Grants Stock
+    # Options" is a headline; it used to become "News release").
+    hollow = getattr(T, "doc_headline_is_hollow", T.title_is_hollow)
+    if from_pdf and not hollow(from_pdf):
         return from_pdf[:300], "pdf"
     return (t or (rel.get("title") or "").strip() or "News release"), "fallback"
 

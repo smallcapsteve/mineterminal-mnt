@@ -807,7 +807,21 @@ def headline_from(body: str, fallback: str) -> str:
             "newsrelease", "newsreleases", ""):
         return fallback                      # CSE gives a real title already
 
-    lines = [l.strip() for l in body.split("\n")]
+    # TITLES_SPACED_V1 (2026-09-25): one extractor for the live path and the
+    # backfill. backfill_titles read ~140k TMX headlines and carries the test
+    # corpus; this function's own walk below stays as the fallback. The old
+    # split put "News release" on 7,042 releases (see backfill_titles).
+    try:
+        import backfill_titles as _T
+        import backfill_dates as _D
+        h = _D.trim_at_dateline(_T.headline_from_body(body, ""))
+        if not _T.doc_headline_is_hollow(h):
+            return h[:300]
+        _prep = _T._prep_line
+    except Exception:                            # noqa: BLE001
+        _prep = (lambda x: x)
+
+    lines = [_prep(l.strip()) for l in body.split("\n")]
     lines = [l for l in lines if l][:MAX_SCAN]
 
     start = None

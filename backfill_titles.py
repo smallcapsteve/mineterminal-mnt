@@ -114,7 +114,8 @@ DATELINE_MAX_POS = 45
 
 _DOC_WIRE = re.compile(
     r"--\s*\(|\(\s*Newsfile|\(\s*GLOBE\s*NEWSWIRE|\(\s*CNW|\(\s*ACCESS\s*Newswire"
-    r"|\(\s*Business\s*Wire|\(\s*The\s*Newswire", re.I)
+    r"|\(\s*Business\s*Wire|\(\s*The\s*Newswire"
+    r"|\(\s*ACCESSWIRE|\(\s*PRNewswire|\(\s*Marketwired", re.I)   # TITLES_SPACED_V1
 
 # A street number and a street word, not a bare street word: the original
 # matched "road" anywhere, which rejected Mineral Road Corp's own headline.
@@ -245,6 +246,108 @@ def _has_dateline(s: str) -> bool:
     return bool(m and m.start() <= DATELINE_MAX_POS)
 
 
+# --------------------------------------------------------------------------
+# TITLES_SPACED_V1 (2026-09-25)
+#
+# 7,042 approved TSX/TSXV releases were on MNT headlined "News release" (or with
+# a letter-spaced masthead glued to the front). Measured on all of them:
+#   * 3,514: the first block the walk found was letterhead it did not know -
+#     "Vancouver, British Columbia", "TSX.V Trading Symbol: DEC", "Corporate
+#     Office", "INVESTOR ANNOUNCEMENT and" - or a REAL headline under 28
+#     characters ("Wealth Grants Stock Options"), and the caller's 28-character
+#     rule for feed titles threw it away;
+#   * 2,959: the first block was a short letterhead line ("Symbol: TSX-V:
+#     ATOM", "OTC Pink: TRXXF", "Head Office:", "Littleton, CO 80127");
+#   * a letter-spaced masthead ("N E W S R E L E A S E", Franco-Nevada since
+#     2025) read as the headline's first line.
+# In every case the headline was a few lines further down, and nothing looked.
+# So: clean each line first, know more letterhead, and when the first block is
+# not a headline, keep walking instead of giving up.
+# --------------------------------------------------------------------------
+_SPACED_RUN = re.compile(r"^(?:[A-Za-z&.,'\-]\s+){3,}[A-Za-z&.,'\-](?=\s|$)")
+_PRIVATE_USE = re.compile("[-]")
+
+
+def strip_spaced_masthead(s: str) -> str:
+    """The line without a leading letter-spaced run ('' when that is all it is)."""
+    m = _SPACED_RUN.match(s or "")
+    if not m or sum(c.isalpha() for c in m.group(0)) < 4:
+        return s
+    return s[m.end():].strip()
+
+
+def _prep_line(l: str) -> str:
+    l = _PRIVATE_USE.sub("", (l or "").replace(" ", " ")).strip()
+    l = strip_spaced_masthead(l)
+    toks = l.split()
+    if len(toks) >= 4 and sum(len(t) == 1 for t in toks) >= len(toks) * 0.5:
+        return ""                       # "C O PPER C O R P", "W W W. R T M C O R P. C O M"
+    return l
+
+
+_EXCH = (r"\b(?:TSX[-.\s]?V(?:enture)?|TSX|CSE|CNSX|NEX|OTC(?:QB|QX)?|OTC\s+Pink|NYSE(?:\s+American)?"
+         r"|NASDAQ|FSE|FRA|Frankfurt|ASX|AIM|SSE|LSE|JSE)\b")
+_DOC_EXCH = re.compile(_EXCH, re.I)
+_DOC_VERB = re.compile(
+    r"(?i)\b(?:announc\w*|reports?|reported|clos\w+|complet\w+|intersect\w*|drill\w*|appoint\w*|provid\w+"
+    r"|receiv\w+|signs?|signed|enter\w*|acqui\w+|commenc\w+|launch\w*|files?|filed|grant\w*|updates?|confirm\w*"
+    r"|expand\w*|identif\w+|begin\w*|begun|secur\w+|extend\w*|extension|results?|increas\w*|upsiz\w*|lists?"
+    r"|listing|trad\w+|declar\w+|elect\w*|approv\w+|terminat\w+|amend\w*|agree\w*|discover\w*|options?"
+    r"|placement|financing|offering|dividend|acquisition|merger|arrangement|webinar|presentation|conference"
+    r"|guidance|production|resources?|estimate|study|program|update)\b")
+_DOC_START_JUNK = re.compile(
+    r"^[\w .&'\-]{0,45}?\b(?:trading\s+)?symbols?\s*:"             # "TSX.V Trading Symbol: DEC"
+    r"|^\s*(?:head|corporate|executive|registered|main|principal)\s+offices?\b"
+    r"|^\s*release\s*:|^\s*(?:investor|asx|market|company)\s+(?:announcement|update)\s*(?:and)?\s*$"
+    r"|(?:news|press|media)\s+releases?\s*[-–—:]?\s*$"            # "ODV NYSE TSXV News Release"
+    r"|^\s*nr\s*[\d\-/]+\s*$|^\s*\d+\s*\|"                          # "NR 23-33", "1 | Alamos Gold Inc"
+    r"|\b[A-Z]{2}\s+\d{5}(?:-\d{4})?\b"                             # "Littleton, CO 80127"
+    r"|\\[\w .$-]+\\"                                              # a Windows path
+    r"|^\s*\(?\s*(?:all\s+(?:amounts|figures|dollar)|expressed\s+in|in\s+u\.?s\.?\s+dollars|unless\s+otherwise)"
+    r"|^[A-Z][A-Za-z.\-' ]{1,26},\s*(?:B\.\s?C\.?|Canada|U\.S\.A\.?)\s*$"
+    r"|\bsymbols?\s*\("                                               # "Trading Symbol (TSX-V: ANZ)"
+    r"|\boffices?\s*:?\s*$"                                          # "Principal & Registered Office:"
+    r"|\(\s*(?:the\s+)?[\"\N{LEFT DOUBLE QUOTATION MARK}][^\"\N{RIGHT DOUBLE QUOTATION MARK}]{1,40}[\"\N{RIGHT DOUBLE QUOTATION MARK}]"                  # defined terms: (the "Company")
+    r"|^\d{2,5}[\s,]+(?:rue|boul\w*|av\.?|avenue|chemin|de\s+la|du|des)\b", re.I)
+_DISCLAIMER_WORDS = re.compile(r"(?i)\b(?:dissemination|distribution|news\s*wires?|newswires?)\b")
+_PLACE_ONLY = re.compile(r"^[A-Z][\w.\-']*(?:\s+[A-Z][\w.\-']*)*(?:\s*,\s*[A-Z][\w.\-']*(?:\s+[A-Z][\w.\-']*)*){1,3}\s*,?\s*$")
+
+
+def _start_junk(s: str) -> bool:
+    """Letterhead that only ever appears ABOVE a headline."""
+    if _DOC_START_JUNK.search(s):
+        return True
+    if len(s) <= 70 and _DOC_EXCH.search(s) and not _DOC_VERB.search(s):
+        return True                     # "OTC Pink: TRXXF", "TSX Venture:  RCT"
+    if len(s) <= 45 and _PLACE_ONLY.match(s) and not _DOC_VERB.search(s):
+        return True                     # "Toronto, Ontario, Canada,"
+    return len(s) <= MAX_PLACE_LINE_CHARS and _is_dateline_place(s)
+
+
+def doc_headline_is_hollow(h: str) -> bool:
+    """For a headline READ FROM THE DOCUMENT. `title_is_hollow` is tuned for
+    feed titles, where a 23-character "Gold Rock Assay Results" is worth
+    replacing by the document's; for the document itself a short headline is
+    still the headline."""
+    h = (h or "").strip()
+    if not h or _TITLE_HOLLOW.match(h):
+        return True
+    if len(h) >= MIN_HEADLINE_CHARS:
+        return False
+    return not (len(h) >= 12 and len(h.split()) >= 2 and _DOC_VERB.search(h))
+
+
+def _good_block(out: str) -> bool:
+    # Not judged on prose: sentence-case headlines are common ("Zijin Mining
+    # exercises its anti-dilution rights ..."), and rejecting them sent the
+    # walk down into the body.
+    if not out or _TITLE_HOLLOW.match(out):
+        return False
+    if len(out) >= MIN_HEADLINE_CHARS and len(out.split()) >= 3:
+        return True
+    return len(out) >= 12 and len(out.split()) >= 2 and bool(_DOC_VERB.search(out))
+
+
 def _is_letterhead(s: str) -> bool:
     """Things that are never part of a headline, wherever they appear."""
     return bool(_DOC_ADDRESS.search(s) or _DOC_CONTACT.search(s)
@@ -257,6 +360,8 @@ def _is_letterhead(s: str) -> bool:
 def _starts_headline(s: str) -> bool:
     """False while we are still walking through letterhead."""
     if len(s) < 12 or _is_letterhead(s) or _DOC_NAME_ONLY.match(s):
+        return False
+    if _start_junk(s):                  # TITLES_SPACED_V1
         return False
     if _DOC_MASTHEAD.match(s):
         return False
@@ -283,28 +388,67 @@ def _ends_headline(s: str) -> bool:
     return len(s) <= MAX_PLACE_LINE_CHARS and _is_dateline_place(s)
 
 
+def _clean_block(block: list[str]) -> str:
+    out = re.sub(r"\s+", " ", " ".join(block)).strip()
+    cut = _DOC_DISCLAIMER_RUN.sub("", out).strip()
+    # A headline may END in "in the United States" ("Surge Upgrades and Begins
+    # Trading on the OTCQX in the United States"); cutting to the disclaimer
+    # there erased all of it. But a block that is only disclaimer ("OR FOR
+    # DISSEMINATION IN THE", "DISSEMINATION IN THE UNITED STATES") is nothing.
+    if len(cut) < 12:
+        return "" if _DISCLAIMER_WORDS.search(out) else out
+    if len(cut) < 60 and _DISCLAIMER_WORDS.search(cut):
+        return ""
+    return cut
+
+
+def _block_from(lines: list[str], start: int) -> tuple[str, int]:
+    """(headline text, index of the line after it) for a block starting at `start`.
+
+    When the headline sits BELOW the dateline (Franco-Nevada: label,
+    "Toronto, July 20, 2026", headline, body) nothing letterhead-like follows
+    it - the body does. There, and only there, the first line that reads as
+    prose ends the headline. Above the dateline the old rule stands, so a
+    sentence-case headline wrapped over two lines is never cut."""
+    after_dateline = any(_has_dateline(l) for l in lines[:start])
+    block, chars = [], 0
+    for i in range(start, len(lines)):
+        l = lines[i]
+        if block and (_ends_headline(l) or (after_dateline and reads_as_prose(l))):
+            return _clean_block(block), i
+        block.append(l)
+        chars += len(l) + 1
+        if chars >= MAX_HEADLINE_CHARS:
+            return _clean_block(block), i + 1
+    return _clean_block(block), len(lines)
+
+
 def headline_from_body(body: str, fallback: str = "") -> str:
     """The headline of a news-release PDF, including its wrapped continuation."""
     if not body:
         return fallback
-    lines = [l.strip() for l in body.split("\n")]
+    lines = [_prep_line(l) for l in body.split("\n")]          # TITLES_SPACED_V1
     lines = [l for l in lines if l][:MAX_SCAN_LINES]
 
-    start = next((i for i, l in enumerate(lines) if _starts_headline(l)), None)
-    if start is None:
+    first, i = None, 0
+    while i < len(lines):
+        start = next((j for j in range(i, len(lines)) if _starts_headline(lines[j])), None)
+        if start is None:
+            break
+        out, nxt = _block_from(lines, start)
+        if first is None:
+            first = out
+        if _good_block(out):
+            break
+        out = None
+        i = max(nxt, start + 1)
+    else:
+        out = None
+    if first is None:
         return fallback
-
-    block, chars = [], 0
-    for l in lines[start:]:
-        if block and _ends_headline(l):
-            break
-        block.append(l)
-        chars += len(l) + 1
-        if chars >= MAX_HEADLINE_CHARS:
-            break
-    out = re.sub(r"\s+", " ", " ".join(block)).strip()
-    out = _DOC_DISCLAIMER_RUN.sub("", out).strip()
-    if len(out) < MIN_HEADLINE_CHARS:
+    if out is None:
+        out = first                     # nothing better below it: the old answer
+    if len(out) < MIN_HEADLINE_CHARS and not _good_block(out):
         return fallback or out
     # Prose loses to anything else there is. With no fallback - TMX, where
     # the document is all there is - it is still better than nothing, and
@@ -534,6 +678,100 @@ DOC_TEST = [
     ("One Step Closer to Cash Flow: Average grades of 3.72g/t Au from 1930s Rockpiles\n"
      "VANCOUVER, BC, February 1 7, 2026 \u2013 Heritage Mining Ltd. (CSE: HML)\n",
      "One Step Closer to Cash Flow: Average grades of 3.72g/t Au from 1930s Rockpiles"),
+
+    # TITLES_SPACED_V1 - all from the 7,042 releases that were on MNT as
+    # "News release". A letter-spaced masthead is letterhead (Franco-Nevada).
+    ("N E W S R E L E A S E\nNEWS RELEASE\nToronto, July 20, 2026\n"
+     "Franco-Nevada to Release Second Quarter 2026 Results\n"
+     "Franco-Nevada Corporation announced today that it will report second quarter\n",
+     "Franco-Nevada to Release Second Quarter 2026 Results"),
+    ("N E W S R E L E A S E\nNEWS RELEASE\nToronto, March 10, 2026\n"
+     "(in U.S. dollars unless otherwise noted)\nFranco-Nevada Reports Record 2025 Results\n"
+     "Strong Finish to the Year\n2025 was a record-breaking year for Franco-Nevada driven by higher\n",
+     "Franco-Nevada Reports Record 2025 Results Strong Finish to the Year"),
+    ("P R E S S R E L E A S E CASH DIVIDEND FOR THE SECOND QUARTER\n"
+     "Toronto, Ontario, May 12, 2026 - Labrador Iron Ore Royalty Corporation\n",
+     "CASH DIVIDEND FOR THE SECOND QUARTER"),
+    ("S U R G E\nC O PPER  C O R P\n"
+     "PO Box 10351 888 - 700 West Georgia Street Vancouver, BC  V7Y 1G5  P: 604-718-5454\n"
+     "SURGE COPPER AMENDS THE TERMS OF ITS RECENTLY ANNOUNCED FINANCING, WHILE\n"
+     "OOTSA DRILL PREPARATIONS ARE UNDERWAY\n"
+     "NOT FOR DISTRIBUTION TO U.S. NEWSWIRE SERVICES OR FOR DISSEMINATION\n",
+     "SURGE COPPER AMENDS THE TERMS OF ITS RECENTLY ANNOUNCED FINANCING, WHILE OOTSA DRILL PREPARATIONS ARE UNDERWAY"),
+    # letterhead the walk did not know, above the headline
+    ("SABLE RESOURCES LTD.\n900 – 999 West Hastings Street\nVancouver, British Columbia\n"
+     "V6C 2W2 Canada\nTSXV | SAE       OTCQB | SBLRF\nSable Expands Cu-Au Footprint and Identifies\n"
+     "New Copper and Gold Targets Ahead of Maiden Drill Program\nat the Zorro Project, San Juan, Argentina\n",
+     "Sable Expands Cu-Au Footprint and Identifies New Copper and Gold Targets Ahead of Maiden "
+     "Drill Program at the Zorro Project, San Juan, Argentina"),
+    ("1\nFor Immediate Release\nPRESS RELEASE\nApril 9, 2026\nSymbol: TSX-V:  ATOM\nFSE: DO8\n"
+     "OTCQB: ATMMF\nAtomic Minerals Highlights Strategic Role Amid Possible Iran\n",
+     "Atomic Minerals Highlights Strategic Role Amid Possible Iran"),
+    ("TSX Venture:  RCT\nFrankfurt:  R5I\nSuite 1305-1090 W. Georgia St., Vancouver, BC, V6E 3V7\n"
+     "News Release\nROCHESTER PROVIDES UPDATE ON DEBT SETTLEMENT\n"
+     "Vancouver, British Columbia – December 11th 2020: - Rochester Resources Ltd. (the “Company”)\n",
+     "ROCHESTER PROVIDES UPDATE ON DEBT SETTLEMENT"),
+    ("10758 W. Centennial Rd.\nLittleton, CO 80127\nPhone: 720.981.4588\nwww.ur-energy.com\nNews Release\n"
+     "Join Ur-Energy’s CEO John Cash for a Live Webinar June 20, 2023 hosted by Red Cloud\n"
+     "Littleton, C olorado (ACCESSWIRE – June 14, 2 023) Ur-Energy Inc. (NYSE American:URG)\n",
+     "Join Ur-Energy’s CEO John Cash for a Live Webinar June 20, 2023 hosted by Red Cloud"),
+    ("Corporate Office\n1055 Dunsmuir Street\nSuite 2800, Bentall IV\nVancouver, BC V7X 1L2\n"
+     "Phone: +1 604 689 7842\nlundinmining.com\nNEWS RELEASE\n"
+     "Lundin Mining Announces Updated Share Capital and Provides Update on Share\n",
+     "Lundin Mining Announces Updated Share Capital and Provides Update on Share"),
+    ("- 1 -\nNEWS RELEASE\nNovember 25th, 2020\nTrading Symbols:\nTSX: AMM; NYSE American: AAU\n"
+     "www.almadenminerals.com\nAlmaden Announces Pathfinder Elements Validate SE Alteration Zone Potential\n"
+     "for Epithermal Veining\n",
+     "Almaden Announces Pathfinder Elements Validate SE Alteration Zone Potential for Epithermal Veining"),
+    ("Galway Metals Inc.\n82 Richmond Street East, Toronto, Ontario, M5C 1P1\nTSXV – GWM\nOTCQB – GAYMF\n1\n"
+     "NEWS RELEASE\nGalway Metals Confirms Improved Au and Sb Recovery with Process\nOptimization\n",
+     "Galway Metals Confirms Improved Au and Sb Recovery with Process Optimization"),
+    ("Media Release\nRelease: Immediate\nNOT FOR DISSEMINATION IN THE UNITED STATES OR THROUGH U.S. NEWSWIRES\n"
+     "GFG Provides Update on Private Placement of Flow Through\nFinancing\n"
+     "December 14, 2018, Saskatoon, Saskatchewan, Canada: GFG Resources Inc. (TSX-V: GFG)\n",
+     "GFG Provides Update on Private Placement of Flow Through Financing"),
+    ("CONTACT:  NIC EARNER, MANAGING DIRECTOR & CEO, ALKANE RESOURCES LTD, TEL +61 8 9227 5677\n"
+     "ABN: 35 000 689 216  |  Telephone: +61 8 9227 5677  |  alkres.com  |  mail@alkres.com\n"
+     "INVESTOR ANNOUNCEMENT and\nMEDIA RELEASE\n5 May 2025\nAlkane Resources Provides Notice of Release of\n"
+     "Quarterly Results\n",
+     "Alkane Resources Provides Notice of Release of Quarterly Results"),
+    ("ODV NYSE TSXV News Release\nwww.osiskodev.com  Page 1 of 4\n"
+     "OSISKO DEVELOPMENT SECURES US$450 MILLION FINANCING FACILITY TO\nDEVELOP THE CARIBOO GOLD PROJECT\n"
+     "Montreal, Québec, July 21, 2025 – Osisko Development Corp. (NYSE: ODV, TSXV: ODV) (\"Osisko\n",
+     "OSISKO DEVELOPMENT SECURES US$450 MILLION FINANCING FACILITY TO DEVELOP THE CARIBOO GOLD PROJECT"),
+    ("T R A D I N G   S Y M B O L:   T S X: A G I    N Y S E: A G I\n1 | Alamos Gold Inc\nAlamos Gold Inc.\n"
+     "Brookfield Place, 181 Bay Street, Suite 3910, P .O. Box #823\n"
+     "All amounts are in United States dollars, unless otherwise stated.\n"
+     "Alamos Gold Reports Fourth Quarter and Year-End 2017 Results\n",
+     "Alamos Gold Reports Fourth Quarter and Year-End 2017 Results"),
+    ("Decade Resources Ltd.\n426 King Street\nStewart, BC\nV0T 1W0\nTSX.V Trading Symbol: DEC\nNEWS RELEASE\n"
+     "August 10, 2023\nDECADE ANNOUNCES NON-BROKERED PRIVATE PLACEMENT BACKED BY\nCRESCAT CAPITAL\n",
+     "DECADE ANNOUNCES NON-BROKERED PRIVATE PLACEMENT BACKED BY CRESCAT CAPITAL"),
+    # a real headline shorter than a feed title may be
+    ("#2710 – 200 Granville Street, Vancouver, BC Canada V6C 1S4\n"
+     "Tel 604.331.0096  Fax 604.408.7499 www.wealthminerals.com\nNR22-02 March 18, 2022\n"
+     "Wealth Grants Stock Options\nFOR IMMEDIATE RELEASE....Vancouver, British Columbia: Wealth Minerals Ltd. (the\n",
+     "Wealth Grants Stock Options"),
+    ("TSX.V :  GGX\nFRA :  3SR2\nOTCQB :  GGXXF\nJune 5, 2018\nCorporate Update\n"
+     "Vancouver, British Columbia – June 5 , 2018 – GGX Gold Corp. (TSX.V: GGX)\n",
+     "Corporate Update"),
+    # a headline that ends in "in the United States" is not a disclaimer
+    ("Surge Upgrades and Begins Trading on the\nOTCQX in the United States\n"
+     "West Vancouver, British Columbia--(Newsfile Corp. - September 28, 2023) -\n",
+     "Surge Upgrades and Begins Trading on the OTCQX in the United States"),
+
+    # a sentence-case headline is still the headline, not a reason to walk on
+    ("Zijin Mining exercises its anti-dilution rights, generating additional proceeds for Ivanhoe Mines of C$67 million\n"
+     "BEIJING, CHINA \N{EN DASH} May 15, 2019 \N{EN DASH} Robert Friedland, Co-Chairman of Ivanhoe Mines, announced today\n",
+     "Zijin Mining exercises its anti-dilution rights, generating additional proceeds for Ivanhoe Mines of C$67 million"),
+    # disclaimer tails, places, defined terms and symbol lines are not headlines
+    ("NOT FOR DISTRIBUTION TO U.S. NEWSWIRE SERVICES\nOR FOR DISSEMINATION IN THE\nUNITED STATES\n"
+     "Toronto, Ontario, Canada,\nTrading Symbol (TSX-V: ANZ)\n"
+     "Alianza Minerals Closes Private Placement\n",
+     "Alianza Minerals Closes Private Placement"),
+    ("Moneta Porcupine Mines Inc. (TSX:ME)\n(XETRA:MOP) (\"Moneta\" or the \"Company\")\n"
+     "Moneta Announces Drill Results at Golden Highway\n",
+     "Moneta Announces Drill Results at Golden Highway"),
 
     # a company whose name contains a street word must keep its headline
     ("MINERAL ROAD COMMISSIONS STRATEGIC REVIEW OF SIGNIFICANT\n"
