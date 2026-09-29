@@ -125,4 +125,81 @@ except Exception:  # pragma: no cover
     import logging
     logging.getLogger(__name__).exception("debt_api register failed")
 
+# MNT_RESOURCES_API_V1 (2026-09-28): /api/v1/resources JSON - every resource row, by category, with a historic flag
+# (MTP's $/oz screener and Compare). Guarded like the other API hooks.
+try:
+    from portal import resources_api
+    resources_api.register(app)
+except Exception:  # pragma: no cover
+    import logging
+    logging.getLogger(__name__).exception("resources_api register failed")
+
+
+# MNT_MGMT_API_V1 (2026-09-28): /api/v1/management-changes JSON - who joined, left or changed role (MTP's Management
+# tab). Guarded like the other API hooks.
+try:
+    from portal import mgmt_api
+    mgmt_api.register(app)
+except Exception:  # pragma: no cover
+    import logging
+    logging.getLogger(__name__).exception("mgmt_api register failed")
+
+
+# MNT_MINE_DEV_API_V1 (2026-09-29): /api/v1/mine-development JSON - the Mine Development & Operations events
+# (MTP's company Production page). Guarded like the other API hooks.
+try:
+    from portal import mine_dev_api
+    mine_dev_api.register(app)
+except Exception:  # pragma: no cover
+    import logging
+    logging.getLogger(__name__).exception("mine_dev_api register failed")
+
+
+# MNT_ROW_CHECKS_V1 (2026-09-29, reader review fix 4; Justin: "Show, marked"): every family API's rows carry `check` --
+# the reasons a row fails a plain sanity test (portal/row_checks.py) -- and a request sorted by size lists flagged rows
+# under `unranked` instead of ranking them. /api/v1/row-checks serves the daily counts (mnt-row-checks.timer).
+try:
+    import json as _rc_json
+    from starlette.responses import Response as _RcResponse
+    from portal import row_checks as _rc
+    _RC_PATHS = {"/api/v1/" + _f: _f for _f in _rc.CHECKS}
+
+    @app.middleware("http")
+    async def _row_checks_mw(request, call_next):
+        resp = await call_next(request)
+        fam = _RC_PATHS.get(request.url.path)
+        if fam is None or resp.status_code != 200 or "json" not in (resp.headers.get("content-type") or "") \
+                or resp.headers.get("content-encoding"):
+            return resp
+        body = b"".join([c async for c in resp.body_iterator])
+        try:
+            body = _rc_json.dumps(_rc.annotate(fam, _rc_json.loads(body), request.query_params.get("sort")),
+                                  ensure_ascii=False).encode("utf-8")
+        except Exception:  # pragma: no cover - a check never breaks a response
+            pass
+        headers = {k: v for k, v in resp.headers.items() if k.lower() not in ("content-length", "content-type")}
+        return _RcResponse(content=body, status_code=resp.status_code, headers=headers, media_type="application/json")
+
+    @app.get("/api/v1/row-checks")
+    def _row_checks_summary():
+        try:
+            with open("/var/lib/mnt-portal/row_checks.json") as fh:
+                return _rc_json.load(fh)
+        except Exception:
+            return {"ok": False, "note": "no summary yet"}
+except Exception:  # pragma: no cover
+    import logging
+    logging.getLogger(__name__).exception("row_checks middleware failed")
+
+
+
+# MNT_SAMPLING_API_V1 (2026-09-29): /api/v1/sampling JSON for MTP company pages (Sampling & Geoscience).
+# Guarded like the other API hooks: if this module ever fails to import, the site still serves.
+try:
+    from portal import sampling_api
+    sampling_api.register(app)
+except Exception:  # pragma: no cover
+    import logging
+    logging.getLogger(__name__).exception("sampling_api register failed")
+
 __all__ = ["app"]
