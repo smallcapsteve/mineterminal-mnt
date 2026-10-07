@@ -153,6 +153,15 @@ def project_names(conn):
     n = tot["items"] or 1
     print(f"[project-names] helper {PN.VERSION}: {tot['items']} releases, right {tot['hit'] / n * 100:.1f}%, "
           f"wrong {tot['wrong'] / n * 100:.1f}%, none {tot['none'] / n * 100:.1f}%")
+    try:                                    # TRX_PN1 (2026-10-07): technical reports join the shared test
+        from portal import report_names as RN
+        r = RN.report_name_check()
+        print(f"[project-names] technical reports (TRX {r['reader']}): {r['items']} reports, right {r['right']} "
+              f"({r['right'] / max(1, r['items']) * 100:.1f}%), names changed vs the frozen answers {r['changed']}")
+        for ch in r["changes"][:10]:
+            print(f"[project-names]   changed: {ch}")
+    except Exception as e:  # noqa: BLE001  (the report check never breaks the release check)
+        print(f"[project-names] technical reports: check not run ({type(e).__name__}: {e})")
     return 0
 
 

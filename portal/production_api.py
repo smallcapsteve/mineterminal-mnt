@@ -291,6 +291,32 @@ def build_items(rows, names: dict) -> list[dict]:
                 if (lo, hi) != (item["low"], item["high"]) and (lo is not None or hi is not None):
                     prior_low, prior_high = lo, hi
                     break
+        # MNT_PROD_API_HISTORY_V1 (2026-10-07): every guidance range in order, and an actual a later release restated
+        hist = []
+        if item["kind"] == "guidance":
+            for r in rs:
+                lo, hi = _num(r["low"]), _num(r["high"])
+                if lo is None and hi is None:
+                    continue
+                if not hist or (hist[-1]["low"], hist[-1]["high"]) != (lo, hi):
+                    hist.append({"low": lo, "high": hi, "date": (r["published_at"] or "")[:10],
+                                 "release_url": release_url(r["ticker"], r["slug"], r["event_id"])})
+        revised_from = None
+        if item["kind"] == "actual" and item["qty"]:
+            for r in reversed(rs[:-1]):
+                q = _num(r["qty"])
+                # a figure a later release changed - within a factor of two, so a misread figure is not called a revision
+                if q and abs(q - item["qty"]) > 0.005 * abs(item["qty"]) and 0.5 <= q / item["qty"] <= 2.0:
+                    revised_from = {"qty": q, "date": (r["published_at"] or "")[:10],
+                                    "release_url": release_url(r["ticker"], r["slug"], r["event_id"])}
+                    break
+        if len({(h["low"], h["high"]) for h in hist}) < len(hist):
+            hist = []      # MNT_PROD_API_HISTORY_V1b: a range that comes back is two series mixed, not a history
+        _mid = [((h["low"] or h["high"] or 0) + (h["high"] or h["low"] or 0)) / 2 for h in hist]
+        if any(not a or not b or max(a, b) > 2 * min(a, b) for a, b in zip(_mid, _mid[1:])):
+            hist = []      # MNT_PROD_API_HISTORY_V1c: a more-than-twofold step is two series mixed, not a revision
+        item["guidance_history"] = hist if len(hist) > 1 else []
+        item["revised_from"] = revised_from
         t = item["ticker"]
         item.update({
             "bare_ticker": bare(t), "company": company_name(t, names),
@@ -470,6 +496,24 @@ def _selftest() -> int:
     ok("include=ytd only", len(query_items(conn, P(ticker="RRR", include="ytd"), names, None)["items"]) == 2)
     ok("kind=recovered needs include", bad(kind="recovered") and P(kind="recovered", include="recovered")["kind"] == "recovered")
     ok("bad include", bad(include="x"))
+    # MNT_PROD_API_HISTORY_V1
+    gi = [i for i in query_items(conn, P(ticker="TTT"), names, None)["items"] if i["kind"] == "guidance"][0]
+    ok("guidance history in order", [(h["low"], h["high"]) for h in gi["guidance_history"]] == [(420000, 470000), (450000, 480000)]
+       and gi["guidance_history"][0]["date"] == "2026-07-07")
+    row("t9", "TTT.TO", "2026-08-20", "actual", "Q4 2025", "2025-12-31", qty=115900)
+    row("t9", "TTT.TO", "2026-08-20", "actual", "FY 2025", "2025-12-31", qty=3763640)
+    q4 = [i for i in query_items(conn, P(ticker="TTT"), names, None)["items"] if i["period"] in ("Q4 2025", "FY 2025")]
+    ok("restated quarter marked, a tenfold change is not", sorted((i["period"], (i["revised_from"] or {}).get("qty") or 0) for i in q4)
+       == [("FY 2025", 0), ("Q4 2025", 114844.0)])
+    row("o1", "OOO.V", "2025-03-20", "guidance", "FY 2025", "2025-12-31", low=115000, high=130000)
+    row("o2", "OOO.V", "2025-08-06", "guidance", "FY 2025", "2025-12-31", low=220000, high=250000)
+    row("o3", "OOO.V", "2025-10-15", "guidance", "FY 2025", "2025-12-31", low=115000, high=130000)
+    ok("two series mixed: no history", [i["guidance_history"] for i in query_items(conn, P(ticker="OOO"), names, None)["items"]] == [[]])
+    row("q1", "QQQ.V", "2025-02-23", "guidance", "FY 2026", "2026-12-31", low=170000, high=185000)
+    row("q2", "QQQ.V", "2026-04-23", "guidance", "FY 2026", "2026-12-31", low=160000, high=180000)
+    row("q3", "QQQ.V", "2026-07-20", "guidance", "FY 2026", "2026-12-31", low=62000, high=67000)
+    ok("twofold step: no history", [i["guidance_history"] for i in query_items(conn, P(ticker="QQQ"), names, None)["items"]] == [[]])
+    ok("no history on a single range", all(i["guidance_history"] == [] for i in query_items(conn, P(ticker="EEE.V"), names, None)["items"]))
     print("production_api selftest: %d failed" % len(fails))
     return 1 if fails else 0
 

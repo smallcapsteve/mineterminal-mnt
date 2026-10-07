@@ -301,19 +301,39 @@ def _planned(fn, conn, table, rows, sig, call, undo=()):
     return call(conn)
 
 
+# ---------------------------------------------------------------------------------------------------------------
+# SPEEDFIX_FEEDVER_V1 (2026-10-07): a version per published table, bumped in the publisher's own transaction whenever
+# a publish actually inserts or deletes rows, so Mine Terminal Pro can drop its saved copy of a feed the moment the
+# feed changes (portal/feedver_api.py serves it). Only the pass that really writes bumps (never the planning pass),
+# a publish that changed nothing leaves the version alone, and a failed bump never fails a publish.
+# ---------------------------------------------------------------------------------------------------------------
+FEEDVER_SQL = ("INSERT INTO feed_versions(tbl, v, changed_at) VALUES (?, 1, strftime('%Y-%m-%dT%H:%M:%SZ', 'now')) "
+               "ON CONFLICT(tbl) DO UPDATE SET v = v + 1, changed_at = excluded.changed_at")
+
+
+def _feedver(conn, table, res):
+    if _MODE is None and isinstance(res, dict) and (res.get("inserted") or res.get("deleted")):
+        try:
+            conn.execute(FEEDVER_SQL, (table,))
+        except Exception as exc:  # noqa: BLE001 - the version is a hint for caches, never a reason to fail
+            print("[rowsync] feed version not bumped for %s (%s: %s)" % (table, type(exc).__name__, exc),
+                  file=_sys.stderr)
+    return res
+
+
 def sync_rows(conn, table: str, id_col: str, cols, rows, const: dict | None = None) -> dict:
     cols = tuple(cols)
     sig = repr((id_col, cols, sorted((const or {}).items())))
-    return _planned("sync_rows", conn, table, rows, sig,
-                    lambda c: _sync_rows_now(c, table, id_col, cols, rows, const))
+    return _feedver(conn, table, _planned("sync_rows", conn, table, rows, sig,
+                    lambda c: _sync_rows_now(c, table, id_col, cols, rows, const)))   # SPEEDFIX_FEEDVER_V1
 
 
 def sync_rows_pk(conn, table: str, pk, cols, rows) -> dict:
     pk = tuple(pk)
     cols = tuple(cols) if cols else cols
     sig = repr((pk, cols))
-    return _planned("sync_rows_pk", conn, table, rows, sig,
-                    lambda c: _sync_rows_pk_now(c, table, pk, cols, rows))
+    return _feedver(conn, table, _planned("sync_rows_pk", conn, table, rows, sig,
+                    lambda c: _sync_rows_pk_now(c, table, pk, cols, rows)))   # SPEEDFIX_FEEDVER_V1
 
 
 def stable_ids(conn, table: str, id_col: str, rows, refs=()) -> dict:

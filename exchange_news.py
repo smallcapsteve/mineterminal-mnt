@@ -962,6 +962,17 @@ def docx_self_test(verbose: bool = False) -> int:
     return 1 if fails else 0
 
 
+
+def _lh_body(rel, body):
+    """LETTERHEAD_V1 (2026-10-07, H25): the document without the company's own letterhead lines (letterhead.py),
+    so a tagline, contact block or address printed above every headline is never read as the headline. Fails open."""
+    try:
+        import letterhead as _LH
+        return _LH.strip(body, _LH.for_company(rel.get("bare") or rel.get("ticker") or ""))
+    except Exception:                            # noqa: BLE001
+        return body
+
+
 def fetch_release(rel: dict) -> tuple[str, str, str]:
     """(body, headline, error). Fetches the PDF and reads it; publishes nothing.
 
@@ -977,7 +988,7 @@ def fetch_release(rel: dict) -> tuple[str, str, str]:
         body = docx_text(data)
         if len(body) < 200:
             return "", "", f"docx text too short ({len(body)} chars)"
-        return body, headline_from(body, rel["title"]), ""
+        return body, headline_from(_lh_body(rel, body), rel["title"]), ""   # LETTERHEAD_V1
     if not data[:5].startswith(b"%PDF"):
         return "", "", f"not a pdf ({data[:8]!r})"
     try:
@@ -986,7 +997,7 @@ def fetch_release(rel: dict) -> tuple[str, str, str]:
         return "", "", f"NO EXTRACTOR: {e}"
     if len(body) < 200:
         return "", "", f"pdf text too short ({len(body)} chars)"
-    return body, headline_from(body, rel["title"]), ""
+    return body, headline_from(_lh_body(rel, body), rel["title"]), ""   # LETTERHEAD_V1
 
 
 def publish(rel: dict, body: str, headline: str) -> tuple[bool, str]:

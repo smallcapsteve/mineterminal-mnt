@@ -171,7 +171,7 @@ from portal import project_names as PN   # 1.0.20: the shared project-name helpe
 from portal import fingerprint as FP     # 1.0.21: fingerprints follow exactly the helper code this reader runs
 
 NAME = "resources"
-VERSION = "1.0.24"  # 2026-10-01: whose figures, read sentence by sentence; targets, subsets, combined categories; full-text losses fixed; 2026-10-04 FIX5: deposit names (column labels, owner captions, the figures' own or previous sentence, a block's lead name, wrapped headings, commodity tails) and second-metal grades (header past a deposit heading, one tonnage per metal, Cg, MoO3), split decimals; rev b: a pronoun or "Company's" is no deposit name
+VERSION = "1.0.25"  # 2026-10-07 R3: a precious metal is never graded in percent (Barrick's copper grades read as gold; b: a relabelled grade must fit the base metal); 2026-10-01: whose figures, read sentence by sentence; targets, subsets, combined categories; full-text losses fixed; 2026-10-04 FIX5: deposit names (column labels, owner captions, the figures' own or previous sentence, a block's lead name, wrapped headings, commodity tails) and second-metal grades (header past a deposit heading, one tonnage per metal, Cg, MoO3), split decimals; rev b: a pronoun or "Company's" is no deposit name
 KIND = "resource_estimate"
 TAG = "Resource Estimates"
 MAX_ROWS = 40
@@ -841,6 +841,28 @@ def _impossible_pct(g):
         return False
     cap = _MAX_PCT.get(g.get("metal"))
     return cap is not None and g["value"] > cap
+
+
+# 1.0.25 (2026-10-07): metals never graded in percent
+_PCT_NEVER = {"Au", "AuEq", "Pt", "Pd", "Rh"}
+# 1.0.25b: the highest grade (in %) a relabelled grade may carry for each base metal; above it the figure is dropped
+# (Omai's 16.0% became copper in the 1.0.25 trial)
+_PCT_MAX = {"Cu": 10, "Ni": 8, "Co": 3, "Mo": 3, "Sn": 10, "W": 5, "WO3": 5, "Zn": 30, "Pb": 25, "Sb": 40, "U3O8": 25, "Li2O": 8}
+
+
+def _precious_pct(grades, base):
+    """A precious metal is never graded in percent. Barrick's Reko Diq and Lumwana rows carried their copper grade
+    (0.38-0.46%) as gold, beside the real gold grade in g/t, and MTP flagged 17 of its rows. Such a grade is the
+    release's one base metal (`base`, from _metal_by_unit) when the row has no grade for that metal yet and there is
+    only one such grade; otherwise it is dropped."""
+    bad = [g for g in grades if g["metal"] in _PCT_NEVER and g["unit"] == "%"]
+    if not bad:
+        return grades
+    out = [g for g in grades if not (g["metal"] in _PCT_NEVER and g["unit"] == "%")]
+    if base and len(bad) == 1 and base not in {g["metal"] for g in out} \
+            and (bad[0].get("value") or 0) <= _PCT_MAX.get(base, 30):      # 1.0.25b: only a grade that fits that metal
+        out.append(dict(bad[0], metal=base))
+    return out
 
 
 def _implausible_gpt(g):
@@ -4361,7 +4383,8 @@ def analyse(headline: str, body: str) -> dict:
     for r in rows:
         if only_metal:
             for fig in r["grades"] + r["contained"]:
-                if fig["metal"] is None:
+                # 1.0.25: the release's one metal fills only a figure whose unit fits it (no gold in % or lb)
+                if fig["metal"] is None and not (only_metal in _PCT_NEVER and fig["unit"] in ("%", "lb")):
                     fig["metal"] = only_metal
         # 1.0.22: a grade with no metal is a figure no reader can use. Where the whole release names one metal of the
         # kind the unit is used for (g/t: a precious metal; %: a base or battery metal), the grade is that metal's;
@@ -4375,6 +4398,10 @@ def analyse(headline: str, body: str) -> dict:
             r["grades"] = [g for g in r["grades"] if g["metal"]]
         # once the metal is known: Canada Nickel's "46% Increase" is no nickel grade
         r["grades"] = [g for g in r["grades"] if not (_impossible_pct(g) or _implausible_gpt(g))]
+        if any(g["metal"] in _PCT_NEVER and g["unit"] == "%" for g in r["grades"]):     # 1.0.25
+            if by_unit is None:
+                by_unit = _metal_by_unit(head + "\n" + text)
+            r["grades"] = _precious_pct(r["grades"], by_unit.get("%"))
         for g in r["grades"]:
             if g["metal"] == "C" and g["unit"] == "%":
                 g["metal"] = "Cg"           # FIX5: a graphite deposit's grade is graphitic carbon ("10.27% Cg")
@@ -5124,6 +5151,23 @@ def self_test(verbose=False):
         "tonnes @ 5.31g/t for 115,000 ounces.")], [("Inferred", 670000.0)])
     eq("the fingerprint covers the helper", "FP" in _code_sha.__code__.co_names and FP.borrowed_source(PN, "PN", __file__).split("\n")[0] != "uses ", True)
 
+    # 1.0.25: no precious metal graded in percent
+    eq("1.0.25 a gold grade in % beside the g/t one is dropped", _precious_pct(
+        [{"metal": "Au", "value": 1.48, "unit": "g/t"}, {"metal": "Au", "value": 0.38, "unit": "%"}], None),
+        [{"metal": "Au", "value": 1.48, "unit": "g/t"}])
+    eq("1.0.25 ... and is the release's one base metal when the row has none", _precious_pct(
+        [{"metal": "Au", "value": 1.48, "unit": "g/t"}, {"metal": "Au", "value": 0.38, "unit": "%"}], "Cu"),
+        [{"metal": "Au", "value": 1.48, "unit": "g/t"}, {"metal": "Cu", "value": 0.38, "unit": "%"}])
+    eq("1.0.25 a real copper grade is kept", _precious_pct(
+        [{"metal": "Cu", "value": 0.4, "unit": "%"}, {"metal": "Au", "value": 0.38, "unit": "%"}], "Cu"),
+        [{"metal": "Cu", "value": 0.4, "unit": "%"}])
+    eq("1.0.25b a % grade too high for the base metal is dropped, not relabelled", _precious_pct(
+        [{"metal": "Au", "value": 1.46, "unit": "g/t"}, {"metal": "Au", "value": 16.0, "unit": "%"}], "Cu"),
+        [{"metal": "Au", "value": 1.46, "unit": "g/t"}])
+    eq("1.0.25 a gold release's unlabelled % column is not gold", [x[3] for x in figs(
+        "Northco Updates Gold Resource at Alpha", "\n\n".join([
+            "Table 1: Mineral Resources - Alpha Gold Project", "Category", "Tonnes (Mt)", "Grade (g/t)", "Grade (%)",
+            "Indicated", "250", "1.85", "0.41", "Notes:"]))], [[("Au", 1.85)]])
     print(f"resources self-test: {'ok' if not bad else str(bad) + ' failures'}")
     return bad
 

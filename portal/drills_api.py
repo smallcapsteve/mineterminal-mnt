@@ -289,6 +289,15 @@ def _where(p: dict, universe: Optional[frozenset]) -> tuple[list[str], list]:
             " OR ('|' || upper(COALESCE(e.additional_tickers, '')) || '|') LIKE ? "
             " OR ('|' || upper(COALESCE(e.additional_tickers, '')) || '|') LIKE ?)")
         args += [t, b + ".%", "%|" + t + "|%", "%|" + b + ".%|%"]
+        # SPEEDFIX_DRILLS_TICKER_V1 (2026-10-07): narrow to this company's candidate rows first. The set is a
+        # superset of the test above (same symbol, symbol.*, or any release with extra tickers), so results are
+        # unchanged; SQLite then reads events only for these rows instead of all ~11.6k drill releases.
+        where.append(
+            "d.rowid IN (SELECT rowid FROM drill_results WHERE upper(ticker) = ? "
+            " OR (upper(ticker) >= ? AND upper(ticker) < ?) "
+            " UNION SELECT d2.rowid FROM events e2 JOIN drill_results d2 ON d2.event_id = e2.event_id "
+            " WHERE e2.additional_tickers IS NOT NULL AND e2.additional_tickers <> '')")
+        args += [t, b + ".", b + "/"]
     if p.get("since"):
         where.append("substr(COALESCE(d.published_at, e.published_at, e.classified_at), 1, 10) >= ?")
         args.append(p["since"])

@@ -123,6 +123,17 @@ def log(msg: str) -> None:
     print(f"[{dt.datetime.now(dt.UTC).isoformat(timespec='seconds')}] {msg}", flush=True)
 
 
+
+def _lh_body(rel, body):
+    """LETTERHEAD_V1 (2026-10-07, H25): the document without the company's own letterhead lines (letterhead.py),
+    so a tagline, contact block or address printed above every headline is never read as the headline. Fails open."""
+    try:
+        import letterhead as _LH
+        return _LH.strip(body, _LH.for_company(rel.get("bare") or rel.get("ticker") or ""))
+    except Exception:                            # noqa: BLE001
+        return body
+
+
 def headline_for(rel: dict, body: str) -> tuple[str, str]:
     """(headline, where it came from).
 
@@ -136,7 +147,7 @@ def headline_for(rel: dict, body: str) -> tuple[str, str]:
     t = T.clean_title(rel.get("title", ""))
     if not T.title_is_hollow(t):
         return t, ("feed" if t == (rel.get("title") or "").strip() else "feed_cleaned")
-    from_pdf = D.trim_at_dateline(T.headline_from_body(body, "")) if body else ""
+    from_pdf = D.trim_at_dateline(T.headline_from_body(_lh_body(rel, body), "")) if body else ""   # LETTERHEAD_V1
     # TITLES_SPACED_V1: a headline read from the document is judged as one,
     # not by the 28-character rule for feed titles ("Wealth Grants Stock
     # Options" is a headline; it used to become "News release").

@@ -500,7 +500,9 @@ def rows_for(deals, releases, version):
             "unit_count": d.get("units_closed") if d["closed"] else d.get("units_offered"), "n_tranches": d["n_tranches"],
             "n_events": len(d["releases"]), "seed_event_id": d["seed"], "currency": d["currency"] or "CAD",
             "extractor_version": version,
-            "gross_offered_max": max(d["offered_alt"]) if d["offered_alt"] else None,
+            # FIX8 (2026-10-07): the maximum is an amount above the deal (an upsize or over-allotment), never one of its parts:
+            # offered_alt also holds the flow-through and hard-dollar parts, and the larger part was shown as the maximum
+            "gross_offered_max": max([v for v in d["offered_alt"] if not d["offered"] or v > d["offered"]], default=None),
             "unit_prices": "|".join("%g" % p for p in d["prices"]) or None})
     ev_rows = []
     for r in releases:

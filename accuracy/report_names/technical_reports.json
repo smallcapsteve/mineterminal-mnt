@@ -1,0 +1,2214 @@
+{
+ "schema": 1,
+ "name": "technical_reports_names",
+ "created": "2026-10-07",
+ "source": "TRX gates 1-3 blind labels (claude/MTP_TR_LABEL_GUIDE_2026-10-06.md), with recorded corrections",
+ "reader": "trx-0.7f",
+ "helper_at_freeze": "1.0.5",
+ "items": [
+  {
+   "set": "gate",
+   "g": 0,
+   "ticker": "APXC",
+   "title": "NI 43-101 TECHNICAL REPORT ON THE Rift Project JOHNSON AND PAWNEE COUNTIES, NEBRASKA, USA",
+   "reader_name": "Rift",
+   "reader_kind": "project",
+   "labels": [
+    "Rift"
+   ],
+   "expect": "Rift"
+  },
+  {
+   "set": "gate",
+   "g": 1,
+   "ticker": "ANT",
+   "title": "KNOB LAKE PROPERTY Labrador, Canada NI 43-101 TECHNICAL REPORT",
+   "reader_name": "Knob Lake",
+   "reader_kind": "property",
+   "labels": [
+    "Knob Lake"
+   ],
+   "expect": "Knob Lake"
+  },
+  {
+   "set": "gate",
+   "g": 2,
+   "ticker": "BATT",
+   "title": "43-101 Technical Report on the Ghost Lake Property, Central Mineral Belt, Newfoundland and Labrador NTS Map Sheets 13K/07, 13K/08, 13K/09, 13K/10 675100m E 6041200m N",
+   "reader_name": "Ghost Lake",
+   "reader_kind": "property",
+   "labels": [
+    "Ghost Lake"
+   ],
+   "expect": "Ghost Lake"
+  },
+  {
+   "set": "gate",
+   "g": 3,
+   "ticker": "EONE",
+   "title": "NATIONAL INSTRUMENT 43-101 TECHNICAL REPORT On the FOGGY MOUNTAIN PROPERTY OMINECA MINING REGION, BRITISH COLUMBIA, CANADA",
+   "reader_name": "Foggy Mountain",
+   "reader_kind": "property",
+   "labels": [
+    "Foggy Mountain"
+   ],
+   "expect": "Foggy Mountain"
+  },
+  {
+   "set": "gate",
+   "g": 4,
+   "ticker": "ESAU",
+   "title": "NI 43-101 Technical Report Mineral Resource Estimate and Preliminary Economic Assessment of the Montauban Gold Project, Québec i",
+   "reader_name": "Montauban",
+   "reader_kind": "project",
+   "labels": [
+    "Montauban"
+   ],
+   "expect": "Montauban"
+  },
+  {
+   "set": "gate",
+   "g": 5,
+   "ticker": "BEAU",
+   "title": "NI43-101 Technical Report on Kain Claims",
+   "reader_name": "Kain",
+   "reader_kind": "claims",
+   "labels": [
+    "Kain"
+   ],
+   "expect": "Kain"
+  },
+  {
+   "set": "gate",
+   "g": 6,
+   "ticker": "BAR",
+   "title": "King Property NI 43-101 Barranco Gold Mines Corp. 2020 NI 43-101 TECHNICAL REPORT",
+   "reader_name": "King",
+   "reader_kind": "property",
+   "labels": [
+    "King"
+   ],
+   "expect": "King"
+  },
+  {
+   "set": "gate",
+   "g": 7,
+   "ticker": "BMT",
+   "title": "NI 43-101 Technical Report Project Status Report Mangueiros Ni-Cu-Co Project Bahia, Brazil",
+   "reader_name": "Mangueiros",
+   "reader_kind": "project",
+   "labels": [
+    "Mangueiros"
+   ],
+   "expect": "Mangueiros"
+  },
+  {
+   "set": "gate",
+   "g": 8,
+   "ticker": "AMQ",
+   "title": "AMENDED AND RESTATED NI 43-101 TECHNICAL REPORT",
+   "reader_name": "B26",
+   "reader_kind": "project",
+   "labels": [
+    "B26"
+   ],
+   "expect": "B26"
+  },
+  {
+   "set": "gate",
+   "g": 9,
+   "ticker": "KVM",
+   "title": "NI 43-101 TECHNICAL REPORT ON THE VERNON PROPERTY, NEW BRUNSWICK CANADA",
+   "reader_name": "Vernon",
+   "reader_kind": "property",
+   "labels": [
+    "Vernon"
+   ],
+   "expect": "Vernon"
+  },
+  {
+   "set": "gate",
+   "g": 10,
+   "ticker": "PTU",
+   "title": "TECHNICAL REPORT on the UMFREVILLE URANIUM PROJECT",
+   "reader_name": "Umfreville",
+   "reader_kind": "project",
+   "labels": [
+    "Umfreville"
+   ],
+   "expect": "Umfreville"
+  },
+  {
+   "set": "gate",
+   "g": 11,
+   "ticker": "MNRG",
+   "title": "A Technical Report written for the Property Optionee: Monumental Gold Corp.",
+   "reader_name": "Weyman",
+   "reader_kind": "property",
+   "labels": [
+    "Weyman"
+   ],
+   "expect": "Weyman"
+  },
+  {
+   "set": "gate",
+   "g": 12,
+   "ticker": "WMS",
+   "title": "Technical Report on the Sierra Alta Project Pola de Allande-Tineo, Asturias Region, Spain",
+   "reader_name": "Sierra Alta",
+   "reader_kind": "project",
+   "labels": [
+    "Sierra Alta"
+   ],
+   "expect": "Sierra Alta"
+  },
+  {
+   "set": "gate",
+   "g": 13,
+   "ticker": "IGO",
+   "title": "TECHNICAL REPORT ON THE UPDATED RESOURCE ESTIMATE, 3Ts GOLD PROJECT",
+   "reader_name": "3Ts",
+   "reader_kind": "project",
+   "labels": [
+    "3Ts"
+   ],
+   "expect": "3Ts"
+  },
+  {
+   "set": "gate",
+   "g": 14,
+   "ticker": "FNV",
+   "title": "PALMAREJO PROJECT SW Chihuahua State, Mexico",
+   "reader_name": "Palmarejo",
+   "reader_kind": "project",
+   "labels": [
+    "Palmarejo"
+   ],
+   "expect": "Palmarejo"
+  },
+  {
+   "set": "gate",
+   "g": 15,
+   "ticker": "LAR",
+   "title": "Technical Report on the Pre- Feasibility Study for the Thacker Pass Project, Humboldt County, Nevada, USA",
+   "reader_name": "Thacker Pass",
+   "reader_kind": "project",
+   "labels": [
+    "Thacker Pass"
+   ],
+   "expect": "Thacker Pass"
+  },
+  {
+   "set": "gate",
+   "g": 16,
+   "ticker": "WVM",
+   "title": "TECHNICAL REPORT ON THE TECOMA UTAH GOLD PROJECT, UTAH, U.S.A. NI 43-101 Report",
+   "reader_name": "Tecoma Utah",
+   "reader_kind": "project",
+   "labels": [
+    "Tecoma Utah Gold"
+   ],
+   "expect": "Tecoma Utah"
+  },
+  {
+   "set": "gate",
+   "g": 17,
+   "ticker": "AUMN",
+   "title": "NI 43-101 Technical Report Preliminary Economic Assessment Velardeña Project Durango State, Mexico Document: 910295-REP-R0001-01",
+   "reader_name": "Velardeña",
+   "reader_kind": "project",
+   "labels": [
+    "Velardena"
+   ],
+   "expect": "Velardeña"
+  },
+  {
+   "set": "gate",
+   "g": 18,
+   "ticker": "WMK",
+   "title": "NI 43-101 Technical Report Preliminary Economic Assessment of the Wood Mountain Project, Saskatchewan Whitemud Resources Inc. SLR Project No.: 233.65141.0001",
+   "reader_name": "Wood Mountain",
+   "reader_kind": "project",
+   "labels": [
+    "Wood Mountain"
+   ],
+   "expect": "Wood Mountain"
+  },
+  {
+   "set": "gate",
+   "g": 19,
+   "ticker": "SML",
+   "title": "NI 43-101 Technical Report of a Geological Evaluation",
+   "reader_name": "Topacio",
+   "reader_kind": "project",
+   "labels": [
+    "Topacio"
+   ],
+   "expect": "Topacio"
+  },
+  {
+   "set": "gate",
+   "g": 20,
+   "ticker": "WM",
+   "title": "TECHNICAL REPORT AND MINERAL RESOURCE ESTIMATE FOR THE FENELON MINE PROPERTY (according to National Instrument 43 101 and Form 43 101F1) Project Location",
+   "reader_name": "Fenelon",
+   "reader_kind": "mine",
+   "labels": [
+    "Fenelon Mine"
+   ],
+   "expect": "Fenelon"
+  },
+  {
+   "set": "gate",
+   "g": 21,
+   "ticker": "IE",
+   "title": "NI 43-101 Technical Report Mineral Project Exploration Information, Tintic Project Utah, U.S.A.",
+   "reader_name": "Tintic",
+   "reader_kind": "project",
+   "labels": [
+    "Tintic"
+   ],
+   "expect": "Tintic"
+  },
+  {
+   "set": "gate",
+   "g": 22,
+   "ticker": "GWM",
+   "title": "TECHNICAL REPORT ON THE MINERAL RESOURCE ESTIMATE FOR THE ESTRADES PROJECT, NORTHWESTERN QUÉBEC, CANADA NI 43-101 Report",
+   "reader_name": "Estrades",
+   "reader_kind": "project",
+   "labels": [
+    "Estrades"
+   ],
+   "expect": "Estrades"
+  },
+  {
+   "set": "gate",
+   "g": 23,
+   "ticker": "ELE",
+   "title": "SUMMARY REPORT ON THE ~STN.UNEIRONPROPERTY",
+   "reader_name": null,
+   "reader_kind": null,
+   "labels": [
+    "Investmine Iron"
+   ],
+   "expect": null
+  },
+  {
+   "set": "gate",
+   "g": 24,
+   "ticker": "VTT",
+   "title": "Honeymoon East Property 43-101 1",
+   "reader_name": "Honeymoon East",
+   "reader_kind": "property",
+   "labels": [
+    "Honeymoon East"
+   ],
+   "expect": "Honeymoon East"
+  },
+  {
+   "set": "gate",
+   "g": 25,
+   "ticker": "GLD",
+   "title": "N.I. 43-101 TECHNICAL REPORT ON THE PATERSON LAKE PROPERTY",
+   "reader_name": "Paterson Lake",
+   "reader_kind": "property",
+   "labels": [
+    "Paterson Lake"
+   ],
+   "expect": "Paterson Lake"
+  },
+  {
+   "set": "gate",
+   "g": 26,
+   "ticker": "UGD",
+   "title": "NI 43-101 TECHNICAL REPORT MINERAL RESOURCE ESTIMATE FOR THE CANDELONES EXTENSION DEPOSIT CANDELONES PROJECT NEITA CONCESSION",
+   "reader_name": "Candelones Extension Deposit Candelones",
+   "reader_kind": "project",
+   "labels": [
+    "Candelones"
+   ],
+   "expect": "Candelones"
+  },
+  {
+   "set": "gate",
+   "g": 27,
+   "ticker": "SGML",
+   "title": "TECHNICAL REPORT Northern and Southern Complexes Project Araçuaí and Itinga, Brazil Sigma Lithium Resources Inc.",
+   "reader_name": "Northern and Southern Complexes",
+   "reader_kind": "project",
+   "labels": [
+    "Northern and Southern Complexes"
+   ],
+   "expect": "Northern and Southern Complexes"
+  },
+  {
+   "set": "gate",
+   "g": 28,
+   "ticker": "BBB",
+   "title": "2010 TECHNICAL REPORT ON THE THORN PROPERTY",
+   "reader_name": "Thorn",
+   "reader_kind": "property",
+   "labels": [
+    "Thorn"
+   ],
+   "expect": "Thorn"
+  },
+  {
+   "set": "gate",
+   "g": 29,
+   "ticker": "VCV",
+   "title": "43-101 TECHNICAL REPORT BM PROPERTY Located in the Princeton Area, British Columbia",
+   "reader_name": "Bm",
+   "reader_kind": "property",
+   "labels": [
+    "BM"
+   ],
+   "expect": "Bm"
+  },
+  {
+   "set": "gate",
+   "g": 30,
+   "ticker": "ASM",
+   "title": "Technical Report on the Avino Property, Durango, Mexico Document No. 735-1651920100-REP-R0001-03",
+   "reader_name": "Avino",
+   "reader_kind": "property",
+   "labels": [
+    "Avino"
+   ],
+   "expect": "Avino"
+  },
+  {
+   "set": "gate",
+   "g": 31,
+   "ticker": "GMV",
+   "title": "NI 43-101 Technical Report Preliminary Economic Assessment Cochise County, Arizona",
+   "reader_name": "Mexican Hat",
+   "reader_kind": "project",
+   "labels": [
+    "Mexican Hat"
+   ],
+   "expect": "Mexican Hat"
+  },
+  {
+   "set": "gate",
+   "g": 32,
+   "ticker": "BAG",
+   "title": "TECHNICAL REPORT BLENDE PROJECT Beaver River Area, Nash Creek Map Area 106D 07",
+   "reader_name": "Blende",
+   "reader_kind": "project",
+   "labels": [
+    "Blende"
+   ],
+   "expect": "Blende"
+  },
+  {
+   "set": "gate",
+   "g": 33,
+   "ticker": "GPG",
+   "title": "AMENDED AND RESTATED TECHNICAL REPORT ON THE HERBERT GOLD PROPERTY JUNEAU DISTRICT, SOUTHEAST ALASKA",
+   "reader_name": "Herbert",
+   "reader_kind": "property",
+   "labels": [
+    "Herbert Gold"
+   ],
+   "expect": "Herbert"
+  },
+  {
+   "set": "gate",
+   "g": 34,
+   "ticker": "DPM",
+   "title": "NI 43-101 Technical Report Preliminary Economic Assessment Čoka Rakita Project Eastern Serbia",
+   "reader_name": "Čoka Rakita",
+   "reader_kind": "project",
+   "labels": [
+    "Coka Rakita"
+   ],
+   "expect": "Čoka Rakita"
+  },
+  {
+   "set": "gate",
+   "g": 36,
+   "ticker": "DNG",
+   "title": "NI 43-101 TECHNICAL EVALUATION REPORT ON THE TUMIPAMPA PROPERTY PROVINCE OF AYMARAES ABANCAY DEPARTMENT",
+   "reader_name": "Tumipampa",
+   "reader_kind": "property",
+   "labels": [
+    "Tumipampa"
+   ],
+   "expect": "Tumipampa"
+  },
+  {
+   "set": "gate",
+   "g": 37,
+   "ticker": "SLI",
+   "title": "Amended and Restated NI 43-101 Technical Report South West Arkansas Project Pre-Feasibility Study Lewisville, Lafayette County, AR",
+   "reader_name": "South West Arkansas",
+   "reader_kind": "project",
+   "labels": [
+    "South West Arkansas"
+   ],
+   "expect": "South West Arkansas"
+  },
+  {
+   "set": "gate",
+   "g": 38,
+   "ticker": "LMG",
+   "title": "Amended and Restated TECHNICAL REPORT ON THE LA BUFA PROPERTY, Guadalupe y Calvo, Chihuahua State, Mexico",
+   "reader_name": "La Bufa",
+   "reader_kind": "property",
+   "labels": [
+    "La Bufa"
+   ],
+   "expect": "La Bufa"
+  },
+  {
+   "set": "gate",
+   "g": 39,
+   "ticker": "TK",
+   "title": "TECHNICAL REPORT ON THE MINERAL RESOURCE ESTIMATE FOR THE AYAWILCA PROPERTY DEPARTMENT OF PASCO, PERU NI 43-101 Report",
+   "reader_name": "Ayawilca",
+   "reader_kind": "property",
+   "labels": [
+    "Ayawilca"
+   ],
+   "expect": "Ayawilca"
+  },
+  {
+   "set": "gate",
+   "g": 40,
+   "ticker": "WGLD",
+   "title": "NI 43-101 TECHNICAL REPORT, GEOLOGICAL INTRODUCTION TO KNAPDALE GOLD-SILVER PROJECT, SCOTLAND",
+   "reader_name": "Knapdale",
+   "reader_kind": "project",
+   "labels": [
+    "Knapdale"
+   ],
+   "expect": "Knapdale"
+  },
+  {
+   "set": "gate",
+   "g": 41,
+   "ticker": "NICU",
+   "title": "TECHNICAL REPORT ON THE MINERAL RESOURCE ESTIMATE UPDATE FOR THE SHAKESPEARE NI-CU-PGE SULPHIDE DEPOSIT, SHAKESPEARE PROJECT, ONTARIO, CANADA",
+   "reader_name": "Shakespeare",
+   "reader_kind": "project",
+   "labels": [
+    "Shakespeare"
+   ],
+   "expect": "Shakespeare"
+  },
+  {
+   "set": "gate",
+   "g": 42,
+   "ticker": "AFM",
+   "title": "NI 43-101 Technical Report – 19 February 2016 Feasibility Study Report",
+   "reader_name": "Bisie",
+   "reader_kind": "project",
+   "labels": [
+    "Bisie Tin"
+   ],
+   "expect": "Bisie"
+  },
+  {
+   "set": "gate",
+   "g": 43,
+   "ticker": "DML",
+   "title": "TECHNICAL REPORT ON A MINERAL RESOURCE ESTIMATE UPDATE FOR THE PHOENIX URANIUM DEPOSIT, WHEELER RIVER PROJECT, EASTERN ATHABASCA BASIN, NORTHERN SASKATCHEWAN",
+   "reader_name": "Wheeler River",
+   "reader_kind": "project",
+   "labels": [
+    "Wheeler River",
+    "Phoenix"
+   ],
+   "expect": "Wheeler River"
+  },
+  {
+   "set": "gate",
+   "g": 44,
+   "ticker": "NDM",
+   "title": "TECHNICAL REPORT ON THE 2009 PROGRAM AND UPDATE ON MINERAL RESOURCES AND METALLURGY",
+   "reader_name": "Pebble",
+   "reader_kind": "project",
+   "labels": [
+    "Pebble"
+   ],
+   "expect": "Pebble"
+  },
+  {
+   "set": "gate",
+   "g": 45,
+   "ticker": "NCAU",
+   "title": "ENCHI GOLD PROJECT RESOURCE UPDATE, ENCHI, GHANA",
+   "reader_name": "Enchi",
+   "reader_kind": "project",
+   "labels": [
+    "Enchi Gold"
+   ],
+   "expect": "Enchi"
+  },
+  {
+   "set": "gate",
+   "g": 46,
+   "ticker": "EDR",
+   "title": "NI43-101 TECHNICAL REPORT RESOURCE AND RESERVE ESTIMATES FOR THE EL CUBO MINES PROJECT GUANAJUATO STATE",
+   "reader_name": "El Cubo",
+   "reader_kind": "mine",
+   "labels": [
+    "El Cubo"
+   ],
+   "expect": "El Cubo"
+  },
+  {
+   "set": "gate",
+   "g": 47,
+   "ticker": "SCZ",
+   "title": "TECHNICAL REPORT ZIMAPAN PROPERTY HIDALGO, MEXICO",
+   "reader_name": "Zimapan",
+   "reader_kind": "property",
+   "labels": [
+    "Zimapan"
+   ],
+   "expect": "Zimapan"
+  },
+  {
+   "set": "gate",
+   "g": 48,
+   "ticker": "WSK",
+   "title": "TECHNICAL REPORT ON THE CASSIAR GOLD PROPERTY, BRITISH COLUMBIA, CANADA NTS: 104P05E",
+   "reader_name": "Cassiar",
+   "reader_kind": "property",
+   "labels": [
+    "Cassiar Gold"
+   ],
+   "expect": "Cassiar"
+  },
+  {
+   "set": "gate",
+   "g": 49,
+   "ticker": "MQM",
+   "title": "TECHNICAL REPORT AND PRELIMINARY ECONOMIC ASSESSMENT (PEA) OF THE MURRAY BROOK PROJECT NEW BRUNSWICK, CANADA",
+   "reader_name": "Murray Brook",
+   "reader_kind": "project",
+   "labels": [
+    "Murray Brook"
+   ],
+   "expect": "Murray Brook"
+  },
+  {
+   "set": "gate",
+   "g": 50,
+   "ticker": "EMM",
+   "title": "A MINERAL RESOURCE ESTIMATE FOR THE KGWAKGWE HILL MANGANESE PROJECT, BOTSWANA",
+   "reader_name": "Kgwakgwe Hill",
+   "reader_kind": "project",
+   "labels": [
+    "Kgwakgwe Hill",
+    "K-Hill",
+    "Kgwakgwe Hill Manganese",
+    "K-Hill Manganese"
+   ],
+   "expect": "Kgwakgwe Hill"
+  },
+  {
+   "set": "gate",
+   "g": 51,
+   "ticker": "SAU",
+   "title": "NI 43-101 Technical Report Preliminary Feasibility Study Mindanao, Philippines REVISION 0",
+   "reader_name": "King-king",
+   "reader_kind": "project",
+   "labels": [
+    "King-king"
+   ],
+   "expect": "King-king"
+  },
+  {
+   "set": "gate",
+   "g": 52,
+   "ticker": "SPA",
+   "title": "PRELIMINARY ECONOMIC ASSESSMENT FOR THE SPANISH MOUNTAIN GOLD PROPERTY",
+   "reader_name": "Spanish Mountain",
+   "reader_kind": "property",
+   "labels": [
+    "Spanish Mountain Gold"
+   ],
+   "expect": "Spanish Mountain"
+  },
+  {
+   "set": "gate",
+   "g": 53,
+   "ticker": "LA",
+   "title": "Preliminary Economic Assessment for the Vizcachitas Copper/Molybdenum Project V Region, Chile",
+   "reader_name": "Vizcachitas",
+   "reader_kind": "project",
+   "labels": [
+    "Vizcachitas"
+   ],
+   "expect": "Vizcachitas"
+  },
+  {
+   "set": "gate",
+   "g": 54,
+   "ticker": "XGC",
+   "title": "NATIONAL INSTRUMENT 43-101 F1 AMENDED TECHNICAL REPORT ON THE EL ORO PROPERTY, MEXICO",
+   "reader_name": "El Oro",
+   "reader_kind": "property",
+   "labels": [
+    "El Oro"
+   ],
+   "expect": "El Oro"
+  },
+  {
+   "set": "gate",
+   "g": 55,
+   "ticker": "WRN",
+   "title": "NI 43-101 Technical Report Pre-Feasibility Study Update Yukon Territory, Canada",
+   "reader_name": "Casino",
+   "reader_kind": "project",
+   "labels": [
+    "Casino"
+   ],
+   "expect": "Casino"
+  },
+  {
+   "set": "gate",
+   "g": 56,
+   "ticker": "ARIS",
+   "title": "A NI43-101 MINERAL RESOURCE ESTIMATE ON THE MARMATO PROJECT, COLOMBIA, 21 JUNE 2012",
+   "reader_name": "Marmato",
+   "reader_kind": "project",
+   "labels": [
+    "Marmato"
+   ],
+   "expect": "Marmato"
+  },
+  {
+   "set": "gate",
+   "g": 57,
+   "ticker": "SF",
+   "title": "NI 43-101 Technical Report on the Kombat Copper Project, Namibia",
+   "reader_name": "Kombat",
+   "reader_kind": "project",
+   "labels": [
+    "Kombat Copper",
+    "Kombat"
+   ],
+   "expect": "Kombat"
+  },
+  {
+   "set": "gate",
+   "g": 58,
+   "ticker": "TBK",
+   "title": "TECHNICAL REPORT LUCKY STRIKE PROPERTY – YUKON TERRITORY, CANADA 63°12’10” N, 139°07’06” W, Dawson Mining District",
+   "reader_name": "Lucky Strike",
+   "reader_kind": "property",
+   "labels": [
+    "Lucky Strike"
+   ],
+   "expect": "Lucky Strike"
+  },
+  {
+   "set": "gate",
+   "g": 59,
+   "ticker": "ATX",
+   "title": "NI 43-101 TECHNICAL REPORT ON THE VALERIANO PROJECT ATACAMA REGION, CHILE",
+   "reader_name": "Valeriano",
+   "reader_kind": "project",
+   "labels": [
+    "Valeriano"
+   ],
+   "expect": "Valeriano"
+  },
+  {
+   "set": "gate2",
+   "g": 0,
+   "ticker": "KCLI",
+   "title": "AMENDED AND RESTATED NI 43-101 TECHNICAL REPORT GREEN RIVER POTASH AND LITHIUM PROJECT GRAND COUNTY, UTAH USA",
+   "reader_name": "Green River",
+   "reader_kind": "project",
+   "labels": [
+    "Green River Potash and Lithium",
+    "Green River"
+   ],
+   "expect": "Green River"
+  },
+  {
+   "set": "gate2",
+   "g": 1,
+   "ticker": "FUTR",
+   "title": "TECHNICAL REPORT FOR THE NEOCORE PROJECT, EAST OF THE ATHABASCA BASIN, NORTHERN SASKATCHEWAN, CANADA",
+   "reader_name": "Neocore",
+   "reader_kind": "project",
+   "labels": [
+    "NeoCore"
+   ],
+   "expect": "Neocore"
+  },
+  {
+   "set": "gate2",
+   "g": 2,
+   "ticker": "ALAR",
+   "title": "TECHNICAL REPORT NIGHTINGALE TUNGSTEN-SILVER-COPPER PROPERTY PERSHING COUNTY, NEVADA, USA 40.009083° N, 119.226992° W WGS 84 (center old Nightingale Mine)",
+   "reader_name": "Nightingale",
+   "reader_kind": "property",
+   "labels": [
+    "Nightingale"
+   ],
+   "expect": "Nightingale"
+  },
+  {
+   "set": "gate2",
+   "g": 4,
+   "ticker": "EMET",
+   "title": "NI 43-101 TECHNICAL REPORT Turvolândia Rare Earth Project",
+   "reader_name": "Turvolândia",
+   "reader_kind": "project",
+   "labels": [
+    "Turvolândia"
+   ],
+   "expect": "Turvolândia"
+  },
+  {
+   "set": "gate2",
+   "g": 5,
+   "ticker": "FRG",
+   "title": "NI 43-101 TECHNICAL REPORT on the ALOTTA PROJECT in the Dawson Range Copper - Gold Belt, Yukon, Canada",
+   "reader_name": "Alotta",
+   "reader_kind": "project",
+   "labels": [
+    "Alotta"
+   ],
+   "expect": "Alotta"
+  },
+  {
+   "set": "gate2",
+   "g": 6,
+   "ticker": "ADON",
+   "title": "NI43-101 Technical Report on Horne Property",
+   "reader_name": "Horne",
+   "reader_kind": "property",
+   "labels": [
+    "Horne"
+   ],
+   "expect": "Horne"
+  },
+  {
+   "set": "gate2",
+   "g": 7,
+   "ticker": "GTCH",
+   "title": "NI 43-101 Technical Report on the Updated Preliminary Economic Assessment Fondaway Canyon Project, Nevada, USA Getchell Gold Corp.",
+   "reader_name": "Fondaway Canyon",
+   "reader_kind": "project",
+   "labels": [
+    "Fondaway Canyon"
+   ],
+   "expect": "Fondaway Canyon"
+  },
+  {
+   "set": "gate2",
+   "g": 8,
+   "ticker": "EMPS",
+   "title": "NI 43-101 TECHNICAL REPORT on the Lithium Brines of the Mansur Viewfield Areas of Southern Saskatchewan, Canada",
+   "reader_name": null,
+   "reader_kind": null,
+   "labels": [
+    "Lithium Brines of Southern Saskatchewan",
+    "Mansur and Viewfield",
+    "Viewfield and Mansur"
+   ],
+   "expect": null
+  },
+  {
+   "set": "gate2",
+   "g": 9,
+   "ticker": "BOOM",
+   "title": "TECHNICAL REPORT, AND UPDATED MINERAL RESOURCE ESTIMATE OF THE GLOVER ISLAND GOLD PROPERTY, GRAND LAKE AREA, WEST-CENTRAL NEWFOUNDLAND, CANADA",
+   "reader_name": "Glover Island",
+   "reader_kind": "property",
+   "labels": [
+    "Glover Island"
+   ],
+   "expect": "Glover Island"
+  },
+  {
+   "set": "gate2",
+   "g": 10,
+   "ticker": "STS",
+   "title": "BamaStar Graphite Project Preliminary Economic Assessment National Instrument 43-101 Technical Report 5187-GREP-001",
+   "reader_name": "BamaStar",
+   "reader_kind": "project",
+   "labels": [
+    "BamaStar Graphite",
+    "BamaStar"
+   ],
+   "expect": "BamaStar"
+  },
+  {
+   "set": "gate2",
+   "g": 11,
+   "ticker": "STLR",
+   "title": "A MINERAL RESOURCE ESTIMATE FOR THE GOLDEN HIGHWAY PROJECT, MICHAUD AND GARRISON TOWNSHIPS, BLACK RIVER - MATHESON AREA, NORTHEASTERN ONTARIO",
+   "reader_name": "Golden Highway",
+   "reader_kind": "project",
+   "labels": [
+    "Golden Highway"
+   ],
+   "expect": "Golden Highway"
+  },
+  {
+   "set": "gate2",
+   "g": 12,
+   "ticker": "VZZ",
+   "title": "NATIONAL INSTRUMENT 43-101 TECHNICAL REPORT Fortin Prospect Ducros Township, Quebec",
+   "reader_name": "Fortin",
+   "reader_kind": "prospect",
+   "labels": [
+    "Fortin",
+    "Fortin Prospect"
+   ],
+   "expect": "Fortin"
+  },
+  {
+   "set": "gate2",
+   "g": 13,
+   "ticker": "SMY",
+   "title": "Table of Contents Executive Summary 3",
+   "reader_name": "Katie",
+   "reader_kind": "property",
+   "labels": [
+    "Katie"
+   ],
+   "expect": "Katie"
+  },
+  {
+   "set": "gate2",
+   "g": 14,
+   "ticker": "CDA",
+   "title": "NI 43-101 Technical Report on the San Javier Project State of Sonora Mexico",
+   "reader_name": "San Javier",
+   "reader_kind": "project",
+   "labels": [
+    "San Javier"
+   ],
+   "expect": "San Javier"
+  },
+  {
+   "set": "gate2",
+   "g": 15,
+   "ticker": "FVI",
+   "title": "Caylloma Property, Caylloma District, Peru",
+   "reader_name": "Caylloma",
+   "reader_kind": "property",
+   "labels": [
+    "Caylloma"
+   ],
+   "expect": "Caylloma"
+  },
+  {
+   "set": "gate2",
+   "g": 16,
+   "ticker": "RJX.A",
+   "title": "NI 43-101 Technical Report on Blackwater East and Blackwater West",
+   "reader_name": "Blackwater West",
+   "reader_kind": "property",
+   "labels": [
+    "Blackwater East and Blackwater West",
+    "Blackwater East and West"
+   ],
+   "expect": "Blackwater West"
+  },
+  {
+   "set": "gate2",
+   "g": 17,
+   "ticker": "ASTR",
+   "title": "NI 43-101 TECHNICAL REPORT PAMPA PACIENCIA PROJECT ANTOFAGASTA REGION, CHILE",
+   "reader_name": "Pampa Paciencia",
+   "reader_kind": "project",
+   "labels": [
+    "Pampa Paciencia"
+   ],
+   "expect": "Pampa Paciencia"
+  },
+  {
+   "set": "gate2",
+   "g": 18,
+   "ticker": "EDDY",
+   "title": "TECHNICAL REPORT ON THE BLUSTRY MOUNTAIN PROPERTY (AN EPITHERMAL GOLD-SILVER PROSPECT)",
+   "reader_name": "Blustry Mountain",
+   "reader_kind": "property",
+   "labels": [
+    "Blustry Mountain"
+   ],
+   "expect": "Blustry Mountain"
+  },
+  {
+   "set": "gate2",
+   "g": 19,
+   "ticker": "ICM",
+   "title": "Mineral Resource Estimate Technical Report Bonnie Claire Lithium Project Nye County, Nevada",
+   "reader_name": "Bonnie Claire",
+   "reader_kind": "project",
+   "labels": [
+    "Bonnie Claire Lithium",
+    "Bonnie Claire"
+   ],
+   "expect": "Bonnie Claire"
+  },
+  {
+   "set": "gate2",
+   "g": 20,
+   "ticker": "JAG",
+   "title": "GUR RUPI GO OLD PROJEC P CT CIPOE",
+   "reader_name": "Cipoeiro",
+   "reader_kind": "deposit",
+   "labels": [
+    "Gurupi",
+    "Cipoeiro and Chega Tudo"
+   ],
+   "expect": "Cipoeiro"
+  },
+  {
+   "set": "gate2",
+   "g": 21,
+   "ticker": "SHL",
+   "title": "UPDATED MINERAL RESOURCE ESTIMATE, AND PRELIMINARY ECONOMIC ASSESSMENT OF THE GREAT BURNT COPPER-GOLD PROPERTY, CENTRAL NEWFOUNDLAND",
+   "reader_name": "Great Burnt",
+   "reader_kind": "property",
+   "labels": [
+    "Great Burnt",
+    "Great Burnt Copper-Gold"
+   ],
+   "expect": "Great Burnt"
+  },
+  {
+   "set": "gate2",
+   "g": 22,
+   "ticker": "ALDE",
+   "title": "TECHNICAL REPORT ESTIMATED MINERAL RESOURCES ALTAR PROJECT SAN JUAN PROVINCE ARGENTINA",
+   "reader_name": "Altar",
+   "reader_kind": "project",
+   "labels": [
+    "Altar"
+   ],
+   "expect": "Altar"
+  },
+  {
+   "set": "gate2",
+   "g": 23,
+   "ticker": "BRC",
+   "title": "TECHNICAL REPORT ON THE SILVER CLOUD PROPERTY, ELKO COUNTY, NEVADA, USA",
+   "reader_name": "Silver Cloud",
+   "reader_kind": "property",
+   "labels": [
+    "Silver Cloud"
+   ],
+   "expect": "Silver Cloud"
+  },
+  {
+   "set": "gate2",
+   "g": 24,
+   "ticker": "GUN",
+   "title": "MINE DEVELOPMENT ASSOCIATES MINE ENGINEERING SERVICES Technical Report of the Talapoosa Project Lyon County, Nevada, U.S.A.",
+   "reader_name": "Talapoosa",
+   "reader_kind": "project",
+   "labels": [
+    "Talapoosa"
+   ],
+   "expect": "Talapoosa"
+  },
+  {
+   "set": "gate2",
+   "g": 25,
+   "ticker": "FEO",
+   "title": "NI 43-101 Technical Report ........................................................................................ ....... PRELIMINARY ECONOMIC ASSESSMENT OF THE RE-SCOPED HOPES ADVANCE PROPERTY Ungava Bay, Québec, Canada",
+   "reader_name": "Re-scoped Hopes Advance",
+   "reader_kind": "property",
+   "labels": [
+    "Hopes Advance",
+    "Re-scoped Hopes Advance"
+   ],
+   "expect": "Re-scoped Hopes Advance"
+  },
+  {
+   "set": "gate2",
+   "g": 26,
+   "ticker": "NEXG",
+   "title": "INDEPENDENT TECHNICAL REPORT AND RESOURCE ESTIMATE PICO MACHAY GOLD PROJECT HUANCAVELICA PROVINCE, PERU",
+   "reader_name": "Pico Machay",
+   "reader_kind": "project",
+   "labels": [
+    "Pico Machay Gold",
+    "Pico Machay"
+   ],
+   "expect": "Pico Machay"
+  },
+  {
+   "set": "gate2",
+   "g": 27,
+   "ticker": "ILC",
+   "title": "Technical Report (NI 43-101) On The Mavis Lake Lithium Property Brownridge Township, Kenora Mining District Near Dryden, Northwestern Ontario NTS Map Sheet 52F/15E",
+   "reader_name": "Mavis Lake",
+   "reader_kind": "property",
+   "labels": [
+    "Mavis Lake Lithium",
+    "Mavis Lake"
+   ],
+   "expect": "Mavis Lake"
+  },
+  {
+   "set": "gate2",
+   "g": 28,
+   "ticker": "EFR",
+   "title": "Energy Fuels Inc. Technical Report – Donald Rare Earths and Mineral Sands Project, Victoria, Australia",
+   "reader_name": "Donald",
+   "reader_kind": "project",
+   "labels": [
+    "Donald",
+    "Donald Rare Earths and Mineral Sands"
+   ],
+   "expect": "Donald"
+  },
+  {
+   "set": "gate2",
+   "g": 29,
+   "ticker": "MMY",
+   "title": "Mineral Resource Estimate for the Mengapur Cu-Au Deposit, NI 43-101 Technical Report Project Number AU10073",
+   "reader_name": "Mengapur",
+   "reader_kind": "deposit",
+   "labels": [
+    "Mengapur Cu-Au",
+    "Mengapur"
+   ],
+   "expect": "Mengapur"
+  },
+  {
+   "set": "gate2",
+   "g": 30,
+   "ticker": "AYA",
+   "title": "NI 43-101 Technical Report Feasibility Study Zgounder Expansion Project Kingdom of Morocco",
+   "reader_name": "Zgounder Expansion",
+   "reader_kind": "project",
+   "labels": [
+    "Zgounder Expansion",
+    "Zgounder"
+   ],
+   "expect": "Zgounder Expansion"
+  },
+  {
+   "set": "gate2",
+   "g": 31,
+   "ticker": "RYR",
+   "title": "Author and Reviewer Signatures",
+   "reader_name": "La Golondrina",
+   "reader_kind": "project",
+   "labels": [
+    "La Golondrina"
+   ],
+   "expect": "La Golondrina"
+  },
+  {
+   "set": "gate2",
+   "g": 32,
+   "ticker": "VLC",
+   "title": "National Instrument 43-101 Technical Report for the Rozino Project, Republic of Bulgaria. Report No. 20160810_Rozino",
+   "reader_name": "Rozino",
+   "reader_kind": "project",
+   "labels": [
+    "Rozino"
+   ],
+   "expect": "Rozino"
+  },
+  {
+   "set": "gate2",
+   "g": 33,
+   "ticker": "PE",
+   "title": "TECHNICAL REPORT UPDATE ON THE CV/DB LITHIUM CLAIM GROUP, ESMERALDA COUNTY, NEVADA, U.S.A. CENTRAL COORDINATES GEOGRAPHICAL COORDINATES",
+   "reader_name": "Cv/db",
+   "reader_kind": "claim group",
+   "labels": [
+    "CV/DB Lithium Claim Group",
+    "CV/DB",
+    "CV/DB Claim Group"
+   ],
+   "expect": "Cv/db"
+  },
+  {
+   "set": "gate2",
+   "g": 34,
+   "ticker": "NPR",
+   "title": "TECHNICAL REPORT ON THE LEAHY PROPERTY, KIRKLAND LAKE AREA, ONTARIO, CANADA NI 43-101 Technical Report",
+   "reader_name": "Leahy",
+   "reader_kind": "property",
+   "labels": [
+    "Leahy"
+   ],
+   "expect": "Leahy"
+  },
+  {
+   "set": "gate2",
+   "g": 35,
+   "ticker": "RTM",
+   "title": "TECHNICAL REPORT ON THE DEMERARA RIVER GOLD PROPERTY County of Demerara Guyana",
+   "reader_name": "Demerara River",
+   "reader_kind": "property",
+   "labels": [
+    "Demerara River Gold",
+    "Demerara River"
+   ],
+   "expect": "Demerara River"
+  },
+  {
+   "set": "gate2",
+   "g": 36,
+   "ticker": "SMD",
+   "title": "TECHNICAL REPORT on the HARTLESS JOE PROJECT Yukon Territory",
+   "reader_name": "Hartless Joe",
+   "reader_kind": "project",
+   "labels": [
+    "Hartless Joe"
+   ],
+   "expect": "Hartless Joe"
+  },
+  {
+   "set": "gate2",
+   "g": 37,
+   "ticker": "CAPT",
+   "title": "NI 43-101 TECHNICAL REPORT on the Peñoles Gold-Silver Project Durango Mexico At",
+   "reader_name": "Peñoles",
+   "reader_kind": "project",
+   "labels": [
+    "Peñoles Gold-Silver",
+    "Peñoles"
+   ],
+   "expect": "Peñoles"
+  },
+  {
+   "set": "gate2",
+   "g": 38,
+   "ticker": "PTM",
+   "title": "Technical Report on the Exploration of the Waterberg Extension Project, South Africa (Latitude 23° 14′ 00”S, Longitude 28° 55′ 00”E)",
+   "reader_name": "Waterberg Extension",
+   "reader_kind": "project",
+   "labels": [
+    "Waterberg Extension"
+   ],
+   "expect": "Waterberg Extension"
+  },
+  {
+   "set": "gate2",
+   "g": 39,
+   "ticker": "GCU",
+   "title": "NI 43-101 Technical Report Preliminary Economic Assessment Cochise County, Arizona, USA REVISION. 0",
+   "reader_name": "Gunnison",
+   "reader_kind": "project",
+   "labels": [
+    "Gunnison Copper",
+    "Gunnison"
+   ],
+   "expect": "Gunnison"
+  },
+  {
+   "set": "gate2",
+   "g": 40,
+   "ticker": "ABRA",
+   "title": "NI 43-101 Preliminary Economic Assessment Technical Report - Diablillos Project",
+   "reader_name": "Diablillos",
+   "reader_kind": "project",
+   "labels": [
+    "Diablillos"
+   ],
+   "expect": "Diablillos"
+  },
+  {
+   "set": "gate2",
+   "g": 41,
+   "ticker": "TKO",
+   "title": "NI 43-101 TECHNICAL REPORT FLORENCE COPPER PROJECT FLORENCE, PINAL COUNTY, ARIZONA",
+   "reader_name": "Florence",
+   "reader_kind": "project",
+   "labels": [
+    "Florence Copper"
+   ],
+   "expect": "Florence"
+  },
+  {
+   "set": "gate2",
+   "g": 42,
+   "ticker": "MARI",
+   "title": "UPDATED - PRELIMINARY ECONOMIC ASSESSMENT FOR THE BERTA REPORT PROJECT INCA DE ORO, III REGION, CHILE REV. 0",
+   "reader_name": "Berta",
+   "reader_kind": "project",
+   "labels": [
+    "Berta"
+   ],
+   "expect": "Berta"
+  },
+  {
+   "set": "gate2",
+   "g": 43,
+   "ticker": "PML",
+   "title": "Preliminary Economic Assessment Technical Report for the Antilla Copper-Molybdenum Project, Peru",
+   "reader_name": "Antilla",
+   "reader_kind": "project",
+   "labels": [
+    "Antilla Copper-Molybdenum",
+    "Antilla"
+   ],
+   "expect": "Antilla"
+  },
+  {
+   "set": "gate2",
+   "g": 44,
+   "ticker": "AZR",
+   "title": "TECHNICAL REPORT On the MUSTANG PROPERTY NYE COUNTY, NEVADA",
+   "reader_name": "Mustang",
+   "reader_kind": "property",
+   "labels": [
+    "Mustang"
+   ],
+   "expect": "Mustang"
+  },
+  {
+   "set": "gate2",
+   "g": 45,
+   "ticker": "ABM",
+   "title": "TECHNICAL REPORT on the CHICO PROPERTY Northern Saskatchewan, Canada National Instrument 43-101",
+   "reader_name": "Chico",
+   "reader_kind": "property",
+   "labels": [
+    "Chico"
+   ],
+   "expect": "Chico"
+  },
+  {
+   "set": "gate2",
+   "g": 46,
+   "ticker": "EAM",
+   "title": "National Instrument 43-101 Technical Report and Preliminary Economic Assessment for the Da Tambuk Project, Adyabo Property, Tigray National Regional State, Ethiopia",
+   "reader_name": "Da Tambuk",
+   "reader_kind": "project",
+   "labels": [
+    "Da Tambuk",
+    "Adyabo"
+   ],
+   "expect": "Da Tambuk"
+  },
+  {
+   "set": "gate2",
+   "g": 47,
+   "ticker": "KC",
+   "title": "PREFEASIBILITY STUDY TECHNICAL REPORT ON THE KUTCHO PROJECT, BRITISH COLUMBIA",
+   "reader_name": "Kutcho",
+   "reader_kind": "project",
+   "labels": [
+    "Kutcho"
+   ],
+   "expect": "Kutcho"
+  },
+  {
+   "set": "gate2",
+   "g": 48,
+   "ticker": "GAU",
+   "title": "Esaase, Ghana, West Africa Esaase Gold Deposit Resource Estimation Update incorporating the May 2010 Preliminary Economic Assessment",
+   "reader_name": "Esaase",
+   "reader_kind": "deposit",
+   "labels": [
+    "Esaase",
+    "Esaase Gold"
+   ],
+   "expect": "Esaase"
+  },
+  {
+   "set": "gate2",
+   "g": 49,
+   "ticker": "RAGE",
+   "title": "Technical Report for PEA Newman Todd Project Red Lake, ON, Canada",
+   "reader_name": "Newman Todd",
+   "reader_kind": "project",
+   "labels": [
+    "Newman Todd"
+   ],
+   "expect": "Newman Todd"
+  },
+  {
+   "set": "gate2",
+   "g": 50,
+   "ticker": "GSP",
+   "title": "TECHNICAL REPORT SUMMARIZING THE FEASIBILITY STUDY FOR THE VANGUARD ONE POTASH PROJECT, SASKATCHEWAN",
+   "reader_name": "Vanguard One",
+   "reader_kind": "project",
+   "labels": [
+    "Vanguard One Potash",
+    "Vanguard One"
+   ],
+   "expect": "Vanguard One"
+  },
+  {
+   "set": "gate2",
+   "g": 51,
+   "ticker": "VGZ",
+   "title": "NI 43-101 Technical Report – Mt. Todd Gold Project 50,000 tpd Preliminary Feasibility Study Northern Territory, Australia Document: 11431128500-REP-R0001-01",
+   "reader_name": "Mt. Todd",
+   "reader_kind": "project",
+   "labels": [
+    "Mt. Todd Gold",
+    "Mt. Todd"
+   ],
+   "expect": "Mt. Todd"
+  },
+  {
+   "set": "gate2",
+   "g": 52,
+   "ticker": "FDY",
+   "title": "NI 43-101 PRE-FEASIBILITY STUDY ON THE CONTACT",
+   "reader_name": "Contact",
+   "reader_kind": "project",
+   "labels": [
+    "Contact Copper"
+   ],
+   "expect": "Contact"
+  },
+  {
+   "set": "gate2",
+   "g": 53,
+   "ticker": "SGO",
+   "title": "PRELIMINARY ECONOMIC ASSESSMENT OF THE CERRO CALICHE PROJECT, SONORA, MEXICO",
+   "reader_name": "Cerro Caliche",
+   "reader_kind": "project",
+   "labels": [
+    "Cerro Caliche"
+   ],
+   "expect": "Cerro Caliche"
+  },
+  {
+   "set": "gate2",
+   "g": 54,
+   "ticker": "SLR",
+   "title": "NI 43-101 TECHNICAL REPORT ON RESOURCES FLORIDA CANYON ZINC PROJECT Amazonas Department, Peru",
+   "reader_name": "Florida Canyon",
+   "reader_kind": "project",
+   "labels": [
+    "Florida Canyon Zinc",
+    "Florida Canyon"
+   ],
+   "expect": "Florida Canyon"
+  },
+  {
+   "set": "gate2",
+   "g": 55,
+   "ticker": "TI",
+   "title": "Mineral Ridge Project Esmeralda County, Nevada, USA NI 43-101 Technical Report",
+   "reader_name": "Mineral Ridge",
+   "reader_kind": "project",
+   "labels": [
+    "Mineral Ridge"
+   ],
+   "expect": "Mineral Ridge"
+  },
+  {
+   "set": "gate2",
+   "g": 56,
+   "ticker": "FT",
+   "title": "TECHNICAL REPORT ON THE ARCTOS ANTHRACITE PROJECT MINE FEASIBILITY STUDY REPORT",
+   "reader_name": "Arctos",
+   "reader_kind": "project",
+   "labels": [
+    "Arctos Anthracite",
+    "Arctos"
+   ],
+   "expect": "Arctos"
+  },
+  {
+   "set": "gate2",
+   "g": 57,
+   "ticker": "EOX",
+   "title": "Preliminary Economic Assessment on the Ilovitza Gold Project, Macedonia Document No. 1298530100-REP-R0002-02",
+   "reader_name": "Ilovitza",
+   "reader_kind": "project",
+   "labels": [
+    "Ilovitza Gold",
+    "Ilovitza"
+   ],
+   "expect": "Ilovitza"
+  },
+  {
+   "set": "gate3",
+   "g": 0,
+   "ticker": "GOH",
+   "title": "TECHNICAL REPORT NI 43-101 0N THE MAGNO PROPERTY BRITISH COLUMBIA, CANADA",
+   "reader_name": "Magno",
+   "reader_kind": "property",
+   "labels": [
+    "Magno"
+   ],
+   "expect": "Magno"
+  },
+  {
+   "set": "gate3",
+   "g": 1,
+   "ticker": "GOR",
+   "title": "NI 43-101 Technical Report on the Cannonball Property",
+   "reader_name": "Cannonball",
+   "reader_kind": "property",
+   "labels": [
+    "Cannonball"
+   ],
+   "expect": "Cannonball"
+  },
+  {
+   "set": "gate3",
+   "g": 2,
+   "ticker": "AA",
+   "title": "NI 43-101 TECHNICAL REPORT on the HORWOOD PROPERTY",
+   "reader_name": "Horwood",
+   "reader_kind": "property",
+   "labels": [
+    "Horwood",
+    "Horwood Copper"
+   ],
+   "expect": "Horwood"
+  },
+  {
+   "set": "gate3",
+   "g": 3,
+   "ticker": "CAMP",
+   "title": "NI 43-101 TECHNICAL REPORT MERCATOR GOLD PROPERTY Caniapiscau District, Northeastern Québec",
+   "reader_name": "Mercator",
+   "reader_kind": "property",
+   "labels": [
+    "Mercator",
+    "Mercator Gold"
+   ],
+   "expect": "Mercator"
+  },
+  {
+   "set": "gate3",
+   "g": 4,
+   "ticker": "HAMR",
+   "title": "National Instrument 43-101 Mineral Resource Estimate on the Santo Domingo Silver-Gold Deposit and Technical Report for the Santo Domingo Project Hostotipaquillo Area Jalisco State, Mexico",
+   "reader_name": "Santo Domingo",
+   "reader_kind": "project",
+   "labels": [
+    "Santo Domingo",
+    "Santo Domingo Ag-Au"
+   ],
+   "expect": "Santo Domingo"
+  },
+  {
+   "set": "gate3",
+   "g": 5,
+   "ticker": "OMM",
+   "title": "TECHNICAL REPORT ON THE WINGDAM PROPERTY",
+   "reader_name": "Wingdam",
+   "reader_kind": "property",
+   "labels": [
+    "Wingdam",
+    "Wingdam Placer"
+   ],
+   "expect": "Wingdam"
+  },
+  {
+   "set": "gate3",
+   "g": 6,
+   "ticker": "OM",
+   "title": "NI 43-101 Technical Report ............................................................................................... MINERAL RESOURCE ESTIMATE FOR THE PINE POINT LEAD-ZINC PROJECT Hay River, Northwest Territories, Canada",
+   "reader_name": "Pine Point",
+   "reader_kind": "project",
+   "labels": [
+    "Pine Point",
+    "Pine Point Lead-Zinc"
+   ],
+   "expect": "Pine Point"
+  },
+  {
+   "set": "gate3",
+   "g": 7,
+   "ticker": "DLP",
+   "title": "Technical Report Geology and Mineral Exploration JR and RJ Properties Southeast British Columbia",
+   "reader_name": "JR and RJ",
+   "reader_kind": "property",
+   "labels": [
+    "JR and RJ",
+    "JR & RJ"
+   ],
+   "expect": "JR and RJ"
+  },
+  {
+   "set": "gate3",
+   "g": 8,
+   "ticker": "EDV",
+   "title": "MANA PROPERTY, BURKINA FASO NI 43-101 TECHNICAL REPORT DISCLOSING THE RESULTS OF THE SIOU UNDERGROUND PREFEASIBILITY STUDY",
+   "reader_name": "Mana",
+   "reader_kind": "property",
+   "labels": [
+    "Mana",
+    "Siou",
+    "Siou Underground",
+    "Mana Property"
+   ],
+   "expect": "Mana"
+  },
+  {
+   "set": "gate3",
+   "g": 9,
+   "ticker": "RCK",
+   "title": "INDEPENDENT TECHNICAL REPORT AND ESTIMATED RESOURCES FOR",
+   "reader_name": "Georgia Lake",
+   "reader_kind": "property",
+   "labels": [
+    "Georgia Lake",
+    "Georgia Lake Lithium"
+   ],
+   "expect": "Georgia Lake"
+  },
+  {
+   "set": "gate3",
+   "g": 10,
+   "ticker": "AHR",
+   "title": "Technical Report Summarizing Exploration Work on the JOY Project, Toodoggone Region, British Columbia, Canada National Instrument 43-101 Technical Report",
+   "reader_name": "Joy",
+   "reader_kind": "project",
+   "labels": [
+    "JOY"
+   ],
+   "expect": "Joy"
+  },
+  {
+   "set": "gate3",
+   "g": 11,
+   "ticker": "ARU",
+   "title": "NI 43-101 Technical Report on the Lost Cities – Cutucu Exploration Project, Province of Morona- Santiago, Ecuador Centered at Approximately",
+   "reader_name": "Cutucu Exploration",
+   "reader_kind": "project",
+   "labels": [
+    "Lost Cities - Cutucu",
+    "Lost Cities",
+    "Lost Cities – Cutucu"
+   ],
+   "expect": "Cutucu Exploration"
+  },
+  {
+   "set": "gate3",
+   "g": 12,
+   "ticker": "SGLD",
+   "title": "Updated Feasibility Study and National Instrument 43- 101 Technical Report: Mineral Ridge Project Project No. 17-008",
+   "reader_name": "Mineral Ridge",
+   "reader_kind": "project",
+   "labels": [
+    "Mineral Ridge"
+   ],
+   "expect": "Mineral Ridge"
+  },
+  {
+   "set": "gate3",
+   "g": 13,
+   "ticker": "OGG",
+   "title": "Osisko Development Corp. NI 43-101 Technical Report Feasibility Study for the Cariboo Gold Project",
+   "reader_name": "Cariboo",
+   "reader_kind": "project",
+   "labels": [
+    "Cariboo Gold",
+    "Cariboo"
+   ],
+   "expect": "Cariboo"
+  },
+  {
+   "set": "gate3",
+   "g": 14,
+   "ticker": "MKA",
+   "title": "NI 43-101 Pre-Feasibility Report",
+   "reader_name": "Songwe Hill",
+   "reader_kind": "project",
+   "labels": [
+    "Songwe Hill",
+    "Songwe",
+    "Songwe REE",
+    "Songwe Hill REE"
+   ],
+   "expect": "Songwe Hill"
+  },
+  {
+   "set": "gate3",
+   "g": 15,
+   "ticker": "AG",
+   "title": "Jerritt Canyon Gold Mine, Elko County, Nevada, USA NI 43-101 Technical Report on Mineral Resource Estimates",
+   "reader_name": "Jerritt Canyon",
+   "reader_kind": "mine",
+   "labels": [
+    "Jerritt Canyon",
+    "Jerritt Canyon Gold Mine"
+   ],
+   "expect": "Jerritt Canyon"
+  },
+  {
+   "set": "gate3",
+   "g": 16,
+   "ticker": "ELD",
+   "title": "Technical Report Olympias Mine Greece",
+   "reader_name": "Olympias",
+   "reader_kind": "mine",
+   "labels": [
+    "Olympias",
+    "Olympias Mine"
+   ],
+   "expect": "Olympias"
+  },
+  {
+   "set": "gate3",
+   "g": 17,
+   "ticker": "USA",
+   "title": "MINERAL RESERVE UPDATE NUESTRA SEÑORA 43-101 TECHNICAL REPORT PROJECT No AV127211 101-50234-00",
+   "reader_name": null,
+   "reader_kind": null,
+   "labels": [
+    "Nuestra Señora",
+    "Nuestra Senora"
+   ],
+   "expect": null
+  },
+  {
+   "set": "gate3",
+   "g": 18,
+   "ticker": "KLD",
+   "title": "NI 43-101 Technical Report for the Tanacross Project",
+   "reader_name": "Tanacross",
+   "reader_kind": "project",
+   "labels": [
+    "Tanacross"
+   ],
+   "expect": "Tanacross"
+  },
+  {
+   "set": "gate3",
+   "g": 19,
+   "ticker": "KS",
+   "title": "TECHNICAL REPORT THE SLOCAN SILVER CAMP SANDON, BRITISH COLUMBIA",
+   "reader_name": "Slocan",
+   "reader_kind": "camp",
+   "labels": [
+    "Slocan Silver Camp",
+    "Slocan"
+   ],
+   "expect": "Slocan"
+  },
+  {
+   "set": "gate3",
+   "g": 20,
+   "ticker": "VCG",
+   "title": "TECHNICAL REPORT AND MINERAL RESOURCE ESTIMATE OF THE POINT LEAMINGTON PROJECT, NEWFOUNDLAND AND LABRADOR",
+   "reader_name": "Point Leamington",
+   "reader_kind": "project",
+   "labels": [
+    "Point Leamington"
+   ],
+   "expect": "Point Leamington"
+  },
+  {
+   "set": "gate3",
+   "g": 21,
+   "ticker": "RKR",
+   "title": "Technical Report on the Duncan Lake Zinc-Lead Project Slocan Mining Division Southeast British Columbia, Canada BCGS Map Sheet 082K036",
+   "reader_name": "Duncan Lake",
+   "reader_kind": "project",
+   "labels": [
+    "Duncan Lake",
+    "Duncan Lake Zinc-Lead"
+   ],
+   "expect": "Duncan Lake"
+  },
+  {
+   "set": "gate3",
+   "g": 22,
+   "ticker": "PX",
+   "title": "Mineral Resource Evaluation Technical Report, Manfo Gold Project, Ghana",
+   "reader_name": "Manfo",
+   "reader_kind": "project",
+   "labels": [
+    "Manfo",
+    "Manfo Gold"
+   ],
+   "expect": "Manfo"
+  },
+  {
+   "set": "gate3",
+   "g": 23,
+   "ticker": "VKG",
+   "title": "NI 43-101 Technical Report On The Yellowknife Gold Project, Northwest Territories, Canada for Troy Energy Corp.",
+   "reader_name": "Yellowknife",
+   "reader_kind": "project",
+   "labels": [
+    "Yellowknife Gold",
+    "Yellowknife"
+   ],
+   "expect": "Yellowknife"
+  },
+  {
+   "set": "gate3",
+   "g": 24,
+   "ticker": "RTG",
+   "title": "Mabilo Copper-Gold-Iron Property Mineral Resource Estimate C amar i n es N o r t e, Ph i li p pi n es",
+   "reader_name": "Mabilo",
+   "reader_kind": "property",
+   "labels": [
+    "Mabilo",
+    "Mabilo Copper-Gold-Iron"
+   ],
+   "expect": "Mabilo"
+  },
+  {
+   "set": "gate3",
+   "g": 25,
+   "ticker": "CIO",
+   "title": "NI43-101 TECHNICAL REPORT MINERAL RESOURCE ESTIMATE BRITISH KING GOLD PROJECT",
+   "reader_name": "British King",
+   "reader_kind": "project",
+   "labels": [
+    "British King",
+    "British King Gold"
+   ],
+   "expect": "British King"
+  },
+  {
+   "set": "gate3",
+   "g": 26,
+   "ticker": "NWST",
+   "title": "TECHNICAL REPORT ON THE KWANIKA PROJECT, FORT ST. JAMES, BRITISH COLUMBIA, CANADA NI 43-101 Report",
+   "reader_name": "Kwanika",
+   "reader_kind": "project",
+   "labels": [
+    "Kwanika"
+   ],
+   "expect": "Kwanika"
+  },
+  {
+   "set": "gate3",
+   "g": 27,
+   "ticker": "OLV",
+   "title": "Technical Report On The HOAM Project Northwest Territories, Canada NTS Map Sheets 85L, 85M, 95A, 95G, 95H, 95I, 95J, 95O, 95P, 96A and 96B",
+   "reader_name": "Hoam",
+   "reader_kind": "project",
+   "labels": [
+    "HOAM"
+   ],
+   "expect": "Hoam"
+  },
+  {
+   "set": "gate3",
+   "g": 28,
+   "ticker": "CS",
+   "title": "MANTOVERDE MINE AND MANTOVERDE DEVELOPMENT PROJECT NI 43-101 TECHNICAL REPORT CHAÑARAL / REGIÓN DE ATACAMA, CHILE",
+   "reader_name": "Mantoverde Mine And Mantoverde Development",
+   "reader_kind": "project",
+   "labels": [
+    "Mantoverde",
+    "Mantoverde Mine and Mantoverde Development",
+    "Mantoverde Development"
+   ],
+   "expect": "Mantoverde"
+  },
+  {
+   "set": "gate3",
+   "g": 29,
+   "ticker": "SURG",
+   "title": "UPDATED RESOURCE ESTIMATE AND PRELIMINARY ECONOMIC ASSESSMENT ON THE OOTSA PROPERTY BRITISH COLUMBIA, CANADA",
+   "reader_name": "Ootsa",
+   "reader_kind": "property",
+   "labels": [
+    "Ootsa"
+   ],
+   "expect": "Ootsa"
+  },
+  {
+   "set": "gate3",
+   "g": 30,
+   "ticker": "SSV",
+   "title": "NI 43-101 Technical Report Mineral Resource Estimate for Cerro Las Minitas Project, Durango State, Mexico",
+   "reader_name": "Cerro Las Minitas",
+   "reader_kind": "project",
+   "labels": [
+    "Cerro Las Minitas"
+   ],
+   "expect": "Cerro Las Minitas"
+  },
+  {
+   "set": "gate3",
+   "g": 31,
+   "ticker": "IZN",
+   "title": "Preliminary Economic Assessment of the Crypto Zinc-Copper-Indium Project Juab County, Utah",
+   "reader_name": "Crypto",
+   "reader_kind": "project",
+   "labels": [
+    "Crypto",
+    "Crypto Zinc-Copper-Indium"
+   ],
+   "expect": "Crypto"
+  },
+  {
+   "set": "gate3",
+   "g": 32,
+   "ticker": "VLI",
+   "title": "TECHNICAL REPORT ON THE LAVOIE PROPERTY AND MINERAL RESOURCE ESTIMATE ON THE \"L\" URANIUM DEPOSIT, OTISH AREA, QUÉBEC (according to Regulation 43-101 and Form 43-101F1) Project Location",
+   "reader_name": "Lavoie",
+   "reader_kind": "property",
+   "labels": [
+    "Lavoie",
+    "L"
+   ],
+   "expect": "Lavoie"
+  },
+  {
+   "set": "gate3",
+   "g": 33,
+   "ticker": "ASE",
+   "title": "Technical Report on the Bibiani Gold Mine, Ghana",
+   "reader_name": "Bibiani",
+   "reader_kind": "mine",
+   "labels": [
+    "Bibiani",
+    "Bibiani Gold Mine"
+   ],
+   "expect": "Bibiani"
+  },
+  {
+   "set": "gate3",
+   "g": 34,
+   "ticker": "NVO",
+   "title": "Amended and Restated NI 43-101 Technical Report",
+   "reader_name": "Egina Alluvial",
+   "reader_kind": "project",
+   "labels": [
+    "Egina",
+    "Egina Alluvial"
+   ],
+   "expect": "Egina Alluvial"
+  },
+  {
+   "set": "gate3",
+   "g": 35,
+   "ticker": "OMG",
+   "title": "TECHNICAL REPORT ON THE VICTORY LAKE PROJECT DISTRICT OF KIVALLIQ",
+   "reader_name": "Victory Lake",
+   "reader_kind": "project",
+   "labels": [
+    "Victory Lake"
+   ],
+   "expect": "Victory Lake"
+  },
+  {
+   "set": "gate3",
+   "g": 36,
+   "ticker": "YGT",
+   "title": "TECHNICAL REPORT ON THE 2021 UPDATED MINERAL RESOURCE ESTIMATES, NORTHBELT PROPERTY, YELLOWKNIFE CITY GOLD PROJECT",
+   "reader_name": "Northbelt",
+   "reader_kind": "property",
+   "labels": [
+    "Yellowknife City Gold",
+    "Yellowknife City",
+    "Northbelt",
+    "YCG"
+   ],
+   "expect": "Northbelt"
+  },
+  {
+   "set": "gate3",
+   "g": 37,
+   "ticker": "BSK",
+   "title": "NI 43-101 Technical Report Preliminary Economic Assessment Update for the Ivana Uranium-Vanadium Deposit, Amarillo Grande Project. Rio Negro Province, Argentina",
+   "reader_name": "Amarillo Grande",
+   "reader_kind": "project",
+   "labels": [
+    "Ivana",
+    "Amarillo Grande",
+    "Ivana Uranium-Vanadium"
+   ],
+   "expect": "Amarillo Grande"
+  },
+  {
+   "set": "gate3",
+   "g": 38,
+   "ticker": "MRZL",
+   "title": "Blue River Tantalum-Niobium Project British Columbia, Canada NI 43-101 Technical Report on Mineral Resource Update",
+   "reader_name": "Blue River",
+   "reader_kind": "project",
+   "labels": [
+    "Blue River",
+    "Blue River Tantalum-Niobium"
+   ],
+   "expect": "Blue River"
+  },
+  {
+   "set": "gate3",
+   "g": 39,
+   "ticker": "CG",
+   "title": "TECHNICAL REPORT On the KUMTOR GOLD PROJECT",
+   "reader_name": "Kumtor",
+   "reader_kind": "project",
+   "labels": [
+    "Kumtor",
+    "Kumtor Gold"
+   ],
+   "expect": "Kumtor"
+  },
+  {
+   "set": "gate3",
+   "g": 40,
+   "ticker": "TAU",
+   "title": "DATE AND SIGNATURE PAGE This report entitled Updated Preliminary Economic Assessment for the Lawyers-Ranch Project and",
+   "reader_name": "Lawyers-Ranch",
+   "reader_kind": "project",
+   "labels": [
+    "Lawyers-Ranch",
+    "Lawyers-Ranch Project and Property",
+    "Lawyers"
+   ],
+   "expect": "Lawyers-Ranch"
+  },
+  {
+   "set": "gate3",
+   "g": 41,
+   "ticker": "GOLD",
+   "title": "NI 43‐101 TECHNICAL REPORT AND PRELIMINARY ECONOMIC ASSESSMENT",
+   "reader_name": "La Mina",
+   "reader_kind": "project",
+   "labels": [
+    "La Mina"
+   ],
+   "expect": "La Mina"
+  },
+  {
+   "set": "gate3",
+   "g": 42,
+   "ticker": "DAU",
+   "title": "Technical Report on the Farabantourou Gold Mining Permit, Kéniéba District, Western Mali Mineral Resource Update",
+   "reader_name": "Barani East",
+   "reader_kind": "project",
+   "labels": [
+    "Farabantourou",
+    "Farabantourou Gold Mining Permit",
+    "Barani East"
+   ],
+   "expect": "Barani East"
+  },
+  {
+   "set": "gate3",
+   "g": 43,
+   "ticker": "KRY",
+   "title": "P&E WALKER CONSULTANCY cc Reg.No. CK1999/004876",
+   "reader_name": "Haib",
+   "reader_kind": "project",
+   "labels": [
+    "Haib",
+    "Haib Copper",
+    "Haib Copper Porphyry"
+   ],
+   "expect": "Haib"
+  },
+  {
+   "set": "gate3",
+   "g": 44,
+   "ticker": "PRU",
+   "title": "TECHNICAL REPORT NYANZAGA GOLD PROJECT FEASIBILITY STUDY – TANZANIA",
+   "reader_name": "Nyanzaga",
+   "reader_kind": "project",
+   "labels": [
+    "Nyanzaga",
+    "Nyanzaga Gold"
+   ],
+   "expect": "Nyanzaga"
+  },
+  {
+   "set": "gate3",
+   "g": 45,
+   "ticker": "BCU",
+   "title": "La Balsa Scoping Study For Bell Copper Corporation",
+   "reader_name": "La Balsa",
+   "reader_kind": "project",
+   "labels": [
+    "La Balsa",
+    "La Balsa Copper"
+   ],
+   "expect": "La Balsa"
+  },
+  {
+   "set": "gate3",
+   "g": 46,
+   "ticker": "IAU",
+   "title": "NI 43-101 Technical Report Preliminary Economic Assessment of the i-80 Gold Corp. Ruby Hill Project, Eureka County NV",
+   "reader_name": null,
+   "reader_kind": null,
+   "labels": [
+    "Ruby Hill"
+   ],
+   "expect": "Ruby Hill"
+  },
+  {
+   "set": "gate3",
+   "g": 47,
+   "ticker": "RPX",
+   "title": "NI 43-101 REPORT ON THE DRILLING, DOWNHOLE EM SURVEY, GROUND IP SURVEY, REGIONAL BEDROCK SAMPLING AND BACKPACK DRILLING FOR 2013-2014 CAYENNE PROPERTY MARION AND GENOA TOWNSHIPS",
+   "reader_name": "2013-2014 Cayenne",
+   "reader_kind": "property",
+   "labels": [
+    "Cayenne"
+   ],
+   "expect": "Cayenne"
+  },
+  {
+   "set": "gate3",
+   "g": 48,
+   "ticker": "PPTA",
+   "title": "FEASIBILITY STUDY TECHNICAL REPORT Valley County, Idaho",
+   "reader_name": "Stibnite",
+   "reader_kind": "project",
+   "labels": [
+    "Stibnite Gold",
+    "Stibnite"
+   ],
+   "expect": "Stibnite"
+  },
+  {
+   "set": "gate3",
+   "g": 49,
+   "ticker": "CRE",
+   "title": "ROSE LITHIUM-TANTALUM PROJECT FEASIBILITY STUDY NI 43 101 TECHNICAL REPORT",
+   "reader_name": "Rose",
+   "reader_kind": "project",
+   "labels": [
+    "Rose",
+    "Rose Lithium-Tantalum"
+   ],
+   "expect": "Rose"
+  },
+  {
+   "set": "gate3",
+   "g": 50,
+   "ticker": "MTA",
+   "title": "TECHNICAL REPORT ON THE SILVER KING PROPERTY NELSON MINING DIVISION BRITISH COLUMBIA, CANADA",
+   "reader_name": "Silver King",
+   "reader_kind": "property",
+   "labels": [
+    "Silver King"
+   ],
+   "expect": "Silver King"
+  },
+  {
+   "set": "gate3",
+   "g": 51,
+   "ticker": "ANOR",
+   "title": "AMENDED PRELIMINARY ECONOMIC ASSESSMENT (PEA) FOR SPECIALTY ALUMINA PRODUCTION FROM THE WHITE MOUNTAIN ANORTHOSITE DEPOSIT, WEST GREENLAND",
+   "reader_name": "White Mountain Anorthosite",
+   "reader_kind": "deposit",
+   "labels": [
+    "White Mountain",
+    "White Mountain Anorthosite"
+   ],
+   "expect": "White Mountain Anorthosite"
+  },
+  {
+   "set": "gate3",
+   "g": 52,
+   "ticker": "AEC",
+   "title": "CHARLIE URANIUM PROJECT PRELIMINARY ECONOMIC ASSESSMENT NI 43-101 TECHNICAL REPORT JOHNSON COUNTY, WYOMING, USA",
+   "reader_name": "Charlie",
+   "reader_kind": "project",
+   "labels": [
+    "Charlie",
+    "Charlie Uranium"
+   ],
+   "expect": "Charlie"
+  },
+  {
+   "set": "gate3",
+   "g": 53,
+   "ticker": "WEX",
+   "title": "NI 43-101 Technical Report Preliminary Economic Assessment EPM Mining Ventures Inc. Sevier Dry Lake, Utah, United States",
+   "reader_name": "Sevier Dry Lake",
+   "reader_kind": "project",
+   "labels": [
+    "Sevier Dry Lake",
+    "Sevier Lake"
+   ],
+   "expect": "Sevier Dry Lake"
+  },
+  {
+   "set": "gate3",
+   "g": 54,
+   "ticker": "IVN",
+   "title": "This notice is an integral component of the Kakula 2016 Preliminary Economic Assessment and should be read in its entirety and must accompany every copy made of the Kakula-Kamoa 2016 Preliminary Economic Assessment. The Kakula 2016 Preliminary Economic Assessment has been prepared using the Canadian National Instrument 43-101 Standards of Disclosure for Mineral Projects.",
+   "reader_name": "Kakula",
+   "reader_kind": "deposit",
+   "labels": [
+    "Kamoa-Kakula",
+    "Kakula",
+    "Kamoa"
+   ],
+   "expect": "Kakula"
+  },
+  {
+   "set": "gate3",
+   "g": 55,
+   "ticker": "CKG",
+   "title": "Metates Gold-Silver Project Updated Preliminary Economic Assessment",
+   "reader_name": "Metates",
+   "reader_kind": "project",
+   "labels": [
+    "Metates",
+    "Metates Gold-Silver"
+   ],
+   "expect": "Metates"
+  },
+  {
+   "set": "gate3",
+   "g": 56,
+   "ticker": "NGC",
+   "title": "TECHNICAL REPORT AND PRELIMINARY ECONOMIC ASSESSMENT ON THE GARRCON DEPOSIT- GARRISON GOLD PROPERTY LARDER LAKE MINING DIVISION GARRISON TOWNSHIP, ONTARIO, CANADA",
+   "reader_name": "Garrcon Deposit- Garrison",
+   "reader_kind": "property",
+   "labels": [
+    "Garrcon",
+    "Garrison Gold",
+    "Garrison"
+   ],
+   "expect": "Garrison"
+  },
+  {
+   "set": "gate3",
+   "g": 57,
+   "ticker": "RTH",
+   "title": "NI 43-101 TECHNICAL REPORT ON A PRELIMINARY ECONOMIC ASSESSMENT OF THE OLZA ZINC‑LEAD PROJECT IN POLAND",
+   "reader_name": "Olza Zinc‑lead",
+   "reader_kind": "project",
+   "labels": [
+    "Olza",
+    "Olza Zinc-Lead"
+   ],
+   "expect": "Olza Zinc‑lead"
+  },
+  {
+   "set": "gate3",
+   "g": 58,
+   "ticker": "RIO",
+   "title": "Amended and Restated Pre-feasibility Study for the Fenix Gold Project Atacama, III Region, Chile",
+   "reader_name": "Fenix",
+   "reader_kind": "project",
+   "labels": [
+    "Fenix",
+    "Fenix Gold"
+   ],
+   "expect": "Fenix"
+  },
+  {
+   "set": "gate3",
+   "g": 59,
+   "ticker": "TIG",
+   "title": "TECHNICAL REPORT on the BURRO CREEK PROJECT",
+   "reader_name": "Burro Creek",
+   "reader_kind": "project",
+   "labels": [
+    "Burro Creek"
+   ],
+   "expect": "Burro Creek"
+  }
+ ],
+ "frozen_right": 169
+}

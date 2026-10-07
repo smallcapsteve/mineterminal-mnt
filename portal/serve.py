@@ -202,4 +202,13 @@ except Exception:  # pragma: no cover
     import logging
     logging.getLogger(__name__).exception("sampling_api register failed")
 
+# SPEEDFIX_FEEDVER_V1 (2026-10-07): /api/v1/feed-versions - each published table's version, bumped whenever a publish
+# changes rows (portal/rowsync.py), so Mine Terminal Pro can refresh its copy the moment a feed changes.
+try:
+    from portal import feedver_api
+    feedver_api.register(app)
+except Exception:  # pragma: no cover
+    import logging
+    logging.getLogger(__name__).exception("feedver_api register failed")
+
 __all__ = ["app"]
