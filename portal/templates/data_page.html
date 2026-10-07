@@ -68,7 +68,12 @@
       <tbody>
         {% for r in rows %}
           {% set _rowi = loop.index %}
+          {% if spec.detail_lazy %}
+            {% set _det_n = r[spec.detail ~ "_n"] or 0 %}
+            {% set _det = range(_det_n) if spec.detail and _det_n >= spec.detail_min else none %}
+          {% else %}
           {% set _det = r[spec.detail] if spec.detail and r[spec.detail] and r[spec.detail]|length >= spec.detail_min else none %}
+          {% endif %}
           <tr{% if _det %} class="dp-has-detail"{% endif %}>
             {% for c in spec.columns %}
               {% set v = r[c.key] %}
@@ -90,6 +95,9 @@
           </tr>
           {% if _det %}
           <tr class="dp-detail" id="dp-detail-{{ _rowi }}" hidden>
+            {% if spec.detail_lazy %}
+            <td colspan="{{ spec.columns|length }}" data-dp-src="{{ spec.url }}/intervals/{{ r['event_id'] | urlencode }}"><span class="muted">Loading…</span></td>
+            {% else %}
             <td colspan="{{ spec.columns|length }}">
               <table class="dp-sub">
                 {# a column that is empty for every interval of this release is left out (most releases give no depths) #}
@@ -121,6 +129,7 @@
                 </tbody>
               </table>
             </td>
+            {% endif %}
           </tr>
           {% endif %}
         {% endfor %}
@@ -139,6 +148,18 @@
     var open = b.getAttribute("aria-expanded") === "true";
     b.setAttribute("aria-expanded", open ? "false" : "true");
     row.hidden = open;
+    // MNT_SPEED_V1: rows marked data-dp-src load their detail on first open.
+    var cell = row.querySelector("td[data-dp-src]");
+    if (!open && cell && !cell.getAttribute("data-dp-loaded")) {
+      cell.setAttribute("data-dp-loaded", "1");
+      fetch(cell.getAttribute("data-dp-src"), {credentials: "same-origin"})
+        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
+        .then(function (html) { cell.innerHTML = html; })
+        .catch(function () {
+          cell.removeAttribute("data-dp-loaded");
+          cell.innerHTML = '<span class="muted">Could not load the intervals. Close and reopen the row to try again.</span>';
+        });
+    }
   });
   </script>
   {% endif %}

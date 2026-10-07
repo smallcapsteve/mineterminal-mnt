@@ -61,7 +61,8 @@ WIDTH_TYPES = ("chip", "channel", "trench")
 _TICKER_RE = re.compile(r"^[A-Za-z0-9.\-]{1,16}$")
 
 _COLS = ("sr_id, event_id, ordinal, ticker, slug, sample_type, sample_group, survey_type, project, historical, grade, "
-         "grade_unit, grade_metal, width_m, tag_confirmed, raw_headline, published_at")
+         "grade_unit, grade_metal, width_m, tag_confirmed, raw_headline, published_at, sample_count, anomaly_json, "
+         "bulk_tonnes, line_km")
 
 
 # --------------------------------------------------------------------------- helpers (pure)
@@ -238,6 +239,60 @@ def _s(v) -> str:
     return "" if v is None else str(v).strip()
 
 
+# MNT_FIX8B_API (2026-10-06): stored JSON detail is served only in a known shape, with figures no deposit,
+# survey or mine can have dropped, so a bad reading never reaches a page as a number.
+def _fin(v, lo=None, hi=None):
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(f) or (lo is not None and f < lo) or (hi is not None and f > hi):
+        return None
+    return f
+
+
+def _small_json(raw, max_items=12):
+    """A JSON object or list of objects -> the same, keeping short text and finite numbers only."""
+    try:
+        v = json.loads(raw) if isinstance(raw, str) and raw.strip() else None
+    except ValueError:
+        return None
+    def one(d):
+        if not isinstance(d, dict):
+            return None
+        o = {}
+        for k, x in list(d.items())[:16]:
+            if not isinstance(k, str) or len(k) > 40:
+                continue
+            if isinstance(x, bool) or x is None:
+                continue
+            if isinstance(x, (int, float)):
+                f = _fin(x)
+                if f is not None:
+                    o[k] = f
+            elif isinstance(x, str) and len(x.strip()) <= 60:
+                o[k] = x.strip()
+        return o or None
+    if isinstance(v, list):
+        out = [y for y in (one(d) for d in v[:max_items]) if y]
+        return out or None
+    return one(v)
+
+
+def _early(r) -> dict:
+    """MNT_FIX8B_API: the sampling reader's counts and sizes (an early reading; the page labels them so)."""
+    k = r.keys() if hasattr(r, "keys") else ()
+    g = lambda c: r[c] if c in k else None
+    n = _fin(g("sample_count"), 1, 200000)
+    an = _small_json(g("anomaly_json"))
+    if isinstance(an, list):
+        an = an[0] if an else None
+    if an:
+        an = {x: y for x, y in an.items() if not (isinstance(y, float) and y <= 0)} or None
+    return {"sample_count": int(n) if n is not None else None, "anomaly": an,
+            "bulk_tonnes": _fin(g("bulk_tonnes"), 0.01, 5e6), "line_km": _fin(g("line_km"), 0.01, 1e5)}
+
+
 def _num(v):
     try:
         return None if v in (None, "") else float(v)
@@ -255,7 +310,7 @@ def _result(r) -> dict:
             "survey_type": sv, "survey_label": SURVEY_LABELS.get(sv, sv) if st == "geophysics" else "",
             "project": _s(r["project"]), "historical": str(r["historical"]) == "1",
             "grade": g, "grade_unit": _s(r["grade_unit"]), "grade_metal": _s(r["grade_metal"]), "width_m": w,
-            "grade_text": grade_text(st, g, _s(r["grade_unit"]), _s(r["grade_metal"]), w)}
+            "grade_text": grade_text(st, g, _s(r["grade_unit"]), _s(r["grade_metal"]), w), **_early(r)}
 
 
 def build_releases(rows, names: dict, p: dict) -> list[dict]:
@@ -397,6 +452,10 @@ def _selftest() -> int:
        and a1["results"][0]["type_label"] == "Channel" and a1["results"][0]["group"] == "rock"
        and a1["company"] == "ABC Gold Corp." and a1["release_url"].endswith("/news/abc.v/s-a1")
        and a1["date"] == "2027-05-10")
+    ok("FIX8B early fields present", all(k in a1["results"][0] for k in ("sample_count", "anomaly", "bulk_tonnes")))
+    ok("FIX8B early fields bounded", _early({"sample_count": 50000, "anomaly_json": '{"kind":"trend","length_m":90,'
+       '"width_m":0,"metal":"Au"}', "bulk_tonnes": -3, "line_km": None}) == {"sample_count": 50000,
+       "anomaly": {"kind": "trend", "length_m": 90.0, "metal": "Au"}, "bulk_tonnes": None, "line_km": None})
     ok("geophysics carries its survey label", r["items"][1]["results"][0]["survey_label"] == "IP")
     ok("width only on chip / channel / trench", grade_text("grab", 2.0, "g/t", "Au", 3.0) == "2 g/t Au"
        and grade_text("trench", 0.5, "%", "Cu", 12.0) == "0.5 % Cu over 12 m" and grade_text("soil", None, "", "", 1) == "")

@@ -1,0 +1,89 @@
+[
+ {
+  "bare": "ABX",
+  "symbol": "ABX.TO",
+  "exchange": "TSX",
+  "name": "Barrick Mining",
+  "host": "www.barrick.com"
+ },
+ {
+  "bare": "AEM",
+  "symbol": "AEM.TO",
+  "exchange": "TSX",
+  "name": "Agnico Eagle",
+  "host": "www.agnicoeagle.com"
+ },
+ {
+  "bare": "WPM",
+  "symbol": "WPM.TO",
+  "exchange": "TSX",
+  "name": "Wheaton Precious",
+  "host": "www.wheatonpm.com"
+ },
+ {
+  "bare": "FNV",
+  "symbol": "FNV.TO",
+  "exchange": "TSX",
+  "name": "Franco-Nevada",
+  "host": "www.franco-nevada.com"
+ },
+ {
+  "bare": "K",
+  "symbol": "K.TO",
+  "exchange": "TSX",
+  "name": "Kinross Gold",
+  "host": "www.kinross.com"
+ },
+ {
+  "bare": "AGI",
+  "symbol": "AGI.TO",
+  "exchange": "TSX",
+  "name": "Alamos Gold",
+  "host": "www.alamosgold.com"
+ },
+ {
+  "bare": "IMG",
+  "symbol": "IMG.TO",
+  "exchange": "TSX",
+  "name": "IAMGOLD",
+  "host": "www.iamgold.com"
+ },
+ {
+  "bare": "HBM",
+  "symbol": "HBM.TO",
+  "exchange": "TSX",
+  "name": "Hudbay Minerals",
+  "host": "hudbayminerals.com"
+ },
+ {
+  "bare": "CDE",
+  "symbol": "CDE",
+  "exchange": "NYSE",
+  "name": "Coeur Mining",
+  "host": "www.coeur.com"
+ },
+ {
+  "bare": "FM",
+  "symbol": "FM.TO",
+  "exchange": "TSX",
+  "name": "First Quantum Minerals",
+  "kind": "rss",
+  "feed": "https://www.first-quantum.com/news/category/news/feed/"
+ },
+ {
+  "bare": "PAAS",
+  "symbol": "PAAS.TO",
+  "exchange": "TSX",
+  "name": "Pan American Silver",
+  "kind": "rss",
+  "feed": "https://panamericansilver.com/news/feed/"
+ },
+ {
+  "bare": "EQX",
+  "symbol": "EQX.TO",
+  "exchange": "TSX",
+  "name": "Equinox Gold",
+  "kind": "rss",
+  "feed": "https://www.equinoxgold.com/feed/"
+ }
+]

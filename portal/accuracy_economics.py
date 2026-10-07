@@ -30,20 +30,24 @@ Registered by portal/accuracy.py, which imports this module at the end of its ow
 """
 from __future__ import annotations
 
-from portal.accuracy import TagSpec, register_spec
+from portal.accuracy import TagSpec, project_matches, register_spec
 
 ECON_KEY_FIELDS = ("row", "study_type", "context", "basis", "currency", "discount_pct", "npv_after_tax",
                    "irr_after_tax_pct", "initial_capex", "payback_years", "mine_life_years")
 # Too few of these in the set to reach the gate's ten claims, so they are reported, not gated.
-ECON_REPORT_FIELDS = ("npv_pre_tax", "irr_pre_tax_pct", "capex_sensitivity")
+ECON_REPORT_FIELDS = ("npv_pre_tax", "irr_pre_tax_pct", "capex_sensitivity",
+                      # ACC_COLS_V1 (2026-09-23): every column the page shows is scored (reported, not gated)
+                      "project", "aisc")
 
-_MONEY = ("npv_after_tax", "npv_pre_tax", "initial_capex", "capex_sensitivity")
+_MONEY = ("npv_after_tax", "npv_pre_tax", "initial_capex", "capex_sensitivity", "aisc")
 _PAIR_ON = ("npv_after_tax", "npv_pre_tax", "irr_after_tax_pct", "irr_pre_tax_pct", "payback_years")
 
 
 def econ_close(field, a, b):
     if a is None or b is None:
         return a is None and b is None
+    if field == "project":  # ACC_COLS_V1: a project has no single spelling; the drill judge's rule
+        return project_matches(str(a), [str(b)])
     if isinstance(a, str) or isinstance(b, str):
         return str(a).strip().lower() == str(b).strip().lower()
     if field in _MONEY:
@@ -128,7 +132,7 @@ def judge_economics(pred, expect):
 
 _ROW_FIELDS = ("scenario", "study_type", "context", "basis", "currency", "discount_pct", "npv_pre_tax",
                "npv_after_tax", "irr_pre_tax_pct", "irr_after_tax_pct", "payback_years", "initial_capex",
-               "capex_sensitivity", "mine_life_years")
+               "capex_sensitivity", "mine_life_years", "project", "aisc")
 
 
 def _table_exists(conn):
@@ -150,7 +154,8 @@ def stored_economics(conn, event_id):
 def _econ_from_records(records):
     from portal.extractors import economics as X
     p = X.to_prediction(records)
-    return {"rows": p["scenarios"]} if p else None
+    # ACC_PN_V1: the release's project on every row, as the publisher shows it
+    return {"rows": [dict(r, project=r.get("project") or p.get("project")) for r in p["scenarios"]]} if p else None
 
 
 def _econ_candidate_predictor(conn, extractor, version):

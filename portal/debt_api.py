@@ -258,7 +258,7 @@ def build_debts(rows, names: dict) -> list[dict]:
                 continue
             seen.add(key)
             stages.append({"date": _s(r["published_at"])[:10], "stage": _s(r["stage"]),
-                           "stage_label": STAGE_LABELS.get(_s(r["stage"]), _s(r["stage"])),
+                           "stage_label": _stage_label(_s(r["stage"]), _s(r["purpose"])),
                            "amount": _num(r["principal"]), "currency": _s(r["currency"]),
                            "note": _s(r["conversion_text"]) if _s(r["stage"]) in ("interest_paid", "converted") else "",
                            "tagged": str(r["tag_confirmed"]) == "1", "headline": _title(_s(r["raw_headline"])),
@@ -270,7 +270,7 @@ def build_debts(rows, names: dict) -> list[dict]:
             "debt_key": _s(last["chain_key"]) or ("row:%s" % last["dd_id"]), "row_id": last["dd_id"],
             "ticker": t, "bare_ticker": bare(t), "company": company_name(t, names),
             "type": ins, "type_label": TYPE_LABELS.get(ins, "Debt"),
-            "stage": sg, "stage_label": STAGE_LABELS.get(sg, sg),
+            "stage": sg, "stage_label": _stage_label(sg, _s(last["purpose"])),
             "side": sd, "side_label": SIDE_LABELS.get(sd, sd),
             "principal": _num(last["principal"]), "principal_total": _num(last["principal_total"]),
             "currency": _s(last["currency"]), "rate_pct": _num(last["rate_pct"]), "rate_text": _s(last["rate_text"]),
@@ -357,6 +357,13 @@ def register(app) -> None:
 
 # --------------------------------------------------------------------------- self-tests
 
+def _stage_label(sg, purpose):
+    """MNT_DEBT_API_V1 rev 2 (2026-09-25, reader 1.0.2): a partial repayment is not the end of the debt."""
+    if sg == "repaid" and purpose == "Partial repayment":
+        return "Partly repaid"
+    return STAGE_LABELS.get(sg, sg)
+
+
 def _selftest() -> int:
     fails = []
 
@@ -441,6 +448,8 @@ def _selftest() -> int:
             return True
     ok("bad params", bad(type="x") and bad(stage="x") and bad(ticker="A'--") and bad(universe="x")
        and bad(scope="x") and bad(side="x"))
+    ok("partial repayment label", _stage_label("repaid", "Partial repayment") == "Partly repaid"
+       and _stage_label("repaid", "") == STAGE_LABELS["repaid"])
     print("debt_api selftest: %d failed" % len(fails))
     return 1 if fails else 0
 

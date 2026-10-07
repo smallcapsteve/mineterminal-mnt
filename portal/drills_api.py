@@ -265,7 +265,9 @@ _ITEM_COLS = (
     "d.top_length_m, d.top_summary, d.n_intercepts, d.sample_type, d.extractor_version, "
     "COALESCE(d.published_at, e.published_at, e.classified_at) AS published_at, "
     "COALESCE(e.raw_headline, d.raw_headline) AS headline, e.slug, e.source_url, e.source_name, "
-    "e.additional_tickers"
+    "e.additional_tickers, "
+    "(SELECT i.from_m FROM drill_intervals i WHERE i.event_id = d.event_id AND i.is_best = 1 ORDER BY i.seq LIMIT 1) AS best_from_m, "
+    "(SELECT i.to_m FROM drill_intervals i WHERE i.event_id = d.event_id AND i.is_best = 1 ORDER BY i.seq LIMIT 1) AS best_to_m"
 )
 
 _IV_COLS = ("event_id, seq, hole_id, from_m, to_m, length_m, grade, unit, metal, summary, including, "
@@ -337,6 +339,9 @@ def _item_dict(r, names: dict, universe: Optional[frozenset]) -> dict:
             "summary": r["top_summary"] or "",
             "value": interval_value(r["top_grade"], r["top_unit"], r["top_metal"], r["top_length_m"]),
             "value_unit": value_unit(r["top_metal"]),
+            # DRILLS_API best depth (2026-09-21): the best interval's downhole From-To, when the release gives it
+            "from_m": r["best_from_m"] if "best_from_m" in r.keys() else None,
+            "to_m": r["best_to_m"] if "best_to_m" in r.keys() else None,
         }
     return {
         "event_id": r["event_id"],

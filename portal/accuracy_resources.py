@@ -32,7 +32,8 @@ import unicodedata
 from portal.accuracy import TagSpec, register_spec
 
 RES_KEY_FIELDS = ("row", "deposit", "category", "tonnes", "grade", "context")
-RES_REPORT_FIELDS = ("row_complete",)
+RES_REPORT_FIELDS = ("row_complete",
+                     "cut_off", "contained")  # ACC_COLS_V1 (2026-09-23): the page shows both
 
 _DEP_NOISE = re.compile(r"(?i)\b(project|deposit|mine|property|zone|prospect|the|mineral|resources?|"
                         r"open\s*pit|op|underground|ug)\b")
@@ -110,6 +111,40 @@ def grades_agree(want, got):
         if met not in gm or not any(res_close(val, v, 0.011) for v in gm[met]):
             return False
     return True
+
+
+_QTY = {"oz": ("oz", 1), "koz": ("oz", 1e3), "moz": ("oz", 1e6), "t": ("t", 1), "tonnes": ("t", 1), "kt": ("t", 1e3),
+        "mt": ("t", 1e6), "lb": ("lb", 1), "lbs": ("lb", 1), "klb": ("lb", 1e3), "mlb": ("lb", 1e6), "mlbs": ("lb", 1e6),
+        "blb": ("lb", 1e9), "kg": ("t", 1e-3), "ct": ("ct", 1), "carats": ("ct", 1)}
+
+
+def _qty(val, unit):
+    base, mult = _QTY.get(str(unit or "").strip().lower().replace(" ", ""), (str(unit or "").lower(), 1))
+    return base, (val * mult if val is not None else None)
+
+
+def contained_agree(want, got):
+    """ACC_COLS_V1: every contained figure the label names is present, same metal, within 2%, whatever the unit
+    (334,825 oz and 334.8 koz agree)."""
+    gm = {}
+    for g in got or []:
+        met, val, u = _fig(g)
+        if met is not None and val is not None:
+            gm.setdefault(met, []).append(_qty(val, u))
+    for w in want or []:
+        met, val, u = _fig(w)
+        if val is None:
+            continue
+        base, v = _qty(val, u)
+        if not any(b == base and res_close(v, x) for b, x in gm.get(met, [])):
+            return False
+    return True
+
+
+def cutoff_agree(want, got):
+    """ACC_COLS_V1: the cut-off's first figure agrees within 1% ('2.00 g/t Au' and '2 g/t AuEq cut-off')."""
+    fw, fg = re.findall(r"\d+(?:\.\d+)?", str(want or "")), re.findall(r"\d+(?:\.\d+)?", str(got or ""))
+    return bool(fw and fg) and res_close(float(fw[0]), float(fg[0]), 0.011)
 
 
 def res_match(labels, preds):
@@ -191,7 +226,11 @@ def judge_resources(pred, expect):
                  lab.get("tonnes") is not None, pr.get("tonnes") is not None),
                 ("grade", grades_agree(lab.get("grades"), pr.get("grades")),
                  bool(lab.get("grades")), bool(pr.get("grades"))),
-                ("context", pr.get("context") == lab.get("context"), True, True)):
+                ("context", pr.get("context") == lab.get("context"), True, True),
+                ("cut_off", cutoff_agree(lab.get("cut_off"), pr.get("cut_off")),
+                 bool(lab.get("cut_off")), bool(pr.get("cut_off"))),
+                ("contained", contained_agree(lab.get("contained"), pr.get("contained")),
+                 bool(lab.get("contained")), bool(pr.get("contained")))):
             if has_pred and has_label:
                 out[f].append("tp" if ok else "fp")
                 if not ok and complete:
@@ -218,7 +257,8 @@ def stored_resources(conn, event_id):
         sel = ("deposit, category, tonnes, grades_json, contained_json, cut_off, basis, context, "
                "ordinal")
         rows = list(conn.execute(
-            "SELECT %s FROM resource_estimates WHERE event_id=? ORDER BY ordinal" % sel, (event_id,)))
+            "SELECT %s FROM resource_estimates WHERE event_id=? AND category IS NOT NULL ORDER BY ordinal" % sel,
+            (event_id,)))  # RES_JUDGE_MARKERS_V1: a marker row states no figures
         if not rows:
             return None
         out = []
@@ -283,6 +323,8 @@ def _res_candidate_predictor(conn, extractor, version):
     rows = _res_rows(conn, version)
     by_event = {}
     for r in rows:
+        if r["category"] is None:  # RES_JUDGE_MARKERS_V2: a marker row states no figures
+            continue
         by_event.setdefault(r["event_id"], []).append(
             {"deposit": r["deposit"], "category": r["category"], "tonnes": r["tonnes"],
              "grades": json.loads(r["grades_json"] or "[]"),

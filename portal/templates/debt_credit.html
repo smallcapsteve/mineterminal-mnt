@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% block title %}Debt & Credit Facilities — MiningNewsTerminal{% endblock %}
+{% block meta_description %}Convertible debentures and notes, loans, credit facilities, bonds, gold loans and prepayments from CSE, TSXV and TSX mining companies, with each debt's amount, interest rate, maturity, lender, security and conversion price, and its stage from proposed to repaid, read from news releases.{% endblock %}
+{% block content %}
+  <style>
+    .dd-table td { vertical-align: top; }
+    .dd-table .dd-sub { display: block; font-size: .8em; opacity: .7; }
+    .dd-stage { display: inline-block; padding: 0 .4em; border-radius: 3px; font-size: .75em; letter-spacing: .02em;
+                border: 1px solid currentColor; opacity: .85; white-space: nowrap; }
+    .dd-stage.dd-terminated, .dd-stage.dd-repaid { border-style: dashed; opacity: .6; }
+    .dd-stage.dd-interest_paid { border-style: dotted; }
+    .dd-side { display: inline-block; font-size: .7em; padding: 0 .35em; border-radius: 3px; border: 1px dotted currentColor;
+               opacity: .75; margin-top: .2em; }
+    .dd-table tr.dd-cont td.dd-quiet { opacity: .35; }
+    .dd-none { opacity: .55; font-style: italic; }
+  </style>
+
+  <h2 class="page-title">Debt &amp; Credit Facilities</h2>
+
+  <section class="filters fin-filters">
+    <form method="get" action="/debt-credit">
+      <label for="ticker">Company:</label>
+      <select name="ticker" id="ticker" onchange="this.form.submit()">
+        <option value="">All companies</option>
+        {% for t in tickers %}
+          <option value="{{ t }}" {% if t == selected_ticker %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="type">Type:</label>
+      <select name="type" id="type" onchange="this.form.submit()">
+        {% for v, label in type_options %}
+          <option value="{{ v }}" {% if v == dtype %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="stage">Stage:</label>
+      <select name="stage" id="stage" onchange="this.form.submit()">
+        {% for v, label in stage_options %}
+          <option value="{{ v }}" {% if v == stage %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="side">Side:</label>
+      <select name="side" id="side" onchange="this.form.submit()">
+        <option value="borrower" {% if side == 'borrower' %}selected{% endif %}>Company borrowing</option>
+        <option value="lender" {% if side == 'lender' %}selected{% endif %}>Company lending or holding debt</option>
+        <option value="all" {% if side == 'all' %}selected{% endif %}>Both</option>
+      </select>
+
+      <label for="days">Window:</label>
+      <select name="days" id="days" onchange="this.form.submit()">
+        {% for d, label in [(0, 'All time'), (30, 'Last 30 days'), (90, 'Last 90 days'), (180, 'Last 6 months'), (365, 'Last year')] %}
+          <option value="{{ d }}" {% if d == days %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="show">Show:</label>
+      <select name="show" id="show" onchange="this.form.submit()">
+        <option value="deals" {% if show == 'deals' %}selected{% endif %}>Latest stage of each debt</option>
+        <option value="items" {% if show == 'items' %}selected{% endif %}>Every release about a debt</option>
+        <option value="all" {% if show == 'all' %}selected{% endif %}>Also tagged releases with no debt</option>
+      </select>
+
+      <label for="scope">Releases:</label>
+      <select name="scope" id="scope" onchange="this.form.submit()">
+        <option value="tagged" {% if scope == 'tagged' %}selected{% endif %}>Tagged Debt &amp; Credit Facilities</option>
+        <option value="all" {% if scope == 'all' %}selected{% endif %}>All releases (includes untagged)</option>
+      </select>
+
+      {% if selected_ticker or days or dtype or stage or side != 'borrower' or show != 'deals' or scope != 'tagged' %}
+        <a class="cat-clear" href="/debt-credit">Reset</a>
+      {% endif %}
+      <span class="muted">{{ rows|length }} shown · {{ total_filtered }} matching · {{ total }} debts from {{ releases }} releases</span>
+    </form>
+  </section>
+
+  {% if not rows %}
+    <p class="empty">No debt in this window.</p>
+  {% else %}
+    <div class="table-scroll">
+    <table class="fin-table dd-table">
+      <colgroup>
+        <col style="width: 7%">   <!-- Ticker     -->
+        <col style="width: 11%">  <!-- Company    -->
+        <col style="width: 8%">   <!-- Date       -->
+        <col style="width: 12%">  <!-- Type       -->
+        <col style="width: 9%">   <!-- Stage      -->
+        <col style="width: 10%">  <!-- Amount     -->
+        <col style="width: 14%">  <!-- Lender     -->
+        <col style="width: 23%">  <!-- Terms      -->
+        <col style="width: 6%">   <!-- View       -->
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Ticker</th>
+          <th>Company</th>
+          <th>Date</th>
+          <th title="Convertible debenture, convertible note or loan, loan, credit facility, notes or bonds, gold loan or prepayment">Type</th>
+          <th title="Proposed, signed, closed or funded, drawdown, amended, converted, repaid or settled, terminated, or interest paid, as of this release">Stage</th>
+          <th title="The amount at this stage: the offering, the tranche closed, the facility size, the amount drawn, converted or repaid, or the interest paid">Amount</th>
+          <th title="The lender or holder when the release names one (for debt the company lends or holds: the borrower)">Lender</th>
+          <th title="Interest rate, maturity or term, security, conversion price and warrants, as the release states them">Terms</th>
+          <th>View</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr class="{% if not r['first_of_release'] %}dd-cont{% endif %}">
+            <td class="fin-ticker {% if not r['first_of_release'] %}dd-quiet{% endif %}">
+              {%- if r['first_of_release'] -%}
+                {% set _mtp = r["ticker"] | mtp_url('mining') %}{% if _mtp %}<a class="mtp-co" href="{{ _mtp }}" target="_blank" rel="noopener" title="Open {{ r['ticker'] }} mining data on MineTerminalPro">{{ r["ticker"] }}</a>{% else %}{{ r["ticker"] }}{% endif %}
+              {%- else -%}
+                {{ r["ticker"] }}
+              {%- endif -%}
+            </td>
+            <td class="{% if not r['first_of_release'] %}dd-quiet{% endif %}">{% if r['first_of_release'] %}{{ r["company_name"] }}{% endif %}</td>
+            <td class="fin-date {% if not r['first_of_release'] %}dd-quiet{% endif %}">{% if r['first_of_release'] %}{{ (r["published_at"] or "")[:10] }}{% endif %}</td>
+            {% if r["instrument"] %}
+              <td>
+                {{ r["instrument"] | dd_type }}
+                {%- if r["side"] == "lender" %}<span class="dd-side" title="The company lends this or holds the debt">Company is lender</span>{% endif -%}
+                {%- if r["project"] %}<span class="dd-sub">{{ r["project"] }}</span>{% endif -%}
+              </td>
+              <td>
+                <span class="dd-stage dd-{{ r['stage'] }}">{{ r["stage"] | dd_stage }}</span>
+                {%- if r["date"] and r["date"] != (r["published_at"] or "")[:10] %}<span class="dd-sub" title="Date the release gives for the event">{{ r["date"] }}</span>{% endif -%}
+              </td>
+              <td>
+                {{ r["principal"] | dd_money(r["currency"]) or "—" }}
+                {%- if r["principal_total"] is not none %}<span class="dd-sub">{{ r["principal_total"] | dd_money(r["currency"]) }} to date</span>{% endif -%}
+              </td>
+              <td>
+                {%- if r["side"] == "lender" -%}
+                  {% if r["borrower"] %}<span class="dd-sub">borrower</span>{{ r["borrower"] }}{% else %}—{% endif %}
+                {%- else -%}
+                  {{ r["lender"] or "—" }}
+                {%- endif -%}
+                {%- if r["related_party"] %}<span class="dd-sub">related party</span>{% endif -%}
+              </td>
+              <td>
+                {%- set _any = r["rate_pct"] is not none or r["rate_text"] or r["maturity"] or r["term_months"] is not none or r["secured"] is not none or r["conversion_price"] is not none or r["conversion_text"] or r["warrants"] is not none -%}
+                {%- if r["rate_pct"] is not none %}<span class="dd-sub">{{ r["rate_pct"] | dd_num }}% a year{% if r["rate_text"] %} ({{ r["rate_text"] }}){% endif %}</span>{% elif r["rate_text"] %}<span class="dd-sub">{{ r["rate_text"] }}</span>{% endif -%}
+                {%- if r["maturity"] %}<span class="dd-sub">matures {{ r["maturity"] }}</span>{% elif r["term_months"] is not none %}<span class="dd-sub">{{ r["term_months"] | dd_term }} term</span>{% endif -%}
+                {%- if r["secured"] is not none %}<span class="dd-sub">{{ "secured" if r["secured"] else "unsecured" }}</span>{% endif -%}
+                {%- if r["conversion_price"] is not none %}<span class="dd-sub">converts at {{ r["conversion_price"] | dd_price(r["currency"]) }}</span>{% elif r["conversion_text"] %}<span class="dd-sub" title="{{ r['conversion_text'] }}">converts by formula</span>{% endif -%}
+                {%- if r["warrants"] is not none %}<span class="dd-sub">{{ r["warrants"] | dd_count }} warrants{% if r["warrant_strike"] is not none %} at {{ r["warrant_strike"] | dd_price(r["currency"]) }}{% endif %}</span>{% endif -%}
+                {%- if r["chain_items"] and r["chain_items"] > 1 %}<span class="dd-sub" title="Releases about this debt">{{ r["chain_items"] }} releases since {{ r["first_reported"] }}</span>{% endif -%}
+                {%- if not _any and not (r["chain_items"] and r["chain_items"] > 1) %}—{% endif -%}
+              </td>
+            {% else %}
+              <td colspan="5" class="dd-none">Reports no debt instrument</td>
+            {% endif %}
+            <td>
+              {% if r["url"] and r['first_of_release'] %}<a href="{{ r['url'] }}">View ↗</a>{% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  {% endif %}
+  {% include "_pager.html" %}
+{% endblock %}

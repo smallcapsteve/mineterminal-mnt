@@ -5,7 +5,7 @@ invented; each one exists because a release in that set breaks the naive version
 """
 import re
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"   # 1.0.1 = economics 1.0.14 (FIX8, 2026-10-06): throughput, annual production, unit costs (b: figures glued to their unit, linking words, per-year figures, currency and footnote forms)
 TEXT_LIMIT = 20000
 
 # ---------------------------------------------------------------- what part of a release to read
@@ -28,18 +28,56 @@ def readable(body, keep_all=False):
 
 
 # ---------------------------------------------------------------- numbers
-_MULT = {"k": 1e3, "thousand": 1e3, "m": 1e6, "mm": 1e6, "million": 1e6,
-         "b": 1e9, "bn": 1e9, "billion": 1e9}
+_MULT = {"k": 1e3, "thousand": 1e3, "thousands": 1e3, "m": 1e6, "mm": 1e6, "million": 1e6,
+         "millions": 1e6, "b": 1e9, "bn": 1e9, "billion": 1e9, "billions": 1e9}
+# Every result figure a release states is millions of dollars at least. A currency amount with no
+# magnitude and under a hundred thousand is a price, a unit cost or a fragment of a number the
+# release broke across lines -- Westhaven's 'US$2 ,400 per ounce' was published as a US$2 NPV,
+# Cascadia's 'US$3.75 /lb copper' as a US$3.75 one.
+_MIN_BARE = 1e5
+# ...and no junior's study is worth a hundred billion: PMET writes '~$1,594 billion' once for the
+# ~$1,594 million it states everywhere else.
+_MAX_RESULT = 1e11
+# 1.0.10: a figure followed by a quantity unit is a quantity, not money: Tocantinzinho's '1.1 million tonnes' was published
+# as a US$1.1 million NPV, OceanaGold's '2.2 million gold ounces' as a US$2.2 million one
+_RE_QTY_AFTER = re.compile(r"(?i)^\s*(?:of\s+)?(?:gold\s+|silver\s+|copper\s+|lithium\s+)?(?:equivalent\s+)?"
+                           r"(?:tonnes|tons|t\b|ounces|oz\b|lbs?\b|pounds|metres|meters|km\b|hectares|ha\b|carats|cubic|barrels|boe)")
+# 1.0.10: a table's unit header before a bare cell - 'NPV5% USD MM $409' (millions), 'Capital K US$ 278,092' (thousands)
+_RE_SCALE_M = re.compile(r"(?i)(?:\b(?:US|USD|C|CAD|CA|A|AUD)\s*\$?\s*|\$\s*)?\b(?:MM|mn|millions?)\s*$|\(\s*(?:US|C|CA|A)?\$\s*(?:M|MM|millions?)\s*\)\s*$")
+_RE_SCALE_K = re.compile(r"(?i)\bK\s*$|\(\s*(?:US|C|CA|A)?\$\s*000'?s?\s*\)\s*$")
+
+
+def _qty_after(text, end):
+    return bool(_RE_QTY_AFTER.match(text[end:end + 30]))
+
+
+def _repair(text):
+    """1.0.10: words and numbers a PDF split - OceanaGold's 'NPV of $665 mi llion' was read without its magnitude, and
+    Sigma's 'US$12 3.1 million' as US$3.1 million (the joined figure is stated elsewhere in the release: '123.1 million')."""
+    t = re.sub(r"(?i)\b(mi|bi)\s(llion)\b", r"\1\2", text or "")
+    t = re.sub(r"(?i)\b(mil|bil)\s(lion)\b", r"\1\2", t)
+
+    def join(m):
+        joined = m.group(2) + m.group(3)
+        return m.group(1) + joined + m.group(4) if re.search(r"(?<![\d.,])" + re.escape(joined) + r"\s*(?:million|billion|M\b)", t) else m.group(0)
+    return re.sub(r"((?:US|C|CA|A)?\$\s?)(\d{1,2}) (\d{1,2}\.\d+)(\s*(?:million|billion))", join, t)
 _RE_MONEY = re.compile(r"""(?ix)
     (?<![A-Za-z])                # 'CA$' must not be entered at its 'A$': Lomiko writes CA$797.5 M
-    (?P<cur>CDN\s*\$?|CA\$|CAD\s*\$?|C\$|US\$|USD\s*\$?|AUD\s*\$?|A\$|\$)?\s*
+    (?:(?P<cur>CDN\s*\$?|CA\$|CAD\s*\$?|C\$|US\$|USD\s*\$?|AUD\s*\$?|A\$|\$)
+       (?:\s*(?P<neg>[-−]))?)?\s*   # Arizona Metals' base case is 'US$-6 million': a loss, not a gain
     (?<![\d.,])                  # never start inside a number: Doubleview's typo 'C13.53 billion'
                                  # was read from its second digit as 3.53 billion
     (?P<num>\d[\d,]*(?:\.\d+)?)\s*
-    (?P<mult>billion|million|thousand|bn|mm|[KMB])?\b
+    (?:(?P<mult>billions?|millions?|thousands?|bn|mm|[KMB])\d?)?\b
+                                 # 'C$992 million3' carries a footnote digit on its magnitude,
+                                 # and without it the capital cost was read as C$992
     (?!\s*%)                    # a percentage is not money: 'NPV (5%) of C$24.27 million'
                                  # would otherwise return 5, which is the discount rate
     """)
+
+
+def _signed(m, v):
+    return -v if m.groupdict().get("neg") else v
 
 
 def numval(raw):
@@ -75,7 +113,7 @@ def money(text, scale=None):
         except ValueError:
             continue
         v *= _MULT.get(mult, 1.0) if mult else (scale or 1.0)
-        return v, {"C": "CAD", "CA": "CAD", "CAD": "CAD", "CDN": "CAD",
+        return _signed(m, v), {"C": "CAD", "CA": "CAD", "CAD": "CAD", "CDN": "CAD",
                    "US": "USD", "USD": "USD", "A": "AUD", "AUD": "AUD"}.get(cur_raw)
     return None, None
 
@@ -116,8 +154,8 @@ def years(text):
 
 
 # ---------------------------------------------------------------- which basis a figure is on
-_RE_AFTER = re.compile(r"(?i)\b(after[\s-]?tax|post[\s-]?tax)\b")
-_RE_PRE = re.compile(r"(?i)\bpre[\s-]?tax\b")
+_RE_AFTER = re.compile(r"(?i)\b(after[\s-]{0,2}tax|post[\s-]{0,2}tax)\b")   # TRX writes 'pre -tax'
+_RE_PRE = re.compile(r"(?i)\bpre[\s-]{0,2}tax\b")
 _RE_NOMINAL = re.compile(r"(?i)\bnominal\b")
 _RE_REAL = re.compile(r"(?i)\breal\b(?!\s*estate)")
 
@@ -159,20 +197,25 @@ def discount_of(text):
     """An NPV without its rate is not comparable to anything. The rate is usually welded to the
     label -- NPV5, NPV10%, NPV @ 7%, 'using an 8% discount' -- and West Red Lake states it only in
     prose, never in the table its NPV sits in."""
-    m = _RE_DISCOUNT.search(text or "")
-    if not m:
-        return None
-    for g in ("a", "b", "c", "d", "e"):
-        if m.group(g):
-            v = float(m.group(g))
-            return v if 0 < v <= 25 else None
+    # Buffalo Potash footnotes its label -- 'After-tax NPV (1) (8) of US$1.1B' -- and the (1) is not
+    # a one per cent rate. No study discounts below three.
+    for m in _RE_DISCOUNT.finditer(text or ""):
+        for g in ("a", "b", "c", "d", "e"):
+            if m.group(g):
+                v = float(m.group(g))
+                if 3 <= v <= 25:
+                    return v
+                break
     return None
 
 
 # ---------------------------------------------------------------- what kind of study
-_RE_FS = re.compile(r"(?i)\b(?:definitive|bankable|final)?\s*feasibility\s+study\b|\bDFS\b|\bBFS\b")
-_RE_PFS = re.compile(r"(?i)pre[\s-]?feasibility|\bPFS\b|preliminary\s+feasibility")
-_RE_PEA = re.compile(r"(?i)preliminary\s+economic\s+assessment|\bPEA\b|economic\s+assessment")
+# 1.0.2: "feasibility study" inside "Pre-feasibility Study" is not a second, feasibility-level study. It used to
+# be found four characters after the PFS hit, so the "nearest kind" rule called MNO.TO's Cabacal PFS an FS in 26
+# restatements (and SURG, TAU, HCH the same way). "Pre -Feasibility" (a stray space) is a PFS too.
+_RE_FS = re.compile(r"(?i)(?<![\w-])(?:(?:definitive|bankable|final)\s+)?feasibility\s+study\b|\b[DB]?FS\b|\bbankable\s+(?:project\s+)?study\b")   # 1.0.10: Rock Tech's 'Bankable Project Study' 
+_RE_PFS = re.compile(r"(?i)pre\s?-?\s?feasibility|\bPFS\b|preliminary\s+feasibility")
+_RE_PEA = re.compile(r"(?i)preliminary\s+economic\s+(?:assessment|study|analysis)|\bPEA\b|economic\s+assessment|\bscoping[\s-]+(?:level\s+)?study\b")   # 1.0.10: a scoping study is a PEA (FPX)
 
 
 # 'to initiate a Pre-Feasibility Study', 'engaged Technica to complete a PFS' -- a study the
@@ -183,20 +226,40 @@ _RE_INTENT = re.compile(r"""(?ix)\b(?:to|will|shall|intends?\s+to|plans?\s+to|ex
     [^.\n]{0,40}$""")
 
 
-def _kind_hits(text):
-    """Every study kind the text names, in order, minus the ones it only intends to do."""
+def _kind_hits(text, every=False):
+    """Every study kind the text names, in order, minus the ones it only intends to do. With every=True, each
+    mention (1.0.2); otherwise the first mention of each kind, as before."""
     out = []
+    # 1.0.2: an FS found inside a PFS ('Pre - Feasibility Study', however it is spaced) is that PFS
+    pfs_spans = [m.span() for m in _RE_PFS.finditer(text)]
     for rx, kind in ((_RE_PFS, "PFS"), (_RE_FS, "FS"), (_RE_PEA, "PEA")):
         for m in rx.finditer(text):
-            if _RE_INTENT.search(text[max(0, m.start() - 60):m.start()]):
+            if kind == "FS" and any(a <= m.start() < b + 3 for a, b in pfs_spans):
+                continue
+            lead = text[max(0, m.start() - 60):m.start()]
+            if (_RE_INTENT.search(lead) and not _RE_BUILDS_ON.search(lead)) or _RE_INTENT_AFTER.match(text, m.end()):
                 continue
             out.append((m.start(), kind))
-            break
+            if not every:
+                break
     return sorted(out)
 
 
-_RE_FIG_ANCHOR = re.compile(r"(?ix)(?:NPV|net\s+present\s+value|\bIRR\b)[^.\n]{0,60}?"
-                            r"(?:US|C|CA|A)?\$\s?\d|\d{1,3}(?:\.\d+)?\s?%\s?(?:IRR|return)")
+# 1.0.2: a study named as what comes next -- 'build towards a Feasibility Study next year', 'Feasibility Study
+# is underway' -- is not the study the figures come from.
+_RE_INTENT_AFTER = re.compile(r"(?i)[^.\n]{0,25}?\b(?:next\s+year|is\s+(?:now\s+)?(?:underway|under\s+way|ongoing|in\s+progress"
+                              r"|expected|planned|scheduled|targeted)|(?:expected|planned|scheduled|targeted)\s+(?:for|in|to)"
+                              r"|work\s*streams?|launch)\b")
+# 'The FS will build on the Prefeasibility Study': the study built on is a finished one (TAU.V)
+_RE_BUILDS_ON = re.compile(r"(?i)\b(?:build\w*\s+(?:on|upon)|based\s+on|following|supersed\w*|replac\w*)\b[^.\n]{0,30}$")
+_RE_TOWARD = re.compile(r"(?i)\b(?:towards?|advancing\s+(?:to|into|the)|progress\w*\s+(?:to|towards?)|working\s+on"
+                        r"|next\s+steps?|(?:to|will)\s+advance)\b[^.\n]{0,40}$")
+
+
+# 1.0.2: a figure broken over lines ('NPV\n8\n% US $9.17 Billion', NILI.V; 'NPV\n8\n after-tax of US$1.0 billion', GRD.V)
+# is still the figure; only a full stop ends the search.
+_RE_FIG_ANCHOR = re.compile(r"(?ix)(?:NPV|net\s+present\s+value|\bIRR\b)[^.]{0,60}?"
+                            r"(?:US|C|CA|A)?\s?\$\s?\d|\d{1,3}(?:\.\d+)?\s?%\s?(?:IRR|return)")
 
 
 def study_type(headline, body=""):
@@ -215,17 +278,33 @@ def study_type(headline, body=""):
     anchor = _RE_FIG_ANCHOR.search(flat_body)
     if anchor:
         lo = max(0, anchor.start() - 700)
-        near = _kind_hits(flat_body[lo:anchor.start() + 300])
+        win = flat_body[lo:anchor.start() + 300]
+        a0 = anchor.start() - lo
+        hits = _kind_hits(win, every=True)
+        near = [(p, k) for p, k in hits if not _RE_TOWARD.search(win[max(0, p - 60):p])] or hits
         if near:
             head = [k for _, k in _kind_hits(headline or "")]
             kinds = {k for _, k in near}
+            # 1.0.2: the kind named in the figures' own sentence, before the figures, is the study they come from
+            # ('Cabacal's Pre-Feasibility Study ... delivered ... NPV5 of USD 984 million') -- even when the headline
+            # is about the next study ('Appoints Ausenco as Lead Engineer for the Definitive Feasibility Study').
+            # a heading line ('LSLi PEA Project Highlights:') belongs to the figures under it, so a single line
+            # break does not end the sentence; a full stop, a bullet or a blank line does
+            sent0 = max(win.rfind(". ", 0, a0), win.rfind("\n\n", 0, a0), win.rfind(chr(0x2022), 0, a0), a0 - 250) + 1
+            own = [h for h in near if sent0 <= h[0] < a0]
+            if own:
+                return own[-1][1]
             # The headline is only the answer when the figures agree with it. Freeman's headline
             # is about drilling 'FOR Q1 2026 FEASIBILITY STUDY' -- a study that has not happened
             # -- while the figures beside it are the 2023 PEA, and it is the PEA that goes on
-            # the page. Otherwise take the kind nearest the figures.
+            # the page. Otherwise take the kind nearest the figures; 1.0.2: one named before them
+            # over one named after (Surge's 'The Company is currently advancing feasibility-level work').
             if head and head[0] in kinds:
                 return head[0]
-            return min(near, key=lambda h: abs(lo + h[0] - anchor.start()))[1]
+            before = [h for h in near if h[0] < a0]
+            if before:
+                return before[-1][1]
+            return min(near, key=lambda h: abs(h[0] - a0))[1]
     for text in (headline or "", (headline or "") + " " + (body or "")[:2500]):
         hits = _kind_hits(text)
         if hits:
@@ -235,6 +314,45 @@ def study_type(headline, body=""):
             return hits[0][1]
     return None
 
+
+
+def _fig_pattern(v):
+    """A figure as a release may write it: '$2.7 billion', '2,700 million', '$1.1B', '984 M'."""
+    alts = []
+    for div, unit in ((1e9, r"(?:billion|bn|B)\b"), (1e6, r"(?:million|mm|M)\b")):
+        if v < div:
+            continue
+        t = "%.10g" % (v / div)
+        forms = {t}
+        if "." not in t:
+            forms.add("{:,}".format(int(float(t))))
+        for f in forms:
+            alts.append(r"(?<![\d.,])" + re.escape(f) + r"\s?" + unit)
+    return re.compile("|".join(alts)) if alts else None
+
+
+_RE_NPV_WORD = re.compile(r"(?i)NPV|net\s+present\s+value")
+
+
+def figure_kind(flat, value):
+    """1.0.3: the study kind named in the sentence of the NPV figure `value`, before the figure, or None.
+    Ivanhoe's Platreef update: 'the NPV8% of the Phase 2 feasibility study at current spot prices is ... $2.7
+    billion. In addition, the sensitivity tables in the Preliminary Economic Assessment (PEA) ... to over $5.0
+    billion' -- two studies, one release."""
+    if not value:
+        return None
+    rx = _fig_pattern(value)
+    if rx is None:
+        return None
+    for m in rx.finditer(flat):
+        lead = flat[max(0, m.start() - 250):m.start()]
+        if not _RE_NPV_WORD.search(lead[-200:]):
+            continue
+        s0 = max(lead.rfind(". "), lead.rfind("\n\n"), lead.rfind(chr(0x2022))) + 1
+        seg = lead[s0:]
+        hits = [(p, k) for p, k in _kind_hits(seg, every=True) if not _RE_TOWARD.search(seg[max(0, p - 60):p])]
+        return hits[-1][1] if hits else None
+    return None
 
 # ---------------------------------------------------------------- announcing, or just recapping
 # A back-reference only settles the question when it points at THE RESULTS BEING SHOWN. Euro
@@ -380,10 +498,24 @@ _OWNER_NAME = r"(?P<name>[A-Z][\w&.'\u2019-]*(?:\s+(?:[A-Z][\w&.'\u2019-]*|&|and
 # presenting a study that is THEIR/ITS own.
 _RE_OWNER_HEAD = re.compile(r"^\s*" + _OWNER_NAME + r"\s+(?:Presents|Releases|Publishes|Unveils|Delivers|"
                             r"Reports|Announces)\s+(?:Their|Its)\s+(?:[\w-]+\s+){0,3}?" + _OWNER_STUDY)
+# 'Analyst Note: Positive PEA Delivered -- Rua Gold's Auld Creek' and 'Rua Gold's Positive PEA Lands in a
+# Fast-Track Jurisdiction', both published under other issuers' tickers: a headline that names a company
+# and gives it the study with a possessive. Settled against the issuer by name, so Rua's own copy stays.
+_RE_OWNER_POSS = re.compile(r"(?:^|[:—–-]\s*|\b(?:Delivered|Landed|Lands|Unveiled|Released)\s*[—–-]*\s*)"
+                            + _OWNER_NAME + r"[’']s\s+(?:(?:Positive|Updated|New|Maiden|Robust|Strong)\s+)?"
+                            + _OWNER_STUDY + r"\b")
+_RE_HEAD_VERB = re.compile(r"\b(?:Publishes|Presents|Files|Announces|Delivers|Reports|Releases|Completes|Unveils|Provides)\b")
 # 'Surge Battery Metals (Surge) released a Preliminary Economic Assessment (PEA) on their ...'
 _RE_OWNER_BODY = re.compile(_OWNER_NAME + r"\s*(?:\((?:the\s+)?[\"\u201c]?(?P<alias>[A-Z][\w-]+)[\"\u201d]?\)\s*)?"
+                            # a commentary piece writes the tickers and the defined name first: 'Rua Gold Inc.
+                            # (TSX: RUA) (NZX: RGI) ("RUA GOLD" or the "Company") has released the results of a
+                            # positive Preliminary Economic Assessment'
+                            r"(?:\([^()\n]{1,60}\)\s*){0,5}"
                             r"(?:has\s+|have\s+)?(?:released|published|completed|delivered|announced|presented)\s+"
+                            r"(?:the\s+(?:positive\s+)?results\s+of\s+)?"
                             r"(?:a|an|its|their)\s+(?:[\w-]+\s+){0,2}?" + _OWNER_STUDY)
+# a paid piece says whose it is in its first line: 'Issued on behalf of Rua Gold Inc.'
+_RE_OWNER_BEHALF = re.compile(r"(?i:^\W{0,6}(?:issued|published|disseminated|paid\s+for)\s+on\s+behalf\s+of)\s+" + _OWNER_NAME)
 
 
 def study_owner_name(headline, body):
@@ -399,13 +531,36 @@ def study_owner_name(headline, body):
     Only these two explicit forms count. 'the Madsen PFS' names a project, not a company, and
     reading it as an owner would take West Red Lake's own study off the page."""
     m = _RE_OWNER_HEAD.search(headline or "")
-    if m:
+    if m and _one_name(m.group("name")):
         return m.group("name").strip()
-    m = _RE_OWNER_BODY.search(readable(body)[:2500])
-    if m:
+    for m in _RE_OWNER_POSS.finditer(headline or ""):
         name = m.group("name").strip()
+        if _one_name(name) and _name_tokens(name) and not _RE_HEAD_VERB.search(name):
+            return name
+    m = _RE_OWNER_BEHALF.search(readable(body)[:300])
+    if m:
+        name = m.group("name").split("\n")[0].strip()
+        suf = re.match(r".*?\b(?:Inc|Corp|Ltd|Limited|Corporation|plc|LLC)\b\.?", name)
+        name = suf.group(0) if suf else name          # 'Greenland Mines Ltd. Wheaton ...' runs on into the text
+        if _name_tokens(name):
+            return name
+    for m in _RE_OWNER_BODY.finditer(readable(body)[:2500]):
+        # A name is one run of words on one line. Omai Gold's standing paragraph reads '... the
+        # Eastern Flats Mining\nPermits. The Company has completed a PEA', and read across the
+        # line break and the full stop that became an owner called 'Eastern Flats Mining Permits.
+        # The Company' -- and Omai's own study was left off the page as somebody else's.
+        if not _one_name(m.group("name")):
+            continue
+        name = m.group("name").strip()
+        # '("RUA GOLD" or the "Company") has released ...' names nobody: read on for the real name
+        if not _name_tokens(name):
+            continue
         return name + (" (%s)" % m.group("alias") if m.group("alias") else "")
     return None
+
+
+def _one_name(name):
+    return not re.search(r"\n|[.;:]\s", name or "")
 
 
 # words that say what kind of company it is, not which one
@@ -457,7 +612,7 @@ _RE_CASE = re.compile(r"""(?ix)\b(
 # a price deck is a scenario too, and is how most releases name theirs
 _RE_DECK = re.compile(r"""(?ix)
     (?:US|C|CA|A)?\$\s*[\d,]+(?:\.\d+)?\s*(?:/|\s+per\s+)\s*
-    (?:oz|ounce|lb|pound|t|tonne|mtu|unit)\b
+    (?:oz|ounce|lb|pound|t|tonne|mtu)\b
     (?:\s*(?:Au|Ag|Cu|Li|Ni|Zn|Pb|Mo|Cg|LCE|U3O8))?""")   # 'US$1,524/t Cg' names the metal too
 # a base case says which price it is on, and it usually says so somewhere other than the sentence
 # stating the NPV: Surge writes 'the base case uses a lithium price of US$24,000/t LCE' a
@@ -485,8 +640,8 @@ _RE_PCT_CELL = re.compile(r"^\s*(?:\(\s*\d{1,2}(?:\.\d+)?\s*%\s*\)?"
                           r"|\d{1,2}(?:\.\d+)?\s*%\s*\))\s*$")
 _RE_MAG_CELL = re.compile(r"""(?ix)^\s*\(?\s*
     (?: (?P<cur>US\$|C\$|CA\$|A\$|\$) \s*
-        (?P<mag1>million|billion|thousand|M|B|bn)? |
-        (?P<mag2>million|billion|thousand|M|B|bn|%|years?|yrs?|months?|mths?|
+        (?P<mag1>millions?|billions?|thousands?|M|B|bn)? |
+        (?P<mag2>millions?|billions?|thousands?|M|B|bn|%|years?|yrs?|months?|mths?|
            t|tpd|tpa|Mtpa|oz|koz|Moz|klbs?|lbs?|\$/t|/t|\$/oz|\$/lb|/lb) )
     (?:\s*(?:LCE|Au|Ag|Cu|Li|Ni|Zn|Pb|Mo|U3O8|eq))?     # '$/t LCE' is one header cell
     \s*\)?\s*$""")
@@ -494,8 +649,8 @@ _RE_VAL_CELL = re.compile(r"(?i)^\s*\(?\s*(?:US\$|C\$|CA\$|A\$|\$)?\s*"
                           r"[\d][\d,]*(?:\.\d+)?\s*%?\s*\)?\s*$")
 _RE_TAX_CELL = re.compile(r"(?ix)^\s*\(?\s*(pre[\s-]?tax|post[\s-]?tax|after[\s-]?tax)\s*\)?\s*$")
 _RE_HAS_ALPHA = re.compile(r"[A-Za-z]{3}")
-_MAG_WORD = {"m": "million", "b": "billion", "bn": "billion",
-             "million": "million", "billion": "billion", "thousand": "thousand"}
+_MAG_WORD = {"m": "million", "b": "billion", "bn": "billion", "millions": "million", "billions": "billion",
+             "thousands": "thousand", "million": "million", "billion": "billion", "thousand": "thousand"}
 
 
 def _reflow(label, quals, val):
@@ -545,7 +700,13 @@ def unwrap(text):
 
     A table's cells are short and must stay apart, so two lines are only joined when BOTH are
     long enough to be prose and the first does not end a sentence."""
-    lines = (text or "").split("\n")
+    # 'US$1.74\nbillion', 'US$696\n\nmillion': a magnitude a line break took from its figure, which
+    # left Frontier's NPV as US$1.74. And US Copper's 'US$1.075 billio n'.
+    text = re.sub(r"(?i)(\d)[ \t]*(?:\n[ \t]*)+(billions?|millions?)\b", r"\1 \2", text or "")
+    text = re.sub(r"(?i)\b(billi|milli)o\s+n\b", r"\1on", text)
+    text = re.sub(r"(\d) ,(\d{3})\b", r"\1,\2", text)          # Westhaven's 'US$2 ,400'
+
+    lines = text.split("\n")
     out = []
     for ln in lines:
         t = ln.rstrip()
@@ -589,7 +750,11 @@ def segments(text):
                          or (_RE_MAG_CELL.match(raw[j]) and not _RE_VAL_CELL.match(raw[j]))):
                 quals.append(raw[j])
                 j += 1
-            if quals and j < len(raw) and _RE_VAL_CELL.match(raw[j]):
+            # A row with a figure per column is a case table and is read as one (column_tables):
+            # reflowing it here glued XXIX's base-case NPV to its label and left the spot figure
+            # standing alone, so the spot case lost its NPV.
+            if quals and j < len(raw) and _RE_VAL_CELL.match(raw[j]) \
+                    and not (j + 1 < len(raw) and _RE_VAL_CELL.match(raw[j + 1])):
                 seg = _reflow(cell, quals, raw[j])
                 if tax_ctx and i - tax_at <= 8 and not _RE_AFTER.search(seg) \
                         and not _RE_PRE.search(seg):
@@ -633,6 +798,25 @@ def _tax_near(seg, start, end, val_start=None):
     return None
 
 
+_RE_COL_TAX = re.compile(r"(?i)\b(pre|after|post)[\s-]{0,2}tax\b[\s|()]{1,8}\b(pre|after|post)[\s-]{0,2}tax\b")
+
+
+def _col_tax_header(seg, pos, reach=220):
+    """1.0.10: a flattened two-column table - 'Metric Pre-Tax After-Tax Net Present Value (NPV) $464 million $344
+    million Internal Rate of Return (IRR) 168% 137%' (Voyageur). The nearest tax word before either figure is the
+    header's second column, which filed the pre-tax $464M as after-tax. Returns the columns' order, e.g.
+    ['pre', 'after'], when such a header is the last tax wording before the label, else None."""
+    head = seg[max(0, pos - reach):pos]
+    ms = list(_RE_COL_TAX.finditer(head))
+    if not ms:
+        return None
+    m = ms[-1]
+    if _RE_AFTER.search(head[m.end():]) or _RE_PRE.search(head[m.end():]):
+        return None
+    cols = ["pre" if g.lower() == "pre" else "after" for g in (m.group(1), m.group(2))]
+    return cols if cols[0] != cols[1] else None
+
+
 def _basis_near(seg, pos):
     """Tantalex states the same scenario twice in one sentence -- '$764 million and 87.4% IRR on
     a nominal basis, and a pre-tax NPV10% of approximately $638 million and 82.3% IRR on a real
@@ -669,6 +853,9 @@ def _more_precise(new, old):
     return abs(new - old) / abs(old) <= 0.06 and _sig(new) > _sig(old)
 
 
+_RE_BYPRODUCT_LEAD = re.compile(r"(?i)^\W{0,3}(?:Ag|Cu|Zn|Pb|Mo|Ni|Co|silver|copper|zinc|lead|molybdenum|nickel|cobalt)\s*[:=]")
+
+
 def _scenario_key(seg):
     """A name for the case this clause is about. A case with a NAME is a row; a row identified
     only by a percentage swing is a sweep (Justin, 2026-09-20)."""
@@ -677,6 +864,8 @@ def _scenario_key(seg):
     bits = []
     case = _RE_CASE.search(seg)
     deck = deck_in(seg)
+    if deck and _RE_BYPRODUCT_LEAD.match(seg):
+        deck = None       # 1.0.10: 'Ag: $23/oz) After-tax NPV ...' is the tail of a metal price list (Troilus), not the case
     if case:
         bits.append(" ".join(case.group(1).replace("-", " ").split()).lower())
     if deck:
@@ -724,7 +913,7 @@ def base_deck(text):
 # NOT r"\s+per\s+": the money match has already eaten the space after the figure, so a rule
 # that needs one never fires and 'US$2,400 per ounce gold' is counted as a result.
 _RE_UNIT_TAIL = re.compile(r"""(?ix)^\s*(?:/|\bper\b\s*)\s*
-    (?:oz|ounce|t|tonne|lb|pound|klb|mtu|unit|LCE)\b""")
+    (?:oz|ounce|t|tonne|lb|pound|klb|mtu|unit|LCE|kg|g|dmt|wmt)\d?\b""")
 
 
 _RE_PRICE_WORD = re.compile(r"(?i)^[^.;|]{0,26}?\bprice\b")
@@ -769,9 +958,15 @@ def _money_just_before(seg, pos, reach=48):
             v = numval(m.group("num")) * (_MULT.get(mult, 1.0) if mult else 1.0)
         except ValueError:
             continue
-        best = (v, {"C": "CAD", "CA": "CAD", "CAD": "CAD", "CDN": "CAD", "US": "USD", "USD": "USD",
+        if (not mult and v < _MIN_BARE) or v > _MAX_RESULT:
+            continue
+        best = (_signed(m, v), {"C": "CAD", "CA": "CAD", "CAD": "CAD", "CDN": "CAD", "US": "USD", "USD": "USD",
                     "A": "AUD", "AUD": "AUD"}.get(cur_raw), None, base + m.start())
     return best
+
+
+# 'Cdn$454 million after- tax NPV6%': a tax label with a stray space in it is still only a tax label
+_RE_ONLY_TAX = re.compile(_RE_ONLY_TAX.pattern.replace(r"[\s-]?tax", r"[\s-]{0,2}tax"), _RE_ONLY_TAX.flags)
 
 
 def _only_real_lists(vals, tag_at):
@@ -800,18 +995,27 @@ def _tagged_money(after, limit=220):
         mult = (m.group("mult") or "").lower()
         if not cur_raw and not mult:
             continue
+        if not m.group("cur") and (mult == "k" or _qty_after(seg, m.end())):
+            continue                      # 1.0.10: 'Tasiast 24k', '1.1 million tonnes' are not money
         try:
             v = numval(m.group("num")) * (_MULT.get(mult, 1.0) if mult else 1.0)
         except ValueError:
             continue
         if _is_unit_price(seg, m.end(), mult):
             continue                      # a price per ounce is an assumption, not a result
+        if v > _MAX_RESULT:
+            break                         # the label's figure, misprinted; not the one after it
+        if not mult and v < _MIN_BARE and m.group("cur") and _RE_SCALE_M.search(seg[max(0, m.start() - 14):m.start()]) \
+                and not re.match(r"\s*\(?\s*(?:US|C|CA|A)?\$?\s*\d", seg[m.end():m.end() + 6]):
+            v *= 1e6                      # 1.0.10: 'After Tax NPV5% USD MM $409' (one cell, not a row of columns)
+        if not mult and v < _MIN_BARE:
+            continue
         if out and _RE_CONVERSION.match(seg[out[-1][3]:m.start()]):
             continue                      # 'C$1.36 billion (US$1.01 billion)' is one figure
         tag = _RE_OPTION.search(seg[m.end():m.end() + 14])
         cur = {"C": "CAD", "CA": "CAD", "CAD": "CAD", "CDN": "CAD", "US": "USD", "USD": "USD",
                "A": "AUD", "AUD": "AUD"}.get(cur_raw)
-        out.append((v, cur, tag.group(1) if tag else None, m.start()))
+        out.append((_signed(m, v), cur, tag.group(1) if tag else None, m.start()))
         if not out[-1][2] and len(out) == 1:
             break                      # no tag on the first value means there is no list
     return _only_real_lists(out, 2)
@@ -856,7 +1060,8 @@ def _tagged_percents(after, limit=220):
 _RE_CASE_NAME = re.compile(r"(?ix)\b(base|spot|low|high|medium|consensus|upside|downside|"
                            r"current)\d?\s*(?:case|price|scenario)?\b")
 _RE_NUM_TOK = re.compile(r"""(?ix)(?<![\w.])
-    (?P<cur>US\$|C\$|CA\$|A\$|\$)?\s?(?P<num>\d[\d,]*(?:\.\d+)?)\s?(?P<suf>%|x)?(?![\w.])""")
+    (?P<neg>[-−](?=[\d$]))?(?P<cur>US\$|C\$|CA\$|A\$|\$)?\s?(?P<num>\d[\d,]*(?:\.\d+)?)
+    (?:\s?(?P<mag>M|B|million|billion)\b)?\s?(?P<suf>%|x)?(?![\w.])""")
 _RE_PAREN_PCT = re.compile(r"\(\s*\d{1,2}(?:\.\d+)?\s*%\s*\)")
 _RE_RATIO_ROW = re.compile(r"(?i)(?:NPV|IRR)\s*(?:/|per\b)|ratio|\bper\s+share\b")
 _ROW_FIELDS = (
@@ -891,7 +1096,10 @@ def _case_headers(flat):
             continue
         # the footnote digit is not part of the name: Gunnison's 'SPOT2' is the Spot column
         label = re.sub(r"^([a-z]+)\d", r"\1", raw.lower())
-        deck = _RE_DECK.search(flat[max(0, m.start() - 26):m.start()])
+        win = flat[max(0, m.start() - 26):m.start()]
+        deck = _RE_DECK.search(win)
+        if deck and not re.fullmatch(r"[\s|]*", win[deck.end():]):
+            deck = None      # the price has to head this column, not end the sentence before it
         cur.append((label + " " + " ".join(deck.group(0).split())).strip() if deck else label)
         end = m.end()
     if len(cur) >= 2:
@@ -913,7 +1121,27 @@ def column_tables(text):
         rows = column_table(names, flat[end:end + 1100])
         if rows:
             out.append(rows)
+    # A table whose two columns are the TAX BASES of one scenario: Northcliff heads its results
+    # 'Pre-Tax | Post-Tax' and writes 'Net Present Value (8%) | $ 12,290 M | $ 6,915 M'. Read as a
+    # stranded label, the pre-tax C$12.29 billion became an after-tax figure on a scenario of its own.
+    for m in _RE_TAX_HEADER.finditer(flat):
+        rows = column_table(["pre", "post"], flat[m.end():m.end() + 900])
+        if not rows:
+            continue
+        pre, post = rows
+        one = {"scenario": "base case", "currency": post["currency"] or pre["currency"],
+               "discount_pct": post["discount_pct"] or pre["discount_pct"],
+               "npv_pre_tax": pre["npv_after_tax"] if pre["npv_pre_tax"] is None else pre["npv_pre_tax"],
+               "npv_after_tax": post["npv_after_tax"],
+               "irr_pre_tax_pct": pre["irr_after_tax_pct"] if pre["irr_pre_tax_pct"] is None else pre["irr_pre_tax_pct"],
+               "irr_after_tax_pct": post["irr_after_tax_pct"],
+               "payback_years": post["payback_years"]}
+        if one["npv_after_tax"] is not None:
+            out.append([one])
     return out
+
+
+_RE_TAX_HEADER = re.compile(r"(?i)\bpre[\s-]{0,2}tax\s*\|\s*(?:post|after)[\s-]{0,2}tax\s*\|")
 
 
 def column_table(names, body):
@@ -952,7 +1180,16 @@ def column_table(names, body):
         if len(run) != n or len(label) > 160:
             pos = run[-1].end()
             continue
-        field = next((f for rx, f in _ROW_FIELDS if rx.search(label)), None)
+        # The metric is named by the row's own label cell, the last worded cell before its figures
+        # that is not a unit. The label as a whole can run back over a row that did not parse:
+        # XXIX's 'Payback | years | 2.3 | 1.8' is reflowed to 'Payback 2.3 years | 1.8', neither
+        # half is a full row, and 'LOM Annual Cash Flow' two cells on was being read as payback --
+        # 67.7 and 108.5 years.
+        cells = [c for c in label.split("|") if _RE_HAS_ALPHA.search(c) and not _RE_MAG_CELL.match(c)]
+        key_cell = cells[-1] if cells else label
+        field = next((f for rx, f in _ROW_FIELDS if rx.search(key_cell)), None)
+        if field == "npv" and re.search(r"(?i)NPV\s*(?:@|at)?\s*\(?\s*0(?:\.0+)?\s*%|undiscounted", key_cell):
+            field = None     # undiscounted: a cash flow, not a net present value
         if field is not None and _RE_RATIO_ROW.search(label):
             field = None     # 'After-Tax NPV/Initial Capex 1.1 1.7 2.3 3.2' is a ratio, not an NPV
         if field is None:
@@ -972,10 +1209,19 @@ def column_table(names, body):
                 v = numval(tk.group("num"))
             except ValueError:
                 continue
+            if tk.group("neg") and field == "npv":
+                v = -v
+            # Northcliff's '$ 12,290 M  $ 6,915 M' carries its magnitude on each figure
+            tmag = (tk.group("mag") or "").lower()
+            tmult = {"m": 1e6, "million": 1e6, "b": 1e9, "billion": 1e9}.get(tmag)
             if field == "npv":
                 mk = tk.group("cur")
                 key = "npv_pre_tax" if tax == "pre" else "npv_after_tax"
-                if r[key] is None:
+                # RPX's summary table writes '$523  $935' with no magnitude anywhere on the row: a
+                # figure the row does not scale is left to the prose, which states it in millions
+                if r[key] is None and tmult:
+                    r[key] = v * tmult
+                elif r[key] is None and not (mult == 1.0 and abs(v) < _MIN_BARE):
                     r[key] = v * mult
                 r["currency"] = r["currency"] or cur or (
                     {"US$": "USD", "C$": "CAD", "CA$": "CAD", "A$": "AUD"}.get(mk or ""))
@@ -985,10 +1231,14 @@ def column_table(names, body):
                 if r[key] is None:
                     r[key] = v
             elif field == "payback":
-                if r["payback_years"] is None or tax != "pre":
-                    r["payback_years"] = v / 12.0 if re.search(r"(?i)month", label) else v
+                y = v / 12.0 if re.search(r"(?i)month", key_cell) else v
+                if y <= _MAX_PAYBACK and (r["payback_years"] is None or tax != "pre"):
+                    r["payback_years"] = y
         got = True
         pos = label_start = run[-1].end()
+    # a case table whose net present values could not be read is left to the prose
+    if not any(r["npv_after_tax"] is not None or r["npv_pre_tax"] is not None for r in rows):
+        return None
     return rows if got else None
 
 
@@ -1051,6 +1301,11 @@ def _merge_scenarios(order, rows):
 _FIG_FIELDS = ("npv_after_tax", "npv_pre_tax", "irr_after_tax_pct", "irr_pre_tax_pct")
 # a clause that carries on the sentence before it rather than starting a new one
 _RE_CONTINUES = re.compile(r"""^\s*(?:[\d(\[)\]"'\u201c\u201d\u2019,;:%$]|[a-z]|US\$|C\$|CA\$|A\$)""")
+
+
+# ...and a clause that opens with a unit is still the sentence before it: Cascadia breaks 'US$3.75'
+# from '/lb copper', and the price was read as the NPV
+_RE_CONTINUES = re.compile(_RE_CONTINUES.pattern.replace("%$]", "%$/]"))
 
 
 def _same_scenario(a, b):
@@ -1136,6 +1391,44 @@ _RE_FROM_TO_YEARS = re.compile(r"(?ix)^[^.;]{0,30}?\bfrom\s+\d{1,3}(?:\.\d+)?\s*
                                r"(?P<to>to)\s+\d")
 
 
+# no study pays back after a quarter of a century; a bigger figure is some other row's
+_MAX_PAYBACK = 25
+
+# Thor writes 'an anticipated payback of nine months'. Only a number word directly before a year or
+# month unit is turned into digits, and the text keeps its length so offsets still line up.
+_NUM_WORDS = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8,
+              "nine": 9, "ten": 10, "eleven": 11, "twelve": 12, "eighteen": 18, "twenty-four": 24}
+# QGold's "a sub-two-year payback" is a boast, not a figure, and is left as words
+_RE_NUM_WORD_UNIT = re.compile(r"(?i)(?<!sub-)\b(" + "|".join(sorted(_NUM_WORDS, key=len, reverse=True)) +
+                               r")(?=[\s-]+(?:years?|months?)\b)")
+
+
+def _num_words(text):
+    return _RE_NUM_WORD_UNIT.sub(lambda m: str(_NUM_WORDS[m.group(1).lower()]).ljust(len(m.group(1))), text)
+
+
+# Abasca's table writes 'After-Tax Simple Payback Year 4.7': the unit is the row's label, directly
+# after the word payback. Only that adjacent shape is read -- 'Peak Production ... in Year 6' is not
+# a payback, and nothing here reaches it.
+_RE_PAY_YEAR_CELL = re.compile(r"(?i)^\s*(?:period\s*)?\(?\s*(?:years?|yrs?)\s*\)?\s*[:=]?\s*(?P<num>\d{1,2}(?:\.\d+)?)\b(?!\s*%)")
+# a label with nothing after it but punctuation: its value is the next line
+_RE_PAY_BARE = re.compile(r"(?i)\bpay[\s-]?back\b(?:\s+period)?(?:\s*\((?:after|post|pre)[\s-]?tax\))?\s*(?:within|of|is|:|=|-)?\s*$")
+_RE_YEARS_LEAD = re.compile(r"(?i)^\s*(?:approximately\s+|about\s+|~\s*)?\d{1,3}(?:\.\d+)?[\s-]*(?:years?|yrs?|months?)\b")
+
+
+def _pay_joined(segs):
+    """Each clause, with a bare payback label joined to the figure on the next line. Scottie writes
+    'After-tax payback period:' and then '1.7 years (standalone DSO case ...)' on a line of its own;
+    Sage writes 'rapid investment payback within' and '5 years' on the next."""
+    out = []
+    for i, seg in enumerate(segs):
+        if i + 1 < len(segs) and _RE_PAY_BARE.search(seg) and _RE_YEARS_LEAD.match(_num_words(segs[i + 1])):
+            out.append(seg + " " + segs[i + 1])
+        else:
+            out.append(seg)
+    return out
+
+
 def _apply_payback(seg, rows, order, key0=""):
     """The payback figures in a clause, filed onto every row the clause is about.
 
@@ -1144,6 +1437,7 @@ def _apply_payback(seg, rows, order, key0=""):
     two different measures and the page shows the project's. Smackover states both tax bases --
     'Payback Period (Pre-Tax) years 3.0 Payback Period (After-Tax) years 3.1' -- and the
     after-tax one is the one that happened."""
+    seg = _num_words(seg)
     for pm in _RE_PAY_AT.finditer(seg):
         after = seg[pm.end():pm.end() + 70]
         if _RE_PAY_OF_CAPITAL.match(after):
@@ -1158,6 +1452,8 @@ def _apply_payback(seg, rows, order, key0=""):
         if adj is not None:
             v = float(adj.group("num"))
             y = round(v / 12.0, 2) if adj.group("unit").lower().startswith(("month", "mth")) else v
+            if y > _MAX_PAYBACK:
+                continue
             pre = _tax_near(seg, pm.start(), pm.end()) == "pre"
             for k in order:
                 if key0 and not k[0].startswith(key0):
@@ -1173,7 +1469,10 @@ def _apply_payback(seg, rows, order, key0=""):
             after = after[ft.start("to"):]
         ym = _RE_YEARS.search(after) or _RE_YEARS_REV.search(after)
         y = years(after)
-        if y is None or ym is None:
+        yc = _RE_PAY_YEAR_CELL.match(after)
+        if yc and (ym is None or ym.start() > yc.start("num")):
+            ym, y = yc, float(yc.group("num"))
+        if y is None or ym is None or y > _MAX_PAYBACK:
             continue
         # the basis is written inside the label, after the word: 'Payback Period (After-Tax)'
         pre = _tax_near(seg, pm.start(), pm.end(), pm.end() + ym.start()) == "pre"
@@ -1192,6 +1491,55 @@ _RE_PRIOR_REPORTED = re.compile(r"""(?ix)\b(?:previous|prior|earlier|former|orig
       (?:19|20)\d\d)\s+(?:[\w-]+\s+){0,3}?(?:PEA|PFS|DFS|BFS|FS|feasibility\s+study|study|assessment)\b
     [^.]{0,40}?\b(?:which|that)\s+(?:reported|had|showed|estimated|outlined|demonstrated|returned|
       generated|delivered|indicated)\b""")
+
+
+# 'a US$0.25/lb increase in copper price increased the after-tax NPV by approximately US$90 million'
+# -- Copper Fox describing a sensitivity. The figure is a change, and the price is a change too.
+_RE_NPV_DELTA = re.compile(r"(?i)^\s*(?:\(\s*\d{1,2}\s*%?\s*\)\s*)?by\b")
+
+
+# 'NPV @0% Discount rate (millions, after tax) $71 M' is Desert Gold's undiscounted cash flow, not a
+# net present value of anything, and read as one it became a third base case
+_RE_NPV_ZERO = re.compile(r"(?i)^\s*(?:@|at)?\s*\(?\s*0(?:\.0+)?\s*%")
+
+
+_RE_TAX_LEAD = re.compile(r"(?i)(?:\b(?:and|with|an?|the|of)\s+)*(?:(?:after|post|pre)[\s-]{0,2}tax\s*)?$")
+
+
+def _split_cases(segs):
+    """One clause stating two scenarios becomes two clauses.
+
+    RPX writes 'After-tax NPV5% C$523 million and after-tax IRR of 99.7% at a base case gold price
+    of US$3,500/ounce and an after-tax NPV5% of C$935 million and IRR of 181% at an upside gold price
+    of US$4,550/ounce' -- one clause, so both NPVs were filed under the first price and the second
+    was dropped as a duplicate. Split only where each NPV carries its own figure after it and each
+    part names a different case or price; otherwise the clause is left whole."""
+    out = []
+    for seg in segs:
+        ms = list(_RE_NPV_AT.finditer(seg))
+        if len(ms) < 2:
+            out.append(seg)
+            continue
+        cuts = []
+        for m in ms[1:]:
+            if _money_just_before(seg, m.start()) or not _tagged_money(seg[m.end():m.end() + 80]):
+                cuts = []
+                break
+            lead = _RE_TAX_LEAD.search(seg[:m.start()])
+            cuts.append(lead.start() if lead else m.start())
+        parts = [seg[a:b] for a, b in zip([0] + cuts, cuts + [len(seg)])] if cuts else [seg]
+        keys = [_scenario_key(p_) for p_ in parts]
+        if len(parts) > 1 and None not in keys and len(set(keys)) == len(keys) \
+                and all(_tagged_money(p_[_RE_NPV_AT.search(p_).end():]) or _money_just_before(p_, _RE_NPV_AT.search(p_).start())
+                        for p_ in parts if _RE_NPV_AT.search(p_)):
+            out.extend(parts)
+        else:
+            out.append(seg)
+    return out
+
+
+_RE_CHANGE_TO = re.compile(r"(?i)\b(?:increas|ris|grow|improv|climb|jump|ris)\w*\s+to\s*$")
+_RE_AT_PRICE = re.compile(r"(?i)^[\s,/]*(?:at|using|with)\b[^.;]{0,30}$")
 
 
 def scenarios(text, skip_prior=False):
@@ -1225,7 +1573,7 @@ def scenarios(text, skip_prior=False):
         if figs:
             _done.update(sg for sg in segments(text) if any(f in sg for f in figs))
 
-    segs = segments(text)
+    segs = _split_cases(segments(text))
     stranded = []
     for i, seg in enumerate(segs):
         if seg in _done:
@@ -1272,6 +1620,8 @@ def scenarios(text, skip_prior=False):
         for m in _RE_NPV_AT.finditer(seg):
             if skip_prior and _RE_PRIOR_REPORTED.search(seg[max(0, m.start() - 160):m.start()]):
                 continue
+            if _RE_NPV_DELTA.match(seg[m.end():m.end() + 30]) or _RE_NPV_ZERO.match(seg[m.end():m.end() + 14]):
+                continue
             back = _money_just_before(seg, m.start())
             vals = [back[:3] + (back[3] - m.end(),)] if back else _tagged_money(seg[m.end():])
             look = seg
@@ -1284,20 +1634,70 @@ def scenarios(text, skip_prior=False):
                 if _scenario_key(" ".join(segs[max(0, i - 1):i + 4])) is None:
                     continue
                 look, vals = tail, _tagged_money(tail[m.end():])
+                if not vals and i > 0 and _RE_ONLY_TAX.match(seg[:m.start()]) \
+                        and _RE_HAS_ALPHA.search(re.sub(r"(?i)\b(?:million|billion|US|CAD|USD)\b", "", segs[i - 1])):
+                    # the figure written first and the label on the next line: Cascadia's 'with a
+                    # $230.4 M' then 'post-tax NPV', with nothing after the label but its rate and the
+                    # IRR. Only from a line of words -- a bare '$71 M' cell is the row above's value
+                    prev = segs[i - 1]
+                    b2 = _money_just_before(prev + " " + seg, len(prev) + 1 + m.start())
+                    if b2:
+                        look, vals = seg, [b2[:3] + (None,)]
                 named = _scenario_key(sentence)
                 if named and named != "base case":
                     key0 = named
                 stranded.append((sentence, key0))
             if not vals:
                 continue
+            # Omai: '$4.0 billion after-tax net present value at a 5% discount rate at base case
+            # $3,600/oz gold, increasing to $5.5 billion at $4,200/oz gold'. The figure after
+            # 'increasing to' is the NPV at the price that follows it, not at the base case, which
+            # was published at $5.5 billion. That figure goes to its own price's row, and this label
+            # keeps the one written before it.
+            moved = None
+            if not back and len(vals) == 1 and vals[0][3] is not None:
+                vstart = m.end() + vals[0][3]
+                if _RE_CHANGE_TO.search(look[m.end():vstart]):
+                    vm = _RE_MONEY.match(look, vstart)
+                    rest = (look[vm.end():] if vm else "") + " " + " ".join(segs[i + 1:j])
+                    d2 = deck_in(rest[:60])
+                    if d2 and _RE_AT_PRICE.match(rest[:d2.start()]):
+                        moved = (" ".join(d2.group(0).split()), vals[0])
+                        prev = segs[i - 1] if i > 0 else ""
+                        b2 = _money_just_before(prev + " " + seg, len(prev) + 1 + m.start()) \
+                            if prev and _RE_ONLY_TAX.match(seg[:m.start()]) else None
+                        vals = [b2[:3] + (None,)] if b2 else []
+            if moved:
+                r2 = row_for((moved[0], _basis_near(look, None)))
+                fld2 = "npv_pre_tax" if _tax_near(look, m.start(), m.end()) == "pre" else "npv_after_tax"
+                if r2[fld2] is None:
+                    r2[fld2] = moved[1][0]
+                r2["currency"] = r2["currency"] or moved[1][1]
+                r2["discount_pct"] = r2["discount_pct"] or discount_of(look[max(0, m.start() - 20):m.end() + 60])
+            if not vals:
+                continue
             disc = discount_of(look[max(0, m.start() - 20):m.end() + 60])
             if widened:
                 stranded.append((widened, key0))
-            for item in vals:
+            colh = None
+            if not back and len(vals) == 1 and not vals[0][2] and vals[0][3] is not None and _col_tax_header(look, m.start()):
+                # 1.0.10: the second column's figure right after the first ('$464 million $344 million')
+                v0m = _RE_MONEY.match(look, m.end() + vals[0][3])
+                gap_ = re.match(r"\s*[|]?\s*(?=US\$|C\$|CA\$|A\$|\$)", look[v0m.end():v0m.end() + 8]) if v0m else None
+                v1m = _RE_MONEY.match(look, v0m.end() + gap_.end()) if gap_ else None
+                if v1m and (v1m.group("mult") or "").lower():
+                    try:
+                        v1 = numval(v1m.group("num")) * _MULT.get(v1m.group("mult").lower(), 1.0)
+                        vals = [vals[0], (_signed(v1m, v1), vals[0][1], None, v1m.start() - m.end())]
+                    except ValueError:
+                        pass
+            if not back and len(vals) == 2 and not any(x[2] for x in vals):
+                colh = _col_tax_header(look, m.start())
+            for vi, item in enumerate(vals):
                 v, cur, tag = item[0], item[1], item[2]
                 off = item[3] if len(item) > 3 else None
                 at = None if off is None else m.end() + off
-                tax = _tax_near(look, m.start(), m.end(), at if at and at > m.end() else None)
+                tax = colh[vi] if colh else _tax_near(look, m.start(), m.end(), at if at and at > m.end() else None)
                 r = row_for((key0 + (" " + tag if tag else ""), _basis_near(look, at)))
                 fld = "npv_pre_tax" if tax == "pre" else "npv_after_tax"
                 if r[fld] is None or _more_precise(v, r[fld]):
@@ -1306,11 +1706,20 @@ def scenarios(text, skip_prior=False):
                 r["discount_pct"] = r["discount_pct"] or disc
         for m in _RE_IRR_AT.finditer(seg):
             pb = _pct_just_before(seg, m.start())
-            for item in ([pb] if pb else _tagged_percents(seg[m.end():])):
+            items_ = [pb] if pb else _tagged_percents(seg[m.end():])
+            if not pb and len(items_) == 1 and not items_[0][1] and _col_tax_header(seg, m.start(), 400):
+                # 1.0.10: the second column's rate right after the first ('IRR 168% 137%', Voyageur)
+                at0 = m.end() + items_[0][2]
+                p1 = re.match(r"\d{1,3}(?:\.\d+)?\s*%", seg[at0:])
+                p2 = re.match(r"\s*[|]?\s*(\d{1,3}(?:\.\d+)?)\s*%", seg[at0 + p1.end():]) if p1 else None
+                if p2:
+                    items_ = [items_[0], (float(p2.group(1)), None, items_[0][2] + p1.end() + p2.start(1))]
+            colh = _col_tax_header(seg, m.start(), 400) if not pb and len(items_) == 2 and not any(x[1] for x in items_) else None
+            for vi, item in enumerate(items_):
                 v, tag = item[0], item[1]
                 off = item[2] if len(item) > 2 else None
                 at = m.start() - 6 if off is None else m.end() + off
-                tax = _tax_near(seg, m.start(), m.end(), at if at > m.end() else None)
+                tax = colh[vi] if colh else _tax_near(seg, m.start(), m.end(), at if at > m.end() else None)
                 fld = "irr_pre_tax_pct" if tax == "pre" else "irr_after_tax_pct"
                 r = row_for((key0 + (" " + tag if tag else ""), _basis_near(seg, at)))
                 if r[fld] is None:
@@ -1335,26 +1744,6 @@ def scenarios(text, skip_prior=False):
                 if r[fld] is None:
                     r[fld] = item[0]
         _apply_payback(sentence, rows, mine)
-
-    # An IRR or a payback often sits in its own clause, away from the NPV it belongs to: Lomiko
-    # and ESGold both put every figure on its own bullet. Attach those afterwards, by tax basis,
-    # and only when there is no ambiguity about which scenario is meant.
-    if len(order) == 1:
-        r = rows[order[0]]
-        for seg in segments(text):
-            if _RE_NPV_AT.search(seg):
-                continue
-            for m in _RE_IRR_AT.finditer(seg):
-                for v, _tag, off in _tagged_percents(seg[m.end():], limit=60):
-                    tax = _tax_near(seg, m.start(), m.end(), m.end() + off)
-                    fld = "irr_pre_tax_pct" if tax == "pre" else "irr_after_tax_pct"
-                    if r[fld] is None:
-                        r[fld] = v
-            _apply_payback(seg, rows, order)
-            if r["discount_pct"] is None:
-                d = discount_of(seg)
-                if d is not None:
-                    r["discount_pct"] = d
 
     # A release states its discount rate once and every NPV in it is on that rate. West Red Lake
     # writes 'all net present values are stated at a 5% discount rate' in a sentence that states
@@ -1389,6 +1778,33 @@ def scenarios(text, skip_prior=False):
             for k in plain:
                 rows[k]["scenario"] = "base case " + deck
     out = _consolidate(_merge_scenarios(order, rows))
+    # An IRR or a payback often sits in its own clause, away from the NPV it belongs to: Lomiko
+    # and ESGold both put every figure on its own bullet. Attach those afterwards, by tax basis,
+    # and only when there is no ambiguity about which scenario is meant. Counted after the rows
+    # that are one scenario written twice have been merged: West Red Lake headlines '$315M
+    # After-Tax NPV' and states the same $315 million at US$2,200 per oz in its highlights, which is
+    # one scenario, and its '255%' IRR sits in a table row of its own.
+    if len(out) == 1:
+        r = out[0]
+        one = {0: r}
+        for seg in _pay_joined(segments(text)):
+            if _RE_NPV_AT.search(seg):
+                # a clause a table already read is skipped above, payback and all: Northcliff's
+                # '...49.8% and a 1.6-year payback' sits in the clause its table figures came from
+                if seg in _done:
+                    _apply_payback(seg, one, [0])
+                continue
+            for m in _RE_IRR_AT.finditer(seg):
+                for v, _tag, off in _tagged_percents(seg[m.end():], limit=60):
+                    tax = _tax_near(seg, m.start(), m.end(), m.end() + off)
+                    fld = "irr_pre_tax_pct" if tax == "pre" else "irr_after_tax_pct"
+                    if r[fld] is None:
+                        r[fld] = v
+            _apply_payback(seg, one, [0])
+            if r["discount_pct"] is None:
+                d = discount_of(seg)
+                if d is not None:
+                    r["discount_pct"] = d
     for r in out:
         r.pop("_pay_pre", None)
     return out
@@ -1400,7 +1816,7 @@ def scenarios(text, skip_prior=False):
 # they are read once per release and copied onto every scenario.
 _RE_CAPEX = re.compile(r"""(?ix)
     (?: (?:initial|upfront|pre[\s-]?production|development|start[\s-]?up|construction)
-        \s+ cap(?:ital|ex) (?:\s+ (?:cost|expenditure|requirement))? s?
+        (?:\s*\|)? \s+ (?:project \s+ (?:\|\s*)?)? cap(?:ital|ex) (?:\s+ (?:cost|expenditure|requirement))? s?
       | cap(?:ital|ex) \s+ cost s? (?!\s+ per)
       | initial \s+ investment )""")
 _RE_SUSTAIN = re.compile(r"(?i)\bsustaining\b")
@@ -1411,23 +1827,126 @@ _RE_AISC = re.compile(r"(?ix)\bAISC\b|all[\s-]in\s+sustaining\s+cost s?")
 _RE_LOM = re.compile(r"""(?ix)
     (?: (?:mine|project) \s+ life | life \s+ of \s+ (?:mine|the\s+mine|project) | \bLOM\b )""")
 _RE_TPD = re.compile(r"""(?ix)
-    (?P<num>\d[\d,]*(?:\.\d+)?) \s*
-    (?: tpd | t/d | tonnes? \s+ per \s+ day | t \s+ per \s+ day )\b""")
+    (?<![\d.,])(?P<num>\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?) \s*
+    (?: tpd | t/d | tonnes? [\s-]+ per [\s-]+ day | t \s+ per \s+ day | tons? [\s-]+ per [\s-]+ day )\b""")   # 1.0.14b: '750 tonne-per-day' 
+# 1.0.14: 'million' and 'thousand' written out ('54 million tonnes per annum') are magnitudes too
 _RE_TPA = re.compile(r"""(?ix)
-    (?P<num>\d[\d,]*(?:\.\d+)?) \s* (?P<mag>M|k)? \s*
-    (?: tpa | t/(?:a|y|yr) | tonnes? \s+ per \s+ (?:annum|year) )\b""")
+    (?<![\d.,])(?P<num>\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?) \s* (?P<mag>million|thousand|M|k)? \s*
+    (?: tpa | t/(?:a|y|yr) | tonnes? \s+ per \s+ (?:annum|year) | tons? \s+ per \s+ (?:annum|year) )\b""")
+# 1.0.14 (FIX8, 2026-10-06): a throughput is ore through a plant. Without these checks a product's output was read as
+# the mill's: Leading Edge's '248tpa Dysprosium' oxide became a 0.7 t/d mill, Energy Fuels' 1,000 tpa of NdPr 2.7 t/d,
+# E3's '100 tonnes per year of lithium carbonate' 0.3 t/d; and a mining rate (waste included) as the processing rate:
+# Champion's '81.0 Mtpa' peak mining rate became 221,918 t/d.
+_RE_TP_PRODUCT = re.compile(r"""(?ix)^[\s()"“”,]*(?:\(?\s*["“]?\s*(?:tp[ad]|Mtpa)\s*["”]?\s*\)\s*)?(?:of\s+)?
+    (?:[A-Za-z-]+\s+){0,2}?(?:oxides?|carbonate|hydroxide|LCE|concentrates?|NdFeB|NdPr|magnets?|alloys?|metals?|cathodes?|
+    sulphate|sulfate|Dy|Tb|dysprosium|terbium|spodumene|anode|graphite|salt|potash|products?|HPMO|HPMSM|pellets?|
+    briquettes?|SOP|fertili[sz]er|steel|ingots?|powder)\b""")
+_RE_TP_ORE = re.compile(r"(?i)\b(?:process\w*|mill(?:s|ed|ing)?|plant|throughput|concentrator|feed|treat\w*|leach\w*|ores?|nameplate|"
+                        r"crush\w*|flotation|CIL|CIP|heap)\b")
+# 1.0.14b: the plant named right after the figure: Defense Metals' '1.8 Mtpa ("million tonnes per year") mill throughput',
+# Leading Edge's '15 Mtpa of plant feed'
+_RE_TP_ORE_AFTER = re.compile(r"(?i)^\s*(?:\([^()]{0,40}\)\s*)?(?:of\s+)?(?:(?:ore|plant|mill)\s+)?(?:mill\w*|plant|process\w*|throughput|ore|feed|concentrator)\b")
+_RE_TP_MINING = re.compile(r"(?i)\b(?:mining\s+rates?|material\s+mov\w+|total\s+material|waste|strip\w*|mined|mining\s+of)\b")
+# 1.0.14 (FIX8): annual production is the figure the label states, in a unit. The old pattern let any twenty characters
+# sit between the label and the number, so 'average annual gold production in the first 5 years' was stored as 5,
+# 'annual production over an initial 9.4-year mine life' as 9.4, 'average annual gold production, and $1.8 billion
+# after-tax NPV' as 1.8 billion; and a magnitude or unit without a word boundary read Northcliff's '598,000 MTU' as 598
+# billion tonnes and '750 metric tons' as 750 million. Only linking words now sit between label and figure; money,
+# years and percentages are never the figure; magnitude and unit are whole words; a figure without a unit is dropped.
+_PROD_WORD = (r"(?:gold|silver|copper|lithium|nickel|zinc|lead|uranium|molybdenum|cobalt|tungsten|antimony|graphite|"
+              r"vanadium|LCE|payable|metals?|mine|mill|recovered|AuEq|AgEq|CuEq|ZnEq|GEOs?|equivalent|eq\.?|"
+              r"U3O8|U₃O₈|WO3|concentrate|Au|Ag|Cu)")
+_PROD_UNIT = (r"(?P<unit>koz|Moz|ozs|oz|ounces?|Mlbs?|klbs?|lbs?|pounds?|kt|Mt|tonnes?|metric\s+tonnes?|metric\s+tons?|"
+              r"tons?|t|MTU|wmt|dmt)\b")
+# 1.0.14b (FIX8, 2026-10-06): a tonnage of ore, rock or mill feed is a mining or processing rate, never a year's production:
+# Azarga's 'annual production rate of 2 million tonnes of ore per year'
+_PROD_NOT_ORE = r"(?!\s*(?:of\s+)?(?:ore|mineraliz\w*|mineralis\w*|material|rock|feed|mill\s+feed|waste)\b)"
+_PROD_NUM = r"(?<![\d.,$])(?P<num>\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)"
+# 1.0.14b: the magnitude is optional AS A WHOLE WORD. '(?P<mag>...)?(?![a-z])' also refused a figure glued to its unit
+# ('207koz', '16,000oz', '217,700t', '~100kt'), so those releases lost their production
+_PROD_MAG = r"(?:(?P<mag>million|billion|thousand|mm|M|k)(?![a-z]))?"
 _RE_PROD = re.compile(r"""(?ix)
-    (?: average \s+ )? (?: annual | yearly | per[\s-]annum | LOM \s+ average ) \s+
-    (?: (?:gold|silver|copper|lithium|nickel|zinc|LCE|payable|metal|mine|mill)? \s* )*
-    production (?:\s+ of)? \D{0,20}
-    (?P<num>\d[\d,]*(?:\.\d+)?) \s* (?P<mag>million|billion|thousand|M|k)? \s*
-    (?P<unit>oz|ounces?|t|tonnes?|lbs?|pounds?|klbs?|Mlbs?)?""")
+    (?: average \s+ )? (?: annual | yearly | per[\s-]annum | LOM \s+ average | LOM \s+ annual ) \s+
+    (?: """ + _PROD_WORD + r""" [\s-]+ )*
+    production (?: \s+ (?:rate|profile|capacity|levels?) )?
+    (?: \s* \( [^()]{0,40} \) )?
+    (?: \s* (?: : | = | \| | – | — | of | is | was | will \s+ be | (?:is\s+|are\s+)?(?:expected|projected|estimated|forecast)
+              \s+ (?:to \s+ be|at) | averag\w* | totall?ing | approximately | approx\.? | about | ~ | up \s+ to | more \s+ than
+              | over | above | in \s+ excess \s+ of | nearly | almost | approaching | roughly | around | to | between ) )*
+    \s* """ + _PROD_NUM + r"""
+    (?: \s* (?:-|–|to|and) \s* (?P<num2>\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?) )?
+    (?! [\s-]* (?:years?|yrs?)\b | \s*% )
+    (?: \s* \| \s* (?: \[\d{1,2}\] \s* \| \s* )? )?
+    \s* """ + _PROD_MAG + r"""
+    \s* (?: """ + _PROD_WORD + r""" [\s-]+ )*
+    """ + _PROD_UNIT + _PROD_NOT_ORE)
+# the figure written before the label: '235 koz of average annual gold production', '17.4 Moz AgEq annual production'
+_RE_PROD_BEFORE = re.compile(r"""(?ix)
+    """ + _PROD_NUM + r""" \s* """ + _PROD_MAG + r""" \s* (?: """ + _PROD_WORD + r""" [\s-]+ )* """ + _PROD_UNIT + r"""
+    \s* (?: (?: """ + _PROD_WORD + r""" ) [\s-]+ )* (?: of \s+ )? (?: average \s+ )? (?: annual | yearly ) \s+
+    (?: """ + _PROD_WORD + r""" [\s-]+ )* production\b""")
+# 1.0.14b: an ounce or pound figure 'per year' with no label: Revival's 'an average of 95,600 ounces of gold per year',
+# Kore's '146,000 ounces gold per year', Montage's '207koz/year'. Ounces and pounds only: a tonnage per year is as often
+# ore through the mill as metal out of it. Read last, after both labelled forms.
+_RE_PROD_PER_YEAR = re.compile(r"""(?ix)
+    """ + _PROD_NUM + r""" \s* """ + _PROD_MAG + r""" \s* (?: """ + _PROD_WORD + r""" [\s-]+ )*
+    (?P<unit>koz|Moz|ozs|oz|ounces?|Mlbs?|klbs?|lbs?|pounds?)\b
+    \s* (?: of \s+ )? (?: (?: """ + _PROD_WORD + r""" ) [\s-]* )* (?: \([^()]{0,12}\) \s* )?
+    (?: per \s+ (?:year|annum) | / \s? (?:year|yr|annum) | annually | a \s+ year | each \s+ year )\b""")
+_RE_PROD_NOT_OUTPUT = re.compile(r"(?i)\b(?:royalt\w*|stream\w*|deliver\w*|purchas\w*|offtake|sell\w*|sold|hedg\w*|forward)\b")
+_PROD_UNIT_SCALE = {"koz": ("oz", 1e3), "moz": ("oz", 1e6), "oz": ("oz", 1), "ozs": ("oz", 1), "ounce": ("oz", 1), "ounces": ("oz", 1),
+                    "mlb": ("lb", 1e6), "mlbs": ("lb", 1e6), "klb": ("lb", 1e3), "klbs": ("lb", 1e3), "lb": ("lb", 1),
+                    "lbs": ("lb", 1), "pound": ("lb", 1), "pounds": ("lb", 1), "kt": ("t", 1e3), "mt": ("t", 1e6),
+                    "t": ("t", 1), "tonne": ("t", 1), "tonnes": ("t", 1), "ton": ("t", 1), "tons": ("t", 1),
+                    "wmt": ("t", 1), "dmt": ("t", 1), "mtu": ("mtu", 1)}
+# what a year's production can be, by unit: outside these it is a misread, not a mine
+_PROD_BOUNDS = {"oz": (500.0, 6e7), "lb": (1e4, 3e9), "t": (1.0, 3e8), "mtu": (1e3, 1e7)}
+
+
+def _production(m):
+    """(value, unit) from a production match, or (None, None) when it cannot be a year's production."""
+    try:
+        v = float(m.group("num").replace(",", ""))
+        if m.groupdict().get("num2"):
+            v = (v + float(m.group("num2").replace(",", ""))) / 2.0   # '70,000 to 75,000 ounces': the middle
+    except ValueError:
+        return None, None
+    u = re.sub(r"\s+", " ", (m.group("unit") or "").lower())
+    u = {"metric tonne": "t", "metric tonnes": "t", "metric ton": "t", "metric tons": "t"}.get(u, u)
+    unit, scale = _PROD_UNIT_SCALE.get(u, (None, 1))
+    if unit is None:
+        return None, None
+    v *= scale * _MULT.get((m.group("mag") or "").lower(), 1.0)
+    lo, hi = _PROD_BOUNDS[unit]
+    if not lo <= v <= hi:
+        return None, None
+    return v, unit
+
+
 # a unit cost is written '/oz', 'per tonne', '$/t LCE' -- the number alone is meaningless
+# 1.0.14 (FIX8, 2026-10-06): the number is a whole number. '[\d,]*' let a footnote digit and its comma be the figure --
+# Endeavour's 'Total Cash Cost1, $/oz 1,593' was stored as an operating cost of $1/oz -- and a figure glued to a word is a
+# footnote ('Cost1'). A table that puts the unit in a header cell ('$/oz 1,516', '$/oz (1.51)') is read from the header;
+# 'negative $121/lb' and a bracketed figure keep their sign; the commodity after the unit is named one way ('/lb Mo').
+_UC_OF = (r"Au|Ag|Cu|Li|LCE|Ni|Zn|Pb|Mo|Co|U3O8|U₃O₈|eU3O8|WO3|AuEq|AgEq|CuEq|GEO|gold|silver|copper|"
+          r"lithium(?:\s+carbonate(?:\s+equivalent)?)?|nickel|zinc|molybdenum|uranium|cobalt|concentrate")
+_UC_NUM = r"(?P<num>\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)"
+# 1.0.14b (FIX8, 2026-10-06): '$US892/oz', 'US $10.23', 'USD $6,807' are currencies too; 'per ton' and '/ton' are tonnes;
+# 'per tr oz' is an ounce; and a footnote digit on the UNIT ('$925/oz1', '$18.39 per pound2', '$5,618 per tonne3') is not
+# part of it. Each of these lost a stated cost.
 _RE_UNIT_COST = re.compile(r"""(?ix)
-    (?P<cur>US\$|C\$|CA\$|A\$|\$)? \s* (?P<num>\d[\d,]*(?:\.\d+)?) \s*
-    (?: (?:/|\s+per\s+) (?P<unit>oz|ounce|t|tonne|lb|pound|klb|Mlb|LCE|unit)
-      | \s* \$? / (?P<unit2>oz|t|lb)\b )
-    (?: \s* (?P<of>Au|Ag|Cu|Li|LCE|Ni|Zn|Pb|U3O8|gold|silver|copper|lithium) )?""")
+    (?P<cur>US\s?\$|C\$|CA\$|A\$|\$\s?US|USD\s?\$?|CAD\s?\$?|\$)? \s* (?:(?<=\$US)|(?<=\$\sUS)|(?<![A-Za-z\d.,])) """ + _UC_NUM + r""" (?![\d,]) \s*
+    (?: (?:/|\s+per\s+) \s? (?:tr(?:oy)?\.?\s+)? (?P<unit>ounce|oz|tonnes?|tons?|t|pound|lb|klb|Mlb|LCE|unit)(?:\d(?![\d.,]))?\b
+      | \s? / (?P<unit2>oz|tonnes?|tons?|t|lb)(?:\d(?![\d.,]))?\b )
+    (?: \s* (?:of\s+)? (?P<of>""" + _UC_OF + r""")\b )?""")
+_RE_UNIT_COST_HEAD = re.compile(r"""(?ix)
+    (?:\(\s*)? (?P<cur>US|C|CA|A)?\$ \s? / \s? (?P<unit>oz|ounce|t|tonne|lb|pound)\b (?:\s*\))?
+    (?: \s* (?P<of>""" + _UC_OF + r""")\b )? \s* (?:\|\s*)? (?P<paren>\()? \s* (?<![A-Za-z\d.,]) """ + _UC_NUM + r""" (?![\d,])""")
+_UC_OF_NAME = {"gold": "Au", "silver": "Ag", "copper": "Cu", "nickel": "Ni", "zinc": "Zn", "molybdenum": "Mo",
+               "cobalt": "Co", "uranium": "U3O8", "u₃o₈": "U3O8", "lithium": "LCE", "lithium carbonate": "LCE",
+               "lithium carbonate equivalent": "LCE", "li": "LCE", "concentrate": "conc."}
+# what a cost per unit can be: outside these it is a misread
+_UC_BOUNDS = {"oz": (-500.0, 8000.0), "t": (0.5, 60000.0), "lb": (-300.0, 300.0)}
 
 
 def result_money(text):
@@ -1439,9 +1958,20 @@ def result_money(text):
             continue
         if _is_unit_price(text, m.end(), mult):
             continue
+        if not m.group("cur") and (mult == "k" or _qty_after(text, m.end())):
+            continue                      # 1.0.10: a quantity, or a name like 'Tasiast 24k'
         try:
             v = numval(m.group("num")) * (_MULT.get(mult, 1.0) if mult else 1.0)
         except ValueError:
+            continue
+        if m.group("neg"):
+            continue
+        if not mult and _RE_SCALE_K.search(text[max(0, m.start() - 6):m.start()]):
+            v *= 1e3                      # 1.0.10: 'Pre-production Capital K US$ 278,092' is US$278 million (Integra)
+        # Salazar's 'Initial Capital Cost (US$ M) US$248 US$283.7' is the old study beside the new
+        # one, and Bravo's 'Total Initial Capex M US$ 496 677.6' two cases: a bare figure is left
+        # to the prose, which states the capital with its magnitude
+        if (not mult and v < _MIN_BARE) or v > _MAX_RESULT:
             continue
         return v, {"C": "CAD", "CA": "CAD", "CAD": "CAD", "CDN": "CAD", "US": "USD", "USD": "USD",
                    "A": "AUD", "AUD": "AUD"}.get(cur_raw)
@@ -1462,24 +1992,71 @@ def _near(text, m, span=180):
     return tail[:cut.start()] if cut else tail
 
 
+# the qualifier has to follow the capital figure itself: MAI's 'initial capital cost of $58 M and
+# sustaining capex of $77 M over the LOM' puts it on the sustaining figure, not the initial one
+_RE_OVER_LIFE = re.compile(r"(?i)^\s*(?:\([^)]{0,40}\)\s*)?over\s+(?:the\s+)?(?:life\s+of\s+(?:the\s+)?(?:mine|project)|LOM|mine\s+life|project\s+life)\b")
+_RE_FIG_LEAD = re.compile(r"(?i)^\s*\(?\s*(?:US|USD|C|CA|CAD|A|AUD)?\s?\$\s?\d|^\s*\d[\d,.]*\s*(?:million|billion|M|B)\b")
+
+
+def _over_life(clause):
+    """True when the first capital figure in a clause is a life-of-mine total."""
+    for m in _RE_MONEY.finditer(clause):
+        return bool(_RE_OVER_LIFE.match(clause[m.end():m.end() + 60]))
+    return False
+_RE_EMPTY_CLAUSE = re.compile(r"^[\s:=\-–—(),]*$")
+
+
+def _near_or_next(text, m, span=180):
+    """_near(), or -- when the label's own clause holds nothing but punctuation -- the line after it.
+    Scottie writes 'Initial capital cost:' and '$128.6M' on the next line; the clause cut at the
+    line break left the label with no figure at all."""
+    c = _near(text, m, span)
+    if not _RE_EMPTY_CLAUSE.match(c):
+        return c
+    tail = text[m.end():m.end() + span]
+    sep = re.search(r"\s\|\s", tail)
+    if not sep or not _RE_EMPTY_CLAUSE.match(tail[:sep.start()]):
+        return c
+    nxt = tail[sep.end():]
+    if not _RE_FIG_LEAD.match(nxt):
+        return c              # a heading over a table ('Total Capital Costs') is not this figure's label
+    cut = re.search(r"[.;]\s+[A-Z]|\n\n|\s\|\s|•", nxt)
+    return nxt[:cut.start()] if cut else nxt
+
+
 def unit_cost(text):
     """A per-unit cost as (value, currency, unit). '$1,070/oz' -> (1070.0, None, 'oz').
 
     Never falls back to a bare number: Desert Gold's US$35/t and Surge's US$5,097/t LCE are the
     same shape, and a release that states a cost only as a total would otherwise have its total
     published in the per-tonne column."""
-    m = _RE_UNIT_COST.search(text or "")
+    text = text or ""
+    m = _RE_UNIT_COST.search(text)
+    h = _RE_UNIT_COST_HEAD.search(text)
+    if h is not None and (m is None or h.start() < m.start()):
+        m = h
     if not m:
         return None, None, None
     try:
         v = float(m.group("num").replace(",", ""))
     except ValueError:
         return None, None, None
+    if m.re is _RE_UNIT_COST_HEAD:
+        if m.group("paren") and text[m.end():m.end() + 2].lstrip().startswith(")"):
+            v = -v                        # '(1.51)': an accounting negative
+    elif re.search(r"(?i)(?:negative|minus)\s*(?:US|C|CA|A)?\$?\s*$", text[max(0, m.start() - 14):m.start() + len(m.group("cur") or "")]):
+        v = -v                            # 'negative $121/lb', net of by-product credits
     cur_raw = (m.group("cur") or "").upper().replace("$", "").strip() or None
-    unit = (m.group("unit") or m.group("unit2") or "").lower()
-    unit = {"ounce": "oz", "tonne": "t", "pound": "lb"}.get(unit, unit)
+    unit = (m.group("unit") or (m.groupdict().get("unit2") or "")).lower()
+    unit = {"ounce": "oz", "tonne": "t", "tonnes": "t", "ton": "t", "tons": "t", "pound": "lb"}.get(unit, unit)
     if m.group("of"):
-        unit = unit + " " + m.group("of")
+        of = re.sub(r"\s+", " ", m.group("of"))
+        unit = unit + " " + _UC_OF_NAME.get(of.lower(), of)
+    base = unit.split(" ")[0] if unit else ""
+    if base in _UC_BOUNDS:
+        lo, hi = _UC_BOUNDS[base]
+        if not lo <= v <= hi or v == 0:
+            return None, None, None
     return v, {"C": "CAD", "CA": "CAD", "CAD": "CAD", "CDN": "CAD", "US": "USD", "USD": "USD",
                "A": "AUD", "AUD": "AUD"}.get(cur_raw), unit or None
 
@@ -1531,7 +2108,7 @@ def project_economics(text):
            "throughput_tpd": None, "annual_production": None, "production_unit": None}
     flat = " | ".join(segments(text or ""))
 
-    caps = []
+    caps, lom_totals = [], []
     for m in _RE_CAPEX.finditer(flat):
         # 'sustaining' has to be qualifying THIS label, not sitting in the sentence before it:
         # 'Sustaining capital of US$40 million and initial capital cost of US$290 million' is a
@@ -1540,8 +2117,14 @@ def project_economics(text):
             continue
         # 'C$175M Initial Capital' writes the figure first, exactly as the NPV headline does
         back = _money_just_before(flat, m.start())
-        v, cur = (back[0], back[1]) if back else result_money(_near(flat, m))
+        v, cur = (back[0], back[1]) if back else result_money(_near_or_next(flat, m))
         if v is None:
+            continue
+        # Lithium Argentina: 'Stage 1 initial capital cost estimated at $1.1 billion ... Total
+        # capital cost of $3.3 billion over life of project'. A figure spent over the life of the
+        # mine is not what it costs to build it.
+        if _over_life(_near_or_next(flat, m)):
+            lom_totals.append(v)
             continue
         # the qualifier has to be attached to THIS label. Surge's totals line reads
         # '... P2 | $ M | $2,350 | Total Capital Cost (CAPEX) $5,323 million', and a 26-character
@@ -1553,6 +2136,9 @@ def project_economics(text):
         total = bool(_RE_TOTAL.search(flat[max(0, m.start() - 20):m.start()]))
         caps.append((v, cur, phase, total, m.end()))
 
+    # the same life-of-project figure restated in a table without its qualifier ('Capital Costs $3.3 B')
+    if lom_totals:
+        caps = [c for c in caps if not any(abs(c[0] - t) <= 0.02 * t for t in lom_totals)]
     # Surge builds its lithium plant in two phases and states all three figures: 'Capital Cost
     # (CAPEX) P1 $M 2,973', 'P2 $M 2,350', 'Total Capital Cost (CAPEX) $M 5,323'. The first one
     # read is a phase, and publishing it understates the project by two and a half billion.
@@ -1617,22 +2203,38 @@ def project_economics(text):
         near = [v for v in lives if abs(v - lives[0]) <= max(0.5, lives[0] * 0.15)]
         out["mine_life_years"] = max(near, key=lambda v: (len(("%.10g" % v).replace(".", "")), -v))
 
-    m = _RE_TPD.search(flat)
-    if m:
-        out["throughput_tpd"] = float(m.group("num").replace(",", ""))
-    else:
-        m = _RE_TPA.search(flat)
-        if m:
-            mult = {"m": 1e6, "k": 1e3}.get((m.group("mag") or "").lower(), 1.0)
-            out["throughput_tpd"] = round(float(m.group("num").replace(",", "")) * mult / 365.0, 1)
+    # 1.0.14 (FIX8): the first throughput that is ore through a plant, in a range a plant can run at
+    for m in _RE_TPD.finditer(flat):
+        if _RE_TP_PRODUCT.match(flat[m.end():m.end() + 60]):
+            continue
+        v = float(m.group("num").replace(",", ""))
+        if 10 <= v <= 500000:
+            out["throughput_tpd"] = v
+            break
+    if out["throughput_tpd"] is None:
+        for m in _RE_TPA.finditer(flat):
+            before = flat[max(0, m.start() - 100):m.start()]
+            if (_RE_TP_PRODUCT.match(flat[m.end():m.end() + 60])
+                    or not (_RE_TP_ORE.search(before) or _RE_TP_ORE_AFTER.match(flat[m.end():m.end() + 70]))
+                    or _RE_TP_MINING.search(before[-60:])):
+                continue
+            mult = _MULT.get((m.group("mag") or "").lower(), 1.0)
+            v = round(float(m.group("num").replace(",", "")) * mult / 365.0, 1)
+            if 20 <= v <= 500000:
+                out["throughput_tpd"] = v
+                break
 
-    m = _RE_PROD.search(flat)
-    if m:
-        mult = _MULT.get((m.group("mag") or "").lower(), 1.0)
-        out["annual_production"] = float(m.group("num").replace(",", "")) * mult
-        u = (m.group("unit") or "").lower()
-        out["production_unit"] = {"ounces": "oz", "ounce": "oz", "tonnes": "t", "tonne": "t",
-                                  "pounds": "lb", "pound": "lb"}.get(u, u) or None
+    # 1.0.14 (FIX8): the first production figure, label first or figure first, that can be a year's production
+    for rx in (_RE_PROD, _RE_PROD_BEFORE, _RE_PROD_PER_YEAR):
+        for m in rx.finditer(flat):
+            if rx is _RE_PROD_PER_YEAR and _RE_PROD_NOT_OUTPUT.search(flat[max(0, m.start() - 80):m.start()]):
+                continue
+            v, unit = _production(m)
+            if v is not None:
+                out["annual_production"], out["production_unit"] = v, unit
+                break
+        if out["annual_production"] is not None:
+            break
     return out
 
 
@@ -1722,10 +2324,10 @@ def economics_text(headline, body):
     disclaimer is cut to stop its vocabulary inventing a study, and it states no figures at all,
     so when the cut text yields nothing there is nothing to lose by reading the rest."""
     head = headline or ""
-    cut = readable((body or "")[:TEXT_LIMIT])
+    cut = _repair(readable((body or "")[:TEXT_LIMIT]))
     if scenarios(head + "\n" + cut):
         return cut
-    full = (body or "")[:TEXT_LIMIT]
+    full = _repair((body or "")[:TEXT_LIMIT])
     return full if scenarios(head + "\n" + full) else cut
 
 

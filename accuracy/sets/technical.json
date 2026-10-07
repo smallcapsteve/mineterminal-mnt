@@ -1,0 +1,1446 @@
+{
+ "schema": 1,
+ "name": "technical",
+ "tag": "Technical Reports (NI 43-101)",
+ "status": "confirmed",
+ "created": "2026-09-22",
+ "reviewer": "Justin",
+ "reviewed_at": "2026-09-22T13:14:38Z",
+ "row_shape": "one row per NI 43-101 technical report an item reports: filed, commissioned or withdrawn, from news releases and SEDAR+ filings",
+ "items": [
+  {
+   "n": 1,
+   "event_id": "cdc5ee4ab58c75da057924f56997f585dbb42774",
+   "ticker": "ROAR.V",
+   "stratum": "sedar_doc",
+   "body_sha1": "dd426ad29dacc1c1696c03c7d9bbc36a3565179a",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "property",
+      "project": "Volney Property",
+      "status": "filed",
+      "title": "NI 43-101 Technical Report, Volney Property, Black Hills, South Dakota, USA",
+      "report_date": "2025-02-27",
+      "filing_date": "2025-02-27",
+      "qps": [
+       "Carl Ginn"
+      ],
+      "amended": false,
+      "metal": "lithium"
+     }
+    ]
+   }
+  },
+  {
+   "n": 2,
+   "event_id": "752b696f4946f24741374515faf6bcbe8e54e1f1",
+   "ticker": "WHN.V",
+   "stratum": "sedar_doc",
+   "body_sha1": "7dc45ae502a6f8d0238baf90555425e76adac4f9",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "PEA",
+      "project": "Shovelnose Gold Project",
+      "status": "filed",
+      "author_firm": "P&E Mining Consultants",
+      "title": "Updated Preliminary Economic Assessment and Mineral Resource Estimate of the Shovelnose Gold Project, Nicola and Similkameen Mining Divisions, British Columbia",
+      "report_date": "2025-04-17",
+      "filing_date": "2025-04-17",
+      "qps": [
+       "James L. Pearson",
+       "Eugene Puritch",
+       "William Stone",
+       "Yungang Wu",
+       "Jarita Barry",
+       "D. Grant Feasby",
+       "Brian Ray",
+       "Alexander Partsch",
+       "Antoine Yassa"
+      ],
+      "amended": false,
+      "metal": "gold",
+      "npv": 454000000,
+      "irr": 43.2
+     }
+    ]
+   }
+  },
+  {
+   "n": 3,
+   "event_id": "22e2c6c7c54342593758e6cba9cd89974f3c03bc",
+   "ticker": "XXIX.V",
+   "stratum": "study_filed",
+   "body_sha1": "afd97cb777d7a1d75ccdadb2012348a5c53f8ef2",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "PEA",
+      "project": "Opemiska Copper Project",
+      "status": "filed",
+      "effective_date": "2025-10-17",
+      "author_firm": "Ausenco Engineering Canada; PLR Resources; SRK Consulting (Canada); Geodoz conseil; Evomine Consulting",
+      "title": "NI 43-101 Preliminary Economic Assessment (PEA) Technical Report for the Opemiska Copper Project, Chapais, Quebec",
+      "report_date": "2025-12-02",
+      "filing_date": "2025-12-03",
+      "qps": [
+       "Renee Barrette",
+       "Pierre-Luc Richard",
+       "Jean-François St-Laurent",
+       "Charles Veilleux",
+       "Maude Lévesque Michaud",
+       "Stephen Coates",
+       "Alexandre Burelle"
+      ],
+      "amended": false,
+      "metal": "copper+gold+silver",
+      "npv": 505000000,
+      "irr": 27.2,
+      "capex": 617000000
+     }
+    ]
+   }
+  },
+  {
+   "n": 4,
+   "event_id": "83e1f1b51aeb77cead8e1d39ba3c03da7efd099d",
+   "ticker": "ABA.V",
+   "stratum": "mre_filed",
+   "body_sha1": "edaea497c07c81bfaf89ef4c1a0f39b4e289e650",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "resource",
+      "project": "Key Lake South Project",
+      "status": "filed",
+      "effective_date": "2025-04-10",
+      "author_firm": "Understood Mineral Resources",
+      "title": "Technical Report on the Key Lake South Project with Initial Mineral Resource Estimate for the Loki Flake Graphite Deposit, Saskatchewan, Canada",
+      "report_date": "2025-05-29",
+      "filing_date": "2025-05-30",
+      "qps": [
+       "Matthew Batty"
+      ],
+      "amended": false,
+      "metal": "graphite"
+     }
+    ]
+   }
+  },
+  {
+   "n": 5,
+   "event_id": "476b0f4e9e8f8b5cfaf8b13f82d7a08bc3e385c1",
+   "ticker": "BRVO.V",
+   "stratum": "mre_filed",
+   "body_sha1": "7afafd7f706a2fd365d199e4e76453ee9cedfe39",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "resource",
+      "project": "Luanga Project",
+      "status": "filed",
+      "effective_date": "2025-02-18",
+      "author_firm": "GE21 Consultoria Mineral",
+      "title": "NI 43-101 Independent Technical Report, Luanga PGM + Au + Ni Project Pará State, Brazil",
+      "report_date": "2025-04-02",
+      "filing_date": "2025-04-03",
+      "qps": [
+       "Porfírio Cabaleiro Rodriguez",
+       "Bernardo Viana"
+      ],
+      "amended": false,
+      "metal": "palladium+platinum+rhodium+gold+nickel"
+     }
+    ]
+   }
+  },
+  {
+   "n": 6,
+   "event_id": "976daca2c251aa10f4a20791bc2cee638e1b3ed7e3546a8e0e8d6ae01d1c9d20",
+   "ticker": "KRY.V.TO",
+   "stratum": "amended_updated",
+   "body_sha1": "377ba1f6afcb860210650c4fbb8cf5794beb1452",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "resource",
+      "project": "Haib Copper Project",
+      "status": "filed",
+      "effective_date": "2026-03-16",
+      "author_firm": "The MSA Group; DRA Projects Europe",
+      "title": "NI 43-101 Technical Report – March 2026 Mineral Resource Estimate Haib Copper Project, Namibia",
+      "report_date": "2026-05-08",
+      "filing_date": "2026-05-08",
+      "qps": [
+       "Jeremy C. Witley",
+       "Valentine E. Coetzee"
+      ],
+      "amended": false,
+      "metal": "copper"
+     },
+     {
+      "report_type": "PEA",
+      "project": "Haib Copper Project",
+      "status": "commissioned",
+      "expected": "late Q2 2026",
+      "amended": false,
+      "metal": "copper"
+     }
+    ]
+   }
+  },
+  {
+   "n": 7,
+   "event_id": "9376a2c1013b92d1b30367e6b31a151c6aa9c769702e6cfce0bb9f73e7495c69",
+   "ticker": "AVE.CN",
+   "stratum": "commissioned",
+   "body_sha1": "933119d0b2d8ea6569e0aa2c4640fee2ae8c12a7",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "Sting Copper Project",
+      "status": "commissioned",
+      "amended": false,
+      "metal": "copper"
+     }
+    ]
+   }
+  },
+  {
+   "n": 8,
+   "event_id": "f76be5cac099231653a08d1804192bd6e67d94c2",
+   "ticker": "CG.TO",
+   "stratum": "property_filed",
+   "body_sha1": "1045a82a65ba94c5cf7d65f6ed6afaced1e68f1e",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "other",
+      "project": "Mount Milligan Mine",
+      "status": "filed",
+      "filing_date": "2025-10-21",
+      "amended": false,
+      "metal": "gold+copper"
+     }
+    ]
+   }
+  },
+  {
+   "n": 9,
+   "event_id": "2c48e358e4dcb082d331b42e30e9bb6a70efc020a7f2d4ad20713962511d8b53",
+   "ticker": "GOH.CN",
+   "stratum": "property_filed",
+   "body_sha1": "84c2287c9521712fe65607777d94c585620a0081",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "property",
+      "project": "Powerline Uranium Project",
+      "status": "filed",
+      "title": "NI 43-101 Technical Report on the Powerline Uranium Project, Grand County, Utah, USA",
+      "report_date": "2024-04-15",
+      "filing_date": "2024-05-07",
+      "amended": false,
+      "metal": "uranium"
+     }
+    ]
+   }
+  },
+  {
+   "n": 10,
+   "event_id": "86815790cfa7aa8bf63168480f357fa64c1f09bf",
+   "ticker": "OWLI.CN",
+   "stratum": "tagged_other",
+   "body_sha1": "1398d9ee91c38237380f00a9f8ed66eeb78bac8d",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 11,
+   "event_id": "c9c7f8ab2b79793bc6783f33d49060edf0cbb376",
+   "ticker": "NOVA.V",
+   "stratum": "sedar_doc",
+   "body_sha1": "b202489941db0a528131d942554fcb14f07ca0ab",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "PEA",
+      "project": "Adanac Molybdenum Project",
+      "status": "filed",
+      "effective_date": "2026-08-06",
+      "author_firm": "Red Pennant Communications",
+      "title": "Preliminary Economic Assessment, NI 43-101 Technical Report, for the Adanac Molybdenum Project in Northwestern British Columbia, Canada",
+      "filing_date": "2026-09-09",
+      "qps": [
+       "Michael F. O’Brien"
+      ],
+      "amended": false,
+      "metal": "molybdenum",
+      "npv": 714700000,
+      "irr": 23.5
+     }
+    ]
+   }
+  },
+  {
+   "n": 12,
+   "event_id": "421cbb0852b85cfc1f2b2d27996e1d724e6d2d23",
+   "ticker": "OBUL.V",
+   "stratum": "sedar_doc",
+   "body_sha1": "fe2317de19c9015b5bef5830b9ffb2a9f5fa6e3f",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "property",
+      "project": "Vumba Project",
+      "status": "filed",
+      "effective_date": "2025-04-27",
+      "title": "TECHNICAL REPORT ON PL153/2016 IN THE VUMBA GREENSTONE BELT, BOTSWANA",
+      "filing_date": "2025-04-27",
+      "qps": [
+       "Rory Kutluoglu"
+      ],
+      "amended": false
+     }
+    ]
+   }
+  },
+  {
+   "n": 13,
+   "event_id": "cef441915538c05b3d2bd9d3cbfe946415f64637e983a8f5329612c54196e2ed",
+   "ticker": "LFLR.CN",
+   "stratum": "study_filed",
+   "body_sha1": "35feea5f756c9561ad84923810f582be8cbfb038",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "PEA",
+      "project": "Swanson Gold Project",
+      "status": "filed",
+      "effective_date": "2026-03-16",
+      "author_firm": "ERM Consultants Canada",
+      "title": "Swanson Gold Project - Preliminary Economic Assessment of Delivering Swanson Deposit Mineralized Material to the Beacon Mill Located in Val-d'Or, Québec",
+      "report_date": "2026-03-27",
+      "filing_date": "2026-03-27",
+      "amended": false,
+      "metal": "gold",
+      "npv": 101000000,
+      "irr": 65
+     }
+    ]
+   }
+  },
+  {
+   "n": 14,
+   "event_id": "63b36180cb554e617233acef226888d849f703a4",
+   "ticker": "OMG.V",
+   "stratum": "mre_filed",
+   "body_sha1": "e2e6743c3277c1d8455ce81308d18307dad816ce",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "resource",
+      "project": "Omai Gold Property",
+      "status": "filed",
+      "author_firm": "P&E Mining Consultants",
+      "title": "Updated Mineral Resource Estimate and Technical Report on the Omai Gold Property, Potaro Mining District No.2, Guyana",
+      "report_date": "2025-10-09",
+      "filing_date": "2025-10-09",
+      "qps": [
+       "Eugene Puritch"
+      ],
+      "amended": false,
+      "metal": "gold"
+     },
+     {
+      "report_type": "PEA",
+      "project": "Omai Gold Property",
+      "status": "commissioned",
+      "expected": "early 2026",
+      "amended": false,
+      "metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 15,
+   "event_id": "6426551cb05c6d08d6e2f3827c5b93451d65d8950ab630a27df49dcab83653ea",
+   "ticker": "RFR.CN",
+   "stratum": "mre_filed",
+   "body_sha1": "b4ee33e8e6e4b16d00a9b9ad32c57b073edf03f6",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "resource",
+      "project": "Malartic Metals Package Property",
+      "status": "filed",
+      "filing_date": "2025-11-11",
+      "amended": false,
+      "metal": "nickel"
+     }
+    ]
+   }
+  },
+  {
+   "n": 16,
+   "event_id": "7aa6250164b0367047315cdea7d7995e5342ac84",
+   "ticker": "LTHM.CN",
+   "stratum": "amended_updated",
+   "body_sha1": "0fdfc8ff1152c8c3bf03dc29fc75453d27c64cb6",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "property",
+      "project": "Baner Project",
+      "status": "filed",
+      "title": "NI 43-101 Technical Report on the Baner Project, Updated from the August 2018 Report",
+      "report_date": "2020-07-21",
+      "filing_date": "2020-07-23",
+      "amended": true,
+      "metal": "gold"
+     },
+     {
+      "report_type": "property",
+      "project": "Champagne Property",
+      "status": "filed",
+      "title": "Technical Report on the Champagne Property, Arco, Idaho, U.S.A.",
+      "report_date": "2020-07-21",
+      "filing_date": "2020-07-23",
+      "amended": true,
+      "metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 17,
+   "event_id": "df7f8f1c292756b858664b8c48b1b20da2e427cb",
+   "ticker": "PBM.V",
+   "stratum": "commissioned",
+   "body_sha1": "a6f44bd800b02a2ac8adff210fc9262214b35227",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "property",
+      "project": "Pereira Velho Project",
+      "status": "filed",
+      "filing_date": "2025-05-29",
+      "qps": [
+       "Rodrigo Mello"
+      ],
+      "amended": false,
+      "metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 18,
+   "event_id": "6df863aedec17fb602a5ed1d4bc7b4788ee85f518d3c02c3e3c3d798a1a5ceda",
+   "ticker": "NATB.CN",
+   "stratum": "property_filed",
+   "body_sha1": "a118307edaa49e8ed72bb7f8c534e6a0b8d16ee8",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "property",
+      "project": "Cahuilla Gold Project",
+      "status": "filed",
+      "effective_date": "2026-06-15",
+      "author_firm": "APEX Geoscience; Capps Geosciences",
+      "title": "NI 43-101 Technical Report on the Cahuilla Gold Project, Imperial County, California.",
+      "filing_date": "2026-06-26",
+      "qps": [
+       "Richard C. Capps",
+       "Michael B. Dufresne"
+      ],
+      "amended": false,
+      "metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 19,
+   "event_id": "07941625ccc76fc3e8156de4068b826332e52bf4",
+   "ticker": "PEX.V",
+   "stratum": "property_filed",
+   "body_sha1": "6fa7a56292ae56e8ec012d6c810273f04aa02de0",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "resource",
+      "project": "Kliyul Copper-Gold Project",
+      "status": "filed",
+      "effective_date": "2025-07-31",
+      "author_firm": "Lions Gate Geological Consulting",
+      "filing_date": "2025-09-18",
+      "qps": [
+       "Susan Lomas",
+       "Bruce Davis"
+      ],
+      "amended": false,
+      "metal": "copper+gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 20,
+   "event_id": "4f1f32f2225769b6ff638c07c1da28c4c04521cc",
+   "ticker": "TAU.V",
+   "stratum": "tagged_other",
+   "body_sha1": "19c19e1e080d931cd58f73ac957d40b718e3fdfc",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "PFS",
+      "project": "Lawyers-Ranch Project",
+      "status": "filed",
+      "author_firm": "Ausenco Engineering Canada; Mining Plus Canada; Knight Piésold; Equilibrium Mining; P&E Mining Consultants; pHase Geochemistry; F. Wright Consulting; SLR Consulting",
+      "title": "Lawyers-Ranch Project NI 43-101 Technical Report and Pre-feasibility Study",
+      "filing_date": "2026-01-14",
+      "amended": false,
+      "metal": "gold+silver",
+      "npv": 2370000000,
+      "irr": 54.4,
+      "capex": 736200000
+     }
+    ]
+   }
+  },
+  {
+   "n": 21,
+   "event_id": "99b9d18b0cce9ac95955bf17ce5d49c86731939d",
+   "ticker": "HSTR.V",
+   "stratum": "sedar_doc",
+   "body_sha1": "da71f97c027fe139410978cafed2fdcbbdd6fe2c",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "Goldstrike Project",
+      "status": "filed",
+      "author_firm": "SLR Consulting (Canada)",
+      "title": "NI 43-101 Technical Report on the Goldstrike Project, Utah, USA",
+      "report_date": "2026-05-06",
+      "filing_date": "2026-05-06",
+      "qps": [
+       "Lorraine Tam"
+      ],
+      "amended": false
+     }
+    ]
+   }
+  },
+  {
+   "n": 22,
+   "event_id": "6c0edc7b3f31662f2a35c6bcd1a19725d4816071",
+   "ticker": "SAGE.V",
+   "stratum": "study_filed",
+   "body_sha1": "61a8cd0a15c596008e608403d47b02fe49945e7a",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "PEA",
+      "project": "Sage Plain Project",
+      "status": "filed",
+      "effective_date": "2025-09-08",
+      "author_firm": "RESPEC",
+      "filing_date": "2025-11-06",
+      "amended": false,
+      "metal": "potash"
+     }
+    ]
+   }
+  },
+  {
+   "n": 23,
+   "event_id": "d8664c6ed48c498875d242f8a0f38c165d3461fc60931f0f7f2931e6acffe0b1",
+   "ticker": "PHOS.CN",
+   "stratum": "study_filed",
+   "body_sha1": "db96bbedec3da1664750173bfdc3749535d5378d",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "PEA",
+      "project": "Bégin-Lamarche Phosphate Project",
+      "status": "filed",
+      "effective_date": "2024-12-04",
+      "author_firm": "P&E Mining Consultants; BBA",
+      "title": "Preliminary Economic Assessment of the Bégin-Lamarche Phosphate Property, Saguenay-Lac-Saint-Jean Region, Northern Quėbec",
+      "report_date": "2025-01-17",
+      "filing_date": "2025-01-17",
+      "qps": [
+       "Andrew Bradfield",
+       "Eugene Puritch",
+       "Antoine Yassa",
+       "D. Grant Feasby",
+       "John Henning",
+       "Hugo Latulippe"
+      ],
+      "amended": false,
+      "metal": "phosphate+iron",
+      "npv": 1590000000,
+      "irr": 33.0,
+      "capex": 675000000
+     }
+    ]
+   }
+  },
+  {
+   "n": 24,
+   "event_id": "9a0dd0e8b8e79237c373391ac2bd19b6ce216d73",
+   "ticker": "AGX.V",
+   "stratum": "mre_filed",
+   "body_sha1": "4c7d635b0e509ae0b56904842bb9a356d09a30b3",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "resource",
+      "project": "Nueva Recuperada Project",
+      "status": "filed",
+      "effective_date": "2024-10-01",
+      "title": "NI 43-101 Technical Report Resource Assessment for the Plata Mining Unit, Nueva Recuperada Property, Peru",
+      "filing_date": "2025-04-09",
+      "qps": [
+       "A. David Heyl"
+      ],
+      "amended": false,
+      "metal": "silver+zinc+lead"
+     }
+    ]
+   }
+  },
+  {
+   "n": 25,
+   "event_id": "eddae0f023b6b2606b3dedc6283fc07e1a9d36cf",
+   "ticker": "SOI.V",
+   "stratum": "mre_filed",
+   "body_sha1": "b2059e4c6b4b4a3625d44afcc97b0af4b100b6a0",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "resource",
+      "project": "Cheechoo Gold Project",
+      "status": "filed",
+      "effective_date": "2025-07-01",
+      "author_firm": "PLR Resources; Evomine; Synectiq",
+      "title": "Technical Report on the Cheechoo Project with an Updated Mineral Resource Estimate for the Cheechoo Gold Deposit, Eeyou Istchee James Bay, Quebec, Canada",
+      "filing_date": "2025-08-25",
+      "qps": [
+       "Pierre Luc Richard",
+       "Stephen Coates",
+       "Christian Laroche"
+      ],
+      "amended": false,
+      "metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 26,
+   "event_id": "e412145dd76bfc42f93ed82d039e4740389faf67",
+   "ticker": "BYN.V",
+   "stratum": "amended_updated",
+   "body_sha1": "7aeecb50f6f9ff7b88762c518d9b96ed1c1239a3",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "resource",
+      "project": "AurMac Property",
+      "status": "filed",
+      "effective_date": "2025-02-06",
+      "title": "Technical Report AurMac Property Mayo Mining District",
+      "report_date": "2025-05-23",
+      "filing_date": "2025-05-30",
+      "qps": [
+       "Dino Pilotto",
+       "Marc Jutras",
+       "Deepak Malhotra"
+      ],
+      "amended": true
+     },
+     {
+      "report_type": "resource",
+      "project": "Hyland Project",
+      "status": "commissioned",
+      "expected": "in the future",
+      "amended": false
+     }
+    ]
+   }
+  },
+  {
+   "n": 27,
+   "event_id": "ee40bfb8cb08884a1722216d04f93ad3620103b7",
+   "ticker": "TUNG.CN",
+   "stratum": "commissioned",
+   "body_sha1": "9a320412bda1c20ef30c04a9b084b462b7d79d42",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "IMA Mine",
+      "status": "commissioned",
+      "author_firm": "A-Z Mining Professionals",
+      "expected": "first quarter of 2025",
+      "amended": false,
+      "metal": "tungsten"
+     }
+    ]
+   }
+  },
+  {
+   "n": 28,
+   "event_id": "53424422f6b93263deaac4ae6064ff5af1f2fefa",
+   "ticker": "EXN.V",
+   "stratum": "property_filed",
+   "body_sha1": "554014808d076343baa52baf15213986b3d9c4ca",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "resource",
+      "project": "Mallay Mine",
+      "status": "filed",
+      "effective_date": "2026-02-18",
+      "author_firm": "SGS Canada (Geological Services)",
+      "filing_date": "2026-04-08",
+      "qps": [
+       "Allan Armitage"
+      ],
+      "amended": false,
+      "metal": "silver+lead+zinc"
+     }
+    ]
+   }
+  },
+  {
+   "n": 29,
+   "event_id": "23e20b6743111253bd3fc2511e6746c214432789",
+   "ticker": "XGC.V",
+   "stratum": "property_filed",
+   "body_sha1": "48de95d412749ca7e31f9d647fd947cc3397d363",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "property",
+      "project": "Pico Machay Gold Project",
+      "status": "filed",
+      "effective_date": "2025-11-18",
+      "author_firm": "DKT Geosolutions",
+      "title": "Technical Report Pico Machay Gold Deposit , Huancavelica Province, Peru",
+      "report_date": "2025-12-04",
+      "filing_date": "2025-12-08",
+      "qps": [
+       "David Thomas"
+      ],
+      "amended": false,
+      "metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 30,
+   "event_id": "d31043e8153a50ca9133963c6bf909b21fce7b48",
+   "ticker": "TCEC.CN",
+   "stratum": "tagged_other",
+   "body_sha1": "db5aede7a3c1bc6be01000a3ef67a7e4690a1727",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "property",
+      "project": "Marysvale Uranium Mines",
+      "status": "commissioned",
+      "expected": "shortly",
+      "amended": false,
+      "metal": "uranium"
+     }
+    ]
+   }
+  },
+  {
+   "n": 31,
+   "event_id": "dcfa5590c5367b6466f65cba44c80921c5c73b4e",
+   "ticker": "PEX.V",
+   "stratum": "sedar_doc",
+   "body_sha1": "4b49ac8fb38f2c4ce77e833c454afd4840abd6cf",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "resource",
+      "project": "Kliyul Project",
+      "status": "filed",
+      "effective_date": "2025-07-31",
+      "title": "NI 43-101 Technical Report: Mineral Resource Estimation for the Kliyul Project, Omineca Mining Division, British Columbia",
+      "report_date": "2025-09-18",
+      "filing_date": "2025-09-18",
+      "qps": [
+       "Susan Lomas",
+       "Bruce Davis",
+       "Ron Voordouw"
+      ],
+      "amended": false,
+      "metal": "copper+gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 32,
+   "event_id": "98a5e1e719a5a98e898a249a077c6551832f8182",
+   "ticker": "NVLH.V",
+   "stratum": "study_filed",
+   "body_sha1": "757b744d07c39cf352387fe23d77508ece108d0c",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "PEA",
+      "project": "Bonnie Claire Lithium Project",
+      "status": "filed",
+      "effective_date": "2025-03-31",
+      "author_firm": "Global Resource Engineering; Fluor Enterprises",
+      "title": "Preliminary Economic Assessment NI 43-101 Technical Report, Bonnie Claire Lithium Project, Nye County, Nevada",
+      "report_date": "2025-07-28",
+      "filing_date": "2025-09-09",
+      "qps": [
+       "Terre Lane"
+      ],
+      "amended": false,
+      "metal": "lithium+boron",
+      "npv": 6829000000,
+      "irr": 32.3,
+      "capex": 2125000000
+     }
+    ]
+   }
+  },
+  {
+   "n": 33,
+   "event_id": "a487cbf6b4244ab952740df1c506a11b50c6ce9a",
+   "ticker": "TMQ.TO",
+   "stratum": "study_filed",
+   "body_sha1": "26abf3b7191f84bcf71c320664d6bcb171b5371c",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "PEA",
+      "project": "Bornite Project",
+      "status": "filed",
+      "effective_date": "2025-01-15",
+      "author_firm": "Wood Canada; Ausenco Engineering Canada; SRK Consulting (Canada); International Metallurgical & Environmental; Core Geoscience",
+      "title": "NI 43-101 Technical Report on the Preliminary Economic Assessment of the Bornite Project, Northwest Alaska, USA",
+      "filing_date": "2025-02-13",
+      "amended": false,
+      "metal": "copper"
+     }
+    ]
+   }
+  },
+  {
+   "n": 34,
+   "event_id": "25edb3613ff4a6f0c449ffe984946d9b5dfd1b8b",
+   "ticker": "TT.V",
+   "stratum": "mre_filed",
+   "body_sha1": "eb96216efb339135e725a065bb1b9cb0a02633eb",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "resource",
+      "project": "High Lake – West Hawk Lake Project",
+      "status": "filed",
+      "effective_date": "2025-11-30",
+      "author_firm": "English River Geoscience",
+      "title": "Technical Report and Mineral Resource Estimate of the High Lake - West Hawk Lake Gold Project",
+      "filing_date": "2025-12-15",
+      "amended": false,
+      "metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 35,
+   "event_id": "18f748fd0a60110034242933f0bc37e542bb884c",
+   "ticker": "LTH.V",
+   "stratum": "mre_filed",
+   "body_sha1": "6b2c20af9681ad02e1112ebffd5afda2967b8e33",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "resource",
+      "project": "Bandeira Lithium Project",
+      "status": "filed",
+      "effective_date": "2024-11-20",
+      "author_firm": "GE21 Consultoria Mineral; AtkinsRéalis; L&M Advisory; Planminas",
+      "title": "Bandeira Lithium Project NI 43-101 Technical Report Mineral Resource Update, Aracuai-Itinga, Minas Gerais, Brazil",
+      "filing_date": "2025-06-09",
+      "amended": false,
+      "metal": "lithium"
+     },
+     {
+      "report_type": "FS",
+      "project": "Bandeira Lithium Project",
+      "status": "commissioned",
+      "expected": "H2 2025",
+      "amended": false,
+      "metal": "lithium"
+     }
+    ]
+   }
+  },
+  {
+   "n": 36,
+   "event_id": "44e50ee282584f8111a55920317fe0bc553597ea",
+   "ticker": "ONAU.V",
+   "stratum": "amended_updated",
+   "body_sha1": "182a29e1dd000fcb02b1f7a1813e9dc1179a38d4",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "property",
+      "project": "Monument Bay Project",
+      "status": "filed",
+      "effective_date": "2025-03-03",
+      "title": "Technical Report on the Monument Bay Project, Manitoba, NTS: 53K07",
+      "report_date": "2025-05-30",
+      "filing_date": "2025-06-13",
+      "qps": [
+       "Rodney Barber"
+      ],
+      "amended": false,
+      "metal": "gold+tungsten"
+     }
+    ]
+   }
+  },
+  {
+   "n": 37,
+   "event_id": "9334a05744ec41c65eebed9ee677f81a2fd202a8",
+   "ticker": "NICO.CN",
+   "stratum": "commissioned",
+   "body_sha1": "670d34bb01fc9b3b6b11a3a2a65efcd0290c2715",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "resource",
+      "project": "Alexo-Dundonald Project",
+      "status": "commissioned",
+      "author_firm": "P&E Mining Consultants",
+      "expected": "by early October",
+      "amended": false,
+      "metal": "nickel+copper+pge"
+     }
+    ]
+   }
+  },
+  {
+   "n": 38,
+   "event_id": "1e6efc022557a8102f414b9315b48b3df07f8d73",
+   "ticker": "BUFF.V",
+   "stratum": "property_filed",
+   "body_sha1": "0e4c5d3588ab7ddc2c29115b62ba5e160d6e48ec",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "PEA",
+      "project": "Disley Potash Project",
+      "status": "filed",
+      "author_firm": "Micon International Co; Nagy Process Consulting; Fides Strategic Resource Management; DFH Geoscience & Engineering; Earthview Environmental Engineering",
+      "title": "NI 43-101 Preliminary Economic Assessment (PEA) Technical Report on the Disley Potash Project, Saskatchewan, Canada",
+      "filing_date": "2026-05-22",
+      "qps": [
+       "Ryan Langdon",
+       "Christopher Jacobs",
+       "Richard Thompson",
+       "Jack Nagy",
+       "Jared Galenzoski",
+       "Douglas F. Hambley",
+       "Greg Vogelsang"
+      ],
+      "amended": true,
+      "metal": "potash"
+     }
+    ]
+   }
+  },
+  {
+   "n": 39,
+   "event_id": "f9a95c1250bdd50e742b22c656272034ea164c6665d380819df23a0b1b77ddda",
+   "ticker": "RUU.CN",
+   "stratum": "property_filed",
+   "body_sha1": "1842624ea2bef3aca440ec0bfd618d1e1072356c",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "property",
+      "project": "Simard NE Lithium Property",
+      "status": "filed",
+      "author_firm": "Hinterland Geoscience and Geomatics",
+      "filing_date": "2023-04-27",
+      "qps": [
+       "Martin Ethier"
+      ],
+      "amended": false,
+      "metal": "lithium"
+     }
+    ]
+   }
+  },
+  {
+   "n": 40,
+   "event_id": "b17f3ec5f5335b06ffac63a9e207bf3002091477",
+   "ticker": "NOBL.V",
+   "stratum": "tagged_other",
+   "body_sha1": "89de41bc8466d2030f056d3b4435c971e8e83b8d",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "property",
+      "project": "Duck Creek Uranium Project",
+      "status": "filed",
+      "author_firm": "Western Water Consultants",
+      "title": "NI 43-101 Technical Report Duck Creek Uranium Project",
+      "report_date": "2025-08-13",
+      "filing_date": "2025-08-14",
+      "amended": false,
+      "metal": "uranium"
+     }
+    ]
+   }
+  },
+  {
+   "n": 41,
+   "event_id": "1bb43c1daf83ccccbb163fac30d20ec69593c7bb",
+   "ticker": "BAU.V",
+   "stratum": "sedar_doc",
+   "body_sha1": "d722cdd834b4e4755e2cd397719fe074f9a777ca",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "resource",
+      "project": "Ulu Gold Project",
+      "status": "filed",
+      "author_firm": "P&E Mining Consultants",
+      "title": "Updated Mineral Resource Estimate and Technical Report on the Ulu Gold Project, Nunavut, Canada",
+      "report_date": "2026-07-06",
+      "filing_date": "2026-07-06",
+      "qps": [
+       "David Burga",
+       "Jarita Barry"
+      ],
+      "amended": false,
+      "metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 42,
+   "event_id": "666801fba448ed35c318283bdf4528d0fcb060af",
+   "ticker": "TSG.V",
+   "stratum": "study_filed",
+   "body_sha1": "4f559990bed0778c79970a0ad995f8ea68686315",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "PFS",
+      "project": "Castelo de Sonhos Project",
+      "status": "filed",
+      "effective_date": "2025-05-05",
+      "author_firm": "GE21 Consultoria Mineral",
+      "title": "Castelo de Sonhos Project, Pre-Feasibility Study Update 2025",
+      "report_date": "2025-06-18",
+      "filing_date": "2025-06-18",
+      "amended": false,
+      "metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 43,
+   "event_id": "6b979a18a5bdcbbdfe5150e48930d9d3010a961c",
+   "ticker": "BRVO.V",
+   "stratum": "study_filed",
+   "body_sha1": "cb68154cecb4fc1cd764aaf0340eabefb5bde2be",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "PEA",
+      "project": "Luanga Project",
+      "status": "filed",
+      "effective_date": "2025-07-07",
+      "author_firm": "GE21 Consultoria Mineral",
+      "title": "NI 43-101 Preliminary Economic Assessment (PEA) Independent Technical Report for the Luanga PGM + Au + Ni Project, Pará, Brazil",
+      "report_date": "2025-08-20",
+      "filing_date": "2025-08-21",
+      "qps": [
+       "Porfírio Cabaleiro Rodriguez",
+       "Bernardo Viana",
+       "Paulo Roberto Bergmann Moreira",
+       "Juliano Lima",
+       "Eduardo Dequech de Carvalho"
+      ],
+      "amended": false,
+      "metal": "palladium+platinum+rhodium+gold+nickel"
+     }
+    ]
+   }
+  },
+  {
+   "n": 44,
+   "event_id": "36b9cf6f7eb7405f811a62903e8a78b95f2a3237",
+   "ticker": "AGC.CN",
+   "stratum": "mre_filed",
+   "body_sha1": "3dcd1f6e817c59f678956ddd0db88156df83a03e",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "property",
+      "project": "Black Dog Lake Property",
+      "status": "filed",
+      "effective_date": "2020-12-08",
+      "author_firm": "Dahrouge Geological Consulting",
+      "title": "Technical Report on the Black Dog Lake Property, Quebec, Canada",
+      "filing_date": "2020-12-15",
+      "qps": [
+       "Darren L. Smith"
+      ],
+      "amended": false,
+      "metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 45,
+   "event_id": "eddee1ca22b6418e79f1ae34654b18090a66d87da92dc7786427eb8a02bc1857",
+   "ticker": "WRLG.V",
+   "stratum": "mre_filed",
+   "body_sha1": "aed82ed634c572dbfec73d61416ff3ec2898d7bb",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "resource",
+      "project": "Rowan Project",
+      "status": "filed",
+      "effective_date": "2026-06-01",
+      "author_firm": "Sims Resources; Fuse Advisors",
+      "title": "Technical Report on the Updated Mineral Resource Estimates for the Rowan and Mount Jamie Deposits, Ontario, Canada",
+      "report_date": "2026-07-22",
+      "filing_date": "2026-07-22",
+      "amended": false,
+      "metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 46,
+   "event_id": "7a5d61d3e371af804bb259223ed193f216137b2f",
+   "ticker": "PSE.CN",
+   "stratum": "amended_updated",
+   "body_sha1": "0ff200cab91029a920b505cfbb94a9b5145a4937",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "resource",
+      "project": "Pinargozu Mine",
+      "status": "filed",
+      "effective_date": "2017-06-30",
+      "author_firm": "CSA Global Pty",
+      "title": "Amended NI 43-101 Technical Report, Pinargozu Project, Turkey",
+      "report_date": "2019-01-29",
+      "filing_date": "2019-01-30",
+      "amended": true,
+      "metal": "zinc"
+     }
+    ]
+   }
+  },
+  {
+   "n": 47,
+   "event_id": "c0d4443f32faaa883b382ca6f785083d566b0c98454f217f91d9a81da7f27430",
+   "ticker": "SCM.CN",
+   "stratum": "commissioned",
+   "body_sha1": "f170ea185aff317d5681832b4a1db68d200d2481",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "property",
+      "project": "TitanBeach One (1) Project",
+      "status": "withdrawn",
+      "title": "NI 43-101 Technical Report on the TitanBeach One (1) Project, Kingdom of Morocco",
+      "report_date": "2025-12-01",
+      "amended": false,
+      "metal": "titanium"
+     },
+     {
+      "report_type": "property",
+      "project": "TitanBeach One (1) Project",
+      "status": "commissioned",
+      "expected": "4-6 weeks",
+      "qps": [
+       "David M. Pollard"
+      ],
+      "amended": true,
+      "metal": "titanium"
+     }
+    ]
+   }
+  },
+  {
+   "n": 48,
+   "event_id": "3852c16b7d0086dc821313067575da68e6c1afa1",
+   "ticker": "OMI.V",
+   "stratum": "property_filed",
+   "body_sha1": "bf0c94a309947f525235d8928a4fde281718cad2",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "resource",
+      "project": "Anza Project",
+      "status": "filed",
+      "effective_date": "2026-01-16",
+      "report_date": "2026-03-25",
+      "filing_date": "2026-03-26",
+      "amended": false
+     }
+    ]
+   }
+  },
+  {
+   "n": 49,
+   "event_id": "cacc413c7c3a58bc584ddeea46204116d3b28489d0fbc3466852891767334f5e",
+   "ticker": "KUYA.CN",
+   "stratum": "tagged_other",
+   "body_sha1": "37be09f6da779d3e12036ffc58c98459a8527450",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": true,
+    "complete": true,
+    "rows": [
+     {
+      "report_type": "property",
+      "project": "Bethania Property",
+      "status": "commissioned",
+      "expected": "within 45 days",
+      "amended": true,
+      "metal": "silver"
+     }
+    ]
+   }
+  },
+  {
+   "n": 50,
+   "event_id": "8c43a75d08de55f6e82d003e5adcd771",
+   "ticker": "GRBM.CN",
+   "stratum": "tagged_other",
+   "body_sha1": "952d6272bc2f5ed4489df95cf40122617edf99b4",
+   "review": "confirmed",
+   "note": "see claude/MNT_TECH_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_report": false,
+    "complete": true,
+    "rows": []
+   }
+  }
+ ]
+}

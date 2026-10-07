@@ -244,19 +244,33 @@ def publish(conn, version, log=print):
     for col in ("sample_type", "extractor_version"):
         if col not in cols:
             conn.execute(f"ALTER TABLE drill_results ADD COLUMN {col} TEXT")
+    # OPTD step A (2026-10-06): the same rowsync calls, run once before the write lock to work out the
+    # differences; the locked pass below then only applies them (portal/rowsync.py, planning). Kill switch:
+    # /opt/mnt/app/portal/rowsync_plan_OFF.
+    from portal import rowsync as _rowsync_plan
+    with _rowsync_plan.planning(conn):
+        # OPSFIX item 1 (2026-10-05): write only the rows that changed; same table contents (portal/rowsync.py)
+        from portal import rowsync
+        _rs = [rowsync.sync_rows(conn, "drill_results", "drill_id", (
+            "event_id", "ticker", "project", "top_hole_id", "top_grade", "top_unit", "top_metal", "top_length_m",
+            "top_summary", "n_intercepts", "raw_headline", "published_at", "sample_type"), rows,
+            {"extractor_version": version})]
+        _rs.append(rowsync.sync_rows_pk(conn, "drill_intervals", ("event_id", "seq"), (
+            "event_id", "seq", "hole_id", "from_m", "to_m", "length_m", "grade", "unit", "metal", "summary",
+            "including", "is_best", "reported_before", "src"), intervals))
+        st["rowsync"] = _rs
     conn.execute("BEGIN IMMEDIATE")
     try:
-        conn.execute("DELETE FROM drill_results")
-        conn.executemany(
-            "INSERT INTO drill_results(event_id, ticker, project, top_hole_id, top_grade, top_unit, top_metal, "
-            "top_length_m, top_summary, n_intercepts, raw_headline, published_at, sample_type, extractor_version) "
-            "VALUES (:event_id,:ticker,:project,:top_hole_id,:top_grade,:top_unit,:top_metal,:top_length_m,"
-            ":top_summary,:n_intercepts,:raw_headline,:published_at,:sample_type,'" + version + "')", rows)
-        conn.execute("DELETE FROM drill_intervals")
-        conn.executemany(
-            "INSERT INTO drill_intervals(event_id, seq, hole_id, from_m, to_m, length_m, grade, unit, metal, summary, "
-            "including, is_best, reported_before, src) VALUES (:event_id,:seq,:hole_id,:from_m,:to_m,:length_m,"
-            ":grade,:unit,:metal,:summary,:including,:is_best,:reported_before,:src)", intervals)
+        # OPSFIX item 1 (2026-10-05): write only the rows that changed; same table contents (portal/rowsync.py)
+        from portal import rowsync
+        _rs = [rowsync.sync_rows(conn, "drill_results", "drill_id", (
+            "event_id", "ticker", "project", "top_hole_id", "top_grade", "top_unit", "top_metal", "top_length_m",
+            "top_summary", "n_intercepts", "raw_headline", "published_at", "sample_type"), rows,
+            {"extractor_version": version})]
+        _rs.append(rowsync.sync_rows_pk(conn, "drill_intervals", ("event_id", "seq"), (
+            "event_id", "seq", "hole_id", "from_m", "to_m", "length_m", "grade", "unit", "metal", "summary",
+            "including", "is_best", "reported_before", "src"), intervals))
+        st["rowsync"] = _rs
         conn.execute("COMMIT")
     except Exception:
         conn.execute("ROLLBACK")

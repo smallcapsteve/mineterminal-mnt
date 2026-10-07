@@ -57,7 +57,7 @@
    "ticker": "PPTA.TO",
    "published_at": "2025-06-16T12:00:00Z",
    "stratum": "final_close/1",
-   "body_sha1": "aa29b61aa8baa4217e1901e8769cf11569723c6a",
+   "body_sha1": "b2d2b8097763824535fdd9484993a8917d63821a",
    "review": "confirmed",
    "expect": {
     "is_financing": true,
@@ -92,7 +92,7 @@
     "warrant_alt": [],
     "alt_readings": []
    },
-   "note": "Closes upsized US$325M underwritten public offering at US$13.20 plus concurrent US$100M Paulson private placement (7,575,757 shares, same price) = US$425M per headline. Underwriters' 15% option unexercised (offering ~US$374M if exercised; the July 14 release reports its exercise). Deal type for the public common-share offering is a judgement call (PP used)."
+   "note": "Closes upsized US$325M underwritten public offering at US$13.20 plus concurrent US$100M Paulson private placement (7,575,757 shares, same price) = US$425M per headline. Underwriters' 15% option unexercised (offering ~US$374M if exercised; the July 14 release reports its exercise). Deal type for the public common-share offering is a judgement call (PP used). [2026-10-05: text fingerprint refreshed (was aa29b61aa8ba) after a headline tidy-up / re-ingest; labels unchanged; Justin OK]"
   },
   {
    "n": 2,
@@ -974,7 +974,7 @@
    "ticker": "IAU.TO",
    "published_at": "2024-08-12T12:00:00Z",
    "stratum": "amendment/1",
-   "body_sha1": "a8502cdbdbfc318a0fdc9b205364bc61a694f3a5",
+   "body_sha1": "a95763a59e1655c12a7e4ed599c8c5b77f911054",
    "review": "confirmed",
    "expect": {
     "is_financing": true,
@@ -1008,7 +1008,7 @@
     "warrant_alt": [],
     "alt_readings": []
    },
-   "note": "Filing of prospectus supplement \"further to its news releases dated January 15 and 16, 2025\" for min C$14.4M / max C$29,000,000 at C$0.80; size \"has been increased from US$10 million to US$20 million (C$29 million)\" -- upsize appears to predate this release (headline 'for Upsized Offering'), so role=update. Public common-share offering coded PP (no prospectus code); no underwriters named in visible text. Concurrent C$803,367 subscription-receipt placement with D&Os also announced (not included in amount)."
+   "note": "Filing of prospectus supplement \"further to its news releases dated January 15 and 16, 2025\" for min C$14.4M / max C$29,000,000 at C$0.80; size \"has been increased from US$10 million to US$20 million (C$29 million)\" -- upsize appears to predate this release (headline 'for Upsized Offering'), so role=update. Public common-share offering coded PP (no prospectus code); no underwriters named in visible text. Concurrent C$803,367 subscription-receipt placement with D&Os also announced (not included in amount). [2026-10-05: text fingerprint refreshed (was a8502cdbdbfc) after a headline tidy-up / re-ingest; labels unchanged; Justin OK]"
   },
   {
    "n": 22,
@@ -1140,7 +1140,7 @@
    "ticker": "TRAC.CN",
    "published_at": "2023-10-27T12:00:00Z",
    "stratum": "amendment/1",
-   "body_sha1": "1264fa57c1427962eb7a819713ec8d9e70f824e7",
+   "body_sha1": "a2ecb7ab937e9dce42129905b0cd6f8e6487567d",
    "review": "corrected",
    "expect": {
     "is_financing": true,
@@ -1184,7 +1184,7 @@
     "warrant_alt": [],
     "alt_readings": []
    },
-   "note": "Two linked deals: amends the Sept 27 LIFE offering (now up to $1,500,000 at $0.15/unit, warrant strike updated to $0.20, 24 mo) and newly announces a separate non-LIFE FT unit placement of up to $1,000,000 at $0.175. Role=amendment for the headline LIFE deal; amount_offered = combined $2.5M with LIFE-only $1.5M as alt. The FT units are NOT under LIFE, so [LIFE,FT] here does not mean a LIFE-FT deal. Nov 14 close covers both offerings; Nov 24 'second tranche' follows it.",
+   "note": "Two linked deals: amends the Sept 27 LIFE offering (now up to $1,500,000 at $0.15/unit, warrant strike updated to $0.20, 24 mo) and newly announces a separate non-LIFE FT unit placement of up to $1,000,000 at $0.175. Role=amendment for the headline LIFE deal; amount_offered = combined $2.5M with LIFE-only $1.5M as alt. The FT units are NOT under LIFE, so [LIFE,FT] here does not mean a LIFE-FT deal. Nov 14 close covers both offerings; Nov 24 'second tranche' follows it. [2026-10-05: text fingerprint refreshed (was 1264fa57c142) after a headline tidy-up / re-ingest; labels unchanged; Justin OK]",
    "review_note": "Release states $1.5M for the amended LIFE offering and a separate $1.0M FT unit offering, never a combined $2.5M; offered set to $1.5M with $2.5M and $1.0M accepted."
   },
   {
@@ -1325,7 +1325,7 @@
    "ticker": "FUU.V",
    "published_at": "2026-04-02T12:00:00Z",
    "stratum": "mention/1",
-   "body_sha1": "edb3ac49c779782dfedcd16062bb0b6338e927ff",
+   "body_sha1": "c062f29c324c3eec1f5c32a30310fc9147a93061",
    "review": "confirmed",
    "expect": {
     "is_financing": true,
@@ -1356,7 +1356,7 @@
     "warrant_alt": [],
     "alt_readings": []
    },
-   "note": "Headline in body: \"F3 Announces Bought Deal Private Placement for Gross Proceeds of C$5 Million\"; 25,000,000 FT shares at C$0.20 underwritten by Red Cloud syndicate, plus Underwriters' Option for up to C$1,000,000 more (alt C$6M). Oct 2025 C$20M LIFE bought deal closed earlier, separate."
+   "note": "Headline in body: \"F3 Announces Bought Deal Private Placement for Gross Proceeds of C$5 Million\"; 25,000,000 FT shares at C$0.20 underwritten by Red Cloud syndicate, plus Underwriters' Option for up to C$1,000,000 more (alt C$6M). Oct 2025 C$20M LIFE bought deal closed earlier, separate. [2026-10-05: text fingerprint refreshed (was edb3ac49c779) after a headline tidy-up / re-ingest; labels unchanged; Justin OK]"
   },
   {
    "n": 30,
@@ -1403,7 +1403,7 @@
    "ticker": "PMC.CN",
    "published_at": "2021-12-09T12:00:00Z",
    "stratum": "announcement/1",
-   "body_sha1": "6c113dd8cae063845e2bfcd1970ea18c344add79",
+   "body_sha1": "fdbc913cf79ada85f1fbad0dc5cdf867085bfc32",
    "review": "confirmed",
    "expect": {
     "is_financing": true,
@@ -1438,7 +1438,7 @@
     "warrant_alt": [],
     "alt_readings": []
    },
-   "note": "'has received subscriptions for a private placement totaling CDN$456,866.76 ... 7,614,446 units priced at CDN$0.06 ... one warrant exercisable for three years at $0.10' - subscriptions received, no closing stated, and first release of this deal, so announcement. Dec 11 context is the same headline/amount; July $122,500 is a separate deal; the warrant extension is not a financing."
+   "note": "'has received subscriptions for a private placement totaling CDN$456,866.76 ... 7,614,446 units priced at CDN$0.06 ... one warrant exercisable for three years at $0.10' - subscriptions received, no closing stated, and first release of this deal, so announcement. Dec 11 context is the same headline/amount; July $122,500 is a separate deal; the warrant extension is not a financing. [2026-10-05: text fingerprint refreshed (was 6c113dd8cae0) after a headline tidy-up / re-ingest; labels unchanged; Justin OK]"
   },
   {
    "n": 32,
@@ -1657,7 +1657,7 @@
    "ticker": "AZT.V",
    "published_at": "2026-09-03T15:53:00",
    "stratum": "upsize/1",
-   "body_sha1": "2703a124bb534586364db80f0312ebf32eccd5c0",
+   "body_sha1": "c99a13ade1f804ccfa06e0780406f01b4cc2ff49",
    "review": "confirmed",
    "expect": {
     "is_financing": true,
@@ -1690,7 +1690,7 @@
     "warrant_alt": [],
     "alt_readings": []
    },
-   "note": "'to increase the size of its previously announced bought deal ... 17,400,000 units at C$0.32 for gross proceeds of C$5,568,000'; one-half warrant at C$0.42 for 24 months. Underwriter's option adds up to ~C$835,200 but no with-option total is stated, so amount_offered_alt left empty (would be 6,403,200)."
+   "note": "'to increase the size of its previously announced bought deal ... 17,400,000 units at C$0.32 for gross proceeds of C$5,568,000'; one-half warrant at C$0.42 for 24 months. Underwriter's option adds up to ~C$835,200 but no with-option total is stated, so amount_offered_alt left empty (would be 6,403,200). [2026-10-05: text fingerprint refreshed (was 2703a124bb53) after a headline tidy-up / re-ingest; labels unchanged; Justin OK]"
   },
   {
    "n": 38,
@@ -1865,7 +1865,7 @@
    "ticker": "BGD.V",
    "published_at": "2026-06-02T12:00:00Z",
    "stratum": "announcement/1",
-   "body_sha1": "9087a25c6172e56665328892e879525cdb95a208",
+   "body_sha1": "546eaa707943f74a9da2437759a3b0a45bd76e8d",
    "review": "confirmed",
    "expect": {
     "is_financing": true,
@@ -1899,7 +1899,7 @@
     "warrant_alt": [],
     "alt_readings": []
    },
-   "note": "'private placement of up to 16,666,667 units ... at a price of $0.09 per Unit for gross proceeds of up to $1,500,000'; this release does not say brokered or non-brokered (finder's fees only), so offering null. Jun 9 upsize to $2M and Jun 17 close are the same deal."
+   "note": "'private placement of up to 16,666,667 units ... at a price of $0.09 per Unit for gross proceeds of up to $1,500,000'; this release does not say brokered or non-brokered (finder's fees only), so offering null. Jun 9 upsize to $2M and Jun 17 close are the same deal. [2026-10-05: text fingerprint refreshed (was 9087a25c6172) after a headline tidy-up / re-ingest; labels unchanged; Justin OK]"
   },
   {
    "n": 43,
@@ -2135,7 +2135,7 @@
    "ticker": "W.V",
    "published_at": "2025-04-16T12:00:00Z",
    "stratum": "final_close/1",
-   "body_sha1": "13eda8c35f11627b24ba34cd7a2d11431ce0dab1",
+   "body_sha1": "47605efda238feb63f866a9b62e029ff96caf985",
    "review": "confirmed",
    "expect": {
     "is_financing": true,
@@ -2168,7 +2168,7 @@
     "warrant_alt": [],
     "alt_readings": []
    },
-   "note": "Release is by Midasco Capital Corp. (TSX-V: MGC.H) while ticker is W.V; context shows W = Spartan Metals with the same contact (Pettigrew), suggesting a later rename, but the text does not say so, hence null. 'completed its previously announced non-brokered private placement of 7,000,000 units at $0.05 per Unit for gross proceeds of up to $350,000' treated as a $350,000 close (offered null, close-only). Sept 2025 Spartan $2.25M close is a separate deal."
+   "note": "Release is by Midasco Capital Corp. (TSX-V: MGC.H) while ticker is W.V; context shows W = Spartan Metals with the same contact (Pettigrew), suggesting a later rename, but the text does not say so, hence null. 'completed its previously announced non-brokered private placement of 7,000,000 units at $0.05 per Unit for gross proceeds of up to $350,000' treated as a $350,000 close (offered null, close-only). Sept 2025 Spartan $2.25M close is a separate deal. [2026-10-05: text fingerprint refreshed (was 13eda8c35f11) after a headline tidy-up / re-ingest; labels unchanged; Justin OK]"
   },
   {
    "n": 49,

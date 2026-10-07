@@ -23,6 +23,9 @@ List parameters
   days       only items whose latest release is in the last N days
   page, limit    1-based page, limit 1..200 (default 50) - counted in items
   universe   all (default) | mtp -> only companies on MTP's list (fails open, like the other APIs)
+  include    ytd | recovered | all (comma list) -> also nine-months year-to-date rows (period '9M <year>') and
+             'recovered' rows (kind recovered: ounces recovered, never production). Default: neither
+             (MNT_PROD_API_INCLUDE_V1).
 
 Registered from portal.serve via production_api.register(app).
 Self-tests: python3 -m portal.production_api --selftest   (in-memory; touches nothing live)
@@ -166,8 +169,15 @@ class BadRequest(ValueError):
 
 
 def parse_params(ticker=None, kind=None, metal=None, days=None, page=None, limit=None, universe=None,
-                 today=None) -> dict:
+                 today=None, include=None, sort=None) -> dict:
     p: dict[str, Any] = {}
+    inc = [x.strip().lower() for x in str(include or "").split(",") if x.strip()]   # MNT_PROD_API_INCLUDE_V1
+    if "all" in inc:
+        inc = ["ytd", "recovered"]
+    for x in inc:
+        if x not in ("ytd", "recovered"):
+            raise BadRequest("include: ytd, recovered or all")
+    p["include"] = sorted(set(inc))
     t = (ticker or "").strip()
     if t:
         if not _TICKER_RE.match(t):
@@ -175,7 +185,7 @@ def parse_params(ticker=None, kind=None, metal=None, days=None, page=None, limit
         p["ticker"] = t.upper()
     k = (kind or "").strip().lower()
     if k:
-        if k not in KINDS:
+        if k not in KINDS and not (k == "recovered" and "recovered" in p.get("include", [])):
             raise BadRequest("kind: actual, guidance or milestone")
         p["kind"] = k
     m = (metal or "").strip()
@@ -203,6 +213,10 @@ def parse_params(ticker=None, kind=None, metal=None, days=None, page=None, limit
     if u not in ("all", "mtp"):
         raise BadRequest("universe: all or mtp")
     p["universe"] = u
+    s = (sort or "").strip().lower()   # MNT_PROD_API_SORT_V1: sort=date lists the newest release first
+    if s and s not in ("date", "period"):
+        raise BadRequest("sort: date or period")
+    p["sort"] = s or "period"
     return p
 
 
@@ -296,7 +310,9 @@ def build_items(rows, names: dict) -> list[dict]:
 
 
 def query_items(conn, p: dict, names: dict, universe: Optional[frozenset]) -> dict:
-    where = ["kind IS NOT NULL"]
+    inc = p.get("include") or []   # MNT_PROD_API_INCLUDE_V1: include=ytd / recovered brings them back
+    where = ["kind IS NOT NULL"] + ([] if "recovered" in inc else ["kind != 'recovered'"]) + \
+            ([] if "ytd" in inc else ["COALESCE(period, '') NOT LIKE '9M %'"])   # PROD13: MTP unchanged by default
     args: list = []
     t = p.get("ticker")
     if t:
@@ -315,6 +331,8 @@ def query_items(conn, p: dict, names: dict, universe: Optional[frozenset]) -> di
     rows = conn.execute("SELECT " + _COLS + " FROM production_results WHERE " + " AND ".join(where) +
                         " ORDER BY published_at, event_id, ordinal", args).fetchall()
     items = build_items(rows, names)
+    if p.get("sort") == "date":   # MNT_PROD_API_SORT_V1
+        items.sort(key=lambda i: (i.get("published_at") or "", str(i.get("item_id") or "")), reverse=True)
     if p.get("since"):
         items = [i for i in items if i["date"] >= p["since"]]
     total, limit, page = len(items), p["limit"], p["page"]
@@ -322,6 +340,7 @@ def query_items(conn, p: dict, names: dict, universe: Optional[frozenset]) -> di
         "ok": True, "api_version": API_VERSION, "total": total, "page": page,
         "pages": max(1, math.ceil(total / limit)) if total else 0, "limit": limit,
         "filters": {k: p[k] for k in ("ticker", "kind", "metal", "since") if p.get(k)},
+        "include": p.get("include") or [],   # MNT_PROD_API_INCLUDE_V1
         "universe": p["universe"], "universe_applied": bool(universe),
         "items": items[(page - 1) * limit: page * limit],
     }
@@ -339,9 +358,10 @@ def register(app) -> None:
     @app.get("/api/v1/production")
     def production_list(ticker: Optional[str] = None, kind: Optional[str] = None, metal: Optional[str] = None,
                         days: Optional[str] = None, page: Optional[str] = None,
-                        limit: Optional[str] = None, universe: Optional[str] = None):
+                        limit: Optional[str] = None, universe: Optional[str] = None, include: Optional[str] = None,
+                        sort: Optional[str] = None):
         try:
-            p = parse_params(ticker, kind, metal, days, page, limit, universe)
+            p = parse_params(ticker, kind, metal, days, page, limit, universe, include=include, sort=sort)
         except BadRequest as e:
             return _err(str(e), 400)
         uni = None
@@ -440,6 +460,16 @@ def _selftest() -> int:
             return True
     ok("bad params", bad(kind="x") and bad(ticker="A'--") and bad(universe="x") and bad(metal="<b>"))
     ok("limit capped", P(limit="9999")["limit"] == MAX_LIMIT)
+    # MNT_PROD_API_INCLUDE_V1
+    row("r1", "RRR.V", "2026-10-15", "recovered", "Q3 2026", "2026-09-30", qty=9621)
+    row("r1", "RRR.V", "2026-10-15", "actual", "9M 2026", "2026-09-30", qty=30000)
+    row("r1", "RRR.V", "2026-10-15", "actual", "Q3 2026", "2026-09-30", qty=10000)
+    ok("default leaves recovered and 9M out", [i["period"] for i in query_items(conn, P(ticker="RRR"), names, None)["items"]] == ["Q3 2026"])
+    ok("include=all brings both back", sorted((i["kind"], i["period"]) for i in query_items(conn, P(ticker="RRR", include="all"), names, None)["items"])
+       == [("actual", "9M 2026"), ("actual", "Q3 2026"), ("recovered", "Q3 2026")])
+    ok("include=ytd only", len(query_items(conn, P(ticker="RRR", include="ytd"), names, None)["items"]) == 2)
+    ok("kind=recovered needs include", bad(kind="recovered") and P(kind="recovered", include="recovered")["kind"] == "recovered")
+    ok("bad include", bad(include="x"))
     print("production_api selftest: %d failed" % len(fails))
     return 1 if fails else 0
 

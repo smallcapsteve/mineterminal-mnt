@@ -87,8 +87,8 @@
               {% endif %}
             </td>
             <td>
-              <span class="fin-status fin-status-{{ 'closed' if r['action'] == 'departed' else 'announced' }}">
-                {{ {'departed': 'left', 'changed': 'changed'}.get(r['action'], 'joined') }}
+              <span class="fin-status fin-status-{{ 'closed' if r['action'] in ('departed', 'resigned', 'retired') else 'announced' }}">
+                {{ {'departed': 'left', 'resigned': 'resigned', 'retired': 'retired', 'promoted': 'promoted', 'changed': 'changed'}.get(r['action'], 'joined') }}
               </span>
             </td>
             <td class="mgmt-person">{{ r["person"] or "—" }}</td>
@@ -97,7 +97,7 @@
             </td>
             <td class="fin-kind">{{ (r["scope"] or "—")|title }}</td>
             <td class="mgmt-headline">
-              <a href="/event/{{ r['event_id'] }}">{{ (r["raw_headline"] or "")[:95] }}</a>
+              <a href="/event/{{ r['event_id'] }}">{{ ((r["raw_headline"] or "") | smart_title)[:95] }}</a>
               {% if (r["n_changes"] or 1) > 1 %}
                 <span class="fin-tranches">· {{ r["n_changes"] }} people</span>
               {% endif %}

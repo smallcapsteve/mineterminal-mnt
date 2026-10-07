@@ -92,6 +92,14 @@ def _day(s):
         return None
 
 
+_AUD3_NOT_PERSON = re.compile(r"^(special|annual|general|extraordinary)( and special)? (meeting|shareholders?)\b|^support\b|"
+                              r"^(the )?(board|company|corporation|shareholders?|management)$", re.I)   # MNT_AUD3_MGMT_V1 (2026-09-30)
+
+
+def _aud3_not_a_person(p):
+    return bool(p) and bool(_AUD3_NOT_PERSON.search(str(p).strip()))
+
+
 def compute(items):
     """items: iterable of (event, parsed), event = {event_id, ticker, published_at, raw_headline},
     parsed = the analyse()-shaped dict. Returns (rows, stats); rows are dicts ready to insert."""
@@ -107,6 +115,7 @@ def compute(items):
             continue
         day = _day(ev.get("published_at"))
         keep = []
+        changes = [c for c in changes if not _aud3_not_a_person(c.get("person"))]   # MNT_AUD3_MGMT_V1
         for c in changes:
             k = (ev.get("ticker") or "", surname(c.get("person")), c.get("action"), c.get("role_canon"))
             if k[1]:
@@ -178,14 +187,23 @@ def publish(conn, version, log=print):
     t0 = time.time()
     rows, st = compute(load_items(conn, version))
     _ensure_schema(conn)
+    # OPTD step A (2026-10-06): the same rowsync calls, run once before the write lock to work out the
+    # differences; the locked pass below then only applies them (portal/rowsync.py, planning). Kill switch:
+    # /opt/mnt/app/portal/rowsync_plan_OFF.
+    from portal import rowsync as _rowsync_plan
+    with _rowsync_plan.planning(conn):
+        # OPSFIX item 1 (2026-10-05): write only the rows that changed; same table contents (portal/rowsync.py)
+        from portal import rowsync
+        st["rowsync"] = rowsync.sync_rows(conn, "management_changes", "mgmt_id", (
+            "event_id", "ordinal", "ticker", "action", "person", "role", "role_canon", "scope", "effective_date",
+            "interim", "n_changes", "raw_headline", "published_at"), rows, {"extractor_version": version})
     conn.execute("BEGIN IMMEDIATE")
     try:
-        conn.execute("DELETE FROM management_changes")
-        conn.executemany(
-            "INSERT INTO management_changes(event_id, ordinal, ticker, action, person, role, role_canon, scope, "
-            "effective_date, interim, n_changes, raw_headline, published_at, extractor_version) "
-            "VALUES (:event_id,:ordinal,:ticker,:action,:person,:role,:role_canon,:scope,:effective_date,"
-            ":interim,:n_changes,:raw_headline,:published_at,'" + version + "')", rows)
+        # OPSFIX item 1 (2026-10-05): write only the rows that changed; same table contents (portal/rowsync.py)
+        from portal import rowsync
+        st["rowsync"] = rowsync.sync_rows(conn, "management_changes", "mgmt_id", (
+            "event_id", "ordinal", "ticker", "action", "person", "role", "role_canon", "scope", "effective_date",
+            "interim", "n_changes", "raw_headline", "published_at"), rows, {"extractor_version": version})
         conn.execute("COMMIT")
     except Exception:
         conn.execute("ROLLBACK")
@@ -351,7 +369,7 @@ def _selftest():
     ok("tagged releases only, legacy row gone",
        [g[0] for g in got] == ["x0", "x1", "x1"] and not any(g[0] == "old1" for g in got))
     ok("two people, two rows, one release",
-       sorted((g[2], g[5]) for g in got if g[0] == "x1") == [("Jane Doe", "departed"), ("John Roe", "appointed")])
+       sorted((g[2], g[5]) for g in got if g[0] == "x1") == [("Jane Doe", "resigned"), ("John Roe", "appointed")])
     ok("scope and canonical role stored", got[0][3:5] == ("Director", "board"))
     ok("nobody named, nothing published", not any(g[0] == "x3" for g in got))
     ok("extractor_version stamped",

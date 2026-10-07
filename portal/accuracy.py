@@ -44,6 +44,8 @@ import json
 import os
 import re
 import sqlite3
+import sys
+import unicodedata
 import urllib.error
 import urllib.request
 from dataclasses import dataclass, field
@@ -53,6 +55,11 @@ from portal import normalize as N
 SCHEMA = 1
 THRESHOLD = 0.90
 MAX_ROW_LOSS = 0.02
+# ACC_RECALL_V1 (2026-09-23, Justin: "no-regression + warning"): a new version may not score more than
+# RECALL_TOLERANCE lower recall on a key field than the live version scores on the same set; a key field under
+# RECALL_WARN recall is flagged on the gate line but does not block.
+RECALL_TOLERANCE = 0.03
+RECALL_WARN = 0.70
 MIN_ITEMS = 40
 MIN_CLAIMS = 10
 REVIEWED = ("confirmed", "corrected")
@@ -135,6 +142,29 @@ def validate_set(aset):
     return p
 
 
+def set_spec_name(aset, fallback=None):
+    """ACC_RECALL_V1: which spec scores a set. The answer key is named after its spec; a fresh random ("blind")
+    set names its spec in a "spec" key, e.g. {"name": "blind_royalties_2026_10", "spec": "royalties", ...}."""
+    return aset.get("spec") or fallback or aset.get("name")
+
+
+def extra_sets(spec_name):
+    """The confirmed sets other than the answer key that are scored by spec_name (fresh random samples)."""
+    out = []
+    if not os.path.isdir(SETS_DIR):
+        return out
+    for fn in sorted(os.listdir(SETS_DIR)):
+        if not fn.endswith(".json") or fn[:-5] == spec_name:
+            continue
+        try:
+            aset = load_set(os.path.join(SETS_DIR, fn))
+        except (AccuracyError, ValueError, OSError):
+            continue
+        if aset.get("spec") == spec_name:
+            out.append(aset)
+    return out
+
+
 def set_sha(aset):
     return hashlib.sha256(json.dumps(aset, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
 
@@ -179,6 +209,10 @@ class TagSpec:
     # FIN_SPEC_V1 (2026-09-17): a tag whose rows need the whole corpus (deals grouped from several releases)
     # scores a candidate through its publisher: candidate_predictor(conn, extractor, version) -> predict(it, ev)
     candidate_predictor: object = None
+    # ACC_PN_V1 (2026-09-23): where the answer key keeps project/property names, (container, field), e.g.
+    # ("rows", "property"). A spec that sets it joins the shared project-name test set, and its reader must use
+    # portal/project_names.py (a new reader is refused without it; see helper_check).
+    project_labels: tuple = None
 
 
 SPECS = {}
@@ -288,6 +322,65 @@ def extractor_predictor(spec, extractor_spec):
     return lambda it, ev: spec.from_records(extractor_spec.extract(ev["raw_headline"] or "", ev["raw_body"] or ""))
 
 
+def records_from_store(conn, extractor, version, event_id):
+    """ACC_RECALL_V1: the Records a stored version wrote for one release, rebuilt from fx_records / fx_facts."""
+    from portal import facts as F
+    recs = []
+    for rid, kind, conf, ticker, lk in conn.execute(
+            "SELECT record_id, kind, confidence, ticker, lifecycle_key FROM fx_records "
+            "WHERE extractor=? AND version=? AND event_id=? ORDER BY ordinal", (extractor, version, event_id)).fetchall():
+        facts_ = [F.Fact(field=f, value_num=vn, value_text=vt, unit=u, metal=m, source_field=sf,
+                         span=(a, b) if a is not None else None, confidence=c, seq=sq)
+                  for f, vn, vt, u, m, sf, a, b, c, sq in conn.execute(
+                      "SELECT field, value_num, value_text, unit, metal, source_field, span_start, span_end, "
+                      "confidence, seq FROM fx_facts WHERE record_id=? ORDER BY fact_id", (rid,)).fetchall()]
+        recs.append(F.Record(kind=kind, facts=facts_, confidence=conf, ticker=ticker, lifecycle_key=lk))
+    return recs
+
+
+def version_predictor(spec, conn, extractor, version):
+    """ACC_RECALL_V1: predict(item, event) from what a backfilled version stored -- through the publisher where
+    the spec scores through it, else from the stored Records. Used for the live version, whose code is gone."""
+    if spec.candidate_predictor:
+        return spec.candidate_predictor(conn, extractor, version)
+    if spec.from_records is None:
+        raise AccuracyError(f"spec {spec.name} has no from_records() adapter")
+    return lambda it, ev: spec.from_records(records_from_store(conn, extractor, version, it["event_id"]))
+
+
+def recall_checks(rep, base_rep, base_version):
+    """ACC_RECALL_V1: [{name, passed, detail, warn?}]. Blocking: a key field's recall more than RECALL_TOLERANCE
+    below the live version's on the same set. Warnings only: a key field under RECALL_WARN, a whole-row drop."""
+    out = []
+    for f, d in rep["fields"].items():
+        if not d["key"]:
+            continue
+        r = d["recall"]
+        b = ((base_rep or {}).get("fields", {}).get(f) or {}).get("recall")
+        if base_rep is not None and r is not None and b is not None:
+            ok = r >= b - RECALL_TOLERANCE
+            out.append({"name": f"recall: {f}", "passed": ok,
+                        "detail": f"{r * 100:.1f}% vs live {base_version} {b * 100:.1f}%; "
+                                  f"may not drop more than {RECALL_TOLERANCE * 100:.0f} points"})
+        if r is not None and r < RECALL_WARN:
+            out.append({"name": f"low recall: {f}", "passed": True, "warn": True,
+                        "detail": f"{r * 100:.1f}% is under {RECALL_WARN * 100:.0f}% (warning only)"})
+    if base_rep is not None:
+        w, bw = rep["whole_row"], base_rep["whole_row"]
+        if w.get("rate") is not None and bw.get("rate") is not None and w["rate"] < bw["rate"]:
+            out.append({"name": "whole row", "passed": True, "warn": True,
+                        "detail": f"{w['correct']}/{w['scored']} vs live {base_version} {bw['correct']}/{bw['scored']} "
+                                  f"(warning only)"})
+    elif base_version is None:
+        out.append({"name": "recall vs live", "passed": True, "warn": True,
+                    "detail": "no live version to compare with (first version)"})
+    return out
+
+
+def fields_brief(rep):
+    return {f: {"precision": d["precision"], "recall": d["recall"], "key": d["key"]} for f, d in rep["fields"].items()}
+
+
 # ------------------------------------------------------------------ site checks
 # Page key (portal.pages.MNT_NAV) -> SQL returning that page's row count. Pages that
 # list tagged releases count the tag; data pages count their table. v_fx_* views
@@ -375,7 +468,7 @@ def replaced_page_check(rep, info):
             "removed_sample": info.get("removed_sample", [])}
 
 
-def gate_checks(rep, *, selftest_ok, rows_before, rows_after, pages, replaced=None):
+def gate_checks(rep, *, selftest_ok, rows_before, rows_after, pages, replaced=None, recall=None):
     """The checks, each {name, passed, detail}. passed = all passed. replaced: replaced_info() or None."""
     checks = []
 
@@ -391,7 +484,9 @@ def gate_checks(rep, *, selftest_ok, rows_before, rows_after, pages, replaced=No
             continue
         ok = d["claims"] >= MIN_CLAIMS and d["precision"] is not None and d["precision"] >= THRESHOLD
         p = "n/a" if d["precision"] is None else f"{d['precision'] * 100:.1f}%"
-        add(f"precision: {f}", ok, f"{p} on {d['claims']} claims; need {THRESHOLD * 100:.0f}% on {MIN_CLAIMS}+")
+        r = "n/a" if d["recall"] is None else f"{d['recall'] * 100:.1f}%"
+        add(f"precision: {f}", ok, f"{p} on {d['claims']} claims; need {THRESHOLD * 100:.0f}% on {MIN_CLAIMS}+ "
+                                   f"(recall {r})")
     lost = []
     for k, before in rows_before.items():
         after = rows_after.get(k)
@@ -406,6 +501,8 @@ def gate_checks(rep, *, selftest_ok, rows_before, rows_after, pages, replaced=No
     add("every page returns 200", pages and not bad, f"{len(pages)} pages" if not bad else json.dumps(bad))
     if replaced is not None:
         checks.append(replaced_page_check(rep, replaced))
+    if recall is not None:
+        checks.extend(recall)
     return {"passed": all(c["passed"] for c in checks), "checks": checks}
 
 
@@ -424,6 +521,89 @@ def record_run(conn, rep, subject, purpose, passed=None):
     return cur.lastrowid
 
 
+def project_label_path(spec_name):
+    """ACC_PN_V1: where a spec's answer key keeps its project-name labels, (container, field), or None. A spec can say
+    so itself (TagSpec attribute project_labels); otherwise portal/project_names.LABEL_PATHS is asked."""
+    sp = SPECS.get(spec_name)
+    own = getattr(sp, "project_labels", None) if sp is not None else None
+    if own:
+        return tuple(own)
+    try:
+        from portal import project_names as PN
+    except ImportError:
+        return None
+    return PN.LABEL_PATHS.get(spec_name)
+
+
+def project_labels(path, expect):
+    container, fld = path
+    if container is None:
+        return [x for x in (expect.get(fld) or []) if x]
+    return [r.get(fld) for r in (expect.get(container) or []) if r.get(fld)]
+
+
+def helper_check(tagspec, extractor_spec, first_version=False):
+    """ACC_PN_V1: a reader whose answer key labels project names must take them from portal/project_names.py.
+    Justin, 2026-09-23: a NEW reader (no live version yet) is refused without it; a reader already live gets a
+    warning until it moves to the helper. None when the spec labels no project names."""
+    if not project_label_path(tagspec.name):
+        return None
+    try:
+        from portal import fingerprint as FP
+        from portal import project_names as PN
+    except ImportError:
+        return None
+    mod = sys.modules.get(getattr(extractor_spec.extract, "__module__", "") or "")
+    f = getattr(mod, "__file__", None)
+    if not f:
+        return None
+    if FP.uses(f, "portal.project_names"):
+        return {"name": "project-name helper", "passed": True, "detail": f"uses portal/project_names.py {PN.VERSION}"}
+    if first_version:
+        return {"name": "project-name helper", "passed": False,
+                "detail": "a new reader that outputs project or property names must use portal/project_names.py "
+                          "(from portal import project_names as PN)"}
+    return {"name": "project-name helper", "passed": True, "warn": True,
+            "detail": "outputs project names without portal/project_names.py (warning until it moves over)"}
+
+
+def project_name_report(conn):
+    """ACC_PN_V1: the shared project-name helper measured on every project label in every answer key and fresh set
+    in accuracy/sets: [(set name, {items, hit, wrong, none, stale})]. A new reader's key joins by naming its label
+    path (see project_label_path). hit = the helper's main project names a labelled project (project_matches)."""
+    from portal import project_names as PN
+    out = []
+    if not os.path.isdir(SETS_DIR):
+        return out
+    for fn in sorted(os.listdir(SETS_DIR)):
+        if not fn.endswith(".json"):
+            continue
+        try:
+            aset = load_set(os.path.join(SETS_DIR, fn))
+        except (AccuracyError, ValueError, OSError):
+            continue
+        path = project_label_path(set_spec_name(aset, fn[:-5]))
+        if not path:
+            continue
+        events = load_events(conn, aset)
+        c = {"items": 0, "hit": 0, "wrong": 0, "none": 0, "stale": 0}
+        for it in aset["items"]:
+            if it.get("review") == EXCLUDED:
+                continue
+            labels = project_labels(path, it.get("expect") or {})
+            ev = events.get(it["event_id"])
+            if not labels or ev is None:
+                continue
+            if text_sha1(ev["raw_headline"], ev["raw_body"]) != it["body_sha1"]:
+                c["stale"] += 1
+                continue
+            c["items"] += 1
+            p = PN.primary(ev["raw_headline"], ev["raw_body"])
+            c["hit" if p and project_matches(p, labels) else "wrong" if p else "none"] += 1
+        out.append((aset["name"], c))
+    return out
+
+
 def gate_and_activate(conn, facts, tagspec, extractor_spec, aset, *, selftest_ok, base=PORTAL_URL, hrefs=None,
                       log=print):
     """The auto-install step for a facts-store extractor whose candidate version is
@@ -437,23 +617,51 @@ def gate_and_activate(conn, facts, tagspec, extractor_spec, aset, *, selftest_ok
         raise AccuracyError(f"{name} {version} is not fully backfilled; run facts_sync.py --backfill {name} first")
     predict = (tagspec.candidate_predictor(conn, name, version) if tagspec.candidate_predictor
                else extractor_predictor(tagspec, extractor_spec))
-    rep = evaluate(tagspec, aset, predict, load_events(conn, aset))
+    events = load_events(conn, aset)
+    rep = evaluate(tagspec, aset, predict, events)
+    # ACC_RECALL_V1: the live version on the same set, from what it stored
+    live = facts.active_version(conn, name)
+    base_rep = None
+    if live and live != version:
+        try:
+            base_rep = evaluate(tagspec, aset, version_predictor(tagspec, conn, name, live), events)
+        except Exception as e:  # noqa: BLE001  (no baseline is reported, never a crash)
+            log(f"[gate] live {live} could not be scored for the recall check: {type(e).__name__}: {e}")
+    recall = recall_checks(rep, base_rep, live if base_rep is not None else None)
+    if live and base_rep is None:
+        recall.append({"name": "recall vs live", "passed": True, "warn": True,
+                       "detail": f"live {live} could not be scored (warning only)"})
+    hc = helper_check(tagspec, extractor_spec, first_version=not live)          # ACC_PN_V1
+    if hc:
+        recall.append(hc)
+    rep["baseline"] = {"version": live, "fields": fields_brief(base_rep), "whole_row": base_rep["whole_row"]} \
+        if base_rep is not None else None
+    # ACC_RECALL_V1: fresh random sets for this spec are scored and reported, never gated
+    rep["extra_sets"] = []
+    for xs in extra_sets(tagspec.name):
+        try:
+            xr = evaluate(tagspec, xs, predict, load_events(conn, xs))
+            rep["extra_sets"].append({"set": xs["name"], "status": xs.get("status"), "lines": summary_lines(xr)})
+        except Exception as e:  # noqa: BLE001
+            rep["extra_sets"].append({"set": xs.get("name"), "status": "error", "lines": [f"{type(e).__name__}: {e}"]})
     replaced = replaced_info(conn, tagspec, name, version) if tagspec.replaces else None
     rows_before = page_row_counts(conn)
     pages_before = page_statuses(base, hrefs)
     pre = gate_checks(rep, selftest_ok=selftest_ok, rows_before=rows_before, rows_after=rows_before, pages=pages_before,
-                      replaced=replaced)
+                      replaced=replaced, recall=recall)
     subject = f"fx:{name}@{version}"
     if not pre["passed"]:
-        rep["gate"] = dict(pre, stage="before activation")
+        rep["gate"] = dict(pre, stage="before activation", extra_sets=rep["extra_sets"])
         record_run(conn, rep, subject, "gate", passed=False)
         log(f"[gate] {subject}: NOT installed; " + "; ".join(c["name"] for c in pre["checks"] if not c["passed"]))
         return rep["gate"]
-    prev = facts.activate(conn, name, version, gate_report={"summary": summary_lines(rep), "set_sha": rep["set_sha"]})
+    prev = facts.activate(conn, name, version, gate_report={"summary": summary_lines(rep), "set_sha": rep["set_sha"],
+                                                            "fields": fields_brief(rep), "baseline": rep["baseline"],
+                                                            "extra_sets": rep["extra_sets"]})
     rows_after = page_row_counts(conn)
     pages_after = page_statuses(base, hrefs)
     post = gate_checks(rep, selftest_ok=selftest_ok, rows_before=rows_before, rows_after=rows_after, pages=pages_after,
-                       replaced=replaced)
+                       replaced=replaced, recall=recall)
     if not post["passed"]:
         if prev:
             facts.activate(conn, name, prev)
@@ -461,7 +669,8 @@ def gate_and_activate(conn, facts, tagspec, extractor_spec, aset, *, selftest_ok
             conn.execute("UPDATE fx_extractor_versions SET status='candidate', activated_at=NULL "
                          "WHERE extractor=? AND version=?", (name, version))
         post["undone"] = f"re-activated {prev}" if prev else "returned to candidate"
-    rep["gate"] = dict(post, stage="after activation", previous=prev, rows_before=rows_before, rows_after=rows_after)
+    rep["gate"] = dict(post, stage="after activation", previous=prev, rows_before=rows_before, rows_after=rows_after,
+                       extra_sets=rep["extra_sets"])
     record_run(conn, rep, subject, "gate", passed=post["passed"])
     log(f"[gate] {subject}: {'INSTALLED' if post['passed'] else 'undone: ' + post['undone']}")
     return rep["gate"]
@@ -483,7 +692,10 @@ def _hole(s):
 
 
 def _words(s):
-    return {w for w in _WORD.findall((s or "").lower()) if w not in PROJECT_STOPWORDS}
+    # ACC_PN_V1: accent-blind, so "Cabaçal" and "Cabacal" are one project
+    s = unicodedata.normalize("NFKD", s or "").lower()
+    s = "".join(ch for ch in s if not unicodedata.combining(ch))
+    return {w for w in _WORD.findall(s) if w not in PROJECT_STOPWORDS}
 
 
 def project_matches(pred, accepted):
@@ -572,6 +784,10 @@ def judge_drill(pred, expect):
                 else:
                     ok = _hole(pred["hole"]) in {_hole(g.get("hole")) for g in gold if g.get("hole")}
                 out["hole"].append("tp" if ok else "fp")
+            elif any(g.get("hole") for g in (full or same_grade or gold)):
+                # 2026-09-18: the release names the hole and the page shows none. Counted from here on,
+                # so a blank hole shows up in recall and in the whole-row rate instead of vanishing.
+                out["hole"].append("fn")
     if pred.get("project"):
         out["project"].append("tp" if project_matches(pred["project"], projects) else "fp")
     elif is_result and projects:
@@ -884,7 +1100,9 @@ def _selftest():
     exp_alt = dict(exp, intercepts=[dict(exp["intercepts"][1], length_m=56.6, alt_lengths=[59.3])])
     eq("judge alt length accepted", judge_drill(good, exp_alt)["intercept"], ["tp"])
     eq("judge wrong hole", judge_drill(dict(good, hole="FCG22-09"), exp)["hole"], ["fp"])
-    eq("judge no hole shown", judge_drill(dict(good, hole=None), exp)["hole"], [])
+    eq("judge no hole shown is a miss", judge_drill(dict(good, hole=None), exp)["hole"], ["fn"])
+    eq("judge no hole shown, none labelled", judge_drill(dict(good, hole=None), dict(
+        exp, intercepts=[{k: v for k, v in exp["intercepts"][1].items() if k != "hole"}]))["hole"], [])
     eq("judge missing row", judge_drill(None, exp), {"row": ["fn"], "intercept": ["fn"], "hole": [], "project": []})
     eq("judge row on non-result", judge_drill(good, {"is_result": False, "intercepts": [], "projects": ["Fondaway Canyon"]}),
        {"row": ["fp"], "intercept": ["fp"], "hole": [], "project": ["tp"]})
@@ -1135,6 +1353,121 @@ def _selftest():
                                                  dict(fe, alt_readings=[{"role": "announcement", "amount_offered": 1000000,
                                                                           "amount_this_close": None, "amount_closed_total": None}]))["stage"], ["tp"])
 
+    # ACC_RECALL_V1: the recall rule
+    def _rep(recalls, whole=(40, 50)):
+        return {"fields": {f: {"key": True, "recall": r} for f, r in recalls.items()},
+                "whole_row": {"correct": whole[0], "scored": whole[1], "rate": whole[0] / whole[1]}}
+    rc = recall_checks(_rep({"row": 0.80, "hole": 0.90}), _rep({"row": 0.82, "hole": 0.95}), "1.0.0")
+    eq("recall within tolerance passes", [c["passed"] for c in rc if c["name"] == "recall: row"], [True])
+    eq("recall drop beyond tolerance fails", [c["passed"] for c in rc if c["name"] == "recall: hole"], [False])
+    rc = recall_checks(_rep({"row": 0.45}, (12, 50)), _rep({"row": 0.33}, (14, 50)), "1.1.0")
+    eq("recall rise passes", [c["passed"] for c in rc if c["name"] == "recall: row"], [True])
+    eq("low recall warns, never blocks", [(c["passed"], c.get("warn")) for c in rc if c["name"] == "low recall: row"],
+       [(True, True)])
+    eq("whole-row drop warns", [(c["passed"], c.get("warn")) for c in rc if c["name"] == "whole row"], [(True, True)])
+    eq("first version: warning only", [(c["passed"], c.get("warn")) for c in recall_checks(_rep({"row": 0.9}), None, None)],
+       [(True, True)])
+    eq("recall checks join the gate",
+       gate_checks({"set_usable": True, "set_unusable_reasons": [], "n_scored": 50, "n_stale": 0, "n_missing": 0,
+                    "fields": {"row": {"key": True, "claims": 50, "precision": 1.0, "recall": 0.5}}},
+                   selftest_ok=True, rows_before={}, rows_after={}, pages={"/": 200},
+                   recall=[{"name": "recall: row", "passed": False, "detail": ""}])["passed"], False)
+    eq("set spec name", (set_spec_name({"name": "royalties"}), set_spec_name({"name": "blind_royalties_2026_10",
+                                                                            "spec": "royalties"})),
+       ("royalties", "royalties"))
+    try:
+        from portal import facts as F
+        c = F.connect(":memory:")
+        F.ensure_schema(c)
+        F.register_version(c, "demo", "1.0.0", "demo_kind", "Demo")
+        F.write_event(c, "demo", "1.0.0", {"event_id": "e1", "ticker": "DEM.V", "published_at": "2026-01-01",
+                                            "raw_headline": "h", "raw_body": "b"},
+                      [F.Record(kind="demo_kind", facts=[F.Fact(field="x", value_num=2.0, seq=0),
+                                                         F.Fact(field="y", value_text="t", seq=1)])], 1)
+        got = records_from_store(c, "demo", "1.0.0", "e1")
+        eq("records from store", [(r.kind, [(f.field, f.value_num, f.value_text, f.seq) for f in r.facts]) for r in got],
+           [("demo_kind", [("x", 2.0, None, 0), ("y", None, "t", 1)])])
+    except Exception as e:  # noqa: BLE001
+        eq("records from store", f"{type(e).__name__}: {e}", "ok")
+
+    # ACC_COLS_V1: the columns the judges now score
+    try:
+        from portal import accuracy_resources as AR, accuracy_permits as AP, accuracy_management as AM
+        from portal import accuracy_economics as AE, accuracy_production as APR
+        ok("contained same unit", AR.contained_agree([{"metal": "Au", "value": 334825, "unit": "oz"}],
+                                                     [{"metal": "Au", "value": 334900, "unit": "oz"}]))
+        ok("contained koz vs oz", AR.contained_agree([{"metal": "Au", "value": 222, "unit": "koz"}],
+                                                     [["Au", 222400, "oz"]]))
+        ok("contained wrong figure", not AR.contained_agree([{"metal": "Au", "value": 222, "unit": "koz"}],
+                                                            [["Au", 180000, "oz"]]))
+        ok("contained wrong metal", not AR.contained_agree([{"metal": "Au", "value": 222, "unit": "koz"}],
+                                                           [["Ag", 222, "koz"]]))
+        ok("cut-off agrees", AR.cutoff_agree("2.00 g/t Au", "2 g/t AuEq cut-off"))
+        ok("cut-off differs", not AR.cutoff_agree("0.8% SbEq", "0.5% SbEq"))
+        eq("resources judge scores cut-off and contained",
+           {k: v for k, v in AR.judge_resources(
+               {"rows": [{"deposit": "Gate", "category": "indicated", "tonnes": 1.0e6, "grades": [], "cut_off": "2 g/t",
+                          "contained": [["Au", 64, "koz"]], "basis": "resource", "context": "announced"}]},
+               {"is_resource_estimate": True, "complete": True,
+                "rows": [{"deposit": "Gate", "category": "indicated", "tonnes": 1.0e6, "cut_off": "2.00 g/t Au",
+                          "contained": [{"metal": "Au", "value": 64300, "unit": "oz"}], "context": "announced"}]}
+           ).items() if k in ("cut_off", "contained")}, {"cut_off": ["tp"], "contained": ["tp"]})
+        eq("permit term", (AP._judge_field("term", {"term": "20 years"}, {"term": "a 20-year permit"}),
+                           AP._judge_field("term", {"term": "three years"}, {"term": "3 years"}),
+                           AP._judge_field("term", {"term": "20 years"}, {"term": "5 years"})), (True, False, False))
+        o = AM.judge_management({"changes": [{"person": "Jane Doe", "role": "CEO", "action": "appointed",
+                                              "scope": "management", "effective_date": "2026-04-29", "interim": True}]},
+                                {"is_management_change": True, "changes": [
+                                    {"person": "Jane Doe", "role": "CEO", "action": "appointed", "scope": "management",
+                                     "effective_date": "2026-04-29", "interim": False}]})
+        eq("management date and interim", (o["effective_date"], o["interim"]), (["tp"], ["fp"]))
+        ok("economics project fuzzy", AE.econ_close("project", "Quartz Mountain Gold Project", "Quartz Mountain"))
+        ok("economics aisc 2%", AE.econ_close("aisc", 1210.0, 1200.0) and not AE.econ_close("aisc", 1300.0, 1200.0))
+        eq("production asset", (APR._judge_field("asset", {"kind": "milestone", "asset": "Cigar Lake"},
+                                                 {"kind": "milestone", "asset": "Cigar Lake Mine"}),
+                                APR._judge_field("asset", {"kind": "milestone", "asset": "Cigar Lake"},
+                                                 {"kind": "milestone", "asset": "Key Lake"})), (True, False))
+    except Exception as e:  # noqa: BLE001
+        eq("judge column tests", f"{type(e).__name__}: {e}", "ok")
+
+    # ACC_PN_V1
+    ok("project match is accent-blind", project_matches("Cabaçal", ["Cabacal"]) and project_matches("Cote", ["Côté Gold"]))
+    ok("project match still strict", not project_matches("Gosselin", ["Côté"]))
+    eq("label paths", (project_labels((None, "projects"), {"projects": ["A", ""]}),
+                       project_labels(("rows", "property"), {"rows": [{"property": "B"}, {}]})), (["A"], ["B"]))
+    try:
+        from portal import project_names as _PN  # noqa: F401
+        eq("royalties labels are in the shared test set", project_label_path("royalties"), ("rows", "property"))
+
+        class _X:
+            pass
+        _uses = type(sys)("_pn_user"); _uses.__file__ = os.path.join(tempfile.mkdtemp(), "u.py")
+        open(_uses.__file__, "w").write("from portal import project_names as PN\n")
+        _nouse = type(sys)("_pn_nouser"); _nouse.__file__ = os.path.join(tempfile.mkdtemp(), "n.py")
+        open(_nouse.__file__, "w").write("import re\n")
+        sys.modules["_pn_user"], sys.modules["_pn_nouser"] = _uses, _nouse
+        fu, fn_ = _X(), _X()
+        fu.extract, fn_.extract = _X(), _X()
+        fu.extract.__module__, fn_.extract.__module__ = "_pn_user", "_pn_nouser"
+        ts = _X(); ts.name = "economics"
+        a, b = helper_check(ts, fu), helper_check(ts, fn_)
+        eq("helper check", (a["passed"], bool(a.get("warn")), b["passed"], bool(b.get("warn"))), (True, False, True, True))
+        eq("a new reader without the helper is refused", (helper_check(ts, fn_, first_version=True)["passed"],
+                                                         helper_check(ts, fu, first_version=True)["passed"]), (False, True))
+        ts2 = _X(); ts2.name = "financings"
+        eq("helper check skips a reader without project labels", helper_check(ts2, fn_, first_version=True), None)
+        ts3 = _X(); ts3.name = "a_new_reader"
+        SPECS["a_new_reader"] = TagSpec(name="a_new_reader", tag="New", key_fields=("row",), judge=None,
+                                        project_labels=("rows", "property"))
+        try:
+            eq("a spec's own project_labels joins it", (project_label_path("a_new_reader"),
+                                                        helper_check(ts3, fn_, first_version=True)["passed"]),
+               (("rows", "property"), False))
+        finally:
+            SPECS.pop("a_new_reader", None)
+    except ImportError:
+        ok("helper not installed yet: helper checks skipped", True)
+
     failed = [n for n, good_ in results if not good_]
     for n in failed:
         print("  FAIL", n)
@@ -1145,3 +1478,58 @@ def _selftest():
 if __name__ == "__main__":
     import sys
     sys.exit(0 if _selftest() else 1)
+
+
+# MGMT_SPEC_V1 (2026-09-17): /management-changes shows one row per person, which is a different shape
+# from the three specs above, so it is scored in its own module. Imported last, when TagSpec and
+# register_spec exist, so that importing portal.accuracy registers every spec.
+from portal import accuracy_management as _accuracy_management  # noqa: E402,F401
+
+# RES_SPEC_V1 (2026-09-18): /resources shows one row per deposit per category -- a different shape
+# again -- and its judge has to set aside field claims the labels do not state, or it measures the
+# labels rather than the reader. Imported last for the same reason as the one above.
+from portal import accuracy_resources as _accuracy_resources  # noqa: E402,F401
+
+# ECON_SPEC_V1 (2026-09-21): /economic-studies shows one row per scenario, paired by its figures, and
+# a study a release credits to another company is left out. Imported last for the same reason.
+from portal import accuracy_economics as _accuracy_economics  # noqa: E402,F401
+
+# PROD_SPEC_V1 (2026-09-21): /production-results shows one row per metal per period (actual or guidance)
+# and a row per completed milestone, scored through the publisher. Imported last for the same reason.
+from portal import accuracy_production as _accuracy_production  # noqa: E402,F401
+
+# ROY_SPEC_V1 (2026-09-21): /royalties-streams shows one row per royalty or stream interest a release
+# reports as news, scored through the publisher. Imported last for the same reason.
+from portal import accuracy_royalties as _accuracy_royalties  # noqa: E402,F401
+
+# EXPL_SPEC_V1 (2026-09-21): /exploration-programs shows one row per field program a release reports,
+# scored through the publisher. Imported last for the same reason.
+from portal import accuracy_exploration as _accuracy_exploration  # noqa: E402,F401
+
+# TECH_SPEC_V1 (2026-09-22): /technical-reports shows one row per NI 43-101 technical report an item reports
+# (filed, commissioned or withdrawn), scored through the publisher. Imported last for the same reason.
+from portal import accuracy_technical as _accuracy_technical  # noqa: E402,F401
+
+# PERMIT_SPEC_V1 (2026-09-22): /permits-approvals shows one row per permit or government approval an item
+# reports, at its stage, scored through the publisher. Imported last for the same reason.
+from portal import accuracy_permits as _accuracy_permits  # noqa: E402,F401
+
+# OPT_SPEC_V1 (2026-09-23): /property-options shows one row per land deal an item reports (options in and
+# out, staking, claim and property purchases, sales), at its stage, scored through the publisher.
+# Imported last for the same reason.
+from portal import accuracy_options as _accuracy_options  # noqa: E402,F401
+
+# DEBT_SPEC_V1 (2026-09-24): /debt-credit shows one row per debt instrument an item reports (convertible
+# debentures and notes, loans, credit facilities, notes and bonds, gold loans, prepayments), at its stage,
+# scored through the publisher. Imported last for the same reason.
+from portal import accuracy_debt as _accuracy_debt  # noqa: E402,F401
+
+# DEV_SPEC_V1 (2026-09-28): /mine-development shows one row per headline event a tagged release reports for
+# the issuer's own mine, plant or project (build milestones, operating status, incidents, offtakes, shipments
+# and contracts). Imported last for the same reason.
+from portal import accuracy_dev as _accuracy_dev  # noqa: E402,F401
+
+# SMP_SPEC_V1 (2026-09-29): /sampling-geoscience shows one row per sample type per project a tagged release
+# reports results for (rock samples, geochemistry, geophysics by method, bulk and brine, mapping), historical
+# results flagged. Early version: row, sample type and project gate. Imported last for the same reason.
+from portal import accuracy_smp as _accuracy_smp  # noqa: E402,F401

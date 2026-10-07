@@ -104,7 +104,7 @@
             <td class="fin-date {% if not r['first_of_release'] %}es-quiet{% endif %}">{% if r['first_of_release'] %}{{ (r["published_at"] or "")[:10] }}{% endif %}</td>
             <td>
               {%- if r['first_of_release'] and r["study_type"] %}<span class="mre-type-badge">{{ r["study_type"] }}</span>{% endif -%}
-              {%- if r['first_of_release'] and r["context"] == "background" %}<span class="es-tag" title="A study published earlier and restated in this release, not what it announces">restated</span>{% endif -%}
+              {%- if r['first_of_release'] and r["context"] == "background" %}<span class="es-tag" title="Mentioned in this release: a study published earlier, not what this release announces" data-l="MNT_ECON_MENTIONED_V1">mentioned</span>{% endif -%}
             </td>
             <td>{{ r["project"] or "—" }}</td>
             {% if r["scenario"] %}

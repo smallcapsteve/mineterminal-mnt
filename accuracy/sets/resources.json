@@ -1,0 +1,3206 @@
+{
+ "schema": 1,
+ "name": "resources",
+ "tag": "Resource Estimates",
+ "status": "confirmed",
+ "created": "2026-09-18",
+ "drafted_by": "Claude, from the headline and body of each release without extractor output; guide claude/MNT_RES_LABEL_GUIDE_2026-09-17.md",
+ "reviewer": "Justin",
+ "reviewed_at": "2026-09-18",
+ "review_process": "Justin set the row shape (one row per deposit per category), the scope (publish every figure, mark the ones that are background) and the deposit naming rule (project, zone, scenario). Two labels were found wrong while measuring and corrected as draft-2, both flagged low-confidence and partial when drafted: Greenland Mines' Sarfartoq underground scenario, and Patriot's CV5+CV13 and Rigel-and-Vega figures, which were crossed.",
+ "sampling": "50 of the 642 releases carrying the Resource Estimates tag, stratified by the six shapes a resource release takes (table, wide table, row line, prose, headline only, no figures at all); 25 of the 50 state no figures, which is the proportion in the tag.",
+ "row_shape": "one row per deposit per category (Justin, 2026-09-18)",
+ "partial_items": "14 of 50 items have complete=false: their row list is known to be incomplete, so unmatched predicted rows are set aside as unjudgeable rather than counted wrong, and they are left out of recall entirely. The reported field row_complete repeats the row score over the 36 fully labelled items alone, where recall is honest as well as precision.",
+ "notes_live_in": "claude/MNT_RES_SET_LABELS_DRAFT_2026-09-17.json in the project, and the corrections in claude/MNT_RES_V1_BUILD_2026-09-18.md",
+ "items": [
+  {
+   "n": 0,
+   "event_id": "2798ef7c3318e290631206274e69164dee21084d2a3154a7c36ba4c39d24a6df",
+   "ticker": "FNI.CN",
+   "published_at": "2026-09-16T17:06:14+00:00",
+   "stratum": "sample",
+   "body_sha1": "2fbc2a34b21c299905e45b056ba7df7324299bfb",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": false,
+    "mre_type": null,
+    "complete": true,
+    "rows": [],
+    "confidence": "high"
+   },
+   "note": "new zones of mineralization; refers back to a maiden MRE announced six days earlier but states no figures"
+  },
+  {
+   "n": 1,
+   "event_id": "35c4d0362a8cc8135e87f9605cf641dd9678b0fe",
+   "ticker": "EDDY.V",
+   "published_at": "2026-09-03T12:00:00Z",
+   "stratum": "sample",
+   "body_sha1": "1c7e8abd3dde1193346a4a32892e39d4e1829c36",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": false,
+    "mre_type": null,
+    "complete": true,
+    "rows": [],
+    "confidence": "high"
+   },
+   "note": "technical report filing, no figures"
+  },
+  {
+   "n": 2,
+   "event_id": "0f3b93ce01f05c2d1e399c46a690a9cea7cf8923ecad52c40c138dcfbf9930f0",
+   "ticker": "SRL.V",
+   "published_at": "2026-08-13T22:43:00",
+   "stratum": "sample",
+   "body_sha1": "c16b643ed1aa3d1da399073e9da69d47509d4713",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": false,
+    "mre_type": null,
+    "complete": true,
+    "rows": [],
+    "confidence": "high"
+   },
+   "note": "technical report filing, no figures"
+  },
+  {
+   "n": 3,
+   "event_id": "7cb7a195317b4bffbec5a9508e48feb713e2e7fc",
+   "ticker": "WDO.TO",
+   "published_at": "2026-08-06T12:00:00Z",
+   "stratum": "sample",
+   "body_sha1": "742209dd0c41afe0376e0148d47f5fac12435b86",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": false,
+    "mre_type": null,
+    "complete": true,
+    "rows": [],
+    "confidence": "high"
+   },
+   "note": "technical report filing; reserve plans discussed, no figures stated"
+  },
+  {
+   "n": 4,
+   "event_id": "f202eff910c403e898016d07d3d16678de0e75e9434cf3bf1e74b3a24a02a679",
+   "ticker": "MGG.V",
+   "published_at": "2026-07-14T12:45:00",
+   "stratum": "sample",
+   "body_sha1": "f95df7fda95de661674d1c91c43287a34fe4641d",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": false,
+    "mre_type": null,
+    "complete": true,
+    "rows": [],
+    "confidence": "high"
+   },
+   "note": "engages a consultant to prepare an update -- an intention, not an estimate"
+  },
+  {
+   "n": 5,
+   "event_id": "d88373373de602583acd08e9c8166d7465d1177726ac849e4fdaf37eac206f98",
+   "ticker": "SAGA.V",
+   "published_at": "2026-06-29T11:30:00",
+   "stratum": "sample",
+   "body_sha1": "f8404491a1a8e851e482ba70a25c96a45cf68274",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": false,
+    "mre_type": null,
+    "complete": true,
+    "rows": [],
+    "confidence": "high"
+   },
+   "note": "second drill rig, nearing completion of MRE drilling"
+  },
+  {
+   "n": 6,
+   "event_id": "cb713629c400f970f999838dc647dbfad85c2d2e",
+   "ticker": "NAU.V",
+   "published_at": "2026-04-09T12:00:00Z",
+   "stratum": "sample",
+   "body_sha1": "407ff5bb5599e22e0b74a17bad541d6e88951a91",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": false,
+    "mre_type": null,
+    "complete": true,
+    "rows": [],
+    "confidence": "high"
+   },
+   "note": "drill intercepts; a maiden MRE is the stated goal"
+  },
+  {
+   "n": 7,
+   "event_id": "4df5bee0e841066999a82f4fdcf16ccc4b0c7343380f2c9202a649a4b553d4ca",
+   "ticker": "AVE.CN",
+   "published_at": "2026-04-01T12:00:00+00:00",
+   "stratum": "sample",
+   "body_sha1": "362cd8328b171bde25b4cb6a2a681242da894d57",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": false,
+    "mre_type": null,
+    "complete": true,
+    "rows": [],
+    "confidence": "high"
+   },
+   "note": "357-char body about the Corvo uranium drill programme under a Sting copper headline -- the body does not match the headline"
+  },
+  {
+   "n": 8,
+   "event_id": "96978d2c3c0290aae6097ca467849927cb7c4ab1bde772b42658c3725cd320f3",
+   "ticker": "NEXX.CN",
+   "published_at": "2026-02-13T04:00:00+00:00",
+   "stratum": "sample",
+   "body_sha1": "275863874e451d689df4440d1b8e1700a37d600e",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": false,
+    "mre_type": null,
+    "complete": true,
+    "rows": [],
+    "confidence": "high"
+   },
+   "note": "technical report filing, no figures"
+  },
+  {
+   "n": 9,
+   "event_id": "ad13dbca72dd33a6e0626a7bee9d9b52e8904ec9",
+   "ticker": "MGG.V",
+   "published_at": "2025-11-27T12:00:00Z",
+   "stratum": "sample",
+   "body_sha1": "543f1da9fcf1a1ee0564b9ff40ab5bbb6c1167da",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": false,
+    "mre_type": null,
+    "complete": true,
+    "rows": [],
+    "confidence": "high"
+   },
+   "note": "phase 2 expansion drill programme"
+  },
+  {
+   "n": 10,
+   "event_id": "766077674c2bcd5262d33b73dc3a687aaefddb0dacaeeb9128b470165f713c26",
+   "ticker": "AVE.CN",
+   "published_at": "2025-10-27T12:00:00+00:00",
+   "stratum": "sample",
+   "body_sha1": "40e95064eaa769bb09d89fee2656f5df72331cd7",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": false,
+    "mre_type": null,
+    "complete": true,
+    "rows": [],
+    "confidence": "high"
+   },
+   "note": "the same 357-char Corvo body as the April release"
+  },
+  {
+   "n": 11,
+   "event_id": "07941625ccc76fc3e8156de4068b826332e52bf4",
+   "ticker": "PEX.V",
+   "published_at": "2025-09-18T12:00:00Z",
+   "stratum": "sample",
+   "body_sha1": "6fa7a56292ae56e8ec012d6c810273f04aa02de0",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": false,
+    "mre_type": null,
+    "complete": true,
+    "rows": [],
+    "confidence": "high"
+   },
+   "note": "technical report filing, no figures"
+  },
+  {
+   "n": 12,
+   "event_id": "4e5e39a1cf2fa3c6659fa7e4d48fd417aaa622f2",
+   "ticker": "AMC.TO",
+   "published_at": "2025-08-14T12:00:00Z",
+   "stratum": "sample",
+   "body_sha1": "a8ecb9efd7de9d3b644322c4fa010fdcb3a0ca21",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": false,
+    "mre_type": null,
+    "complete": true,
+    "rows": [],
+    "confidence": "high"
+   },
+   "note": "files the report supporting a resource announced in June; no figures in this release"
+  },
+  {
+   "n": 13,
+   "event_id": "6ed1b800946173a3acb64c8dfc08628d1c42ca54",
+   "ticker": "OMI.V",
+   "published_at": "2025-07-14T12:00:00Z",
+   "stratum": "sample",
+   "body_sha1": "1f8f2adfe36c1520838930fdf2e79c9f585ad7e8",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": false,
+    "mre_type": null,
+    "complete": true,
+    "rows": [],
+    "confidence": "high"
+   },
+   "note": "moving into resource-estimate drilling"
+  },
+  {
+   "n": 14,
+   "event_id": "ff07f535504be92f9a509cf8b8f988df8c3d00df",
+   "ticker": "SCOT.V",
+   "published_at": "2025-06-23T12:00:00Z",
+   "stratum": "sample",
+   "body_sha1": "79c06ac0e71657e7f7ac75da9c18339c05fcc0b9",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": false,
+    "mre_type": null,
+    "complete": true,
+    "rows": [],
+    "confidence": "high"
+   },
+   "note": "technical report filing, no figures"
+  },
+  {
+   "n": 15,
+   "event_id": "252c12d62a62ad9fab898b3cf4101b570a27fb05",
+   "ticker": "DEC.V",
+   "published_at": "2025-04-21T12:00:00Z",
+   "stratum": "sample",
+   "body_sha1": "45fcb91f4d5d307d58b9ab635cd67e785bcd6e1a",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": false,
+    "mre_type": null,
+    "complete": true,
+    "rows": [],
+    "confidence": "high"
+   },
+   "note": "buys ground surrounded by other companies' deposits; the 201.67 Moz is not Decade's"
+  },
+  {
+   "n": 16,
+   "event_id": "044036f2ce55e16064316a78371f877a0697e1385d71d38ac5208f508b5972e0",
+   "ticker": "CAP.CN",
+   "published_at": "2025-03-24T04:00:00+00:00",
+   "stratum": "sample",
+   "body_sha1": "1777c11813dbf6290e5b5dc037039296127cb9c8",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": false,
+    "mre_type": null,
+    "complete": true,
+    "rows": [],
+    "confidence": "high"
+   },
+   "note": "announces a substantial updated MRE, but the stored body ends at 'Mineral Resource Statement Notes:' -- the table did not survive ingestion"
+  },
+  {
+   "n": 17,
+   "event_id": "2fd8b4afb297c42d2649620b6d276c1bbcdf624e",
+   "ticker": "SGLD.V",
+   "published_at": "2025-01-24T12:00:00Z",
+   "stratum": "sample",
+   "body_sha1": "b3824956a81da619cf582ac6d3992dd64d0592b8",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": false,
+    "mre_type": null,
+    "complete": true,
+    "rows": [],
+    "confidence": "high"
+   },
+   "note": "shareholder summary; the maiden resource is described as imminent"
+  },
+  {
+   "n": 18,
+   "event_id": "ebdd9de72e6201b16900412bde924763a2cbf5b4",
+   "ticker": "GRBM.CN",
+   "published_at": "2024-10-03T12:00:00Z",
+   "stratum": "sample",
+   "body_sha1": "8ff225c346aa7a57f92e4a1cf53609a253d43dae",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": false,
+    "mre_type": null,
+    "complete": true,
+    "rows": [],
+    "confidence": "high"
+   },
+   "note": "technical report filing, no figures"
+  },
+  {
+   "n": 19,
+   "event_id": "2c48e358e4dcb082d331b42e30e9bb6a70efc020a7f2d4ad20713962511d8b53",
+   "ticker": "GOH.CN",
+   "published_at": "2024-05-07T04:00:00+00:00",
+   "stratum": "sample",
+   "body_sha1": "84c2287c9521712fe65607777d94c585620a0081",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": false,
+    "mre_type": null,
+    "complete": true,
+    "rows": [],
+    "confidence": "high"
+   },
+   "note": "technical report filing, no figures"
+  },
+  {
+   "n": 20,
+   "event_id": "9221d62cc64d438063079c4f26e374124bec8888",
+   "ticker": "PURR.CN",
+   "published_at": "2023-11-16T12:00:00Z",
+   "stratum": "sample",
+   "body_sha1": "d12715b9496e7672cb37062b4e700ad7fe2ffb30",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": false,
+    "mre_type": null,
+    "complete": true,
+    "rows": [],
+    "confidence": "high"
+   },
+   "note": "technical report filing, no figures"
+  },
+  {
+   "n": 21,
+   "event_id": "fac405a170d90343bb01c34df81bda9bcc2b78355173b148cf0a3e4fffaa70db",
+   "ticker": "KUYA.CN",
+   "published_at": "2021-12-03T04:00:00+00:00",
+   "stratum": "sample",
+   "body_sha1": "155ac5cfbed49331c9d480e1c8957e035d3effc9",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": false,
+    "mre_type": null,
+    "complete": true,
+    "rows": [],
+    "confidence": "high"
+   },
+   "note": "voluntary technical report filing, no figures"
+  },
+  {
+   "n": 22,
+   "event_id": "5ac7a701e533a990b061ec9835941c1325964173",
+   "ticker": "NICO.CN",
+   "published_at": "2021-03-22T12:00:00Z",
+   "stratum": "sample",
+   "body_sha1": "e24d182ba334022c7f63da0b8f9b7b87739df22c",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": false,
+    "mre_type": null,
+    "complete": true,
+    "rows": [],
+    "confidence": "high"
+   },
+   "note": "about to start drilling to expand resources"
+  },
+  {
+   "n": 23,
+   "event_id": "ff287f532430af3c52a2d526ba41cf8327bdb756",
+   "ticker": "NRDX.CN",
+   "published_at": "2019-02-18T12:00:00Z",
+   "stratum": "sample",
+   "body_sha1": "800c314bfef9f248a680d08463990545dd57f4f3",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": false,
+    "mre_type": null,
+    "complete": true,
+    "rows": [],
+    "confidence": "high"
+   },
+   "note": "technical report filing, no figures"
+  },
+  {
+   "n": 24,
+   "event_id": "34ac1515261ebbc66623b71ed49aa9e8",
+   "ticker": "PGOL.CN",
+   "published_at": "2010-01-27",
+   "stratum": "sample",
+   "body_sha1": "975d8a66e9c7b631f6ab3de0fe9d3597fd3debce",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": false,
+    "mre_type": null,
+    "complete": true,
+    "rows": [],
+    "confidence": "high"
+   },
+   "note": "862-char filing announcement, no figures"
+  },
+  {
+   "n": 25,
+   "event_id": "6d275868ff3243f990830df41e9255a08fc2df590cc544d8d79617b285bf438e",
+   "ticker": "NEO.TO",
+   "published_at": "2026-08-24T14:05:00",
+   "stratum": "sample",
+   "body_sha1": "dc10335a4ad54f9937d35ae8f027923c1ab56fd2",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": true,
+    "mre_type": "Update",
+    "complete": false,
+    "rows": [
+     {
+      "deposit": "Sarfartoq (Underground Mining Scenario)",
+      "category": "Indicated",
+      "tonnes": 7475000,
+      "grades": [
+       {
+        "metal": "TREO",
+        "value": 1.56,
+        "unit": "%"
+       }
+      ],
+      "contained": [],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Sarfartoq (Underground Mining Scenario)",
+      "category": "Inferred",
+      "tonnes": 2603000,
+      "grades": [
+       {
+        "metal": "TREO",
+        "value": 1.36,
+        "unit": "%"
+       }
+      ],
+      "contained": [],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Sarfartoq (Underground Mining Scenario)",
+      "category": "Total",
+      "tonnes": 10078000,
+      "grades": [
+       {
+        "metal": "TREO",
+        "value": 1.51,
+        "unit": "%"
+       }
+      ],
+      "contained": [],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     }
+    ],
+    "confidence": "low"
+   },
+   "note": "CORRECTED 2026-09-18: was labelled 'Sarfartoq ST1'. The release models three scenarios -- open pit, underground and hybrid -- and this is the underground one; the project is Sarfartoq and ST1 came from a prose mention rather than the table. Filed under NEO.TO but the company in the body is Nasdaq: GRML -- wrong-ticker attribution"
+  },
+  {
+   "n": 26,
+   "event_id": "4861c6b72672091ec69da14ba5083382b21cdd93",
+   "ticker": "NVRO.V",
+   "published_at": "2026-07-23T12:00:00Z",
+   "stratum": "sample",
+   "body_sha1": "e0e3749442e704bc80ad84b34f9e4c86a17bdc45",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": true,
+    "mre_type": "Maiden",
+    "complete": false,
+    "rows": [
+     {
+      "deposit": "NVRO Metals Hub oxide",
+      "category": "Proven",
+      "tonnes": 930000,
+      "grades": [],
+      "contained": [],
+      "cut_off": null,
+      "basis": "reserve",
+      "context": "announced"
+     }
+    ],
+    "confidence": "low"
+   },
+   "note": "maiden oxide mineral RESERVE; the resource is given only as percentages of the reserve"
+  },
+  {
+   "n": 27,
+   "event_id": "021b35a26ef607569ca707781455db8d94404078b9932a53beb07edf73e01c31",
+   "ticker": "WRLG.V",
+   "published_at": "2026-06-09T08:40:36",
+   "stratum": "sample",
+   "body_sha1": "5f6b3a251005fd4fac088d45f6c8b20278d054f2",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": true,
+    "mre_type": "Update",
+    "complete": true,
+    "rows": [
+     {
+      "deposit": "Rowan",
+      "category": "Indicated",
+      "tonnes": 754514,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 13.03,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 334825,
+        "unit": "oz"
+       }
+      ],
+      "cut_off": "2.00 g/t Au",
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Rowan",
+      "category": "Inferred",
+      "tonnes": 360323,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 15.31,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 179013,
+        "unit": "oz"
+       }
+      ],
+      "cut_off": "2.00 g/t Au",
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Mt. Jamie",
+      "category": "Indicated",
+      "tonnes": 108775,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 14.13,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 49407,
+        "unit": "oz"
+       }
+      ],
+      "cut_off": "3.80 g/t Au",
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Mt. Jamie",
+      "category": "Inferred",
+      "tonnes": 92972,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 11.97,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 35791,
+        "unit": "oz"
+       }
+      ],
+      "cut_off": "3.80 g/t Au",
+      "basis": "resource",
+      "context": "announced"
+     }
+    ],
+    "confidence": "high"
+   },
+   "note": ""
+  },
+  {
+   "n": 28,
+   "event_id": "df89494dd36ef9072848fd17467ce6dc7d0516cf8469c5d27b649a2c0a521a67",
+   "ticker": "MILI.CN",
+   "published_at": "2026-05-22T19:00:00",
+   "stratum": "sample",
+   "body_sha1": "d989aa1a5c71414ff156e706c9d910b56982c477",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": true,
+    "mre_type": "Maiden",
+    "complete": true,
+    "rows": [
+     {
+      "deposit": "Trojárová",
+      "category": "Inferred",
+      "tonnes": 6500000,
+      "grades": [
+       {
+        "metal": "Sb",
+        "value": 1.02,
+        "unit": "%"
+       },
+       {
+        "metal": "Au",
+        "value": 1.06,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Sb",
+        "value": 67,
+        "unit": "kt"
+       },
+       {
+        "metal": "Au",
+        "value": 222,
+        "unit": "koz"
+       }
+      ],
+      "cut_off": "0.8% SbEq",
+      "basis": "resource",
+      "context": "announced"
+     }
+    ],
+    "confidence": "high"
+   },
+   "note": ""
+  },
+  {
+   "n": 29,
+   "event_id": "7c60dd506e12895a5972faa88110f0d130ea46896cca224c0a016613000ec77b",
+   "ticker": "GGA.V",
+   "published_at": "2026-05-11T12:30:00",
+   "stratum": "sample",
+   "body_sha1": "4e2d2ff23e5dddd2fda128edce177aa4c2471513",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": true,
+    "mre_type": "Update",
+    "complete": false,
+    "rows": [
+     {
+      "deposit": "San Francisco Mine OP",
+      "category": "Measured",
+      "tonnes": 41024000,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 0.38,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 498900,
+        "unit": "oz"
+       }
+      ],
+      "cut_off": "0.09 g/t Au",
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "San Francisco Mine OP",
+      "category": "Indicated",
+      "tonnes": 38299000,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 0.37,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 456800,
+        "unit": "oz"
+       }
+      ],
+      "cut_off": "0.09 g/t Au",
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "San Francisco Mine OP",
+      "category": "Measured & Indicated",
+      "tonnes": 79323000,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 0.37,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 955700,
+        "unit": "oz"
+       }
+      ],
+      "cut_off": "0.09 g/t Au",
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "San Francisco Mine OP",
+      "category": "Inferred",
+      "tonnes": 7464000,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 0.39,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 93300,
+        "unit": "oz"
+       }
+      ],
+      "cut_off": "0.09 g/t Au",
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "La Chicharra Mine OP",
+      "category": "Measured",
+      "tonnes": 7241000,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 0.36,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 82800,
+        "unit": "oz"
+       }
+      ],
+      "cut_off": "0.07 g/t Au",
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "La Chicharra Mine OP",
+      "category": "Indicated",
+      "tonnes": 13892000,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 0.32,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 143800,
+        "unit": "oz"
+       }
+      ],
+      "cut_off": "0.07 g/t Au",
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "La Chicharra Mine OP",
+      "category": "Measured & Indicated",
+      "tonnes": 21132000,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 0.33,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 226600,
+        "unit": "oz"
+       }
+      ],
+      "cut_off": "0.07 g/t Au",
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "La Chicharra Mine OP",
+      "category": "Inferred",
+      "tonnes": 1040000,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 0.37,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 12400,
+        "unit": "oz"
+       }
+      ],
+      "cut_off": "0.07 g/t Au",
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "North Pit Mine OP",
+      "category": "Indicated",
+      "tonnes": 4630000,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 0.3,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 44300,
+        "unit": "oz"
+       }
+      ],
+      "cut_off": "0.08 g/t Au",
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "North Pit Mine OP",
+      "category": "Measured & Indicated",
+      "tonnes": 4630000,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 0.3,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 44300,
+        "unit": "oz"
+       }
+      ],
+      "cut_off": "0.08 g/t Au",
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "North Pit Mine OP",
+      "category": "Inferred",
+      "tonnes": 8764000,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 0.26,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 72700,
+        "unit": "oz"
+       }
+      ],
+      "cut_off": "0.08 g/t Au",
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Total Resources",
+      "category": "Measured",
+      "tonnes": 48265000,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 0.37,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 581700,
+        "unit": "oz"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Total Resources",
+      "category": "Indicated",
+      "tonnes": 56821000,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 0.35,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 644900,
+        "unit": "oz"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Total Resources",
+      "category": "Measured & Indicated",
+      "tonnes": 105086000,
+      "grades": [],
+      "contained": [],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     }
+    ],
+    "confidence": "high"
+   },
+   "note": "North Pit's Measured line carries no figures and is not a row. The Total Resources block was cut off after M&I tonnes"
+  },
+  {
+   "n": 30,
+   "event_id": "a203279b1bbaaff63da10b4fbf699b8b5d5aafa15311046c2e2b6bf523e3c90f",
+   "ticker": "FF.TO",
+   "published_at": "2026-04-29T23:17:12",
+   "stratum": "sample",
+   "body_sha1": "bdf030c226cd151e2d520f074974201646959375",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": true,
+    "mre_type": null,
+    "complete": false,
+    "rows": [
+     {
+      "deposit": "Ming Mine",
+      "category": "Measured",
+      "tonnes": 6300000,
+      "grades": [
+       {
+        "metal": "CuEq",
+        "value": 1.9,
+        "unit": "%"
+       }
+      ],
+      "contained": [],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "background"
+     },
+     {
+      "deposit": "Ming Mine",
+      "category": "Indicated",
+      "tonnes": 41200000,
+      "grades": [
+       {
+        "metal": "CuEq",
+        "value": 3.2,
+        "unit": "%"
+       }
+      ],
+      "contained": [],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "background"
+     },
+     {
+      "deposit": "Ming Mine",
+      "category": "Measured & Indicated",
+      "tonnes": 47500000,
+      "grades": [
+       {
+        "metal": "CuEq",
+        "value": 3.1,
+        "unit": "%"
+       }
+      ],
+      "contained": [],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "background"
+     },
+     {
+      "deposit": "Ming Mine",
+      "category": "Inferred",
+      "tonnes": 23100000,
+      "grades": [
+       {
+        "metal": "CuEq",
+        "value": 5.9,
+        "unit": "%"
+       }
+      ],
+      "contained": [],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "background"
+     }
+    ],
+    "confidence": "low"
+   },
+   "note": "drill-results release; the eleven tables restate the existing resource ahead of an update, so every row is background. Reported under JORC as well as NI 43-101"
+  },
+  {
+   "n": 31,
+   "event_id": "e942aa6cf45af77a4a7e9fcced19d89402955277",
+   "ticker": "RUA.TO",
+   "published_at": "2026-03-03T12:00:00Z",
+   "stratum": "sample",
+   "body_sha1": "691c579108efce4fc39c1ab5ff69600b0830d8be",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": true,
+    "mre_type": "Update",
+    "complete": false,
+    "rows": [
+     {
+      "deposit": "Auld Creek - Bonanza",
+      "category": "Indicated",
+      "tonnes": 40000,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 2.26,
+        "unit": "g/t"
+       },
+       {
+        "metal": "Sb",
+        "value": 1.6,
+        "unit": "%"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 3,
+        "unit": "koz"
+       },
+       {
+        "metal": "Sb",
+        "value": 1,
+        "unit": "kt"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Auld Creek - Bonanza",
+      "category": "Inferred",
+      "tonnes": 180000,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 1.8,
+        "unit": "g/t"
+       },
+       {
+        "metal": "Sb",
+        "value": 0.8,
+        "unit": "%"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 11,
+        "unit": "koz"
+       },
+       {
+        "metal": "Sb",
+        "value": 1,
+        "unit": "kt"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Auld Creek - Fraternal",
+      "category": "Indicated",
+      "tonnes": 260000,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 3.3,
+        "unit": "g/t"
+       },
+       {
+        "metal": "Sb",
+        "value": 1.1,
+        "unit": "%"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 28,
+        "unit": "koz"
+       },
+       {
+        "metal": "Sb",
+        "value": 3,
+        "unit": "kt"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Auld Creek - Fraternal",
+      "category": "Inferred",
+      "tonnes": 1070000,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 2.0,
+        "unit": "g/t"
+       },
+       {
+        "metal": "Sb",
+        "value": 0.8,
+        "unit": "%"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 69,
+        "unit": "koz"
+       },
+       {
+        "metal": "Sb",
+        "value": 9,
+        "unit": "kt"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Auld Creek",
+      "category": "Total",
+      "tonnes": 300000,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 3.18,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 31,
+        "unit": "koz"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     }
+    ],
+    "confidence": "low"
+   },
+   "note": "four MRE prospects across Reefton and Glamorgan; only the Auld Creek table was read back. The Total line is Auld Creek's total for the Indicated category, not a category of its own"
+  },
+  {
+   "n": 32,
+   "event_id": "29000dbb8fd68dd5b0c78762a61e4ed1caf600eb",
+   "ticker": "EXN.V",
+   "published_at": "2026-02-23T12:00:00Z",
+   "stratum": "sample",
+   "body_sha1": "3b0cca7ec101da2ed5fc105a823185d68b4b516f",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": true,
+    "mre_type": "Update",
+    "complete": false,
+    "rows": [
+     {
+      "deposit": "Mallay Mine",
+      "category": "Indicated",
+      "tonnes": 890000,
+      "grades": [
+       {
+        "metal": "Ag",
+        "value": 195,
+        "unit": "g/t"
+       },
+       {
+        "metal": "Pb",
+        "value": 3.33,
+        "unit": "%"
+       },
+       {
+        "metal": "Zn",
+        "value": 4.83,
+        "unit": "%"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Ag",
+        "value": 5.57,
+        "unit": "Moz"
+       },
+       {
+        "metal": "Pb",
+        "value": 65,
+        "unit": "Mlb"
+       },
+       {
+        "metal": "Zn",
+        "value": 95,
+        "unit": "Mlb"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Mallay Mine",
+      "category": "Inferred",
+      "tonnes": 362000,
+      "grades": [
+       {
+        "metal": "Ag",
+        "value": 149,
+        "unit": "g/t"
+       },
+       {
+        "metal": "Pb",
+        "value": 2.67,
+        "unit": "%"
+       },
+       {
+        "metal": "Zn",
+        "value": 4.32,
+        "unit": "%"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Ag",
+        "value": 1.74,
+        "unit": "Moz"
+       },
+       {
+        "metal": "Pb",
+        "value": 21,
+        "unit": "Mlb"
+       },
+       {
+        "metal": "Zn",
+        "value": 34,
+        "unit": "Mlb"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     }
+    ],
+    "confidence": "high"
+   },
+   "note": "the announced figures are in the prose; the table behind them is a cut-off sensitivity at 50/100/250 g/t AgEq whose rows were not all read back"
+  },
+  {
+   "n": 33,
+   "event_id": "4cb7227ec82513ba5ce11678e31556df2de4da4c",
+   "ticker": "KDK.V",
+   "published_at": "2026-01-23T12:00:00Z",
+   "stratum": "sample",
+   "body_sha1": "cf68439d2e73bb54d22fcada941af171fa865fc6",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": true,
+    "mre_type": "Maiden",
+    "complete": false,
+    "rows": [
+     {
+      "deposit": "MPD - Gate",
+      "category": "Indicated",
+      "tonnes": 56400000,
+      "grades": [
+       {
+        "metal": "CuEq",
+        "value": 0.42,
+        "unit": "%"
+       },
+       {
+        "metal": "Cu",
+        "value": 0.31,
+        "unit": "%"
+       },
+       {
+        "metal": "Au",
+        "value": 0.14,
+        "unit": "g/t"
+       },
+       {
+        "metal": "Ag",
+        "value": 1.18,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Cu",
+        "value": 385,
+        "unit": "Mlb"
+       },
+       {
+        "metal": "Au",
+        "value": 0.25,
+        "unit": "Moz"
+       },
+       {
+        "metal": "CuEq",
+        "value": 522,
+        "unit": "Mlb"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "MPD - West",
+      "category": "Indicated",
+      "tonnes": 14200000,
+      "grades": [
+       {
+        "metal": "CuEq",
+        "value": 0.37,
+        "unit": "%"
+       },
+       {
+        "metal": "Cu",
+        "value": 0.21,
+        "unit": "%"
+       },
+       {
+        "metal": "Au",
+        "value": 0.24,
+        "unit": "g/t"
+       },
+       {
+        "metal": "Ag",
+        "value": 0.8,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Cu",
+        "value": 66,
+        "unit": "Mlb"
+       },
+       {
+        "metal": "Au",
+        "value": 0.11,
+        "unit": "Moz"
+       },
+       {
+        "metal": "CuEq",
+        "value": 116,
+        "unit": "Mlb"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "MPD - South",
+      "category": "Indicated",
+      "tonnes": 12300000,
+      "grades": [
+       {
+        "metal": "CuEq",
+        "value": 0.3,
+        "unit": "%"
+       },
+       {
+        "metal": "Cu",
+        "value": 0.25,
+        "unit": "%"
+       },
+       {
+        "metal": "Au",
+        "value": 0.07,
+        "unit": "g/t"
+       },
+       {
+        "metal": "Ag",
+        "value": 1.17,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "MPD",
+      "category": "Total",
+      "tonnes": 82900000,
+      "grades": [
+       {
+        "metal": "CuEq",
+        "value": 0.39,
+        "unit": "%"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Cu",
+        "value": 519,
+        "unit": "Mlb"
+       },
+       {
+        "metal": "Au",
+        "value": 0.39,
+        "unit": "Moz"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     }
+    ],
+    "confidence": "high"
+   },
+   "note": "seven zones; Gate, West and South read back plus the prose totals. Each table row carries its own effective date"
+  },
+  {
+   "n": 34,
+   "event_id": "e7038798e036f4ecefeccfdbf51ddf24830fd422",
+   "ticker": "ADY.V",
+   "published_at": "2026-01-13T12:00:00Z",
+   "stratum": "sample",
+   "body_sha1": "671b293794482a99697296f129343f2f0a99cf94",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": true,
+    "mre_type": "Update",
+    "complete": true,
+    "rows": [
+     {
+      "deposit": "Wapolu",
+      "category": "Indicated",
+      "tonnes": null,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 1.0,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 33,
+        "unit": "koz"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Wapolu",
+      "category": "Inferred",
+      "tonnes": 12700000,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 0.97,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 393,
+        "unit": "koz"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "PNG portfolio",
+      "category": "Indicated",
+      "tonnes": null,
+      "grades": [],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 206000,
+        "unit": "oz"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "background"
+     },
+     {
+      "deposit": "PNG portfolio",
+      "category": "Inferred",
+      "tonnes": null,
+      "grades": [],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 2193000,
+        "unit": "oz"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "background"
+     },
+     {
+      "deposit": "Feni Island",
+      "category": "Inferred",
+      "tonnes": 60400000,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 0.75,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "background"
+     }
+    ],
+    "confidence": "high"
+   },
+   "note": "Wapolu is the announcement; the portfolio totals and the 2021 Feni Island resource are background"
+  },
+  {
+   "n": 35,
+   "event_id": "964e4463714ab4619dfac0061489665d5f8e5e93",
+   "ticker": "KLD.V",
+   "published_at": "2025-12-16T12:00:00Z",
+   "stratum": "sample",
+   "body_sha1": "6bd596ed30a8a73e4934831e5a8dcff0217fe268",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": true,
+    "mre_type": "Maiden",
+    "complete": true,
+    "rows": [
+     {
+      "deposit": "Regnault",
+      "category": "Inferred",
+      "tonnes": 14500000,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 5.47,
+        "unit": "g/t"
+       },
+       {
+        "metal": "Ag",
+        "value": 5.18,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 2.55,
+        "unit": "Moz"
+       },
+       {
+        "metal": "Ag",
+        "value": 2.41,
+        "unit": "Moz"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     }
+    ],
+    "confidence": "high"
+   },
+   "note": "Kenorland holds a 4% NSR royalty on the deposit; the estimate is still the announcement"
+  },
+  {
+   "n": 36,
+   "event_id": "7ebb58dd445d4513383d20f60db015fc9b10cf6a",
+   "ticker": "PMET.TO",
+   "published_at": "2025-11-14T12:00:00Z",
+   "stratum": "sample",
+   "body_sha1": "bc4e4e5ceda6f5e88bfaf9fc07014b84e8ffb0c5",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": true,
+    "mre_type": "Restated",
+    "complete": false,
+    "rows": [
+     {
+      "deposit": "Shaakichiuwaanaan CV5 + CV13",
+      "category": "Indicated",
+      "tonnes": 108000000,
+      "grades": [
+       {
+        "metal": "Li2O",
+        "value": 1.4,
+        "unit": "%"
+       },
+       {
+        "metal": "Cs2O",
+        "value": 0.11,
+        "unit": "%"
+       },
+       {
+        "metal": "Ta2O5",
+        "value": 166,
+        "unit": "ppm"
+       },
+       {
+        "metal": "Ga",
+        "value": 66,
+        "unit": "ppm"
+       }
+      ],
+      "contained": [],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "background"
+     },
+     {
+      "deposit": "Shaakichiuwaanaan CV5 + CV13",
+      "category": "Inferred",
+      "tonnes": 33400000,
+      "grades": [
+       {
+        "metal": "Li2O",
+        "value": 1.33,
+        "unit": "%"
+       },
+       {
+        "metal": "Ta2O5",
+        "value": 155,
+        "unit": "ppm"
+       },
+       {
+        "metal": "Ga",
+        "value": 65,
+        "unit": "ppm"
+       }
+      ],
+      "contained": [],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "background"
+     },
+     {
+      "deposit": "Shaakichiuwaanaan - Rigel and Vega",
+      "category": "Indicated",
+      "tonnes": 690000,
+      "grades": [
+       {
+        "metal": "Cs2O",
+        "value": 4.4,
+        "unit": "%"
+       }
+      ],
+      "contained": [],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "background"
+     },
+     {
+      "deposit": "Shaakichiuwaanaan - Rigel and Vega",
+      "category": "Inferred",
+      "tonnes": 1700000,
+      "grades": [
+       {
+        "metal": "Cs2O",
+        "value": 2.4,
+        "unit": "%"
+       }
+      ],
+      "contained": [],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "background"
+     }
+    ],
+    "confidence": "low"
+   },
+   "note": "feasibility-study filing; the resource is restated, not announced. CORRECTED 2026-09-18: the 108.0 Mt figure is the consolidated CV5 + CV13 estimate and the 0.69 Mt figure is the Rigel and Vega caesium zones -- the release says so and the first labels did not"
+  },
+  {
+   "n": 37,
+   "event_id": "6d15cdcd59404b5ec0f9fea3f6854c7cca1283a9",
+   "ticker": "ILI.V",
+   "published_at": "2025-10-15T12:00:00Z",
+   "stratum": "sample",
+   "body_sha1": "23707df958176bd10052d99895fe4514da2a0d83",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": true,
+    "mre_type": "Maiden",
+    "complete": true,
+    "rows": [
+     {
+      "deposit": "Jackpot",
+      "category": "Indicated",
+      "tonnes": 3100000,
+      "grades": [
+       {
+        "metal": "Li2O",
+        "value": 0.85,
+        "unit": "%"
+       }
+      ],
+      "contained": [],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Jackpot",
+      "category": "Inferred",
+      "tonnes": 5300000,
+      "grades": [
+       {
+        "metal": "Li2O",
+        "value": 0.91,
+        "unit": "%"
+       }
+      ],
+      "contained": [],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     }
+    ],
+    "confidence": "high"
+   },
+   "note": ""
+  },
+  {
+   "n": 38,
+   "event_id": "dd1ce102c4422f6e2b9d5563b4ec8593a228319cf84e75f81cad05d7adb633a3",
+   "ticker": "CRUZ.CN",
+   "published_at": "2026-03-18T07:01:44+00:00",
+   "stratum": "sample",
+   "body_sha1": "f0a6ebd52922fe134171f5097f140901eca1f47f",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": true,
+    "mre_type": "Maiden",
+    "complete": true,
+    "rows": [
+     {
+      "deposit": "Solar Lithium",
+      "category": "Indicated",
+      "tonnes": 35000000,
+      "grades": [
+       {
+        "metal": "Li",
+        "value": 697,
+        "unit": "ppm"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "LCE",
+        "value": 128000,
+        "unit": "t"
+       }
+      ],
+      "cut_off": "500 ppm Li",
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Solar Lithium",
+      "category": "Inferred",
+      "tonnes": 103000000,
+      "grades": [
+       {
+        "metal": "Li",
+        "value": 641,
+        "unit": "ppm"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "LCE",
+        "value": 352000,
+        "unit": "t"
+       }
+      ],
+      "cut_off": "500 ppm Li",
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Solar Lithium",
+      "category": "Indicated",
+      "tonnes": 50000000,
+      "grades": [
+       {
+        "metal": "Li",
+        "value": 608,
+        "unit": "ppm"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "LCE",
+        "value": 161000,
+        "unit": "t"
+       }
+      ],
+      "cut_off": "300 ppm Li",
+      "basis": "resource",
+      "context": "alternative cut-off"
+     }
+    ],
+    "confidence": "high"
+   },
+   "note": "the 500 ppm case is Stantec's stated base case; the 300 ppm case is the same estimate at a lower cut-off"
+  },
+  {
+   "n": 39,
+   "event_id": "96e0b5b2d7f357513ba7e658edcc3d8fbed28e7a",
+   "ticker": "XXIX.V",
+   "published_at": "2025-06-03T12:00:00Z",
+   "stratum": "sample",
+   "body_sha1": "3e35386daba9757c897b79ddd03775d4421f3a1a",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": true,
+    "mre_type": "Update",
+    "complete": false,
+    "rows": [
+     {
+      "deposit": "Opemiska pit-constrained",
+      "category": "Indicated",
+      "tonnes": 62706000,
+      "grades": [
+       {
+        "metal": "CuEq",
+        "value": 1.04,
+        "unit": "%"
+       },
+       {
+        "metal": "Cu",
+        "value": 0.76,
+        "unit": "%"
+       },
+       {
+        "metal": "Ag",
+        "value": 1.71,
+        "unit": "g/t"
+       },
+       {
+        "metal": "Au",
+        "value": 0.31,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Cu",
+        "value": 1047,
+        "unit": "Mlb"
+       },
+       {
+        "metal": "Ag",
+        "value": 3450,
+        "unit": "koz"
+       },
+       {
+        "metal": "Au",
+        "value": 634,
+        "unit": "koz"
+       }
+      ],
+      "cut_off": "0.15% CuEq",
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Opemiska pit-constrained",
+      "category": "Inferred",
+      "tonnes": 78485000,
+      "grades": [
+       {
+        "metal": "CuEq",
+        "value": 0.41,
+        "unit": "%"
+       },
+       {
+        "metal": "Cu",
+        "value": 0.26,
+        "unit": "%"
+       },
+       {
+        "metal": "Ag",
+        "value": 0.61,
+        "unit": "g/t"
+       },
+       {
+        "metal": "Au",
+        "value": 0.17,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Cu",
+        "value": 457,
+        "unit": "Mlb"
+       },
+       {
+        "metal": "Ag",
+        "value": 1530,
+        "unit": "koz"
+       },
+       {
+        "metal": "Au",
+        "value": 419,
+        "unit": "koz"
+       }
+      ],
+      "cut_off": "0.15% CuEq",
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Opemiska out-of-pit",
+      "category": "Indicated",
+      "tonnes": 6947000,
+      "grades": [
+       {
+        "metal": "CuEq",
+        "value": 1.85,
+        "unit": "%"
+       },
+       {
+        "metal": "Cu",
+        "value": 1.59,
+        "unit": "%"
+       },
+       {
+        "metal": "Ag",
+        "value": 2.76,
+        "unit": "g/t"
+       },
+       {
+        "metal": "Au",
+        "value": 0.28,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Cu",
+        "value": 243,
+        "unit": "Mlb"
+       },
+       {
+        "metal": "Ag",
+        "value": 617,
+        "unit": "koz"
+       },
+       {
+        "metal": "Au",
+        "value": 64,
+        "unit": "koz"
+       }
+      ],
+      "cut_off": "1.00% CuEq",
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Opemiska out-of-pit",
+      "category": "Inferred",
+      "tonnes": 2130000,
+      "grades": [
+       {
+        "metal": "CuEq",
+        "value": 0.88,
+        "unit": "%"
+       },
+       {
+        "metal": "Cu",
+        "value": 0.69,
+        "unit": "%"
+       }
+      ],
+      "contained": [],
+      "cut_off": "1.00% CuEq",
+      "basis": "resource",
+      "context": "announced"
+     }
+    ],
+    "confidence": "high"
+   },
+   "note": "a third table follows the two read back; the live page records only the pit-constrained rows"
+  },
+  {
+   "n": 40,
+   "event_id": "5d95ef00e44ab2376240a3087759e335115275a4",
+   "ticker": "SVM.TO",
+   "published_at": "2025-05-12T12:00:00Z",
+   "stratum": "sample",
+   "body_sha1": "e37e26c1c1208bbc5693acdae459b5ac96fc5d4a",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": true,
+    "mre_type": "Update",
+    "complete": false,
+    "rows": [
+     {
+      "deposit": "Condor - Camp and Los Cuyes (underground)",
+      "category": "Indicated",
+      "tonnes": 3170000,
+      "grades": [],
+      "contained": [],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Condor - Camp and Los Cuyes (underground)",
+      "category": "Inferred",
+      "tonnes": 12100000,
+      "grades": [],
+      "contained": [],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Condor - Soledad and Enma (open pit)",
+      "category": "Indicated",
+      "tonnes": 4060000,
+      "grades": [],
+      "contained": [],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Condor - Soledad and Enma (open pit)",
+      "category": "Inferred",
+      "tonnes": 14170000,
+      "grades": [],
+      "contained": [],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     }
+    ],
+    "confidence": "low"
+   },
+   "note": "four bullet statements read back; grades and contained metal were cut off mid-sentence"
+  },
+  {
+   "n": 41,
+   "event_id": "4807498f190698cecefda44fc9a1e435fdfeaa18",
+   "ticker": "OGN.V",
+   "published_at": "2025-04-07T12:00:00Z",
+   "stratum": "sample",
+   "body_sha1": "c46b809885ff32b0ef345bb11097426926590d2c",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": true,
+    "mre_type": "Update",
+    "complete": true,
+    "rows": [
+     {
+      "deposit": "Ermitaño",
+      "category": "Proven",
+      "tonnes": 797000,
+      "grades": [
+       {
+        "metal": "Ag",
+        "value": 85,
+        "unit": "g/t"
+       },
+       {
+        "metal": "Au",
+        "value": 3.65,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Ag",
+        "value": 2173,
+        "unit": "koz"
+       },
+       {
+        "metal": "Au",
+        "value": 93,
+        "unit": "koz"
+       }
+      ],
+      "cut_off": null,
+      "basis": "reserve",
+      "context": "announced"
+     },
+     {
+      "deposit": "Ermitaño",
+      "category": "Probable",
+      "tonnes": 2043000,
+      "grades": [
+       {
+        "metal": "Ag",
+        "value": 38,
+        "unit": "g/t"
+       },
+       {
+        "metal": "Au",
+        "value": 1.61,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Ag",
+        "value": 2503,
+        "unit": "koz"
+       },
+       {
+        "metal": "Au",
+        "value": 105,
+        "unit": "koz"
+       }
+      ],
+      "cut_off": null,
+      "basis": "reserve",
+      "context": "announced"
+     },
+     {
+      "deposit": "Ermitaño",
+      "category": "Proven & Probable",
+      "tonnes": 2840000,
+      "grades": [
+       {
+        "metal": "Ag",
+        "value": 51.2,
+        "unit": "g/t"
+       },
+       {
+        "metal": "Au",
+        "value": 2.18,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Ag",
+        "value": 4676,
+        "unit": "koz"
+       },
+       {
+        "metal": "Au",
+        "value": 199,
+        "unit": "koz"
+       }
+      ],
+      "cut_off": null,
+      "basis": "reserve",
+      "context": "announced"
+     },
+     {
+      "deposit": "Ermitaño",
+      "category": "Measured",
+      "tonnes": 883000,
+      "grades": [
+       {
+        "metal": "Ag",
+        "value": 90.5,
+        "unit": "g/t"
+       },
+       {
+        "metal": "Au",
+        "value": 4.2,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Ag",
+        "value": 2570,
+        "unit": "koz"
+       },
+       {
+        "metal": "Au",
+        "value": 120,
+        "unit": "koz"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Ermitaño",
+      "category": "Indicated",
+      "tonnes": 2506000,
+      "grades": [
+       {
+        "metal": "Ag",
+        "value": 45.6,
+        "unit": "g/t"
+       },
+       {
+        "metal": "Au",
+        "value": 2.26,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Ag",
+        "value": 3690,
+        "unit": "koz"
+       },
+       {
+        "metal": "Au",
+        "value": 181,
+        "unit": "koz"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Ermitaño",
+      "category": "Measured & Indicated",
+      "tonnes": 3389000,
+      "grades": [
+       {
+        "metal": "Ag",
+        "value": 57.3,
+        "unit": "g/t"
+       },
+       {
+        "metal": "Au",
+        "value": 2.76,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Ag",
+        "value": 6260,
+        "unit": "koz"
+       },
+       {
+        "metal": "Au",
+        "value": 301,
+        "unit": "koz"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Ermitaño",
+      "category": "Inferred",
+      "tonnes": 2355000,
+      "grades": [
+       {
+        "metal": "Ag",
+        "value": 59.2,
+        "unit": "g/t"
+       },
+       {
+        "metal": "Au",
+        "value": 2.14,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Ag",
+        "value": 4480,
+        "unit": "koz"
+       },
+       {
+        "metal": "Au",
+        "value": 162,
+        "unit": "koz"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Navidad",
+      "category": "Inferred",
+      "tonnes": 2267000,
+      "grades": [
+       {
+        "metal": "Ag",
+        "value": 81,
+        "unit": "g/t"
+       },
+       {
+        "metal": "Au",
+        "value": 3.42,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Ag",
+        "value": 5910,
+        "unit": "koz"
+       },
+       {
+        "metal": "Au",
+        "value": 249,
+        "unit": "koz"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Ermitaño and Navidad",
+      "category": "Total",
+      "tonnes": 4622000,
+      "grades": [
+       {
+        "metal": "Ag",
+        "value": 69.9,
+        "unit": "g/t"
+       },
+       {
+        "metal": "Au",
+        "value": 2.77,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Ag",
+        "value": 10390,
+        "unit": "koz"
+       },
+       {
+        "metal": "Au",
+        "value": 411,
+        "unit": "koz"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     }
+    ],
+    "confidence": "high"
+   },
+   "note": "a royalty holder reporting the operator's figures. The deposit is inside the category cell on three lines -- 'Inferred Ermitaño', 'Inferred Navidad', 'Total Inferred'. Resources are stated inclusive of reserves, so the two must not be summed"
+  },
+  {
+   "n": 42,
+   "event_id": "68fba67c31736d65c7ad7586442a341d06cfba11",
+   "ticker": "DLP.V",
+   "published_at": "2025-02-27T12:00:00Z",
+   "stratum": "sample",
+   "body_sha1": "1fc1e5abb4dccf3b9d9afdb4af5af10ba96f8caf",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": true,
+    "mre_type": "Maiden",
+    "complete": true,
+    "rows": [
+     {
+      "deposit": "Aurora",
+      "category": "Inferred",
+      "tonnes": 1050000000,
+      "grades": [
+       {
+        "metal": "Cu",
+        "value": 0.2,
+        "unit": "%"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Cu",
+        "value": 4650,
+        "unit": "Mlb"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     }
+    ],
+    "confidence": "high"
+   },
+   "note": ""
+  },
+  {
+   "n": 43,
+   "event_id": "5a0ff7597acd4555454ab128e838e68ce77e32e7",
+   "ticker": "OGC.TO",
+   "published_at": "2025-02-19T12:00:00Z",
+   "stratum": "sample",
+   "body_sha1": "fdd3047dd895f7f31d0e23a919712d74519d43f4",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": true,
+    "mre_type": "Update",
+    "complete": false,
+    "rows": [
+     {
+      "deposit": "Wharekirauponga",
+      "category": "Indicated",
+      "tonnes": 2400000,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 17.9,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 1.4,
+        "unit": "Moz"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     }
+    ],
+    "confidence": "low"
+   },
+   "note": "annual reserve and resource statement covering six operations; only the Wharekirauponga line was read back. The 8.9 Moz M&I figure is a company-wide total"
+  },
+  {
+   "n": 44,
+   "event_id": "35aedb8daea660b67dcf0e06254ab2d132eac685",
+   "ticker": "AUMB.V",
+   "published_at": "2025-01-02T12:00:00Z",
+   "stratum": "sample",
+   "body_sha1": "867418f95e0130abc8b194e2d59ce3d4bef96176",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": true,
+    "mre_type": "Update",
+    "complete": true,
+    "rows": [
+     {
+      "deposit": "True North",
+      "category": "Indicated",
+      "tonnes": 3516000,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 4.41,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 499000,
+        "unit": "oz"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "True North",
+      "category": "Inferred",
+      "tonnes": 5490000,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 3.65,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 644000,
+        "unit": "oz"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     }
+    ],
+    "confidence": "high"
+   },
+   "note": ""
+  },
+  {
+   "n": 45,
+   "event_id": "b68ede693cce230563b626ab2e7847f90f11be9f",
+   "ticker": "PMET.TO",
+   "published_at": "2025-08-29T12:00:00Z",
+   "stratum": "sample",
+   "body_sha1": "56034bd03f0cd42c3d33832851deb62d44fd969a",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": true,
+    "mre_type": "Restated",
+    "complete": false,
+    "rows": [
+     {
+      "deposit": "Shaakichiuwaanaan CV5 + CV13",
+      "category": "Indicated",
+      "tonnes": 108000000,
+      "grades": [
+       {
+        "metal": "Li2O",
+        "value": 1.4,
+        "unit": "%"
+       },
+       {
+        "metal": "Cs2O",
+        "value": 0.11,
+        "unit": "%"
+       },
+       {
+        "metal": "Ta2O5",
+        "value": 166,
+        "unit": "ppm"
+       },
+       {
+        "metal": "Ga",
+        "value": 66,
+        "unit": "ppm"
+       }
+      ],
+      "contained": [],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Shaakichiuwaanaan CV5 + CV13",
+      "category": "Inferred",
+      "tonnes": 33400000,
+      "grades": [
+       {
+        "metal": "Li2O",
+        "value": 1.33,
+        "unit": "%"
+       },
+       {
+        "metal": "Ta2O5",
+        "value": 155,
+        "unit": "ppm"
+       }
+      ],
+      "contained": [],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Shaakichiuwaanaan - Rigel and Vega",
+      "category": "Indicated",
+      "tonnes": 690000,
+      "grades": [
+       {
+        "metal": "Cs2O",
+        "value": 4.4,
+        "unit": "%"
+       }
+      ],
+      "contained": [],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Shaakichiuwaanaan - Rigel and Vega",
+      "category": "Inferred",
+      "tonnes": 1700000,
+      "grades": [
+       {
+        "metal": "Cs2O",
+        "value": 2.4,
+        "unit": "%"
+       }
+      ],
+      "contained": [],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     }
+    ],
+    "confidence": "high"
+   },
+   "note": "technical report filing on the resource estimate itself, so the figures are the subject of the release. CORRECTED 2026-09-18: same two deposit names as the November release"
+  },
+  {
+   "n": 46,
+   "event_id": "fc2879d77ec501c1a7c2fd88d6a4037111d5ab4c",
+   "ticker": "CNC.V",
+   "published_at": "2025-07-29T12:00:00Z",
+   "stratum": "sample",
+   "body_sha1": "c1e874d9d542b311773e080326c0f71a62c8773f",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": true,
+    "mre_type": "Restated",
+    "complete": false,
+    "rows": [
+     {
+      "deposit": "Mann Central and Mann West",
+      "category": "Measured & Indicated",
+      "tonnes": null,
+      "grades": [],
+      "contained": [
+       {
+        "metal": "Ni",
+        "value": null,
+        "unit": "t"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Mann Central and Mann West",
+      "category": "Inferred",
+      "tonnes": null,
+      "grades": [],
+      "contained": [
+       {
+        "metal": "Ni",
+        "value": 9500000,
+        "unit": "t"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     }
+    ],
+    "confidence": "low"
+   },
+   "note": "one sentence read back; the Measured and Indicated nickel tonnage was cut off"
+  },
+  {
+   "n": 47,
+   "event_id": "f0e000edea1ecae02d91abda1b2cfe014f31791764e8e81f9070b6cc2a219c65",
+   "ticker": "MLM.CN",
+   "published_at": "2023-05-24T03:36:00+00:00",
+   "stratum": "sample",
+   "body_sha1": "c33532523217ce9e3c6c2110aa44c3920869b441",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": true,
+    "mre_type": "Update",
+    "complete": false,
+    "rows": [
+     {
+      "deposit": "Purdex Zone",
+      "category": "Indicated",
+      "tonnes": 152000,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 9.38,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 45.8,
+        "unit": "koz"
+       }
+      ],
+      "cut_off": "2.6 g/t Au",
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Purdex Zone",
+      "category": "Inferred",
+      "tonnes": 287000,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 10.43,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 96.2,
+        "unit": "koz"
+       }
+      ],
+      "cut_off": "2.6 g/t Au",
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Purdex Zone - Pit 1",
+      "category": "Indicated",
+      "tonnes": 22000,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 6.36,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 4.5,
+        "unit": "koz"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Purdex Zone - Pit 1",
+      "category": "Inferred",
+      "tonnes": 3000,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 5.25,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 0.5,
+        "unit": "koz"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Purdex Zone - Pit 2",
+      "category": "Indicated",
+      "tonnes": 45000,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 4.47,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 6.5,
+        "unit": "koz"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Purdex Zone - Pit 2",
+      "category": "Inferred",
+      "tonnes": 7000,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 3.65,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 0.8,
+        "unit": "koz"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "McMillan",
+      "category": "Total",
+      "tonnes": 727200,
+      "grades": [
+       {
+        "metal": "Au",
+        "value": 12.39,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Au",
+        "value": 289593,
+        "unit": "oz"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "background"
+     }
+    ],
+    "confidence": "low"
+   },
+   "note": "a cut-off sensitivity table sits between Table 1 and the pit tables and was not read back. The McMillan figures are a 1983 historical resource"
+  },
+  {
+   "n": 48,
+   "event_id": "4aa369cc5f8d38712840dab8e678a9228907a300b90672db8817f67974d85a80",
+   "ticker": "CCI.CN",
+   "published_at": "2022-11-01T11:00:00+00:00",
+   "stratum": "sample",
+   "body_sha1": "76c41b73081fce7c97c9f4ca57561d02bc840fde",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": true,
+    "mre_type": "Update",
+    "complete": true,
+    "rows": [
+     {
+      "deposit": "Chester",
+      "category": "Indicated",
+      "tonnes": 4866000,
+      "grades": [
+       {
+        "metal": "Cu",
+        "value": 1.13,
+        "unit": "%"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Cu",
+        "value": 120.28,
+        "unit": "Mlb"
+       },
+       {
+        "metal": "Pb",
+        "value": 13.66,
+        "unit": "Mlb"
+       },
+       {
+        "metal": "Zn",
+        "value": 10.52,
+        "unit": "Mlb"
+       },
+       {
+        "metal": "Ag",
+        "value": 69000,
+        "unit": "oz"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "Chester",
+      "category": "Inferred",
+      "tonnes": 1819000,
+      "grades": [
+       {
+        "metal": "Cu",
+        "value": 1.01,
+        "unit": "%"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "Cu",
+        "value": 38.35,
+        "unit": "Mlb"
+       },
+       {
+        "metal": "Pb",
+        "value": 3.17,
+        "unit": "Mlb"
+       },
+       {
+        "metal": "Zn",
+        "value": 1.57,
+        "unit": "Mlb"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     }
+    ],
+    "confidence": "high"
+   },
+   "note": ""
+  },
+  {
+   "n": 49,
+   "event_id": "6eada4c4e1b98fb432cf3cb9fa31504672eba2c1",
+   "ticker": "BULL.CN",
+   "published_at": "2022-04-19T12:00:00Z",
+   "stratum": "sample",
+   "body_sha1": "430acbd7edadeed30ee58939f8d25bc121c074b0",
+   "review": "confirmed",
+   "expect": {
+    "is_resource_estimate": true,
+    "mre_type": "Update",
+    "complete": true,
+    "rows": [
+     {
+      "deposit": "East Bull in-pit",
+      "category": "Indicated",
+      "tonnes": 16300000,
+      "grades": [
+       {
+        "metal": "PdEq",
+        "value": 0.92,
+        "unit": "g/t"
+       },
+       {
+        "metal": "Pd",
+        "value": 0.49,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "PdEq",
+        "value": 484.6,
+        "unit": "koz"
+       }
+      ],
+      "cut_off": "C$15/t NSR",
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "East Bull in-pit",
+      "category": "Inferred",
+      "tonnes": 12700000,
+      "grades": [
+       {
+        "metal": "PdEq",
+        "value": 0.9,
+        "unit": "g/t"
+       },
+       {
+        "metal": "Pd",
+        "value": 0.49,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "PdEq",
+        "value": 367.8,
+        "unit": "koz"
+       }
+      ],
+      "cut_off": "C$15/t NSR",
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "East Bull out-of-pit",
+      "category": "Indicated",
+      "tonnes": 200000,
+      "grades": [
+       {
+        "metal": "PdEq",
+        "value": 1.09,
+        "unit": "g/t"
+       },
+       {
+        "metal": "Pd",
+        "value": 0.6,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "PdEq",
+        "value": 7.5,
+        "unit": "koz"
+       }
+      ],
+      "cut_off": "C$50/t NSR",
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "East Bull out-of-pit",
+      "category": "Inferred",
+      "tonnes": 3600000,
+      "grades": [
+       {
+        "metal": "PdEq",
+        "value": 1.31,
+        "unit": "g/t"
+       },
+       {
+        "metal": "Pd",
+        "value": 0.75,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "PdEq",
+        "value": 151.8,
+        "unit": "koz"
+       }
+      ],
+      "cut_off": "C$50/t NSR",
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "East Bull",
+      "category": "Indicated",
+      "tonnes": 16500000,
+      "grades": [
+       {
+        "metal": "PdEq",
+        "value": 0.93,
+        "unit": "g/t"
+       },
+       {
+        "metal": "Pd",
+        "value": 0.49,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "PdEq",
+        "value": 492.1,
+        "unit": "koz"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     },
+     {
+      "deposit": "East Bull",
+      "category": "Inferred",
+      "tonnes": 16300000,
+      "grades": [
+       {
+        "metal": "PdEq",
+        "value": 0.99,
+        "unit": "g/t"
+       },
+       {
+        "metal": "Pd",
+        "value": 0.55,
+        "unit": "g/t"
+       }
+      ],
+      "contained": [
+       {
+        "metal": "PdEq",
+        "value": 519.6,
+        "unit": "koz"
+       }
+      ],
+      "cut_off": null,
+      "basis": "resource",
+      "context": "announced"
+     }
+    ],
+    "confidence": "high"
+   },
+   "note": "three blocks at different NSR cut-offs; the last is the total and matches the headline"
+  }
+ ]
+}

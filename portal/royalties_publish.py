@@ -64,7 +64,8 @@ CREATE TABLE IF NOT EXISTS royalty_deals (
     tag_confirmed     INTEGER NOT NULL DEFAULT 0,
     raw_headline      TEXT,
     published_at      TEXT,
-    extractor_version TEXT
+    extractor_version TEXT,
+    kind              TEXT
 );
 """
 INDEX_SQL = """
@@ -72,13 +73,16 @@ CREATE INDEX IF NOT EXISTS idx_roy_pub    ON royalty_deals(published_at DESC);
 CREATE INDEX IF NOT EXISTS idx_roy_ticker ON royalty_deals(ticker);
 CREATE INDEX IF NOT EXISTS idx_roy_event  ON royalty_deals(event_id);
 CREATE INDEX IF NOT EXISTS idx_roy_deal   ON royalty_deals(deal_key);
+CREATE INDEX IF NOT EXISTS idx_roy_kind   ON royalty_deals(kind);
 """
 
 _COLS = ("event_id", "ordinal", "ticker", "slug", "type", "rate_pct", "metal", "property", "operator", "buyer",
          "seller", "price", "currency", "price_note", "action", "status", "deal_key", "deal_releases",
-         "first_reported", "is_latest", "n_rows", "tag_confirmed", "raw_headline", "published_at")
+         "first_reported", "is_latest", "n_rows", "tag_confirmed", "raw_headline", "published_at", "kind")
 _ROW_FIELDS = ("type", "rate_pct", "metal", "property", "operator", "buyer", "seller", "price", "currency",
                "price_note", "action", "status")
+KINDS = ("deal", "vendor", "held")   # 1.1: a deal; a royalty a vendor keeps or is granted in a property deal; one
+                                    # the company already holds, in a release about it (Justin 2026-09-28)
 
 DEAL_DAYS = 400
 _GENERIC = {"the", "project", "mine", "property", "deposit", "concessions", "concession", "claims", "gold", "silver",
@@ -88,7 +92,8 @@ _GENERIC = {"the", "project", "mine", "property", "deposit", "concessions", "con
 # ------------------------------------------------------------------ formatting (the page uses these)
 TYPE_LABELS = {"NSR": "NSR", "GRR": "GRR", "NPI": "NPI", "stream": "Stream", "other": "Royalty"}
 ACTION_LABELS = {"new": "New / granted", "transfer": "Bought / sold", "buyback": "Buyback / buy-down",
-                 "amendment": "Amended"}
+                 "amendment": "Amended", "held": "Held"}
+KIND_LABELS = {"deal": "Royalty & stream deals", "vendor": "Vendor royalties", "held": "Held royalties"}
 
 
 def fmt_money(v, cur=None):
@@ -122,6 +127,11 @@ def deal_key(r):
     w = _key_words(r.get("property"))
     if not w:
         return None
+    kind = r.get("kind") or "deal"
+    if kind != "deal":        # 1.1: held and vendor rows chain only with rows of their own kind
+        return "%s:%s:%s" % (kind, r.get("type") or "?", w[0])
+    if w[0] == "portfolio":   # ROY 1.0.3 "Portfolio: A, B +3": the same first two properties, not every portfolio
+        return "%s:pf:%s" % (r.get("type") or "?", "-".join(w[1:3]) or "?")
     return "%s:%s" % (r.get("type") or "?", w[0])
 
 
@@ -146,7 +156,8 @@ def compute(items):
     items = sorted(items, key=lambda x: ((x[0].get("published_at") or ""), x[0]["event_id"]))
     out = []
     st = {"releases": 0, "published": 0, "rows": 0, "markers": 0, "tagged_published": 0, "untagged_published": 0,
-          "new": 0, "transfer": 0, "buyback": 0, "amendment": 0, "deals": 0, "repeat_rows": 0}
+          "new": 0, "transfer": 0, "buyback": 0, "amendment": 0, "held": 0, "deals": 0, "repeat_rows": 0,
+          "kind_deal": 0, "kind_vendor": 0, "kind_held": 0}
     for ev, p in items:
         st["releases"] += 1
         rows = [dict(r) for r in (p.get("rows") or []) if r.get("type")]
@@ -161,6 +172,8 @@ def compute(items):
         for i, r in enumerate(rows):
             row = {c: None for c in _COLS}
             row.update({k: r.get(k) for k in _ROW_FIELDS})
+            row["kind"] = r.get("kind") if r.get("kind") in KINDS else "deal"
+            st["kind_" + row["kind"]] += 1
             row.update(event_id=ev["event_id"], ordinal=i, ticker=ev.get("ticker"), slug=ev.get("slug"),
                        n_rows=len(rows), tag_confirmed=1 if tagged else 0, deal_key=deal_key(r),
                        deal_releases=1, is_latest=1, first_reported=(ev.get("published_at") or "")[:10] or None,
@@ -252,12 +265,19 @@ def publish(conn, version, log=print):
     t0 = time.time()
     rows, st = compute(load_items(conn, version))
     _ensure_schema(conn)
+    # OPTD step A (2026-10-06): the same rowsync calls, run once before the write lock to work out the
+    # differences; the locked pass below then only applies them (portal/rowsync.py, planning). Kill switch:
+    # /opt/mnt/app/portal/rowsync_plan_OFF.
+    from portal import rowsync as _rowsync_plan
+    with _rowsync_plan.planning(conn):
+        # OPSFIX item 1 (2026-10-05): write only the rows that changed; same table contents (portal/rowsync.py)
+        from portal import rowsync
+        st["rowsync"] = rowsync.sync_rows(conn, "royalty_deals", "rd_id", _COLS, rows, {"extractor_version": version})
     conn.execute("BEGIN IMMEDIATE")
     try:
-        conn.execute("DELETE FROM royalty_deals")
-        conn.executemany(
-            "INSERT INTO royalty_deals(" + ", ".join(_COLS) + ", extractor_version) VALUES ("
-            + ", ".join(":" + c for c in _COLS) + ", '" + version + "')", rows)
+        # OPSFIX item 1 (2026-10-05): write only the rows that changed; same table contents (portal/rowsync.py)
+        from portal import rowsync
+        st["rowsync"] = rowsync.sync_rows(conn, "royalty_deals", "rd_id", _COLS, rows, {"extractor_version": version})
         conn.execute("COMMIT")
     except Exception:
         conn.execute("ROLLBACK")
@@ -324,10 +344,25 @@ def _selftest():
     eq("announcement is not the lead row", [r["is_latest"] for r in by["e1"]], [0])
     eq("same deal", by["e1"][0]["deal_key"] == by["e2"][0]["deal_key"], True)
     eq("marker", [(r["type"], r["n_rows"]) for r in by["e3"]], [(None, 0)])
+    eq("1.1 kind of a deal row", [r["kind"] for r in by["e1"]], ["deal"])
+    eq("1.1 keys by kind", (deal_key({"type": "NSR", "property": "Los Azules", "kind": "held"}),
+                            deal_key({"type": "NSR", "property": "Los Azules", "kind": "vendor"}),
+                            deal_key({"type": "NSR", "property": "Los Azules"})),
+       ("held:NSR:azules", "vendor:NSR:azules", "NSR:azules"))
+    k_rows, _k = compute([({"event_id": "h1", "published_at": "2026-01-01", "tagged": True},
+                           {"rows": [{"type": "NSR", "rate_pct": 0.4, "property": "Los Azules", "action": "held",
+                                      "buyer": "TNR Gold", "kind": "held"}]}),
+                          ({"event_id": "d1", "published_at": "2026-02-01", "tagged": True},
+                           {"rows": [{"type": "NSR", "rate_pct": 0.4, "property": "Los Azules", "action": "transfer",
+                                      "buyer": "X", "kind": "deal"}]})])
+    eq("1.1 a held row never chains with a deal", [(r["event_id"], r["kind"], r["deal_releases"], r["is_latest"])
+                                                   for r in k_rows], [("h1", "held", 1, 1), ("d1", "deal", 1, 1)])
     eq("passing mention -> absent", by.get("e4"), None)
     publish(conn, "9.9.9", log=lambda *_: None)
     publish(conn, "9.9.9", log=lambda *_: None)
     eq("idempotent", conn.execute("SELECT COUNT(*) FROM royalty_deals").fetchone()[0], len(rows))
+    eq("1.1 kind stored", sorted({r[0] for r in conn.execute("SELECT kind FROM royalty_deals WHERE type IS NOT NULL")}),
+       ["deal"])
     eq("formats", (fmt_money(55e6, "USD"), fmt_money(1.05e9, "USD"), fmt_money(6000, "CAD"), fmt_rate(1.25), fmt_rate(3.0)),
        ("US$55M", "US$1.05B", "C$6,000", "1.25%", "3%"))
     print("royalties_publish: %s" % ("ok" if not bad else "%d FAILURES" % bad))

@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Property Options & Staking — MiningNewsTerminal{% endblock %}
+{% block meta_description %}Property options, earn-ins, staking, claim and property purchases and sales from CSE, TSXV and TSX mining companies, with each deal's counterparty, interest, cash, shares, work commitments and royalty, and its stage from letter of intent to completed, read from news releases.{% endblock %}
+{% block content %}
+  <style>
+    .ld-table td { vertical-align: top; }
+    .ld-table .ld-sub { display: block; font-size: .8em; opacity: .7; }
+    .ld-stage { display: inline-block; padding: 0 .4em; border-radius: 3px; font-size: .75em; letter-spacing: .02em;
+                border: 1px solid currentColor; opacity: .85; white-space: nowrap; }
+    .ld-stage.ld-terminated { border-style: dashed; opacity: .6; }
+    .ld-table tr.ld-cont td.ld-quiet { opacity: .35; }
+    .ld-none { opacity: .55; font-style: italic; }
+  </style>
+
+  <h2 class="page-title">Property Options &amp; Staking</h2>
+
+  <section class="filters fin-filters">
+    <form method="get" action="/property-options">
+      <label for="ticker">Company:</label>
+      <select name="ticker" id="ticker" onchange="this.form.submit()">
+        <option value="">All companies</option>
+        {% for t in tickers %}
+          <option value="{{ t }}" {% if t == selected_ticker %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="type">Deal:</label>
+      <select name="type" id="type" onchange="this.form.submit()">
+        {% for v, label in type_options %}
+          <option value="{{ v }}" {% if v == dtype %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="stage">Stage:</label>
+      <select name="stage" id="stage" onchange="this.form.submit()">
+        {% for v, label in stage_options %}
+          <option value="{{ v }}" {% if v == stage %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="days">Window:</label>
+      <select name="days" id="days" onchange="this.form.submit()">
+        {% for d, label in [(0, 'All time'), (30, 'Last 30 days'), (90, 'Last 90 days'), (180, 'Last 6 months'), (365, 'Last year')] %}
+          <option value="{{ d }}" {% if d == days %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="show">Show:</label>
+      <select name="show" id="show" onchange="this.form.submit()">
+        <option value="deals" {% if show == 'deals' %}selected{% endif %}>Latest stage of each deal</option>
+        <option value="items" {% if show == 'items' %}selected{% endif %}>Every release about a deal</option>
+        <option value="all" {% if show == 'all' %}selected{% endif %}>Also tagged releases with no deal</option>
+      </select>
+
+      <label for="scope">Releases:</label>
+      <select name="scope" id="scope" onchange="this.form.submit()">
+        <option value="tagged" {% if scope == 'tagged' %}selected{% endif %}>Tagged Property Options &amp; Staking</option>
+        <option value="all" {% if scope == 'all' %}selected{% endif %}>All releases (includes untagged)</option>
+      </select>
+
+      {% if selected_ticker or days or dtype or stage or show != 'deals' or scope != 'tagged' %}
+        <a class="cat-clear" href="/property-options">Reset</a>
+      {% endif %}
+      <span class="muted">{{ rows|length }} shown · {{ total_filtered }} matching · {{ total }} deals from {{ releases }} releases</span>
+    </form>
+  </section>
+
+  {% if not rows %}
+    <p class="empty">No property deals in this window.</p>
+  {% else %}
+    <div class="table-scroll">
+    <table class="fin-table ld-table">
+      <colgroup>
+        <col style="width: 7%">   <!-- Ticker       -->
+        <col style="width: 11%">  <!-- Company      -->
+        <col style="width: 8%">   <!-- Date         -->
+        <col style="width: 11%">  <!-- Deal         -->
+        <col style="width: 15%">  <!-- Property     -->
+        <col style="width: 9%">   <!-- Stage        -->
+        <col style="width: 13%">  <!-- Counterparty -->
+        <col style="width: 20%">  <!-- Terms        -->
+        <col style="width: 6%">   <!-- View         -->
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Ticker</th>
+          <th>Company</th>
+          <th>Date</th>
+          <th title="Option in (the company can earn an interest), option out (it grants one), staking, claim purchase, property purchase or property sale">Deal</th>
+          <th>Property</th>
+          <th title="Proposed (letter of intent), signed, payment made, completed (exercised, earned or closed), amended, or terminated, as of this release">Stage</th>
+          <th title="The optionor, optionee, vendor or buyer">Counterparty</th>
+          <th title="Interest, and the cash, shares, work spending, royalty, term and area the release states">Terms</th>
+          <th>View</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr class="{% if not r['first_of_release'] %}ld-cont{% endif %}">
+            <td class="fin-ticker {% if not r['first_of_release'] %}ld-quiet{% endif %}">
+              {%- if r['first_of_release'] -%}
+                {% set _mtp = r["ticker"] | mtp_url('mining') %}{% if _mtp %}<a class="mtp-co" href="{{ _mtp }}" target="_blank" rel="noopener" title="Open {{ r['ticker'] }} mining data on MineTerminalPro">{{ r["ticker"] }}</a>{% else %}{{ r["ticker"] }}{% endif %}
+              {%- else -%}
+                {{ r["ticker"] }}
+              {%- endif -%}
+            </td>
+            <td class="{% if not r['first_of_release'] %}ld-quiet{% endif %}">{% if r['first_of_release'] %}{{ r["company_name"] }}{% endif %}</td>
+            <td class="fin-date {% if not r['first_of_release'] %}ld-quiet{% endif %}">{% if r['first_of_release'] %}{{ (r["published_at"] or "")[:10] }}{% endif %}</td>
+            {% if r["deal_type"] %}
+              <td>{{ r["deal_type"] | ld_type }}</td>
+              <td>
+                {{ r["property"] or "—" }}
+                {%- if r["jurisdiction"] %}<span class="ld-sub" title="Where the property is">{{ r["jurisdiction"] }}</span>{% endif -%}
+                {%- if r["metal"] %}<span class="ld-sub">{{ r["metal"] | replace('+', ', ') }}</span>{% endif -%}
+              </td>
+              <td>
+                <span class="ld-stage ld-{{ r['stage'] }}">{{ r["stage"] | ld_stage }}</span>
+                {%- if r["date"] and r["date"] != (r["published_at"] or "")[:10] %}<span class="ld-sub" title="Date of the agreement">{{ r["date"] }}</span>{% endif -%}
+              </td>
+              <td>{{ r["counterparty"] or "—" }}</td>
+              <td>
+                {%- set _any = r["interest_pct"] is not none or r["cash"] is not none or r["shares"] is not none or r["work"] is not none or r["nsr"] is not none or r["term"] is not none or r["area"] is not none -%}
+                {%- if r["interest_pct"] is not none %}<span class="ld-sub">{% if r["deal_type"] in ("option_in", "option_out") and r["stage"] != "completed" %}up to {% endif %}{{ r["interest_pct"] | ld_num }}% interest</span>{% endif -%}
+                {%- if r["cash"] is not none %}<span class="ld-sub">{{ r["cash"] | ld_money(r["currency"]) }} cash</span>{% endif -%}
+                {%- if r["shares"] is not none %}<span class="ld-sub">{{ r["shares"] | ld_count }} shares</span>{% endif -%}
+                {%- if r["work"] is not none %}<span class="ld-sub">{{ r["work"] | ld_money(r["currency"]) }} work</span>{% endif -%}
+                {%- if r["nsr"] is not none %}<span class="ld-sub">{{ r["nsr"] | ld_num }}% NSR</span>{% endif -%}
+                {%- if r["term"] is not none %}<span class="ld-sub">over {% if r["term"] < 1 %}{{ (r["term"] * 12) | round | int }} months{% else %}{{ r["term"] | ld_num }} yr{% endif %}</span>{% endif -%}
+                {%- if r["area"] is not none %}<span class="ld-sub">{{ r["area"] | ld_count }} ha</span>{% endif -%}
+                {%- if r["chain_items"] and r["chain_items"] > 1 %}<span class="ld-sub" title="Releases about this deal">{{ r["chain_items"] }} releases since {{ r["first_reported"] }}</span>{% endif -%}
+                {%- if not _any and not (r["chain_items"] and r["chain_items"] > 1) %}—{% endif -%}
+              </td>
+            {% else %}
+              <td colspan="5" class="ld-none">Reports no property deal</td>
+            {% endif %}
+            <td>
+              {% if r["url"] and r['first_of_release'] %}<a href="{{ r['url'] }}">View ↗</a>{% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  {% endif %}
+  {% include "_pager.html" %}
+{% endblock %}

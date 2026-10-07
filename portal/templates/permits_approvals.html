@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Permits & Approvals — MiningNewsTerminal{% endblock %}
+{% block meta_description %}Permits and government approvals from CSE, TSXV and TSX mining companies: drill and exploration permits, environmental assessments, plans of operations, mining licences, construction and water permits, and community agreements, with each permit's stage from planned to granted, read from news releases.{% endblock %}
+{% block content %}
+  <style>
+    .pm-table td { vertical-align: top; }
+    .pm-table .pm-sub { display: block; font-size: .8em; opacity: .7; }
+    .pm-stage { display: inline-block; padding: 0 .4em; border-radius: 3px; font-size: .75em; letter-spacing: .02em;
+                border: 1px solid currentColor; opacity: .85; white-space: nowrap; }
+    .pm-stage.pm-contested { border-style: dashed; }
+    .pm-name { display: block; font-size: .8em; opacity: .7; font-style: italic; }
+    .pm-table tr.pm-cont td.pm-quiet { opacity: .35; }
+    .pm-none { opacity: .55; font-style: italic; }
+  </style>
+
+  <h2 class="page-title">Permits &amp; Approvals</h2>
+
+  <section class="filters fin-filters">
+    <form method="get" action="/permits-approvals">
+      <label for="ticker">Company:</label>
+      <select name="ticker" id="ticker" onchange="this.form.submit()">
+        <option value="">All companies</option>
+        {% for t in tickers %}
+          <option value="{{ t }}" {% if t == selected_ticker %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="type">Permit:</label>
+      <select name="type" id="type" onchange="this.form.submit()">
+        {% for v, label in type_options %}
+          <option value="{{ v }}" {% if v == ptype %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="status">Stage:</label>
+      <select name="status" id="status" onchange="this.form.submit()">
+        {% for v, label in status_options %}
+          <option value="{{ v }}" {% if v == status %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="days">Window:</label>
+      <select name="days" id="days" onchange="this.form.submit()">
+        {% for d, label in [(0, 'All time'), (30, 'Last 30 days'), (90, 'Last 90 days'), (180, 'Last 6 months'), (365, 'Last year')] %}
+          <option value="{{ d }}" {% if d == days %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="show">Show:</label>
+      <select name="show" id="show" onchange="this.form.submit()">
+        <option value="permits" {% if show == 'permits' %}selected{% endif %}>Latest stage of each permit</option>
+        <option value="items" {% if show == 'items' %}selected{% endif %}>Every release about a permit</option>
+        <option value="all" {% if show == 'all' %}selected{% endif %}>Also tagged releases with no permit</option>
+      </select>
+
+      <label for="scope">Releases:</label>
+      <select name="scope" id="scope" onchange="this.form.submit()">
+        <option value="tagged" {% if scope == 'tagged' %}selected{% endif %}>Tagged Permits &amp; Approvals</option>
+        <option value="all" {% if scope == 'all' %}selected{% endif %}>All releases (includes untagged)</option>
+      </select>
+
+      {% if selected_ticker or days or ptype or status or show != 'permits' or scope != 'tagged' %}
+        <a class="cat-clear" href="/permits-approvals">Reset</a>
+      {% endif %}
+      <span class="muted">{{ rows|length }} shown · {{ total_filtered }} matching · {{ total }} permits from {{ releases }} releases</span>
+    </form>
+  </section>
+
+  {% if not rows %}
+    <p class="empty">No permits or approvals in this window.</p>
+  {% else %}
+    <div class="table-scroll">
+    <table class="fin-table pm-table">
+      <colgroup>
+        <col style="width: 7%">   <!-- Ticker    -->
+        <col style="width: 11%">  <!-- Company   -->
+        <col style="width: 8%">   <!-- Date      -->
+        <col style="width: 15%">  <!-- Permit    -->
+        <col style="width: 16%">  <!-- Project   -->
+        <col style="width: 10%">  <!-- Stage     -->
+        <col style="width: 14%">  <!-- Authority -->
+        <col style="width: 13%">  <!-- Details   -->
+        <col style="width: 6%">   <!-- View      -->
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Ticker</th>
+          <th>Company</th>
+          <th>Date</th>
+          <th title="Drill or exploration permit, environmental assessment, plan of operations, mining licence, construction or operating permit, water, land access or community agreement, government action, or other">Permit</th>
+          <th>Project</th>
+          <th title="Planned, applied, in review, granted, renewed or amended, or contested, as of this release">Stage</th>
+          <th title="The body that issues or reviews it; for an agreement, the community">Authority</th>
+          <th>Details</th>
+          <th>View</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr class="{% if not r['first_of_release'] %}pm-cont{% endif %}">
+            <td class="fin-ticker {% if not r['first_of_release'] %}pm-quiet{% endif %}">
+              {%- if r['first_of_release'] -%}
+                {% set _mtp = r["ticker"] | mtp_url('mining') %}{% if _mtp %}<a class="mtp-co" href="{{ _mtp }}" target="_blank" rel="noopener" title="Open {{ r['ticker'] }} mining data on MineTerminalPro">{{ r["ticker"] }}</a>{% else %}{{ r["ticker"] }}{% endif %}
+              {%- else -%}
+                {{ r["ticker"] }}
+              {%- endif -%}
+            </td>
+            <td class="{% if not r['first_of_release'] %}pm-quiet{% endif %}">{% if r['first_of_release'] %}{{ r["company_name"] }}{% endif %}</td>
+            <td class="fin-date {% if not r['first_of_release'] %}pm-quiet{% endif %}">{% if r['first_of_release'] %}{{ (r["published_at"] or "")[:10] }}{% endif %}</td>
+            {% if r["status"] %}
+              <td>
+                {{ r["permit_type"] | pm_type }}
+                {%- if r["permit_name"] %}<span class="pm-name">{{ r["permit_name"] | truncate(70) }}</span>{% endif -%}
+              </td>
+              <td>
+                {{ r["project"] or "—" }}
+                {%- if r["jurisdiction"] %}<span class="pm-sub">{{ r["jurisdiction"] }}</span>{% endif -%}
+                {%- if r["metal"] %}<span class="pm-sub">{{ r["metal"] | replace('+', ', ') }}</span>{% endif -%}
+              </td>
+              <td>
+                <span class="pm-stage pm-{{ r['status'] }}">{{ r["status"] | pm_status }}</span>
+                {%- if r["date"] and r["date"] != (r["published_at"] or "")[:10] %}<span class="pm-sub" title="Date of this stage">{{ r["date"] }}</span>{% endif -%}
+              </td>
+              <td>{{ r["authority"] or "—" }}</td>
+              <td>
+                {%- if r["permit_id"] %}<span class="pm-sub" title="Permit or file number">No. {{ r["permit_id"] }}</span>{% endif -%}
+                {%- if r["term"] %}<span class="pm-sub">term {{ r["term"] }}</span>{% endif -%}
+                {%- if r["expiry"] %}<span class="pm-sub">expires {{ r["expiry"] }}</span>{% endif -%}
+                {%- if r["scope"] %}<span class="pm-sub" title="What the permit allows">allows {{ r["scope"] }}</span>{% endif -%}
+                {%- if r["holder"] %}<span class="pm-sub" title="Who holds the permit">held by {{ r["holder"] }}</span>{% endif -%}
+                {%- if r["chain_items"] and r["chain_items"] > 1 %}<span class="pm-sub" title="Releases about this permit">{{ r["chain_items"] }} releases since {{ r["first_reported"] }}</span>{% endif -%}
+                {%- if not r["permit_id"] and not r["term"] and not r["expiry"] and not r["scope"] and not r["holder"] and not (r["chain_items"] and r["chain_items"] > 1) %}—{% endif -%}
+              </td>
+            {% else %}
+              <td colspan="5" class="pm-none">Reports no permit</td>
+            {% endif %}
+            <td>
+              {% if r["url"] and r['first_of_release'] %}<a href="{{ r['url'] }}">View ↗</a>{% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  {% endif %}
+  {% include "_pager.html" %}
+{% endblock %}

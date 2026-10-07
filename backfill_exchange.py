@@ -186,7 +186,8 @@ def find_twin(pcon, rel: dict, headline: str, published: dt.date):
     iso = published.isoformat()
     rows = pcon.execute(
         "SELECT event_id, raw_headline, date(published_at) FROM events "
-        "WHERE (ticker = ? OR ticker LIKE ?) AND date(published_at) BETWEEN date(?,?) AND date(?,?)",  # SHORTFIX_V1
+        "WHERE review_status IN ('auto_approved', 'duplicate_of_wire') AND (ticker = ? OR ticker LIKE ?) "
+        "AND date(published_at) BETWEEN date(?,?) AND date(?,?)",  # SHORTFIX_V1, EXCOV_V1
         (rel["bare"], rel["bare"] + ".%", iso, f"-{TWIN_WIDE_DAYS} day", iso, f"+{TWIN_WIDE_DAYS} day"),
     ).fetchall()
     for eid2, hl, other_day in rows:
@@ -514,7 +515,8 @@ def main() -> int:
 
     # ---- stage 2: open, date, match, publish — in that order ----------------
     # The ordering is the fix for the 203 duplicates the first run created.
-    n_ing = n_fail = n_late = n_classified = n_moved = 0
+    n_ing = n_fail = n_late = n_classified = n_moved = n_claimed = 0
+    claimed_run: dict = {}      # NEWSFIX_V1: event_id -> uid of the release that matched it in this run
     prov_counts: dict = {}
     date_prov: dict = {}
     consecutive_cls_errors = 0
@@ -545,7 +547,18 @@ def main() -> int:
                 n_moved += 1
 
             eid, wrong = find_twin(pcon, rel, headline, published)
+            # NEWSFIX_V1: one event stands for one release. If another release of this company already
+            # matched it (ledger, or earlier in this run), this one is not that event.
+            _uid = X.uid_for(rel["source"], rel["ticker"], rel["published_date"], rel["title"])
+            if eid and ((claimed_run.get(eid) not in (None, _uid)) or con.execute(
+                    "SELECT 1 FROM releases WHERE matched_event=? AND uid<>? AND bare=? "
+                    "AND status='matched' LIMIT 1", (eid, _uid, rel["bare"])).fetchone()):
+                n_claimed += 1
+                log(f"   CLAIMED    {rel['bare']:<7} {published} event {eid[:12]} already stands for another "
+                    f"release - publishing this one: {headline[:50]}")
+                eid, wrong = None, None
             if eid:
+                claimed_run[eid] = _uid
                 n_late += 1
                 record(rel, "matched", event=eid, wrong=wrong,
                        note=f"already on site under {published} [{dprov}]")
@@ -586,6 +599,7 @@ def main() -> int:
             f"{args.max_ingest}; {n_capped} candidates were never "
             f"attempted. This is not a finished backfill - re-run it.")
     log(f"headline provenance: {prov_counts}")
+    log(f"one-event-one-release guard (NEWSFIX_V1): {n_claimed} matches refused")
     log(f"date provenance: {date_prov}  ({n_moved} releases dated earlier than the "
         f"exchange's own date)")
     log("note: the portal's fuzzy-duplicate guard silently drops a release that "

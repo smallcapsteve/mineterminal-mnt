@@ -28,11 +28,12 @@ Registered by portal/accuracy.py, which imports this module at the end of its ow
 """
 from __future__ import annotations
 
-from portal.accuracy import TagSpec, register_spec
+from portal.accuracy import TagSpec, project_matches, register_spec
 
 PROD_KEY_FIELDS = ("row", "kind", "period", "metal", "unit", "figure")
 # Too few in the set to reach the gate's ten claims, or not the row's identity: reported, not gated.
-PROD_REPORT_FIELDS = ("sold", "aisc", "guided", "milestone", "basis")
+PROD_REPORT_FIELDS = ("sold", "aisc", "guided", "milestone", "basis",
+                      "asset")  # ACC_COLS_V1 (2026-09-23): the milestone's asset is on the page
 
 _ROW_FIELDS = ("kind", "period", "metal", "unit", "qty", "low", "high", "sold", "aisc", "guided_low",
                "guided_high", "milestone", "asset", "basis")
@@ -50,7 +51,7 @@ def _norm(s):
 
 
 def figure_of(r):
-    if r.get("kind") == "actual":
+    if r.get("kind") in ("actual", "recovered"):      # 1.3: a recovered row's figure is its quantity
         return ("q", r.get("qty"))
     if r.get("kind") == "guidance":
         return ("r", r.get("low"), r.get("high"))
@@ -121,6 +122,8 @@ def _judge_field(f, lab, pr):
         return None
     if f == "basis":
         return pr.get(f) is not None
+    if f == "asset":
+        return pr.get(f) is not None and project_matches(str(pr.get(f)), [str(lab.get(f))])
     return _norm(lab.get(f)) == _norm(pr.get(f))
 
 
@@ -200,8 +203,8 @@ register_spec(TagSpec(
     candidate_predictor=_prod_candidate_predictor,
     describe={"row": "every row on the page is one the release states -- a metal's production or guidance for a "
                      "period, or a completed milestone -- and every one it states is on the page",
-              "kind": "actual, guidance or milestone",
-              "period": "the quarter, half or year the figure is for",
+              "kind": "actual, guidance, milestone or recovered (ounces recovered, shown apart from production)",
+              "period": "the quarter, half, nine months (year to date) or year the figure is for",
               "metal": "the metal or product, in the release's own measure (gold, GEO, AuEq, lithium concentrate)",
               "unit": "oz, lb or t",
               "figure": "the quantity produced, or the guidance range's low and high, within 1%",

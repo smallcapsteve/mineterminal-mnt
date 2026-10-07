@@ -22,6 +22,12 @@ Reuses the v3 role grammar and money reader (portal/extractors/fin_grammar.py) a
   6. dates of the earlier releases this one refers to, for the publisher's grouping
   7. the text is normalised first (ligatures, "$0. 26", "C$ 0.35", curly quotes) and capped at
      8,000 characters, so the result does not depend on a release's legal boilerplate
+  8. 1.0.4: the number of units (or shares) each amount bought, kept only when count x issue price equals
+     that amount (within 1.5%), so no finder's, insider's or outstanding count is ever the deal's
+  9. 1.0.5 (FIX5): amendments read from "revised terms" / "price change" wording, "Announces Updates on" is an
+     update, money drawn under an existing facility is an update; a minimum offering's figure is not the size;
+     "non flow-through" is the hard-dollar part; a sentence about an earlier release's close is not this close;
+     "repricing from $X to $Y" keeps only $Y
 
 analyse(headline, body) -> dict        full result (pure; no database, no clock)
 extract(headline, body) -> [Record]    what the facts store keeps (one record per release)
@@ -39,7 +45,10 @@ from portal import facts as F
 from portal.extractors import fin_grammar as G
 
 NAME = "financings"
-VERSION = "1.0.2"
+VERSION = "1.0.6"  # 2026-10-06 FIX8 (d: narrower cues): unit prices are what a unit or share is sold for - not a warrant's exercise price written far from the word warrant, an acceleration trigger, a deemed or resale price; 2026-09-26: unit count (units_offered / units_this_close / units_closed_total); 2026-10-04 FIX5: stage
+#                   (revised terms / price change = amendment, "Updates on" = update, a drawdown under a facility = update),
+#                   amounts (the maximum of a minimum/maximum offering, "non flow-through" = hard-dollar part, an earlier
+#                   release's close is not this close), a repricing's old price is not an issue price
 KIND = "financing"
 TAG = "Financings"
 TEXT_CAP = 8000
@@ -48,14 +57,14 @@ ROLES = ("announcement", "upsize", "amendment", "tranche_close", "final_close", 
 
 
 # ------------------------------------------------------------------ text
-_WS = re.compile(r"[ \t\xa0 -​  　]+")
+_WS = re.compile(r"[ \t\u00a0\u2000-\u200b\u202f\u205f\u3000]+")
 
 
 def clean(text: str) -> str:
     t = unicodedata.normalize("NFKC", text or "")
-    t = t.replace("‐", "-").replace("‑", "-").replace("‒", "-").replace("–", "-") \
-        .replace("—", "-").replace("−", "-").replace("­", "")
-    t = t.replace("‘", "'").replace("’", "'").replace("“", '"').replace("”", '"')
+    t = t.replace("\u2010", "-").replace("\u2011", "-").replace("\u2012", "-").replace("\u2013", "-") \
+        .replace("\u2014", "-").replace("\u2212", "-").replace("\u00ad", "")
+    t = t.replace("\u2018", "'").replace("\u2019", "'").replace("\u201c", '"').replace("\u201d", '"')
     t = _WS.sub(" ", t)
     t = re.sub(r"\s*\n\s*", "\n", t)
     t = re.sub(r"(\$\s?\d+)\.\s(\d)", r"\1.\2", t)            # "$0. 26"
@@ -63,7 +72,7 @@ def clean(text: str) -> str:
     t = re.sub(r"(?i)\bnon\s*-\s*\n?\s*brokered", "non-brokered", t)
     t = re.sub(r"(?i)\bflow\s*-?\s*\n?\s*through", "flow-through", t)
     t = re.sub(r"(?i)\bone\s*-\s*(half|third|quarter|fourth)\b", lambda m: "one-" + m.group(1).lower(), t)
-    t = t.replace("Ɵ", "ti").replace("ꜰ", "ti")
+    t = t.replace("\u019f", "ti").replace("\ua730", "ti")
     return t
 
 
@@ -83,6 +92,15 @@ def deal_window(body: str, cap: int = 5000) -> str:
     """The part of the release that is news: above the disclaimers / About heading, capped."""
     b = body[:TEXT_CAP]
     m = _RE_FLS.search(b, 200)
+    if m and m.start() < 2600:
+        # 1.0.3: an "About the Company" blurb in the middle of a release is not the end of the news --
+        # if the offering's own terms carry on after it, read to the next disclaimer instead.
+        tail = b[m.start():m.start() + 1800]
+        if re.search(r"(?i)\beach\s+(?:whole\s+|full\s+)?warrant\b|\bexercise\s+price\b"
+                     r"|\beach\s+(?:\S+\s+){0,3}unit\s+(?:will\s+)?(?:consist|comprise|be\s+comprised)"
+                     r"|\bgross\s+proceeds\b|\bper\s+(?:FT\s+)?unit\b", tail):
+            m2 = _RE_FLS.search(b, m.end())
+            m = m2
     if m:
         b = b[:m.start()]
     return flat(b[:cap])
@@ -98,7 +116,7 @@ def main_headline(h: str) -> str:
     also closed ..."). The role is read from the part before that when the part names a deal on its own."""
     if len(h) < 90:
         return h
-    m = re.search(r"(?<=[a-z0-9A-Z)])\s+(?=(?:The\s+)?[Bb]ase\s+[Ss]helf|THIS\s+NEWS\s+RELEASE|NOT\s+FOR\s+DISTRIBUTION|(?:The|the)\s+(?:Company\b|[a-z])|[A-Z][a-z]+,\s+(?:[A-Z][a-z]+\s*)?(?:[A-Z][a-z]+)?\s*[-–]|"
+    m = re.search(r"(?<=[a-z0-9A-Z)])\s+(?=(?:The\s+)?[Bb]ase\s+[Ss]helf|THIS\s+NEWS\s+RELEASE|NOT\s+FOR\s+DISTRIBUTION|(?:The|the)\s+(?:Company\b|[a-z])|[A-Z][a-z]+,\s+(?:[A-Z][a-z]+\s*)?(?:[A-Z][a-z]+)?\s*[-\u2013]|"
                   r"(?:Vancouver|Toronto|Calgary|Montreal|London|Edmonton|Kelowna|Halifax|Denver|Reno|Perth)\b)", h[40:])
     if m:
         cut = h[:40 + m.start()]
@@ -162,6 +180,7 @@ _RE_NOT_DEAL_AMT_BEFORE = re.compile(
     r"|to\s+date\s+(?:has|have)\s+raised|in\s+addition\s+to|market\s+capitali[sz]ation|valued\s+at|valuation"
     r"|exploration\s+(?:expenditures?|budget|program)|spend|expenditures?|payment\s+of|pa(?:y|ys|id|ying)|purchase\s+price|(?:equity|enterprise|total|transaction)\s+value|representing|non-dilutive|funding\s+transaction|grant|application\s+for|guarantee|EBITDA|profit|loss"
     r"|consideration|acquisition|interest|royalty|revenue|net\s+smelter|NPV|IRR|capex|capital\s+cost"
+    r"|net\s+proceeds|proceeds\s+net\s+of|after\s+deducting"
     r"|debt\s+of|indebtedness|loan\s+of|owed|settle\w*)\b[^$]{0,60}$)")
 
 
@@ -169,6 +188,8 @@ def money_kind(text: str, v, start: int, end: int) -> str:
     """'price' | 'strike' | 'conversion' | 'other' | 'deal' for one figure, from its words around it."""
     after = text[end:end + 40]
     after_wide = text[end:end + 80]                       # 1.0.2: "$0.01 ($0.20 on a post-Consolidation basis) per Receipt"
+    if re.match(r"(?i)\s*(?:was|is|were)\s+(?:part\s+of\s+)?(?:a\s+|the\s+)?(?:repayment|settlement|payment\s+to|owed)", after_wide):
+        return "other"                                     # 1.0.3: "$30,000 was part of a repayment to a consultant"
     before = text[max(0, start - 140):start]
     near = before[-60:]
     if re.search(r"(?i)conver(?:sion|tible|t)\w*\s+(?:price\s+)?(?:of\s+|at\s+|equal\s+to\s+)?(?:approximately\s+)?$", near) \
@@ -260,6 +281,9 @@ def financing_decision(h: str, window: str, role: str):
     head_deal = bool(G._fin_noun(h) or G._RE_MONEY_NOUN.search(h) or G._RE_DEAL_EXTRA.search(h) or _RE_HEAD_FIN_EXTRA.search(h))
     if _RE_RESULTS.search(h) and not _RE_DEAL_WORDS.search(h):
         return False, "results"
+    if re.search(r"(?i)\bnon[\s\-]offering\s+prospectus\b", h + " " + lede[:900]) and not re.search(
+            r"(?i)\b(?:concurrent|private\s+placement|bought\s+deal|offering\s+of\s+(?:units|shares))\b", h):
+        return False, "non_offering_prospectus"    # 1.0.3: capacity to list, no securities sold
     if re.search(r"(?i)\b(?:exercise\s+of\s+(?:the\s+|its\s+)?(?:\w+\s+){0,2}(?:over[\s\-]allotment|underwriters?'?|agents?'?|greenshoe|option)"
                  r"|(?:over[\s\-]allotment|underwriters?'?|agents?'?)\s+option)\b", h) and re.search(r"(?i)\bproceeds|offering|placement|US?\$|C\$|\$", h + " " + lede[:600]):
         return True, "option_exercise"
@@ -297,7 +321,7 @@ _RE_UPDATE_HEAD = re.compile(
     r"(?i)\b(?:fully\s+subscribed|over[\s\-]?subscribed\b(?![^|]*\bclos)|conditional\s+(?:acceptance|approval)"
     r"|receives?\s+(?:tsx\w*\s+|cse\s+|exchange\s+)?(?:conditional\s+)?(?:acceptance|approval)"
     r"|(?:final|amended)\s+(?:base\s+shelf\s+)?(?:short[\s\-]form\s+)?prospectus|prospectus\s+supplement"
-    r"|files?\s+(?:a\s+|its\s+)?(?:final|amended)|update\s+(?:on|to|regarding)|provides?\s+(?:an\s+)?update"
+    r"|files?\s+(?:a\s+|its\s+)?(?:final|amended)|updates?\s+(?:on|to|regarding)|provides?\s+(?:an\s+)?update"
     r"|extends?\s+(?:the\s+)?(?:closing|deadline|price\s+protection)|extension\s+of\s+(?:\w+\s+){0,5}(?:closing|placement|offering|financing)"
     r"|clos(?:ing|e)\s+dates?\s+extend\w*|to\s+close\b|will\s+close|expected\s+to\s+close|closing\s+(?:date|scheduled)"
     r"|pricing\s+of|prices\s+(?:its\s+)?(?:previously|offering|bought))")
@@ -409,8 +433,67 @@ def classify(h: str, window: str):
             r"(?i)\bincreas(?:e|es|ed|ing)\b[^|]{0,40}\b(?:private\s+placement|offering|financing|raise)\b"
             r"|\b(?:private\s+placement|offering|financing)\b[^|]{0,30}\bincreas(?:e|ed|ing)\b", h):
         role = "upsize"
+    # 1.0.3: a release that closes a tranche AND upsizes the offering is a tranche close --
+    # the money that moved is the tranche; the new size is the offering's, not what was raised.
+    if role == "upsize":
+        mt = _RE_CLOSE_TRANCHE.search(h)
+        if mt:
+            role = "tranche_close"
+            tranche = (mt.group(1) or "").lower() or tranche
+            if tranche == "initial":
+                tranche = "first"
+    # 1.0.3: "Closes Private Placement" while the body still expects a further tranche
+    if role == "final_close" and _RE_MORE_TRANCHES.search(window[:2000]) and not re.search(
+            r"(?i)\bfinal\s+(?:tranche|clos(?:e|ing))\b|\band\s+final\s+tranche\b", h):
+        role = "tranche_close"
+    # 1.0.3: "Announces Correction to Warrant Terms of ..." changes terms, it does not raise or upsize
+    if re.search(r"(?i)\b(?:announces?\s+)?correction\s+to\b|\bcorrects?\s+(?:the\s+)?(?:warrant\s+)?terms\b", h) \
+            and role in ("upsize", "announcement", "update"):
+        role = "amendment"
+    # 1.0.3: repricing STOCK OPTIONS is not an amendment of the financing announced in the same release
+    if role == "amendment" and re.search(r"(?i)\bre-?pric\w*\s+(?:of\s+)?(?:its\s+|the\s+)?(?:outstanding\s+)?(?:stock\s+)?options?\b", h) \
+            and not re.search(r"(?i)\bre-?pric\w*\s+(?:of\s+)?(?:its\s+|the\s+)?(?:\w+\s+){0,3}(?:private\s+placement|offering|financing)", h):
+        role = "announcement" if re.search(r"(?i)\bannounces?\b", h) else "update"
+    # 1.0.3: the first disclosure of an offering's price is that offering's announcement
+    if role == "update" and re.search(r"(?i)\bpricing\s+of\b|\bprices\s+(?:its\s+)?(?:\w+\s+){0,3}(?:offering|placement)", h) \
+            and not re.search(r"(?i)\bpreviously\s+announced\b|\bfurther\s+to\b", window[:600]):
+        role = "announcement"
+    # 1.0.3: "Announces Additional Investment from <investor>" announces a new subscription
+    if role == "update" and G._RE_DEAL_EXTRA.search(h) and re.search(r"(?i)\bannounces?\b", h) \
+            and not G._RE_NOT_ANNOUNCE.search(h) and not _RE_UPDATE_HEAD.search(h):
+        role = "announcement"
+    # 1.0.5: "Announces Revised Terms of ...", "Price Change for its Proposed Private Placement", "has revised the terms of its"
+    if role in ("announcement", "update") and (_RE_AMEND_HEAD.search(h) or _RE_AMEND_LEDE.search(window[:700])):
+        role = "amendment"
     return role, tranche
 
+
+# 1.0.5: the release changes the terms or the price of an offering it announced before
+_RE_AMEND_HEAD = re.compile(
+    r"(?i)\b(?:revis(?:ed|es|ion\s+(?:of|to))\s+(?:the\s+)?(?:\w+\s+){0,2}terms|price\s+(?:change|amendment|revision)"
+    r"|chang(?:e|es)\s+(?:to|in)\s+(?:the\s+)?(?:\w+\s+){0,2}(?:terms|pric(?:e|ing))\s+(?:of|for)"
+    r"|amend(?:s|ed|ment\s+(?:of|to))\s+(?:the\s+)?(?:\w+\s+){0,2}terms\s+(?:of|for)"
+    r"|modif(?:ies|ied|ication\s+(?:of|to))\s+(?:the\s+)?(?:\w+\s+){0,2}terms)\b")
+_RE_AMEND_LEDE = re.compile(
+    r"(?i)\b(?:(?:has|have)\s+(?:revised|amended|modified|changed)\s+the\s+terms\s+of|update\s+on\s+the\s+terms\s+of"
+    r"|is\s+repricing|has\s+repriced)\s+(?:its|the)\s+(?:previously\s+announced\s+)?(?:[\w\-]+\s+){0,3}"
+    r"(?:private\s+placement|offering|financing)")
+# 1.0.5: money drawn under a loan or credit facility that already exists is an update of that deal, not its close
+_RE_DRAWDOWN = re.compile(
+    r"(?i)\b(?:drawn\s+down|drew\s+down|draws?\s+down|drawdown\s+of|draw\s+of|received\s+(?:an?\s+|the\s+)?(?:\w+\s+){0,3}(?:advance|drawdown))\b"
+    r"[^.]{0,160}\bunder\b[^.]{0,60}\b(?:facility|loan|credit|agreement)\b")
+
+
+# 1.0.3: a close verb applied to a tranche, in a headline the grammar read as an upsize
+_RE_CLOSE_TRANCHE = re.compile(
+    r"(?i)\b(?:clos(?:es|ed|ing)|completes?|completed|completion)\b(?:\s+(?:of|the|its|a|an))?"
+    r"(?:\s+(?!and\b)[\w$,.\-]+){0,6}?\s+(first|second|third|fourth|fifth|initial|final)?\s*tranche\b")
+# 1.0.3: the body says another tranche is still to come
+_RE_MORE_TRANCHES = re.compile(
+    r"(?i)\b(?:expects?|anticipat\w*|intends?|plans?|hopes?)\s+to\s+(?:be\s+able\s+to\s+)?(?:clos\w*|complet\w*|announce)\b"
+    r"[^.]{0,90}?\b(?:second|third|fourth|subsequent|additional|further|final)\b[^.]{0,30}?\btranche"
+    r"|\b(?:second|third|subsequent|additional|further)\s+(?:and\s+final\s+)?tranche\b[^.]{0,80}?"
+    r"\b(?:expected|anticipated|to\s+close|in\s+the\s+near\s+term|to\s+follow|shortly)\b")
 
 # ------------------------------------------------------------------ type
 _RE_T_FT = re.compile(r"(?i)\bflow-through\b|\bFT\s+(?:shares?|units?)\b|\bcharity\s+flow")
@@ -495,10 +578,29 @@ def deal_types(h: str, window: str, h_main: str = None):
 
 
 # ------------------------------------------------------------------ amounts
+# 1.0.3: the new size of an upsized offering, stated only in the body
+_RE_UPSIZED_TO = re.compile(
+    r"(?i)\b(?:(?:will\s+)?now\s+rais(?:e|es|ing)|rais(?:e|es|ing)\s+(?:a\s+total\s+of\s+)?up\s+to"
+    r"|(?:increas(?:e|es|ed|ing)|upsiz(?:e|es|ed|ing)|expand(?:s|ed)?)\s+(?:(?!from\b)[\w\-]+\s+){0,12}?(?:to|up\s+to)"
+    r"|(?:new|revised|amended|increased|upsized)\s+(?:maximum\s+)?(?:aggregate\s+)?(?:gross\s+)?(?:offering\s+size|proceeds|size)\s+(?:of|to)"
+    r"|maximum\s+(?:aggregate\s+)?gross\s+proceeds\s+of)\s+"
+    r"(?:approximately\s+|up\s+to\s+|a\s+maximum\s+of\s+|gross\s+proceeds\s+of\s+)*"
+    + G._CUR + r"\s?(?=\d)")
+
+_CUR_NG = G._CUR.replace("?P<cur>", "?:")                     # the same currency alternation, without the group name
+_RE_FROM_TO = re.compile(
+    r"(?i)\b(?:upsiz(?:e|es|ed|ing)|increas(?:e|es|ed|ing)|expand(?:s|ed)?|rais(?:e|es|ed|ing))\b[^.]{0,120}?"
+    r"\bfrom\b\s*" + _CUR_NG + r"\s?[\d,.]+\s*(?:million|m\b|bn\b|billion)?\s*\bto\b\s*" + _CUR_NG + r"\s?(?=\d)")
+
 _RE_UPTO = re.compile(r"(?i)\b(?:up\s+to|maximum\s+of|a\s+maximum|not\s+to\s+exceed|of\s+up\s+to)\s+(?:an?\s+aggregate\s+of\s+|approximately\s+|gross\s+proceeds\s+of\s+)?$")
 _RE_ADDITIONAL = re.compile(r"(?i)\b(?:additional|further|over[\s\-]allotment|agents?'?\s*'?s?\s+option|underwriters?'?\s*'?s?\s+option|greenshoe)\b[^.$]{0,60}$")
+# 1.0.3: the markers of an offering filed with the SEC, where a bare "$" is US dollars
+_RE_SEC_FILING = re.compile(
+    r"(?i)\bfiled\s+pursuant\s+to\s+rule\s+42[45]|\bregistration\s+statement\s+no\.|\brule\s+144a\b"
+    r"|\bprospectus\s+supplement\b[^.]{0,140}\bsecurities\s+act\s+of\s+1933|\bform\s+(?:s-3|f-10|40-f)\b")
+
 _RE_FT_WORD = re.compile(r"(?i)\bflow-through|\bFT\s+(?:units?|shares?)|\bcharity\s+(?:FT|flow)|\bCFT\b")
-_RE_NFT_WORD = re.compile(r"(?i)non-flow-through|\bNFT\b|hard[\s\-]dollar|\bHD\s+units?|working\s+capital\s+units?|\bWC\s+units?")
+_RE_NFT_WORD = re.compile(r"(?i)non-flow-through|\bnon\s+flow-through|\bnon-FT\b|\bNFT\b|hard[\s\-]dollar|\bHD\s+units?|working\s+capital\s+units?|\bWC\s+units?")
 
 
 def _part(before):
@@ -515,7 +617,8 @@ def _part(before):
 _RE_TOTAL_BEFORE = re.compile(
     r"(?i)\b(?:aggregate|total|combined|cumulative)\s+(?:gross\s+)?proceeds\b[^.$]{0,90}$|\btotal\s+(?:\w+\s+){0,2}raised\s+(?:aggregate\s+)?(?:gross\s+)?proceeds\s+of\s+$|\bbringing\s+(?:the\s+)?(?:total|aggregate)\b[^.$]{0,60}$"
     r"|\bto\s+date\b[^.$]{0,40}$|\bin\s+(?:the\s+)?aggregate\s+(?:of\s+)?$|\bfor\s+(?:a\s+)?total\s+of\s+$|\bfor\s+aggregate\s+(?:gross\s+)?proceeds\s+of\s+$"
-    r"|\baggregate\s+total\s+of\s+$|\b(?:raised|raising|brings?|bringing)\s+(?:an?\s+|the\s+)?(?:aggregate\s+)?total\s+(?:of\s+)?$")
+    r"|\baggregate\s+total\s+of\s+$|\b(?:raised|raising|brings?|bringing)\s+(?:an?\s+|the\s+)?(?:aggregate\s+)?total\s+(?:of\s+)?$"
+    r"|\btotal\s+(?:gross\s+)?proceeds\s+raised\s+from\s+(?:both|all)\b[^.$]{0,140}$")
 _RE_TOTAL_AFTER = re.compile(r"(?i)^\s*(?:\S+\s+){0,3}(?:in\s+(?:the\s+)?aggregate|to\s+date|in\s+total)\b")
 _RE_CLOSE_CTX = re.compile(r"(?i)\b(?:closed|completed|closing|issued|has\s+issued|completion|raised|sold)\b")
 _RE_FUTURE_CTX = re.compile(r"(?i)\b(?:will|intends?|expects?|anticipated|proposed|up\s+to|may|subject\s+to|to\s+be)\b")
@@ -596,9 +699,17 @@ def amounts(h: str, window: str, role: str, head_copy: bool = True):
         scoped = scoped or tranche_sent
         size_ref = bool(re.search(r"(?i)\b(?:tranche|portion)\s+of\s+(?:the|its|a|an)\s+(?:previously\s+announced\s+|upsized\s+|oversubscribed\s+|over-subscribed\s+)?$", before[-70:])
                         and re.match(r"(?i)\s*(?:million\s+|m\s+)?(?:[\w\-]+\s+){0,4}?(?:financing|offering|private\s+placement|placement)\b", w[e:e + 70]))
+        # 1.0.5: "(i) a minimum of ... for gross proceeds of $X; and (ii) a maximum of ...": $X is not the size
+        clause = re.split(r";|\(i{1,3}\)|\(\w\)\s", pre_sent)[-1]
+        minc = bool(re.search(r"(?i)\bminimum\b", clause) and not re.search(r"(?i)\bmaximum\b", clause)
+                    or re.match(r"(?i)[^.;$]{0,30}\bin\s+the\s+case\s+of\s+(?:the\s+|a\s+)?minimum", w[e:e + 70])) \
+            and bool(re.search(r"(?i)\bmaximum\b", w[max(0, s - 400):e + 400]))
+        # 1.0.5: "On <date>, the Company announced it had closed its first tranche ... $X": an earlier release's close
+        hist = bool(re.search(r"(?i)\b(?:had\s+(?:\w+\s+)?(?:closed|completed)|previously\s+(?:closed|completed))\b", sent)) and not re.search(
+            r"(?i)\b(?:has|have)\s+(?:now\s+|also\s+|successfully\s+)?(?:\w+\s+)?(?:closed|completed)\b|\bis\s+pleased|\bannounces?\s+(?:the\s+)?(?:closing|completion)", sent)
         insider = bool(re.search(r"(?i)\binsiders?\b|\bdirectors?\b|\bofficers?\b|related\s+part|\bparticipat\w+|\bpurchas(?:ed|ing)\s+(?:an?\s+aggregate\s+of\s+)?[\d,]+", sent))
-        body.append({"v": v, "cur": cur, "s": s, "size_ref": size_ref, "scoped": scoped, "insider": insider, "upto": bool(_RE_UPTO.search(before[-45:]) or re.search(
-                         r"(?i)\bup\s+to\s+[\d,.]+\s+(?:million\s+)?(?:[\w\-\"'“”]+\s+){0,4}(?:for|with|representing)\s+(?:aggregate\s+|total\s+)?(?:gross\s+)?proceeds\s+of\s+(?:up\s+to\s+)?$", before[-120:])),
+        body.append({"v": v, "cur": cur, "s": s, "size_ref": size_ref, "scoped": scoped, "insider": insider, "minc": minc, "hist": hist, "upto": bool(_RE_UPTO.search(before[-45:]) or re.search(
+                         r"(?i)\bup\s+to\s+[\d,.]+\s+(?:million\s+)?(?:[\w\-\"'\u201c\u201d]+\s+){0,4}(?:for|with|representing)\s+(?:aggregate\s+|total\s+)?(?:gross\s+)?proceeds\s+of\s+(?:up\s+to\s+)?$", before[-120:])),
                      "minimum": bool(re.search(r"(?i)\bminimum\b[^$]{0,40}$", before[-60:])),
                      "part": _part(before[-170:]), "combo": bool(re.search(r"(?i)non-dilutive|(?:when\s+)?combined\s+with(?!\s+(?:the\s+)?(?:proceeds\s+(?:of|from)\s+(?:the\s+)?)?(?:first|second|third|initial|previous|prior|earlier|other)\s+(?:and\s+\w+\s+)?tranches?|\s+tranches?\b)|together\s+with\s+(?:the\s+)?(?:\w+\s+)?(?:funding|grant|loan|facility)", sent)),
                      "add": bool(_RE_ADDITIONAL.search(before[-70:])),
@@ -610,7 +721,12 @@ def amounts(h: str, window: str, role: str, head_copy: bool = True):
                      "announced": size_ref or bool(re.search(r"(?i)\b(?:previously\s+)?announced\s+(?:an?\s+|its\s+|the\s+)?(?:up\s+to\s+)?$", before[-45:])),
                      "sent": sent})
     curs = [x["cur"] for x in hd + body if x["cur"]]
-    out["currency"] = curs[0] if curs else "CAD"
+    if curs:
+        out["currency"] = curs[0]
+    elif _RE_SEC_FILING.search(window[:2500]):
+        out["currency"] = "USD"                               # 1.0.3: a US registered offering is not in Canadian dollars
+    else:
+        out["currency"] = "CAD"
 
     def pick(cands, **want):
         for c in cands:
@@ -630,10 +746,16 @@ def amounts(h: str, window: str, role: str, head_copy: bool = True):
                         c = {"v": v}
             if c is None:
                 c = pick([b for b in body if not b["add"]], upto=True) or pick([b for b in body if not b["add"]], gross=True)
+            if c is None:                                     # 1.0.3: "will now raise $600,000", "increased to $5,750,000"
+                m2 = _RE_FROM_TO.search(w) or _RE_UPSIZED_TO.search(w)
+                if m2:
+                    v2, _ = G.read_amount(w, m2.end())
+                    if G.plausible_gross(v2):
+                        c = {"v": v2}
             out["offered"] = c["v"] if c else None
         else:
             c = (pick(hd, upto=True) or (hd[0] if hd else None))
-            nb = [b for b in body if not b["add"] and not b["minimum"]]
+            nb = [b for b in body if not b["add"] and not b["minimum"] and not b["minc"]]
             bc = pick(nb, gross=True, upto=True) or pick(nb, gross=True) or pick(nb, upto=True) \
                 or (next((b for b in nb if not b["total"]), None))
             # a two-part placement: "up to $750,000" of hard-dollar units and "up to $500,000" of flow-through units
@@ -663,7 +785,7 @@ def amounts(h: str, window: str, role: str, head_copy: bool = True):
         tranche_head = bool(re.search(r"(?i)\btranche\b", h))
         comp = bool(_RE_FT_WORD.search(w[:2500]) and _RE_NFT_WORD.search(w[:2500]))
         bclose = [b for b in body if not b["add"] and not b["upto"] and b["closed"] and not b["total"] and not b["minimum"] and b["s"] < 2500
-                  and not b["announced"]]
+                  and not b["announced"] and not b["hist"]]
         btot = [b for b in body if b["total"] and not b["upto"] and not b["add"] and not b["combo"] and b["s"] < 3000]
         whole = [b for b in bclose if not (comp and b["part"])]
         parts = [b for b in bclose if comp and b["part"]]
@@ -834,6 +956,8 @@ def close_parts(window: str):
 
 # ------------------------------------------------------------------ prices and warrants
 _RE_EXCLUDE_WARRANT = re.compile(r"(?i)\b(?:finders?'?|finder's|broker(?:'s)?|brokers'|agents?'|agent's|compensation|advisory|bonus)\s+(?:\w+\s+){0,2}warrants?\b")
+# 1.0.3: "$0.42 per HD Unit" / "$1.20 per FT Unit" price the unit, never the warrant it carries
+_RE_PER_UNIT_AFTER = re.compile(r"(?i)\s*per\s+(?:(?!warrant)[\w\-]+\s+){0,3}(?:unit|receipt|debenture)s?\b(?!\s+warrant)")
 
 
 def prices(window: str):
@@ -854,6 +978,44 @@ def prices(window: str):
                 continue
             if re.search(r"(?i)\b(?:closing|trading|market)\s+price\b|\bvwap\b|\blast\s+closing\b", w[max(0, s - 60):s]):
                 continue
+            # 1.0.6 (FIX8, 2026-10-06): prices in the sentence that are not what a unit or share is sold for. A warrant's
+            # acceleration trigger ('if the closing price ... is at least $0.45 per share for 10 consecutive trading days'),
+            # a warrant's exercise price written far from the word warrant ('Each Warrant will entitle the holder to purchase
+            # one Share at a price of $0.40'), a deemed or resale price, shares sold by someone else. These were listed as
+            # second and third unit prices.
+            sent_before = sent[:max(0, s - _sentence_start(w, s))] if sent else ""
+            # 1.0.6b: the cue looks back only to the sentence's own start, which may end in a closing quote or bracket
+            # ('... in 2018." The Private Placement consisted of ... at $0.275 per Unit'), and its cues are specific: one
+            # or more agents, accelerating the development and 'may not exceed' are not acceleration triggers.
+            _sb = re.split(r"[.!?][\"\u201d\u2019')\]]*\s+(?=[\"\u201c\u2018(]*[A-Z0-9])", sent_before[-400:])[-1]
+            if re.search(r"(?i)\b(?:subject\s+to\s+(?:an?\s+|the\s+)?(?:early\s+)?acceleration|acceleration\s+(?:clause|provision|right|option|"
+                         r"period|event|feature|notice|of\s+the\s+expiry)|accelerat\w*\s+(?:the\s+)?(?:expir\w*|term|exercise)|right\s+to\s+accelerate|"
+                         r"consecutive\s+trading\s+days|equals?\s+or\s+exceeds?|at\s+or\s+above|(?<!not\s)(?<!to\s)exceeds?|is\s+at\s+least)\b",
+                         _sb[-220:]) and not _RE_PER_UNIT_AFTER.match(w[e:e + 40]):
+                continue                                   # 1.0.6d: '$0.40 per Unit' is the offering's price; triggers are per share
+            # 1.0.6d: 'greater/more than' is a trigger only right before the price ('is greater than $0.34'), not
+            # 'will consist of more than 3,333,333 shares at a purchase price of $0.30'
+            if re.search(r"(?i)(?<!not\s)(?<!no\s)\b(?:greater|higher|more)\s+than(?:\s+or\s+equal\s+to)?(?:\s+a\s+price\s+of)?[\s(]*(?:(?:C|CDN|CA|US)\s?)?$",
+                         _sb[-60:]) and not _RE_PER_UNIT_AFTER.match(w[e:e + 40]):
+                continue
+            # 1.0.6c: a market-price basis ('the 10-day volume weighted average price', 'the closing price') marks a trigger
+            # unless the sentence prices the offering itself on it ('issued at a price equal to the 10-day VWAP ... being $2.05').
+            if re.search(r"(?i)\b(?:volume[\s-]+weighted|trades?\s+(?:at|above)|(?:closing|trading)\s+price)\b", _sb[-220:]) and not \
+                    re.search(r"(?i)\b(?:offering|issue|subscription)\s+price\b|\bissued\s+at\s+a\s+price\b|\bpriced\s+at\b", _sb) \
+                    and not _RE_PER_UNIT_AFTER.match(w[e:e + 40]):
+                continue
+            if re.search(r"(?i)\bwarrants?\b[^.]{0,260}?\b(?:entitl\w*|exercis\w*|purchase|acquire)\b[^.]{0,140}$", sent_before) \
+                    and not _RE_PER_UNIT_AFTER.match(w[e:e + 40]) \
+                    and not re.match(r"(?i)\s*per\s+(?:\w+\s+){0,2}share\s+and\s+(?:\w+\s+){0,2}warrants?\b", w[e:e + 70]):
+                continue                                   # 1.0.6c: '$0.32 per Common Share and associated Warrant' is the price
+            if re.search(r"(?i)\bdeemed\s+(?:issue\s+|issuance\s+)?price\b|\bsold\s+(?:such|the|its|these|those)\s+shares\b|"
+                         r"\binterest\s+shares\b|\bstandby\b|\bbonus\s+warrants?\b", sent_before[-220:]):
+                continue
+            if re.match(r"(?i)\s*per\s+(?:\w+\s+){0,2}warrant\s+shares?\b", w[e:e + 40]):
+                continue                                   # 1.0.3: "per Warrant Share" prices the warrant, not the unit
+            if re.search(r"(?i)\bfrom\s+$", w[max(0, s - 8):s]) and re.match(
+                    r"(?i)\s*(?:per\s+(?:[\w\-]+\s+){0,2}?(?:unit|share|receipt)s?\s+)?to\s+(?:(?:C|CDN|CA|US)\s?)?\$\s?\d", w[e:e + 50]):
+                continue                                   # 1.0.5: "repricing from $0.05 per Unit to $0.035 per Unit"
             if all(abs(v - g) > 1e-9 for g in got):
                 got.append(v)
         if len(got) >= 3:
@@ -862,19 +1024,28 @@ def prices(window: str):
 
 
 _RE_W_FRACTION = re.compile(
-    r"(?i)\b(?P<frac>one[\s\-]half|1/2|½|one[\s\-]third|1/3|one[\s\-]quarter|one[\s\-]fourth|three[\s\-]quarters?"
-    r"|one\s*\(1\)|one|a|1|two|2)\s*(?:\(\s*(?:1/2|½|0\.5|1/4|1/3|2/3|3/4|1|2)\s*\)\s*)?(?:of\s+one\s+(?:\(1\)\s+)?)?"
+    r"(?i)\b(?P<frac>one[\s\-]half|1/2|\u00bd|one[\s\-]third|1/3|one[\s\-]quarter|one[\s\-]fourth|three[\s\-]quarters?"
+    r"|one\s*\(1\)|one|a|1|two|2)\s*(?:\(\s*(?:1/2|\u00bd|0\.5|1/4|1/3|2/3|3/4|1|2)\s*\)\s*)?(?:of\s+one\s+(?:\(1\)\s+)?)?"
     r"(?:(?:whole|transferable|non-transferable|common|share|stock|purchase|non-flow-through|NFT|FT|subscription)\s+){0,4}warrants?\b")
-_FRAC = {"one-half": 0.5, "one half": 0.5, "a-half": 0.5, "a half": 0.5, "half": 0.5, "1/2": 0.5, "½": 0.5, "one-third": 1 / 3, "one third": 1 / 3, "1/3": 1 / 3,
+_FRAC = {"one-half": 0.5, "one half": 0.5, "a-half": 0.5, "a half": 0.5, "half": 0.5, "1/2": 0.5, "\u00bd": 0.5, "one-third": 1 / 3, "one third": 1 / 3, "1/3": 1 / 3,
          "one-quarter": 0.25, "one quarter": 0.25, "one-fourth": 0.25, "one fourth": 0.25, "three-quarters": 0.75,
          "three-quarter": 0.75, "three quarters": 0.75, "one (1)": 1.0, "one": 1.0, "a": 1.0, "1": 1.0, "two": 2.0, "2": 2.0}
 _RE_W_TERM = re.compile(
-    r"(?i)\b(?:(?:for\s+a\s+(?:period|term)\s+of|for|within|until\s+the\s+date\s+that\s+is|ending\s+on\s+the\s+date\s+which\s+is"
-    r"|(?:before|until|ending\s+on|on)\s+the\s+date\s+(?:that|which)\s+is|expir\w*\s+(?:on\s+the\s+date\s+that\s+is\s+)?|term\s+of|period\s+of|up\s+to)\s+)"
+    # 1.0.3: "on or before that date which is 24 months", "valid for 18 months", "a term of 36-months"
+    r"(?i)\b(?:(?:for\s+a\s+(?:period|term)\s+of|for|within|valid\s+for|exercisable\s+for|until\s+the\s+date\s+that\s+is|ending\s+on\s+the\s+date\s+which\s+is"
+    r"|(?:on\s+or\s+)?(?:before|until|ending\s+on|on)\s+(?:the|that)\s+date\s+(?:that|which)\s+is|expir\w*\s+(?:on\s+the\s+date\s+that\s+is\s+)?"
+    r"|(?:shall\s+|will\s+)?have\s+a\s+term\s+of|term\s+of|period\s+of|up\s+to)\s+)"
     r"(?P<n>\d{1,2}|one|two|three|four|five|six|twelve|eighteen|twenty\s*[\s\-]\s*four|thirty\s*[\s\-]\s*six|forty\s*[\s\-]\s*eight|sixty)"
-    r"\s*(?:\(\s*\d{1,2}\s*\)\s*)?(?P<u>months?|years?)\b"
-    r"|\b(?P<n2>\d{1,2}|two|three|five)[\s\-](?P<u2>month|year)\s+(?:term|period|warrants?|expiry)"
+    r"\s*(?:\(\s*[\w\s\-]{1,24}\s*\)\s*)?[\s\-]*(?P<u>months?|years?)\b"
+    # 1.0.3: "one two-year share purchase warrant", "a 2 year half warrant at $0.15"
+    r"|\b(?P<n2>\d{1,2}|one|two|three|four|five|six|twelve|eighteen)[\s\-](?P<u2>month|year)s?\s+(?:(?!and\b)[\w\-]+\s+){0,3}(?:term|period|warrants?|expiry)"
     r"|\(\s*(?P<n3>\d{1,2})\s*\)\s*(?P<u3>months?|years?)\b")
+
+# 1.0.3: a stepped warrant described by the years it runs -- "during the first year ... thereafter"
+_RE_W_ORDINAL_YEAR = re.compile(r"(?i)\b(first|second|third|fourth|fifth)\s+year\b")
+_RE_W_ANNIVERSARY = re.compile(r"(?i)\b(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|1st|2nd|3rd|4th|5th)\s+anniversary\b")
+_ORD_YEAR = {"first": 1, "second": 2, "third": 3, "fourth": 4, "fifth": 5, "sixth": 6, "seventh": 7,
+             "eighth": 8, "ninth": 9, "tenth": 10, "1st": 1, "2nd": 2, "3rd": 3, "4th": 4, "5th": 5}
 
 
 def _term_months(m):
@@ -901,9 +1072,9 @@ class _Frac:
 
 _RE_W_WORD = re.compile(r"(?i)\bwarrants?\b")
 _RE_W_FRAC_BEFORE = re.compile(
-    r"(?i)\b(one-half|one\s+half|a\s+half|half|1/2|½|one-third|one\s+third|1/3|one-quarter|one\s+quarter|one-fourth|three-quarters?"
+    r"(?i)\b(one-half|one\s+half|a\s+half|half|1/2|\u00bd|one-third|one\s+third|1/3|one-quarter|one\s+quarter|one-fourth|three-quarters?"
     r"|\d{1,3}(?:,\d{3})+|one|a|an|1|two|2)\b"
-    r"(?:\s*\(\s*(?:1/2|½|0\.5|1/4|1/3|2/3|3/4|1|2)\s*\))?(?:\s+of\s+(?:one|a)(?:\s*\(\s*(?:1/2|½|0\.5|1/4|1/3|2/3|3/4|1)\s*\))?)?"
+    r"(?:\s*\(\s*(?:1/2|\u00bd|0\.5|1/4|1/3|2/3|3/4|1|2)\s*\))?(?:\s+of\s+(?:one|a)(?:\s*\(\s*(?:1/2|\u00bd|0\.5|1/4|1/3|2/3|3/4|1)\s*\))?)?"
     r"((?:\s+(?!and\b|or\b|share\b(?!\s+purchase)|shares\b|unit|flow)[\w\-]+){0,6})\s+$")
 
 
@@ -932,14 +1103,14 @@ _W_MONTHS = ("january|february|march|april|may|june|july|august|september|octobe
              "|jan\\.?|feb\\.?|mar\\.?|apr\\.?|jun\\.?|jul\\.?|aug\\.?|sept?\\.?|oct\\.?|nov\\.?|dec\\.?")
 _W_MONTH_NUM = {m: i for i, m in enumerate(["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"], 1)}
 _RE_DATE_TEXT = re.compile(r"(?i)\b(" + _W_MONTHS + r")\s+(\d{1,2})\s*(?:st|nd|rd|th)?\s*,?\s+(20\d{2})\b")
-_RE_W_EXPIRY = re.compile(r"(?i)\b(?:until|on\s+or\s+before|expir\w+\s+(?:on\s+|at\s+)?|through)\s+(?:5:00\s*[ap]\.?m\.?[^,]{0,25},?\s*)?"
+_RE_W_EXPIRY = re.compile(r"(?i)\b(?:until|on\s+or\s+before|expir\w+\s+(?:on\s+|at\s+)?|through|to)\s+(?:5:00\s*[ap]\.?m\.?[^,]{0,25},?\s*)?"
                           r"\b(" + _W_MONTHS + r")\s+(\d{1,2})\s*(?:st|nd|rd|th)?\s*,?\s+(20\d{2})\b")
 _TERM_SNAP = (6, 12, 18, 24, 30, 36, 48, 60)
 
 
 def _release_date(window: str):
     """The release's own date, from its dateline, for warrant terms written as an expiry date."""
-    m = _RE_DATE_TEXT.search(window[:900])
+    m = _RE_DATE_TEXT.search(window[:1600])
     if not m:
         return None
     try:
@@ -960,8 +1131,15 @@ def _term_from_expiry(seg: str, issued):
     except (KeyError, ValueError):
         return None
     months = round((exp - issued).days / 30.44)
-    if not 6 <= months <= 120:
+    floor = 6
+    # 1.0.3: a short-dated warrant states its own exercise price; a 4-month hold period does not
+    if 3 <= months < 6 and re.search(r"(?i)\bexercisable\b|\bexercise\s+price\b|\bat\s+a\s+price\s+of\b", seg) \
+            and not re.search(r"(?i)\bhold\s+period|\bresale\b|\bstatutory\b|\brestricted\s+period", seg):
+        floor = 3
+    if not floor <= months <= 120:
         return None                                       # 4 months is the resale hold period, not a warrant term
+    if months < 6:
+        return months                                      # 1.0.3: a short-dated warrant is not snapped up to 6
     near = min(_TERM_SNAP, key=lambda x: abs(x - months))
     return near if abs(near - months) <= 2 else months
 
@@ -976,7 +1154,75 @@ def _warrant_term(seg):
     stop = _RE_W_TERM_STOP.search(seg)
     part = seg[:stop.start()] if stop else seg[:500]
     terms = [x for x in (_term_months(t) for t in _RE_W_TERM.finditer(part)) if x]
+    if not terms:                                          # 1.0.3: "if exercised during the first year ... the second year"
+        yrs = [_ORD_YEAR[m.group(1).lower()] for m in _RE_W_ORDINAL_YEAR.finditer(part)]
+        if yrs and re.search(r"(?i)\bexercis\w*|\bwarrant", part):
+            terms = [max(yrs) * 12]
+    if not terms:                                          # 1.0.3: "will expire on the fifth anniversary of issuance"
+        am = _RE_W_ANNIVERSARY.search(part)
+        if am and re.search(r"(?i)\bexpir\w*|\bexercis\w*", part):
+            terms = [_ORD_YEAR[am.group(1).lower()] * 12]
     return max(terms) if terms else None
+
+
+_RE_W_DESC = re.compile(
+    r"(?i)(?:each\s+|every\s+)?(?:whole\s+|full\s+|one\s+)?warrants?\b(?:[^.]|\.(?=\d)){0,200}?"
+    r"\b(?:entitl\w+|exercisable|grants?\s+the\s+holder|permits?\s+the\s+holder|to\s+purchase|to\s+acquire|valid\s+for|expire"
+    r"|(?:shall|will)\s+have\s+a\s+term)\b"
+    r"(?:[^.]|\.(?=\d)){0,320}")
+_RE_W_AT_PRICE = re.compile(r"(?i)\b(?:at|for|of)\s+(?:an?\s+)?(?:exercise\s+|purchase\s+)?(?:price\s+(?:of|per\s+\w+\s+of)\s+)?$")
+_RE_W_OFFER_PRICE = re.compile(r"(?i)\b(?:public\s+)?offering\s+price\b[^.$]{0,30}$")
+# "a 2 year half warrant at $0.15": the term sits in front of the word, the strike behind it
+_RE_W_INLINE = re.compile(
+    r"(?i)\b(?P<n>\d{1,2}|one|two|three|four|five)[\s\-](?P<u>year|month)s?\s+(?:(?!and\b)[\w\-]+\s+){0,2}warrants?\s+at\s+")
+
+
+def _standalone_warrants(w, issued):
+    """1.0.3: the warrant described on its own, where no unit sentence anchors it
+    (subscription receipts converting, a bullet list of tranche terms, an ADS offering)."""
+    out = []
+    for m in _RE_W_INLINE.finditer(w):
+        strike = None
+        for v, cur, s2, e2 in monies(w[m.end() - 4:m.end() + 40]):
+            if 0.001 <= v < 1000:
+                strike = v
+                break
+        tm = None
+        n = m.group("n").lower()
+        v = int(n) if n.isdigit() else _WORD_NUM.get(n)
+        if v:
+            tm = v * 12 if m.group("u").lower().startswith("year") else v
+        if strike is not None or tm is not None:
+            out.append({"per_unit": None, "strike": strike, "term_months": tm})
+        if out:
+            return out[:1]
+    for m in _RE_W_DESC.finditer(w):
+        sent = m.group(0)
+        lead = w[max(0, m.start() - 45):m.start()] + sent      # "... issued to the Agents compensation | Warrants ..."
+        if _RE_EXCLUDE_WARRANT.search(lead) or re.search(r"(?i)\bconvers\w*|\bconvertible\b|\bhold\s+period|\bresale\b", sent):
+            continue
+        strike = None
+        for v, cur, s2, e2 in monies(sent):
+            if not 0.001 <= v < 1000:
+                continue
+            if _RE_PER_UNIT_AFTER.match(sent[e2:e2 + 45]):
+                continue
+            if _RE_W_OFFER_PRICE.search(sent[max(0, s2 - 60):s2]):
+                continue                                       # 1.0.3: the offering price of the unit, not the warrant
+            k = money_kind(sent, v, s2, e2)
+            if k == "strike" or (k in ("price", "other") and _RE_W_AT_PRICE.search(sent[max(0, s2 - 34):s2])):
+                strike = v
+                break
+        tm = _warrant_term(sent) or _term_from_expiry(sent, issued)
+        if strike is None and tm is None:
+            continue
+        pre = w[max(0, m.start() - 220):m.start() + 40]
+        fm = _unit_warrant(pre)
+        out.append({"per_unit": fm.per if fm else None, "strike": strike, "term_months": tm})
+        if len(out) >= 3:
+            break
+    full = [o for o in out if o["strike"] is not None and o["term_months"] is not None]
+    return (full or out)[:2]
 
 
 def warrants(window: str):
@@ -997,6 +1243,8 @@ def warrants(window: str):
         for v, cur, s, e in monies(seg):
             if s < fm.start():
                 continue
+            if _RE_PER_UNIT_AFTER.match(seg[e:e + 45]):    # 1.0.3: "$0.42 per HD Unit" is the unit price, not the strike
+                continue
             k = money_kind(seg, v, s, e)
             if k == "strike" or (k in ("price", "other") and re.search(r"(?i)\b(?:exercis\w*|purchase|acquire)\b[^.$]{0,120}$", seg[max(0, s - 160):s])
                                  and re.search(r"(?i)warrant", seg[max(0, s - 260):s])):
@@ -1013,6 +1261,8 @@ def warrants(window: str):
                     continue
                 if strike is None:
                     for v, cur, s2, e2 in monies(sent):
+                        if _RE_PER_UNIT_AFTER.match(sent[e2:e2 + 45]):
+                            continue
                         if 0.001 <= v < 1000 and money_kind(sent, v, s2, e2) in ("strike", "price", "other") \
                                 and re.search(r"(?i)(?:at|for|of)\s+(?:a\s+price\s+of\s+)?$", sent[max(0, s2 - 30):s2]):
                             strike = v
@@ -1040,6 +1290,15 @@ def warrants(window: str):
         out.append({"per_unit": per, "strike": strike, "term_months": tm})
         if len(out) >= 3:
             break
+    if out and any(o["strike"] is None or o["term_months"] is None for o in out):
+        extra = _standalone_warrants(w, issued)                # 1.0.3: the terms stated away from the unit sentence
+        if extra:
+            e0 = extra[0]
+            for o in out:
+                if o["term_months"] is None and e0["term_months"] is not None:
+                    o["term_months"] = e0["term_months"]
+                if o["strike"] is None and e0["strike"] is not None and len(out) == 1:
+                    o["strike"] = e0["strike"]
     if not out:
         # "... and one-half of one common share purchase warrant" without an "each unit" sentence
         for fm in _RE_W_FRACTION.finditer(w):
@@ -1060,6 +1319,8 @@ def warrants(window: str):
             if strike or tm:
                 out.append({"per_unit": per, "strike": strike, "term_months": tm})
             break
+    if not out:
+        out = _standalone_warrants(w, issued)                  # 1.0.3: no unit sentence anchors the warrant
     return out
 
 
@@ -1071,6 +1332,70 @@ _RE_REF = re.compile(
     r"(?i)\b(?:further\s+to|as\s+(?:previously\s+)?(?:announced|disclosed)\s+(?:in|on)|(?:news|press)\s+releases?\s+(?:dated|of|on|issued\s+on)"
     r"|announced\s+on|previously\s+announced\s+(?:on|in)|see\s+(?:the\s+)?(?:company's\s+)?(?:news|press)\s+release)"
     r"[^.]{0,80}?\b(" + _MONTHS + r")\.?\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(20\d\d|19\d\d)")
+
+
+# ------------------------------------------------------------------ unit count (1.0.4)
+# A count is kept only when count x issue price equals a deal amount this reader already found (within 1.5%), so a
+# finder's, insider's or outstanding-share count can never be stored as the deal's. Two counts at two prices in one
+# sentence ("5,000,000 HD Units at $0.10 and 3,000,000 FT Units at $0.12") are one deal when their sum matches.
+_UNIT_KIND = (r"(?:(?:hard[\s\-]dollar|HD|non[\s\-]flow[\s\-]through|NFT|(?:charity|premium|national|traditional|critical\s+minerals?)"
+              r"\s+flow[\s\-]through|flow[\s\-]through|FT|LIFE|common|special|new|additional|ordinary)\s+){0,3}")
+_RE_UNITS = re.compile(r"(?i)(?<![\w$.,])(?P<n>\d{1,3}(?:,\d{3})+(?![\d,])|\d{4,10}(?![\d,])|\d{1,4}(?:\.\d+)?\s*million)\s+"
+                       r"(?:\(\s*[^)]{0,40}\)\s+)?" + _UNIT_KIND +
+                       r"(?:units?|shares|common\s+shares|subscription\s+receipts?|ordinary\s+shares)\b")
+_RE_UNITS_NOT = re.compile(r"(?i)\b(?:finder|broker|agents?'?\s*(?:warrants?|units?|options?|fees?)|compensation|commission|insiders?|"
+                           r"directors?|officers?|related\s+part\w*|management|exercis\w*|outstanding|conver\w*|consolidat\w*|"
+                           r"settle\w*|in\s+lieu|debt|stock\s+options?|RSUs?|DSUs?|bonus|vendors?|escrow\w*|held\s+by|holds?|owns?|"
+                           r"underlying|warrant\s+shares|diluted|shareholders?|previously|deemed|acquisition\s+of|"
+                           r"purchased\s+by|subscribed\s+(?:for\s+)?by|participat\w*)\b")
+_RE_UNIT_AT = re.compile(r"(?i)^[^.;]{0,90}?\bat\s+(?:a\s+)?(?:(?:issue|offering|subscription|purchase)\s+)?(?:price\s+of\s+)?"
+                         r"(?:(?:C|CDN|CA|US|A|AU)\s?)?\$\s?(\d+(?:\.\d+)?)(?!\d)")
+
+
+def _count_of(s):
+    s = s.replace(",", "").strip()
+    m = re.match(r"(?i)(\d+(?:\.\d+)?)\s*million$", s)
+    return int(round(float(m.group(1)) * 1e6)) if m else int(s)
+
+
+def unit_counts(window: str, res: dict):
+    """{"offered", "this_close", "closed_total"} -> the number of units (or shares) that amount bought, or None."""
+    w = window[:4000]
+    cands = []
+    for m in _RE_UNITS.finditer(w):
+        try:
+            n = _count_of(m.group("n"))
+        except ValueError:
+            continue
+        if n < 1000 or n > 5_000_000_000:
+            continue
+        st = max(w.rfind(". ", 0, m.start()) + 2, m.start() - 60, 0)
+        en = w.find(". ", m.end())
+        en = min(en if en >= 0 else len(w), m.end() + 40)
+        if _RE_UNITS_NOT.search(w[st:en]):
+            continue
+        pm = _RE_UNIT_AT.match(w[m.end():m.end() + 160])
+        cands.append((n, float(pm.group(1)) if pm else None, m.start()))
+    out = {"offered": None, "this_close": None, "closed_total": None}
+    if not cands:
+        return out
+    px_all = [p for p in (res.get("prices") or []) if p]
+    ok = lambda amt, v: abs(v - amt) <= 0.015 * amt
+
+    def match(amt):
+        for n, p, _pos in cands:
+            for q in ([p] if p else px_all):
+                if ok(amt, n * q):
+                    return n
+        for i, (n1, p1, s1) in enumerate(cands):
+            for n2, p2, s2 in cands[i + 1:]:
+                if p1 and p2 and p1 != p2 and abs(s2 - s1) < 400 and ok(amt, n1 * p1 + n2 * p2):
+                    return n1 + n2
+        return None
+    for k in out:
+        if res.get(k):
+            out[k] = match(res[k])
+    return out
 
 
 def ref_dates(window: str):
@@ -1089,7 +1414,7 @@ def ref_dates(window: str):
 # 1.0.2: Quebec issuers file the same release in French and English; the French copy parses to almost nothing,
 # so it is marked here and the publisher treats it as a copy of its English twin instead of a deal update.
 _RE_FR = re.compile(r"(?i)pour\s+diffusion\s+imm|produit\s+brut|placement\s+priv|ne\s+pas\s+distribuer\s+aux\s+services"
-                    r"|\bsociété\b|\bactions\s+ordinaires\b|\bdébénture|\bunités\b")
+                    r"|\bsoci\u00e9t\u00e9\b|\bactions\s+ordinaires\b|\bd\u00e9b\u00e9nture|\bunit\u00e9s\b")
 
 
 def language(body: str) -> str:
@@ -1107,10 +1432,13 @@ def analyse(headline: str, body: str) -> dict:
     res = {"is_financing": ok, "reason": reason, "headline_used": h, "role": role if ok else None,
            "tranche": tranche if ok else None, "types": [], "offering": None, "currency": None, "offered": None,
            "offered_alt": [], "this_close": None, "closed_total": None, "prices": [], "conversion": None,
-           "warrants": [], "refs": [], "parts": [], "lang": language(body)}
+           "warrants": [], "refs": [], "parts": [], "lang": language(body),
+           "units_offered": None, "units_this_close": None, "units_closed_total": None}
     if not ok:
         return res
     res["types"], res["offering"] = deal_types(h, w, h_main)
+    if role in ("tranche_close", "final_close") and "DEBT" in res["types"] and _RE_DRAWDOWN.search(h + " \n " + w[:900]):
+        role = res["role"] = "update"           # 1.0.5: a drawdown under an existing facility
     am = amounts(h, w, role, head_copy=(flat(clean(headline or "")) == h))
     res.update(currency=am["currency"], offered=am["offered"], offered_alt=am["offered_alt"],
                this_close=am["this_close"], closed_total=am["closed_total"])
@@ -1119,6 +1447,8 @@ def analyse(headline: str, body: str) -> dict:
         res["prices"] = []
     res["warrants"] = warrants(w)
     res["refs"] = ref_dates(w)
+    u = unit_counts(w, res)                    # 1.0.4
+    res["units_offered"], res["units_this_close"], res["units_closed_total"] = u["offered"], u["this_close"], u["closed_total"]
     if role in ("tranche_close", "final_close"):
         res["parts"] = close_parts(w)
     return res
@@ -1143,6 +1473,9 @@ def extract(headline: str, body: str) -> list:
         for fld in ("offered", "this_close", "closed_total"):
             if a[fld] is not None:
                 fs.append(F.Fact("amount_" + fld, value_num=float(a[fld]), unit=a["currency"] or "CAD"))
+        for fld in ("offered", "this_close", "closed_total"):
+            if a.get("units_" + fld):
+                fs.append(F.Fact("units_" + fld, value_num=float(a["units_" + fld])))     # 1.0.4
         for i, v in enumerate(a["offered_alt"]):
             fs.append(F.Fact("amount_offered_alt", value_num=float(v), unit=a["currency"] or "CAD", seq=i))
         for i, v in enumerate(a["prices"]):
@@ -1175,7 +1508,8 @@ def parse_facts(rows):
     """rows: (field, seq, value_num, value_text) -> the analyse()-shaped dict the publisher uses."""
     a = {"is_financing": False, "reason": None, "role": None, "tranche": None, "types": [], "offering": None,
          "currency": "CAD", "offered": None, "offered_alt": [], "this_close": None, "closed_total": None,
-         "prices": [], "conversion": None, "warrants": [], "refs": [], "parts": [], "lang": "en"}
+         "prices": [], "conversion": None, "warrants": [], "refs": [], "parts": [], "lang": "en",
+         "units_offered": None, "units_this_close": None, "units_closed_total": None}
     ws = {}
     pts = {}
     alts, prs, refs = {}, {}, {}
@@ -1189,6 +1523,8 @@ def parse_facts(rows):
             a["types"] = (text or "").split("+") if text else []
         elif field.startswith("amount_") and field != "amount_offered_alt":
             a[field[7:]] = num
+        elif field.startswith("units_"):
+            a[field] = int(num) if num is not None else None     # 1.0.4
         elif field == "amount_offered_alt":
             alts[seq] = num
         elif field == "unit_price":
@@ -1263,7 +1599,29 @@ def self_test(verbose=False):
         elif verbose:
             print(f"  ok   {name}")
 
-    eq("clean ligature", clean("ﬂow-through $0. 26 C$ 0.35"), "flow-through $0.26 C$0.35")
+    # 1.0.4: unit count, kept only when count x price equals a deal amount
+    a = analyse("DLP Resources Announces Brokered LIFE Offering for Gross Proceeds of up to C$5 Million",
+                "DLP Resources Inc. is pleased to announce a private placement for gross proceeds of up to C$5,000,000 from the sale "
+                "of up to 20,000,000 units of the Company at a price of C$0.25 per Unit. Each Unit will consist of one common share "
+                "and one common share purchase warrant.")
+    eq("units offered", (a["units_offered"], a["units_this_close"]), (20000000, None))
+    a = analyse("ABC Gold Closes Private Placement",
+                "ABC Gold Corp. is pleased to announce that it has closed its non-brokered private placement, issuing 5,000,000 "
+                "hard dollar units at $0.10 per unit and 3,000,000 flow-through units at $0.12 per FT unit for aggregate gross "
+                "proceeds of $860,000. Insiders purchased 1,000,000 units. In connection with the closing the Company paid "
+                "finder's fees and issued 240,000 finder's warrants.")
+    eq("units closed: two kinds at two prices", (a["this_close"] or a["closed_total"], a["units_this_close"] or a["units_closed_total"]),
+       (860000.0, 8000000))
+    a = analyse("ABC Gold Announces Private Placement",
+                "ABC Gold Corp. announces a non-brokered private placement of up to $500,000. The Company currently has "
+                "45,000,000 common shares outstanding. The units will be priced at $0.05 per unit.")
+    eq("an outstanding share count is not the deal's", a["units_offered"], None)
+    got = parse_facts([(f.field, f.seq, f.value_num, f.value_text) for f in extract(
+        "DLP Resources Announces Brokered LIFE Offering",
+        "DLP Resources Inc. announces a private placement for gross proceeds of up to C$5,000,000 from the sale of up to "
+        "20,000,000 units at a price of C$0.25 per Unit.")[0].facts])
+    eq("units round-trip the facts store", got["units_offered"], 20000000)
+    eq("clean ligature", clean("\ufb02ow-through $0. 26 C$ 0.35"), "flow-through $0.26 C$0.35")
     a = analyse("DLP Resources Announces Brokered LIFE Offering for Gross Proceeds of up to C$5 Million",
                 "Cranbrook, British Columbia, May 7, 2026 - DLP Resources Inc. is pleased to announce that it has entered into an "
                 "agreement with Red Cloud Securities Inc. to act as sole agent and bookrunner in connection with a \"best efforts\" "
@@ -1347,6 +1705,144 @@ def self_test(verbose=False):
                 "Share for gross proceeds of $20,549,999.18. The Company intends to close the second and final tranche of the Private Placement "
                 "on or about March 27, 2026.")
     eq("101 headline = sum of body closes, first tranche", (a["this_close"], a["closed_total"]), (43159999.18, 43159999.18))
+
+    # ---------------------------------------------------------------- 1.0.3
+    a = analyse("Showcase Announces $450,000 Private Placement Offering",
+                "Showcase Minerals Inc. (CSE: SHOW) is pleased to announce a private placement offering of up to 1,500,000 units at "
+                "$0.30 per unit. Each unit will consist of one common share and one two-year share purchase warrant entitling the "
+                "holder to acquire an additional common share for $0.40/share.")
+    eq("103 term in words before the noun", a["warrants"], [{"per_unit": 1.0, "strike": 0.4, "term_months": 24}])
+    a = analyse("Goldgroup Announces Upsizing of Private Placement",
+                "Each Unit will consist of one common share (a \"Common Share\") and one-half common share purchase warrant, with each "
+                "full warrant (a \"Warrant\") being exercisable to purchase one Common Share at a price of $0.45 for 24 (twenty-four) "
+                "months from the date of issuance.")
+    eq("103 bracketed word number", a["warrants"][0]["term_months"], 24)
+    a = analyse("Kodiak Announces $5 Million Non-Brokered Private Placement",
+                "Common share units (the \"HD Units\"), each of which HD Unit will consist of one non-flow-through Common Share and "
+                "one-half of one non-transferable common share purchase warrant (each whole warrant, a \"Warrant\"), at a price of "
+                "$0.42 per HD Unit. Each Warrant will be exercisable at a price of $0.75 for a period of 24 months.")
+    eq("103 unit price is not the strike", a["warrants"][0]["strike"], 0.75)
+    a = analyse("Nortec Completes $605,000 Non-Brokered Private Placement",
+                "Each Unit consists of one common share and one common share purchase warrant. Warrant Terms Each whole Warrant shall "
+                "have a term of 36-months, subject to acceleration; During the first 18-months after closing, the exercise price of "
+                "each Warrant shall be C$0.065 and thereafter C$0.11 per common share.")
+    eq("103 term stated away from the unit sentence", a["warrants"][0]["term_months"], 36)
+    a = analyse("Ashley Gold Corp. Closes First Tranche of Private Placement",
+                "The closing of the first tranche consists of the following: - 1,578,922 units of FT at $0.095 with a 2 year half "
+                "warrant at $0.15 for gross proceeds of $149,795.09.")
+    eq("103 inline term and strike", (a["warrants"][0]["strike"], a["warrants"][0]["term_months"]), (0.15, 24))
+    a = analyse("Muzhu announces Closing of First Tranche of Financing and Upsize of Private Placement",
+                "Muzhu Mining Corp. announces that it has closed the first tranche of its non-brokered private placement for gross "
+                "proceeds of $250,000, and has increased the size of the offering to $1,000,000.")
+    eq("103 a tranche close that also upsizes", (a["role"], a["tranche"], a["this_close"]), ("tranche_close", "first", 250000.0))
+    a = analyse("Newpath Resources Closes Second and Final Tranche of Private Placement Financing",
+                "The Company closed the second tranche by issuing 1,928,571 units at a price of $0.07 per Unit. The total gross "
+                "proceeds raised from the Second Tranche is $135,000 and a total net proceeds of $105,000, as $30,000 was part of a "
+                "repayment to a consultant of the Company. The total gross proceeds raised from both the first and Second Tranche of "
+                "the previously announced private placement is $611,850.")
+    eq("103 net proceeds are not the deal", (a["this_close"], a["closed_total"]), (135000.0, 611850.0))
+    a = analyse("Irving Resources Reports Upsized Private Placement",
+                "Further to its news release of January 22, 2026, Irving Resources Inc. has upsized its non-brokered private "
+                "placement, from $2,000,000 to $4,000,000. The gross proceeds will be raised by the issuance of units at a price of "
+                "$0.25 per Unit.")
+    eq("103 upsized from X to Y", (a["role"], a["offered"]), ("upsize", 4000000.0))
+    a = analyse("American Tungsten Announces Correction to Warrant Terms of Upsized Bought Deal",
+                "American Tungsten Corp. announces a correction to the warrant terms of its previously announced upsized bought deal "
+                "private placement for gross proceeds of C$34,784,400.")
+    eq("103 a correction amends, it does not upsize", a["role"], "amendment")
+    a = analyse("Lithium Americas Files Prospectus Supplement",
+                "Filed Pursuant to Rule 424(b)(3) Registration Statement No. 333-287327. The Company may offer and sell common shares "
+                "having an aggregate offering price of up to $250,000,000 from time to time through its at-the-market equity program.")
+    eq("103 an SEC-filed offering is in US dollars", a["currency"], "USD")
+
+    # ---------------------------------------------------------------- 1.0.5 (FIX5)
+    a = analyse("Northbay Metals Announces Revised Terms of Private Placement",
+                "Northbay Metals Inc. announces that, further to its news release on June 1, 2026, it has revised the terms of its "
+                "non-brokered private placement. The Company will now issue up to 8,000,000 units at a price of $0.25 per unit for "
+                "gross proceeds of up to $2,000,000.")
+    eq("105 revised terms is an amendment", a["role"], "amendment")
+    a = analyse("Northbay Metals Announces Price Change for its Proposed Private Placement",
+                "Northbay Metals Inc. announces it is repricing its private placement offering announced on May 4, 2026 from $0.05 "
+                "per Unit to $0.035 per Unit for gross proceeds of up to $500,000.")
+    eq("105 price change is an amendment; the old price is not an issue price", (a["role"], a["prices"]), ("amendment", [0.035]))
+    a = analyse("Northbay Metals Announces Update on Private Placement",
+                "Northbay Metals Inc. is pleased to provide an update on the terms of its previously announced non-brokered private "
+                "placement. The units will now be offered at a price of $0.14 per unit.")
+    eq("105 an update on the terms is an amendment", a["role"], "amendment")
+    a = analyse("NORTHBAY ANNOUNCES UPDATES ON ITS NON-BROKERED PRIVATE PLACEMENT",
+                "Northbay Metals Inc. announces that further to its news release of June 24, 2026, wherein it had announced a "
+                "non-brokered private placement of up to 30,000,000 units at a price of $0.05 per unit to raise gross proceeds of up "
+                "to $1,500,000, the Company is continuing to collect subscriptions.")
+    eq("105 updates on is an update", a["role"], "update")
+    a = analyse("Northbay Closes on First Tranche of US$6 Million under Credit Facility",
+                "Northbay Metals Inc. announces that, further to its news release dated August 14, 2026, it has drawn down and "
+                "received US$6 million in funding under the first tranche of its credit agreement dated August 14, 2026.")
+    eq("105 a drawdown under an existing facility is an update", (a["role"], a["types"]), ("update", ["DEBT"]))
+    a = analyse("Northbay Metals Announces Non-Brokered Private Placement",
+                "Northbay Metals Inc. announces a non-brokered private placement for the sale of: (i) a minimum of 13,333,334 units "
+                "at a price of $0.15 per Unit for aggregate gross proceeds of $2,000,000; and (ii) a maximum of 23,333,334 Units at "
+                "the Offering Price for aggregate gross proceeds of $3,500,000.")
+    eq("105 a minimum and a maximum: the size is the maximum", a["offered"], 3500000.0)
+    a = analyse("Northbay Announces Proposed Non-Brokered Private Placement",
+                "Northbay Metals Inc. is proposing to complete a flow-through and non flow-through private placement. Under the "
+                "flow-through portion, the Corporation intends to raise up to approximately $1,200,000 in gross proceeds by issuing "
+                "flow-through units. Under the non flow-through portion, the Corporation intends to raise up to approximately "
+                "$500,000 in gross proceeds by issuing non flow-through units. The Corporation has accepted subscriptions in "
+                "aggregate gross proceeds of approximately $371,000.")
+    eq("105 non flow-through spelled with a space is the hard-dollar part", (a["offered"], a["offered_alt"]), (1700000.0, [1200000.0, 500000.0]))
+    a = analyse("Northbay Closes Financing",
+                "Northbay Metals Inc. announces that the Company has closed the final tranche of the private placement. On December "
+                "28, 2025, the Company announced it had closed its first tranche of a non-brokered flow-through private placement of "
+                "8,166,667 flow-through units to raise gross proceeds of $735,000. A second tranche of 1,770,000 non flow-through "
+                "units at a price of $0.05 per unit has also closed, raising gross proceeds of $88,500.")
+    eq("105 an earlier release's close is not this close", (a["role"], a["this_close"]), ("final_close", 88500.0))
+    # ---- 1.0.6 (FIX8, 2026-10-06): prices that are not unit prices
+    eq("1.0.6 a warrant's price written far from the word warrant is not a unit price", prices(
+        "up to 5,714,285 Units at a price of $0.35 per Unit for gross proceeds of up to $2,000,000. Each Unit consists of one "
+        "common share and one common share purchase warrant (a Warrant). Each Warrant will entitle the holder to purchase one "
+        "Share at a price of $0.40 for a period of 24 months from the closing date.")[0], [0.35])
+    eq("1.0.6 an acceleration trigger is not a unit price", prices(
+        "5,000,000 units at a purchase price of $0.20 per Unit for gross proceeds of $1,000,000. If, after the expiry date, the "
+        "closing price of the Company's shares on the TSX Venture Exchange trades at or above a price of $0.45 per share for "
+        "10 consecutive trading days, the Company may accelerate the expiry.")[0], [0.2])
+    eq("1.0.6 a deemed price is not a unit price", prices(
+        "up to 5,128,205 units at a price of $0.195 per Unit for gross proceeds of up to $1,000,000. The number of common "
+        "shares to be issued, 1,851,248, and the deemed issue price of $0.25 per common share remain unchanged.")[0], [0.195])
+    eq("1.0.6b one or more agents is not an acceleration trigger", prices(
+        "an agreement with an agent on behalf of a syndicate of one or more additional agents in connection with a best efforts "
+        "private placement of up to 33,333,334 units at a price of C$0.15 per Unit for gross proceeds of up to C$5 million.")[0], [0.15])
+    eq("1.0.6b accelerating the development in the sentence before is not a trigger", prices(
+        "We look forward to accelerating the development of the Company\u2019s properties during 2018.\u201d The Private Placement "
+        "consisted of 7,207,890 units issued at $0.275 per Unit with each Unit consisting of one common share.")[0], [0.275])
+    eq("1.0.6b may not exceed is not a trigger", prices(
+        "The offering may not exceed 10,000,000 units at a price of $0.12 per unit.")[0], [0.12])
+    eq("1.0.6b subject to acceleration still drops the trigger price", prices(
+        "8,000,000 units at a price of $0.40 per unit for gross proceeds of $3,200,000. Each warrant is exercisable at $0.50 for 12 months, subject to acceleration, in the event "
+        "that the shares close trading at $0.65 for ten consecutive days.")[0], [0.4])
+    eq("1.0.6c a minimum offering size is not a trigger", prices(
+        "The Offering will consist of the issuance of no less than 4,000,000 common shares and up to 10,000,000 common shares at "
+        "price of $0.025 per common share.")[0], [0.025])
+    eq("1.0.6c an offering priced on the VWAP keeps its price", prices(
+        "The Shares were issued at a price equal to the 10-day volume weighted average trading price of the Shares on the Canadian "
+        "Securities Exchange at the date of signing of the subscription agreement, being $2.05 per Share (the Offering Price).")[0], [2.05])
+    eq("1.0.6c per share and associated warrant is the price", prices(
+        "Pursuant to the Private Placement, the Company issued 15,625,000 Common Shares and Warrants to purchase up to 15,625,000 "
+        "Common Shares at a purchase price of Cdn$0.32 per Common Share and associated Warrant.")[0], [0.32])
+    eq("1.0.6c a closing-price trigger still drops", prices(
+        "provided that, in the event the Shares trade at a closing price on the Exchange of greater than $0.15 per Share for a "
+        "period of 10 consecutive trading days at any time, the Company may accelerate the expiry.")[0], [])
+    eq("1.0.6d more than N shares is not a trigger", prices(
+        "As a result of being oversubscribed, the Private Placement will now consist of more than 3,333,333 common shares of the "
+        "Company (Shares) at a purchase price of $0.30 per Share.")[0], [0.3])
+    eq("1.0.6d a per-unit price in a sentence about the acceleration right is the offering price", prices(
+        "announces a revision to the warrant Acceleration Right in respect of its previously announced private placement financing of "
+        "up to 13,250,000 units at a price of C$0.40 per Unit (the Offering Price), for aggregate gross proceeds of up to C$5.3 million.")[0], [0.4])
+    eq("1.0.6d is greater than right before the price is a trigger", prices(
+        "Opawica may accelerate the expiry date of the Warrants if the daily trading price of the Common Shares on the TSX Venture "
+        "Exchange is greater than $0.34 per Common Share for the preceding 10 consecutive trading days.")[0], [])
+    eq("1.0.6 flow-through and hard-dollar prices both stay", prices(
+        "up to 6,000,000 Flow-Through units at a price of $0.25 per unit and up to 5,000,000 Non-Flow-Through units at a "
+        "price of $0.20 per unit, for aggregate gross proceeds of up to $2,500,000.")[0], [0.25, 0.2])
     print(f"financings self-test: {'ok' if not bad else str(bad) + ' failures'}")
     return bad
 

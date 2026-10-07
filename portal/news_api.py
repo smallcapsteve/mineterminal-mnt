@@ -25,6 +25,7 @@ from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 
 from portal.text_helpers import clean_release_html, smart_title
+from portal.release_format import pdf_html_for as _rf_pdf_html, reflow_text_html as _rf_reflow  # RELFMT_V1
 
 DB_PATH = "/opt/mnt/app/portal/portal.db"
 SITE_BASE = "https://miningnewsterminal.com"
@@ -122,7 +123,8 @@ def _row_to_full(row: sqlite3.Row) -> dict[str, Any]:
         except Exception:
             body = row["raw_html"]
     elif row["raw_body"]:
-        body = "<div>" + (row["raw_body"] or "").replace("\n\n", "</div><div>") + "</div>"
+        # RELFMT_V1: rebuilt PDF HTML, else paragraphs re-joined (was raw text, unescaped)
+        body = _rf_pdf_html(row["event_id"]) or _rf_reflow(row["raw_body"] or "", row["raw_headline"] or "")
     card["body_html"] = body
     return card
 
@@ -147,9 +149,11 @@ def register(app) -> None:
         limit = max(1, min(int(limit or 50), 200))
         offset = max(0, int(offset or 0))
         con = _conn()
+        # MNT_SPEED_V2 (2026-09-25): the unary + keeps SQLite off the review_status index, which made it sort
+        # every release (~3 s at 139k) to return 50; now it walks the published_at index and stops.
         sql = (
             "SELECT * FROM events "
-            "WHERE review_status IN ('auto_approved','approved') "
+            "WHERE +review_status IN ('auto_approved','approved') "
             "  AND coalesce(raw_headline,'') <> '' "
         )
         params: list[Any] = []
@@ -183,6 +187,35 @@ def register(app) -> None:
         # returned 2 items here and 8 there, because Riverside's joint releases
         # with Questcorp are filed primarily under QQQ.CN.
         bare = ticker_u.split(".")[0]
+        # MNT_SPEED_V2 (2026-09-25): the OR below cannot use an index, so every call read all ~139k releases
+        # (0.6 s; this is the most-called MNT feed). The same four conditions as a UNION of index lookups:
+        # upper(ticker) equal, upper(ticker) in the prefix range ["BARE.", "BARE/") - what LIKE 'BARE.%' matches
+        # when BARE has no LIKE wildcard - and the additional-tickers patterns over the partial index of the
+        # ~1,500 releases that have any. A symbol with % or _ in it keeps the original query.
+        if "%" not in bare and "_" not in bare:
+            rows = con.execute(
+                "SELECT * FROM events WHERE rowid IN ("
+                "   SELECT rowid FROM events WHERE upper(ticker) = ?"
+                "   UNION SELECT rowid FROM events WHERE upper(ticker) >= ? AND upper(ticker) < ?"
+                "   UNION SELECT rowid FROM events WHERE additional_tickers IS NOT NULL AND additional_tickers <> ''"
+                "         AND ('|' || upper(additional_tickers) || '|') LIKE ?"
+                "   UNION SELECT rowid FROM events WHERE additional_tickers IS NOT NULL AND additional_tickers <> ''"
+                "         AND ('|' || upper(additional_tickers) || '|') LIKE ?) "
+                "AND review_status IN ('auto_approved','approved') "
+                "AND coalesce(raw_headline,'') <> '' "
+                "ORDER BY published_at DESC, ingested_at DESC LIMIT ? OFFSET ?",
+                (ticker_u, bare + ".", bare + "/",
+                 f"%|{ticker_u}|%", f"%|{bare}.%|%",
+                 limit, offset),
+            ).fetchall()
+            return _json({
+                "ok": True,
+                "ticker": ticker_u,
+                "count": len(rows),
+                "limit": limit,
+                "offset": offset,
+                "items": [_row_to_card(r) for r in rows],
+            })
         rows = con.execute(
             "SELECT * FROM events "
             "WHERE review_status IN ('auto_approved','approved') "

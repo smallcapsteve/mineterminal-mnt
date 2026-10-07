@@ -216,6 +216,35 @@ def archive_envelope(envelope: dict):
     )
 
 
+
+# OPSFIX item 9 (2026-10-05): a Google News lookup takes ~110 s per company, every other method about a second.
+# Mixed together, a run got through ~9 companies and every company waited ~10 hours between checks. Now the
+# fast-method companies not checked in the last FAST_EVERY_S go first (about a minute in total), and the slow
+# ones fill the rest of the budget, most overdue first, exactly as before.
+FAST_EVERY_S = int(os.environ.get("MNT_PIPELINE_FAST_EVERY_S", "3600"))
+SLOW_SOURCES = {x.strip() for x in os.environ.get("MNT_PIPELINE_SLOW_SOURCES", "accesswire").split(",") if x.strip()}
+
+
+def _is_slow(cfg: dict) -> bool:
+    name = cfg.get("source", DEFAULT_SOURCE) or ""
+    return name.endswith("_gnews") or name in SLOW_SOURCES
+
+
+def _fast_first(workable: list, cursor: dict, now=None) -> tuple:
+    now = now or dt.datetime.utcnow()
+    def due(c):
+        last = cursor.get(c.get("ticker", ""), "")
+        if not last:
+            return True
+        try:
+            return (now - dt.datetime.fromisoformat(last.rstrip("Z"))).total_seconds() >= FAST_EVERY_S
+        except ValueError:
+            return True
+    fast = [c for c in workable if not _is_slow(c) and due(c)]
+    ids = {id(c) for c in fast}
+    return fast + [c for c in workable if id(c) not in ids], len(fast)
+
+
 # ---- main -----------------------------------------------------------------
 def main():
     if not HMAC_SECRET:
@@ -227,6 +256,9 @@ def main():
     tickers = load_tickers()
     cursor = load_cursor()
     workable, deferred = plan(tickers, cursor)
+    workable, n_fast = _fast_first(workable, cursor)
+    log(f"fast tier: {n_fast} companies due (each checked every {FAST_EVERY_S}s); "
+        f"slow lookups fill the rest of the budget")
 
     log(f"starting cycle; watchlist={len(tickers)} collectable_here={len(workable)} "
         f"seen={len(seen)} budget={TIME_BUDGET_S}s")

@@ -103,7 +103,7 @@
                     <td class="dp-num">{{ d.amount or "—" }}</td>
                     <td class="dp-num">{{ d.total or "" }}</td>
                     <td class="dp-num">{{ d.price or "" }}</td>
-                    <td><a href="/event/{{ d.event_id }}">{{ d.headline or "View" }}</a></td>
+                    <td><a href="/event/{{ d.event_id }}">{{ (d.headline | smart_title) or "View" }}</a></td>
                   </tr>
                   {% endfor %}
                 </tbody>

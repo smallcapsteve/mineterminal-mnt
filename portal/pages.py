@@ -23,8 +23,10 @@ MNT_NAV = [
         "label": "Exploration & Geology",
         "pages": [
             {"label": "Drill Results", "href": "/drills", "key": "drills"},
+            {"label": "Sampling & Geoscience", "href": "/sampling-geoscience", "key": "sampling"},
             {"label": "Resource Estimates", "href": "/resources", "key": "resources"},
             {"label": "Production Results", "href": "/production-results", "key": "production"},
+            {"label": "Mine Development", "href": "/mine-development", "key": "minedev"},
             {"label": "Economic Studies", "href": "/economic-studies", "key": "economic"},
             {"label": "Exploration", "href": "/exploration-programs", "key": "exploration"},
             {"label": "Permits", "href": "/permits-approvals", "key": "permits"},
@@ -39,10 +41,10 @@ MNT_NAV = [
             {"label": "Financings", "href": "/financings", "key": "financings"},
             {"label": "Share Capital", "href": "/share-capital", "key": "sharecap"},
             {"label": "Mergers & Acquisitions", "href": "/mergers-acquisitions", "key": "mna"},
-            {"label": "Debt & Credit"},
+            {"label": "Debt & Credit", "href": "/debt-credit", "key": "debt"},
             {"label": "Royalties & Streams", "href": "/royalties-streams", "key": "royalties"},
             {"label": "Partnerships & JV"},
-            {"label": "Property Options"},
+            {"label": "Property Options", "href": "/property-options", "key": "options"},
             {"label": "Financials"},
         ],
     },
@@ -104,6 +106,9 @@ class PageSpec:
     detail_min: int = 2
     detail_noun: str = "rows"
     detail_columns: list = field(default_factory=list)
+    # MNT_SPEED_V1 (2026-09-25): when true the route puts only a count under row[detail + '_n'] and the
+    # rows load from <url>/intervals/<event_id> when opened.
+    detail_lazy: bool = False
 
 
 PAGE_SPECS = {
@@ -130,6 +135,7 @@ PAGE_SPECS = {
         detail="intervals",
         detail_anchor="top_summary",
         detail_noun="intervals",
+        detail_lazy=True,
         detail_columns=[
             Col("hole_id", "Hole", 22),
             Col("summary", "Interval", 38, kind="strong"),

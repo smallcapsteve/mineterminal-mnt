@@ -1,0 +1,2170 @@
+{
+ "schema": 1,
+ "name": "exploration",
+ "tag": "Exploration Programs",
+ "status": "confirmed",
+ "created": "2026-09-21",
+ "reviewer": "Justin",
+ "reviewed_at": "2026-09-21",
+ "row_shape": "one row per field program a release reports: drilling, geophysics or ground work; planned, started, underway or completed; the issuer's own or a previous owner's",
+ "items": [
+  {
+   "n": 1,
+   "event_id": "dff95bb5d72dde184376f3b29c19ca7d9b58067fad897d4caa305804ae6e3e74",
+   "ticker": "NICE.V",
+   "stratum": "results_surface",
+   "body_sha1": "b1361be301e17aae681b22f1c322dd94a066b811",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "ground",
+      "project": "Kremer",
+      "status": "completed",
+      "season": "fall 2025",
+      "historical": false,
+      "survey_type": "prospecting",
+      "target_metal": "nickel+copper+cobalt"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Kremer",
+      "status": "completed",
+      "season": "2023",
+      "historical": false,
+      "target_metal": "nickel+copper+cobalt"
+     },
+     {
+      "program_type": "geophysics",
+      "project": "Kremer",
+      "status": "completed",
+      "historical": false,
+      "survey_type": "EM",
+      "target_metal": "nickel+copper+cobalt"
+     },
+     {
+      "program_type": "geophysics",
+      "project": "Kremer",
+      "status": "completed",
+      "historical": false,
+      "survey_type": "gravity",
+      "target_metal": "nickel+copper+cobalt"
+     }
+    ]
+   }
+  },
+  {
+   "n": 2,
+   "event_id": "261c44b8197035b8ff8060e7a19c65dbc86767d7",
+   "ticker": "SOI.V",
+   "stratum": "results_drill",
+   "body_sha1": "976016c2d3da6a37caeaea383f6a4aacfafdf21c",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "drilling",
+      "project": "Cheechoo",
+      "status": "completed",
+      "metres": 1882,
+      "holes": 4,
+      "season": "Fall-Winter 2024-25",
+      "phase": "Phase 1",
+      "historical": false,
+      "drill_method": "diamond",
+      "target_metal": "gold"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Cheechoo",
+      "status": "started",
+      "season": "Fall-Winter 2024-25",
+      "phase": "Phase 2",
+      "historical": false,
+      "drill_method": "diamond",
+      "target_metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 3,
+   "event_id": "4001de5c6a4bc027bab965dd67e90350f6eebb18",
+   "ticker": "REDC.CN",
+   "stratum": "geophysics",
+   "body_sha1": "7eca43ac95ba279736684710775aed4b5ffa102b",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "drilling",
+      "project": "Kendal",
+      "status": "completed",
+      "metres": 2548,
+      "holes": 5,
+      "season": "2025",
+      "phase": "Phase 2",
+      "historical": false,
+      "drill_method": "diamond",
+      "target_metal": "copper"
+     },
+     {
+      "program_type": "ground",
+      "project": "Kendal",
+      "status": "completed",
+      "season": "H2 2025",
+      "historical": false,
+      "survey_type": "soil",
+      "target_metal": "copper"
+     },
+     {
+      "program_type": "geophysics",
+      "project": "Kendal",
+      "status": "completed",
+      "historical": false,
+      "survey_type": "other",
+      "target_metal": "copper"
+     }
+    ]
+   }
+  },
+  {
+   "n": 4,
+   "event_id": "e1479f424a0714eb727ae972638cc0b16b7e50b1855f674d00923b620e973b79",
+   "ticker": "ANT.CN",
+   "stratum": "ground",
+   "body_sha1": "8136385879ad6cc142bd5aff260f827820e78869",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "ground",
+      "project": "Havens Steady",
+      "status": "planned",
+      "season": "summer 2026",
+      "historical": false,
+      "survey_type": "trenching",
+      "target_metal": "copper+gold+silver"
+     },
+     {
+      "program_type": "ground",
+      "project": "Havens Steady",
+      "status": "completed",
+      "season": "2025",
+      "historical": false,
+      "survey_type": "prospecting",
+      "target_metal": "copper+gold+silver"
+     },
+     {
+      "program_type": "ground",
+      "project": "Havens Steady",
+      "status": "completed",
+      "historical": false,
+      "survey_type": "trenching",
+      "target_metal": "copper+gold+silver"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Havens Steady",
+      "status": "completed",
+      "metres": 8000,
+      "historical": true,
+      "operator": "previous owner (unnamed)",
+      "target_metal": "zinc+lead+copper+silver+gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 5,
+   "event_id": "539b53f0f435203938deda1149abe0451c5df8a9daadee3426ad496a03e5946c",
+   "ticker": "ATMY.CN",
+   "stratum": "ground",
+   "body_sha1": "c5ff4d7d728c10b5ef1a30d414e4ed00575703b6",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "ground",
+      "project": "Bald Hill",
+      "status": "completed",
+      "historical": false,
+      "survey_type": "soil",
+      "target_metal": "antimony"
+     },
+     {
+      "program_type": "ground",
+      "project": "Bald Hill",
+      "status": "completed",
+      "historical": false,
+      "survey_type": "trenching",
+      "target_metal": "antimony"
+     },
+     {
+      "program_type": "ground",
+      "project": "Bald Hill",
+      "status": "underway",
+      "historical": false,
+      "survey_type": "trenching",
+      "target_metal": "antimony"
+     },
+     {
+      "program_type": "ground",
+      "project": "Bald Hill",
+      "status": "planned",
+      "historical": false,
+      "survey_type": "mixed",
+      "target_metal": "antimony"
+     },
+     {
+      "program_type": "ground",
+      "project": "Bald Hill",
+      "status": "planned",
+      "season": "summer 2026",
+      "historical": false,
+      "survey_type": "mixed",
+      "target_metal": "antimony"
+     },
+     {
+      "program_type": "ground",
+      "project": "Bald Hill",
+      "status": "completed",
+      "season": "2014",
+      "historical": true,
+      "operator": "previous owner (unnamed)",
+      "survey_type": "trenching",
+      "target_metal": "antimony"
+     }
+    ]
+   }
+  },
+  {
+   "n": 6,
+   "event_id": "ced20e750580c6daf6f7e511de78beaf4de89e547d32461de4e7178abe20b577",
+   "ticker": "XXIX.V",
+   "stratum": "drill_start",
+   "body_sha1": "4a5bf612dc32b0167ec4c4a1a03038d45fed5569",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "drilling",
+      "project": "Thierry",
+      "status": "planned",
+      "metres": 20000,
+      "season": "2026",
+      "historical": false,
+      "target_metal": "copper"
+     },
+     {
+      "program_type": "geophysics",
+      "project": "Thierry",
+      "status": "completed",
+      "historical": false,
+      "survey_type": "IP",
+      "line_km": 73.5,
+      "target_metal": "copper"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Thierry",
+      "status": "completed",
+      "metres": 210000,
+      "historical": true,
+      "operator": "previous owner (unnamed)",
+      "drill_method": "diamond",
+      "target_metal": "copper"
+     }
+    ]
+   }
+  },
+  {
+   "n": 7,
+   "event_id": "0bc15fc233552085b9f6f926891963b8b4c8874c",
+   "ticker": "GOLD.TO",
+   "stratum": "drill_start",
+   "body_sha1": "dbd38291c482a91d4e1701549c191d80d315ddbf",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "drilling",
+      "project": "São Jorge",
+      "status": "started",
+      "metres": 5000,
+      "season": "2025",
+      "historical": false,
+      "drill_method": "diamond",
+      "target_metal": "gold",
+      "rigs": 2
+     },
+     {
+      "program_type": "geophysics",
+      "project": "São Jorge",
+      "status": "started",
+      "season": "2025",
+      "historical": false,
+      "survey_type": "LiDAR",
+      "target_metal": "gold"
+     },
+     {
+      "program_type": "drilling",
+      "project": "São Jorge",
+      "status": "completed",
+      "season": "2024",
+      "historical": false,
+      "drill_method": "diamond",
+      "target_metal": "gold",
+      "rigs": 1
+     },
+     {
+      "program_type": "ground",
+      "project": "São Jorge",
+      "status": "completed",
+      "historical": false,
+      "survey_type": "soil",
+      "target_metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 8,
+   "event_id": "af8f0032f698f98c0b3c2d7263572055f5fb590b55f8887d107873d1b7d83e6d",
+   "ticker": "BAR.CN",
+   "stratum": "drill_done_update",
+   "body_sha1": "b5647a0e4cc5cefa249a6e7d7051083cf60d873c",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "ground",
+      "project": "King",
+      "status": "completed",
+      "historical": false,
+      "survey_type": "mixed",
+      "line_km": 17.3,
+      "target_metal": "gold+copper",
+      "contractor": "Rio Minerals Ltd."
+     }
+    ]
+   }
+  },
+  {
+   "n": 9,
+   "event_id": "b029416c6303b68683d29cafe901daca68dc6444338d1af0231d4c5164d13f74",
+   "ticker": "TT.V",
+   "stratum": "drill_done_update",
+   "body_sha1": "9e0831d08dbd7e96115e699920127885ca4f9c96",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "drilling",
+      "project": "Electrolode",
+      "status": "completed",
+      "metres": 8408,
+      "holes": 25,
+      "season": "2026 winter",
+      "historical": false,
+      "rigs": 2
+     },
+     {
+      "program_type": "geophysics",
+      "project": "Electrolode",
+      "status": "completed",
+      "historical": false,
+      "survey_type": "magnetic"
+     },
+     {
+      "program_type": "ground",
+      "project": "Electrolode",
+      "status": "completed",
+      "historical": false,
+      "survey_type": "mixed"
+     }
+    ]
+   }
+  },
+  {
+   "n": 10,
+   "event_id": "4d60b61fb7a126bdd8b12a8802d531ee26ab7a1c",
+   "ticker": "GRL.V",
+   "stratum": "tagged_other",
+   "body_sha1": "0b1edf8fcd3671ad06b5230f224a64c28d004a2d",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "drilling",
+      "project": "Bend",
+      "status": "planned",
+      "season": "2026 winter",
+      "historical": false,
+      "target_metal": "copper+gold",
+      "rigs": 2
+     },
+     {
+      "program_type": "drilling",
+      "project": "Bend",
+      "status": "completed",
+      "metres": 2037,
+      "holes": 6,
+      "season": "2025",
+      "phase": "Phase 1",
+      "historical": false,
+      "target_metal": "copper+gold"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Bend",
+      "status": "completed",
+      "holes": 33,
+      "historical": true,
+      "operator": "previous owner (unnamed)",
+      "drill_method": "diamond",
+      "target_metal": "copper+gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 11,
+   "event_id": "ef25469b72eae5f923e7a4dc34576b21ccc49a94546230ce567a883238a533a5",
+   "ticker": "QIMC.CN",
+   "stratum": "results_surface",
+   "body_sha1": "6adfd619d156024eb706710ce4c6d46bdeec7f8e",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "ground",
+      "project": "Southampton",
+      "status": "completed",
+      "season": "2025",
+      "historical": false,
+      "survey_type": "soil",
+      "target_metal": "hydrogen"
+     }
+    ]
+   }
+  },
+  {
+   "n": 12,
+   "event_id": "b665260183db60270daaca4fbdc1f1ecb4a9a0adff0228dc63110d0763e272dd",
+   "ticker": "FTJ.V",
+   "stratum": "results_drill",
+   "body_sha1": "50611cebfef1d7da2fbcdecfb2dbea7921ce9bd3",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "ground",
+      "project": "Porcupine",
+      "status": "started",
+      "season": "2026",
+      "historical": false,
+      "survey_type": "mixed",
+      "target_metal": "zinc+copper+lead+silver"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Porcupine",
+      "status": "completed",
+      "metres": 227,
+      "holes": 4,
+      "season": "2018",
+      "historical": false,
+      "drill_method": "diamond",
+      "target_metal": "zinc+copper+lead+silver"
+     },
+     {
+      "program_type": "ground",
+      "project": "Porcupine",
+      "status": "completed",
+      "season": "2011",
+      "historical": true,
+      "operator": "Greenlight Resources Ltd.",
+      "survey_type": "soil",
+      "target_metal": "zinc+copper"
+     },
+     {
+      "program_type": "geophysics",
+      "project": "Porcupine",
+      "status": "completed",
+      "season": "2011",
+      "historical": true,
+      "operator": "Greenlight Resources Ltd.",
+      "survey_type": "IP",
+      "target_metal": "zinc+copper"
+     },
+     {
+      "program_type": "ground",
+      "project": "Porcupine",
+      "status": "completed",
+      "season": "2015",
+      "historical": true,
+      "operator": "Great Atlantic Resources Corp.",
+      "survey_type": "mixed"
+     },
+     {
+      "program_type": "ground",
+      "project": "Porcupine",
+      "status": "completed",
+      "season": "2016",
+      "historical": true,
+      "operator": "Great Atlantic Resources Corp.",
+      "survey_type": "mixed"
+     }
+    ]
+   }
+  },
+  {
+   "n": 13,
+   "event_id": "f5e4831a2056f41004590e3fb61f0ad1260a120d",
+   "ticker": "GRUN.CN",
+   "stratum": "geophysics",
+   "body_sha1": "cbeac86270f14941291b635dec6efbef5656174c",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "geophysics",
+      "project": "Golden Girl",
+      "status": "completed",
+      "season": "2026",
+      "historical": false,
+      "survey_type": "magnetic",
+      "target_metal": "gold+silver"
+     },
+     {
+      "program_type": "ground",
+      "project": "Golden Girl",
+      "status": "completed",
+      "season": "2026",
+      "historical": false,
+      "survey_type": "mixed",
+      "target_metal": "gold+silver"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Golden Girl",
+      "status": "planned",
+      "season": "summer 2027",
+      "historical": false,
+      "target_metal": "gold+silver"
+     },
+     {
+      "program_type": "ground",
+      "project": "Golden Girl",
+      "status": "completed",
+      "season": "2024",
+      "historical": true,
+      "operator": "previous owner (unnamed)",
+      "survey_type": "mixed",
+      "target_metal": "gold+silver"
+     }
+    ]
+   }
+  },
+  {
+   "n": 14,
+   "event_id": "7145c17f1fad7289ccd3f454091fdfa816eda494",
+   "ticker": "GRSL.V",
+   "stratum": "ground",
+   "body_sha1": "fe98885543e174d10ae372387056f61cd9d855c2",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "drilling",
+      "project": "Plomosas",
+      "status": "underway",
+      "historical": false,
+      "target_metal": "silver"
+     },
+     {
+      "program_type": "ground",
+      "project": "Plomosas",
+      "status": "completed",
+      "season": "2019",
+      "historical": false,
+      "survey_type": "trenching",
+      "target_metal": "silver"
+     }
+    ]
+   }
+  },
+  {
+   "n": 15,
+   "event_id": "b31b2c3c1aa8f58678e6f370bce5447737c32fdd90e97de11eb6641ca921de3d",
+   "ticker": "KOG.CN",
+   "stratum": "drill_start",
+   "body_sha1": "4ec48d3320414fbe0725418e1f1e1dbc67f44e89",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "drilling",
+      "project": "Carrick",
+      "status": "planned",
+      "holes": 18,
+      "historical": false,
+      "drill_method": "other",
+      "target_metal": "gold"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Smylers Gold",
+      "status": "planned",
+      "holes": 13,
+      "historical": false,
+      "drill_method": "other",
+      "target_metal": "gold"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Hyde",
+      "status": "planned",
+      "holes": 4,
+      "historical": false,
+      "drill_method": "other",
+      "target_metal": "gold"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Glenpark",
+      "status": "planned",
+      "holes": 3,
+      "historical": false,
+      "drill_method": "other",
+      "target_metal": "gold"
+     },
+     {
+      "program_type": "ground",
+      "project": "Carrick Range",
+      "status": "started",
+      "historical": false,
+      "survey_type": "soil",
+      "target_metal": "gold"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Smylers Gold",
+      "status": "completed",
+      "holes": 26,
+      "season": "2021",
+      "historical": false,
+      "target_metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 16,
+   "event_id": "ad50d7acd58a3a8e172a91e85586f0993862e965",
+   "ticker": "SXTY.CN",
+   "stratum": "drill_start",
+   "body_sha1": "82a5c6d6375553158c6a3618709854a4d22a5570",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "drilling",
+      "project": "Mon Gold",
+      "status": "started",
+      "season": "2025",
+      "historical": false,
+      "target_metal": "gold+silver"
+     },
+     {
+      "program_type": "geophysics",
+      "project": "Mon Gold",
+      "status": "completed",
+      "historical": false,
+      "target_metal": "gold+silver"
+     },
+     {
+      "program_type": "ground",
+      "project": "Mon Gold",
+      "status": "completed",
+      "historical": false,
+      "survey_type": "mixed",
+      "target_metal": "gold+silver"
+     },
+     {
+      "program_type": "ground",
+      "project": "Mon Gold",
+      "status": "completed",
+      "season": "2018",
+      "historical": false,
+      "survey_type": "trenching",
+      "target_metal": "gold+silver"
+     }
+    ]
+   }
+  },
+  {
+   "n": 17,
+   "event_id": "7babe7b07b11c30d02fc07c76f8334a7d75dacf5",
+   "ticker": "OPW.V",
+   "stratum": "drill_start",
+   "body_sha1": "8188140377d96a8129363aa645ca4dca02b9515b",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "drilling",
+      "project": "Bazooka",
+      "status": "planned",
+      "metres": 20000,
+      "historical": false,
+      "target_metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 18,
+   "event_id": "b52fc72be99f0c02ab3d87f5fe49c2b57665b48e",
+   "ticker": "NCF.TO",
+   "stratum": "drill_done_update",
+   "body_sha1": "3ecd8b3fededb8e3515064ad248147272fbc3141",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 19,
+   "event_id": "4f562f621732c1d967ab727cfe9f96766190679b",
+   "ticker": "TUNG.CN",
+   "stratum": "tagged_other",
+   "body_sha1": "b3def6144ddf1866a65055a3fa49d5ac45ce151c",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "drilling",
+      "project": "IMA Mine",
+      "status": "completed",
+      "season": "1978-1982",
+      "historical": true,
+      "operator": "Inspiration Development Corporation",
+      "target_metal": "tungsten"
+     }
+    ]
+   }
+  },
+  {
+   "n": 20,
+   "event_id": "658e166a11e94b6d01076a3c1c0ce6ed5d232e7f",
+   "ticker": "ASHL.CN",
+   "stratum": "untagged_candidate",
+   "body_sha1": "70878208196cf75e43b900b0435d6f0fc0c139a7",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "drilling",
+      "project": "Burnthut",
+      "status": "planned",
+      "historical": false,
+      "target_metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 21,
+   "event_id": "e166fe73fc50ad7eb2e8abb9a2c12ed8116954e259829cdf004accdfdfa41f59",
+   "ticker": "SSV.V",
+   "stratum": "results_surface",
+   "body_sha1": "c543dd5a8f7331158f1c154ce2ed0ca83b7e19cd",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "ground",
+      "project": "Cerro Las Minitas",
+      "status": "completed",
+      "historical": false,
+      "survey_type": "channel",
+      "target_metal": "silver+lead+zinc"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Cerro Las Minitas",
+      "status": "underway",
+      "metres": 12500,
+      "phase": "Phase I",
+      "historical": false,
+      "target_metal": "silver+lead+zinc"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Cerro Las Minitas",
+      "status": "completed",
+      "historical": false,
+      "target_metal": "silver+lead+zinc"
+     },
+     {
+      "program_type": "geophysics",
+      "project": "Cerro Las Minitas",
+      "status": "completed",
+      "season": "2026",
+      "historical": false,
+      "survey_type": "LiDAR",
+      "target_metal": "silver+lead+zinc"
+     }
+    ]
+   }
+  },
+  {
+   "n": 22,
+   "event_id": "78bd6c91b924d2fcc7c7d08be916738e313dc106",
+   "ticker": "ROAR.V",
+   "stratum": "results_drill",
+   "body_sha1": "b12e762fc7241c40ade684caf8a0a7c40f311d92",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "drilling",
+      "project": "Volney",
+      "status": "completed",
+      "metres": 3600,
+      "holes": 15,
+      "phase": "Phase 1",
+      "historical": false,
+      "drill_method": "diamond",
+      "target_metal": "lithium"
+     }
+    ]
+   }
+  },
+  {
+   "n": 23,
+   "event_id": "caaf58fcddc15ab74a02dab63dd1a03d038ac396af3b8665dc840275f9321980",
+   "ticker": "CUPR.CN",
+   "stratum": "geophysics",
+   "body_sha1": "08054c27705fbe4bbf6e84f26f88625fb46204cf",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "geophysics",
+      "project": "Castilla",
+      "status": "started",
+      "season": "2026",
+      "phase": "Phase 2",
+      "historical": false,
+      "survey_type": "IP",
+      "line_km": 22,
+      "target_metal": "copper",
+      "contractor": "Argali Geofisica EIRL"
+     },
+     {
+      "program_type": "geophysics",
+      "project": "Castilla",
+      "status": "completed",
+      "season": "2026",
+      "phase": "Phase 1",
+      "historical": false,
+      "survey_type": "magnetic",
+      "target_metal": "copper"
+     },
+     {
+      "program_type": "ground",
+      "project": "Castilla",
+      "status": "completed",
+      "season": "2025",
+      "historical": false,
+      "survey_type": "rock",
+      "target_metal": "copper"
+     },
+     {
+      "program_type": "ground",
+      "project": "Castilla",
+      "status": "completed",
+      "season": "2023",
+      "historical": false,
+      "survey_type": "rock",
+      "target_metal": "copper"
+     }
+    ]
+   }
+  },
+  {
+   "n": 24,
+   "event_id": "eb47cc1c77fe95cc358fa43f408f24773594408bca231b8cc0b83c17aa3c674b",
+   "ticker": "INTG.CN",
+   "stratum": "ground",
+   "body_sha1": "53073a1ff00de03c05ba9479516fe6a58bbd3b3a",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "ground",
+      "project": "KAP",
+      "status": "started",
+      "phase": "Phase 2",
+      "historical": false,
+      "survey_type": "soil",
+      "target_metal": "lead+zinc+gallium+germanium"
+     },
+     {
+      "program_type": "ground",
+      "project": "KAP",
+      "status": "completed",
+      "phase": "Phase 1",
+      "historical": false,
+      "survey_type": "mixed",
+      "target_metal": "lead+zinc+gallium+germanium"
+     }
+    ]
+   }
+  },
+  {
+   "n": 25,
+   "event_id": "831b5b62ede081472b6d6ee8e3c55c3f5173b445",
+   "ticker": "PGC.V",
+   "stratum": "drill_start",
+   "body_sha1": "160f31dd358afd40d36cbf227b174a3b1e5822d9",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "drilling",
+      "project": "Lolita",
+      "status": "planned",
+      "holes": 10,
+      "historical": false,
+      "drill_method": "diamond",
+      "target_metal": "gold+silver"
+     }
+    ]
+   }
+  },
+  {
+   "n": 26,
+   "event_id": "3f527bbf5c3da1fe76043f19cfb03e6ea5b4d160",
+   "ticker": "BPAG.V",
+   "stratum": "drill_start",
+   "body_sha1": "15e6bad87daf564908622d10e31d983143126858",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "drilling",
+      "project": "Cosuño",
+      "status": "started",
+      "phase": "Phase 1",
+      "historical": false,
+      "drill_method": "diamond",
+      "target_metal": "silver"
+     }
+    ]
+   }
+  },
+  {
+   "n": 27,
+   "event_id": "cd5c9ea892a0e73f17bcd1b6e32144710168cf71",
+   "ticker": "LVG.V",
+   "stratum": "drill_start",
+   "body_sha1": "1e1f88c3e23f3e6ee9ff13d4fb7ee7e198045770",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "drilling",
+      "project": "Imwelo",
+      "status": "started",
+      "metres": 7750,
+      "historical": false,
+      "drill_method": "RC",
+      "target_metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 28,
+   "event_id": "dd4025e08416acc91d0e7715f3e057802ab06aa1",
+   "ticker": "LOD.V",
+   "stratum": "drill_done_update",
+   "body_sha1": "7767ab1bbdf56c9defe90bc948494b484b8299ef",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "ground",
+      "project": "Golden Culvert-WIN",
+      "status": "completed",
+      "season": "2025 summer",
+      "historical": false,
+      "survey_type": "mixed",
+      "target_metal": "gold"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Golden Culvert-WIN",
+      "status": "planned",
+      "season": "2026",
+      "historical": false,
+      "target_metal": "gold"
+     },
+     {
+      "program_type": "geophysics",
+      "project": "Golden Culvert-WIN",
+      "status": "completed",
+      "season": "2024",
+      "historical": false,
+      "survey_type": "magnetic",
+      "target_metal": "gold",
+      "contractor": "Dias"
+     }
+    ]
+   }
+  },
+  {
+   "n": 29,
+   "event_id": "078ac1a81445c3317f0373bec59109636907971c",
+   "ticker": "TCO.V",
+   "stratum": "tagged_other",
+   "body_sha1": "0a1e839ba2b659ab8f8dd3b61baa079442f1f2e5",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "ground",
+      "project": "Monitor",
+      "status": "completed",
+      "season": "2013",
+      "historical": false,
+      "survey_type": "soil",
+      "target_metal": "copper"
+     },
+     {
+      "program_type": "ground",
+      "project": "Monitor",
+      "status": "completed",
+      "season": "2013-2014",
+      "historical": false,
+      "survey_type": "mapping",
+      "target_metal": "copper"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Monitor",
+      "status": "completed",
+      "holes": 5,
+      "season": "2015",
+      "historical": false,
+      "drill_method": "diamond",
+      "target_metal": "copper"
+     },
+     {
+      "program_type": "ground",
+      "project": "Monitor",
+      "status": "completed",
+      "season": "2015",
+      "historical": false,
+      "survey_type": "channel",
+      "target_metal": "copper"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Monitor",
+      "status": "completed",
+      "holes": 14,
+      "season": "2023",
+      "historical": false,
+      "drill_method": "diamond",
+      "target_metal": "copper"
+     },
+     {
+      "program_type": "ground",
+      "project": "Monitor",
+      "status": "completed",
+      "season": "2023",
+      "historical": false,
+      "survey_type": "mixed",
+      "target_metal": "copper"
+     },
+     {
+      "program_type": "geophysics",
+      "project": "Monitor",
+      "status": "completed",
+      "season": "2024",
+      "historical": false,
+      "survey_type": "magnetic",
+      "target_metal": "copper"
+     },
+     {
+      "program_type": "ground",
+      "project": "Monitor",
+      "status": "completed",
+      "season": "2024",
+      "historical": false,
+      "survey_type": "channel",
+      "target_metal": "copper"
+     }
+    ]
+   }
+  },
+  {
+   "n": 30,
+   "event_id": "e7b73deb254237da3310a4d88fc99b7f5d6f828c8647b5c2642afe4b23e52480",
+   "ticker": "GENM.V",
+   "stratum": "untagged_candidate",
+   "body_sha1": "4dd3bf98ff96df9d512fe52a5cead2cdf255f861",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 31,
+   "event_id": "47ef2ccd33f60c7c57bfd43d88c53f8b5ccd6be8729365843959875c96b732cb",
+   "ticker": "CASC.CN",
+   "stratum": "results_surface",
+   "body_sha1": "12bd1d58bea3f73e3ce6cfeb6da5f20c45776da4",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "ground",
+      "project": "Centrefire",
+      "status": "completed",
+      "season": "Q4 2025",
+      "historical": false,
+      "survey_type": "rock",
+      "target_metal": "copper+gold"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Centrefire",
+      "status": "planned",
+      "historical": false,
+      "target_metal": "copper+gold"
+     },
+     {
+      "program_type": "ground",
+      "project": "Centrefire",
+      "status": "completed",
+      "historical": false,
+      "survey_type": "mixed",
+      "target_metal": "copper+gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 32,
+   "event_id": "5510e0078faa57ffd02b651468e0bd97487ce844",
+   "ticker": "TCEC.CN",
+   "stratum": "geophysics",
+   "body_sha1": "84766937ef7d1f9c47ddbe0e088532fd21e2bd2f",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "geophysics",
+      "project": "Prospector Freedom",
+      "status": "completed",
+      "historical": false,
+      "survey_type": "radiometric",
+      "target_metal": "uranium",
+      "contractor": "Land Survey Advisors"
+     },
+     {
+      "program_type": "ground",
+      "project": "Prospector Freedom",
+      "status": "planned",
+      "season": "summer",
+      "historical": false,
+      "survey_type": "mixed",
+      "target_metal": "uranium"
+     }
+    ]
+   }
+  },
+  {
+   "n": 33,
+   "event_id": "91a73130eb7fe69869150c4617c166b41c69dcd25c9e684e3b31a07b6bd8aeed",
+   "ticker": "MILI.CN",
+   "stratum": "geophysics",
+   "body_sha1": "f31cc78f98aa0e5812a391c31bb57eef695f020a",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "geophysics",
+      "project": "Trojarová",
+      "status": "started",
+      "historical": false,
+      "survey_type": "LiDAR",
+      "target_metal": "antimony+gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 34,
+   "event_id": "c2a6ce6fdd429252999c5da1a595abfca6b2546e",
+   "ticker": "MEC.CN",
+   "stratum": "ground",
+   "body_sha1": "97e3c2e60221d31c177ff1fb4b6dae76a17afb45",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "ground",
+      "project": "Surprise Creek",
+      "status": "completed",
+      "season": "summer 2025",
+      "historical": false,
+      "survey_type": "prospecting",
+      "target_metal": "uranium+copper",
+      "contractor": "Axiom"
+     },
+     {
+      "program_type": "ground",
+      "project": "Surprise Creek",
+      "status": "completed",
+      "season": "2022",
+      "historical": true,
+      "operator": "Thunderbird Resources Ltd.",
+      "survey_type": "rock",
+      "target_metal": "uranium"
+     }
+    ]
+   }
+  },
+  {
+   "n": 35,
+   "event_id": "31792b1873fb8edd99573f6066e3e24189e070a4",
+   "ticker": "API.CN",
+   "stratum": "drill_start",
+   "body_sha1": "128003496ffc917a8a68814e29bf48363a3d9196",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "drilling",
+      "project": "PCH",
+      "status": "started",
+      "metres": 450,
+      "holes": 3,
+      "historical": false,
+      "drill_method": "diamond",
+      "target_metal": "rare earths"
+     },
+     {
+      "program_type": "drilling",
+      "project": "PCH",
+      "status": "completed",
+      "season": "2024",
+      "historical": false,
+      "drill_method": "RC",
+      "target_metal": "rare earths"
+     }
+    ]
+   }
+  },
+  {
+   "n": 36,
+   "event_id": "113aa1d256571dcdd9fd981755b2f65e94bf2ad6",
+   "ticker": "MLKM.CN",
+   "stratum": "drill_start",
+   "body_sha1": "0bb17206c24f7f6d0a3cfea69af42e6f43163c10",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "drilling",
+      "project": "Carlin-Roop",
+      "status": "planned",
+      "season": "2026",
+      "historical": false,
+      "target_metal": "silver"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Anderson-Davidson",
+      "status": "planned",
+      "season": "2026",
+      "historical": false,
+      "drill_method": "diamond",
+      "target_metal": "gold"
+     },
+     {
+      "program_type": "ground",
+      "project": "Edmonton",
+      "status": "planned",
+      "season": "2026",
+      "historical": false,
+      "survey_type": "soil",
+      "target_metal": "gold"
+     },
+     {
+      "program_type": "ground",
+      "project": "Anderson-Davidson",
+      "status": "completed",
+      "season": "2025",
+      "historical": false,
+      "survey_type": "soil",
+      "target_metal": "gold"
+     },
+     {
+      "program_type": "ground",
+      "project": "Anderson-Davidson",
+      "status": "completed",
+      "season": "2025",
+      "historical": false,
+      "survey_type": "mapping",
+      "target_metal": "gold"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Carlin-Roop",
+      "status": "completed",
+      "historical": false,
+      "drill_method": "diamond",
+      "target_metal": "silver"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Anderson-Davidson",
+      "status": "completed",
+      "metres": 640,
+      "holes": 2,
+      "historical": false,
+      "drill_method": "RC",
+      "target_metal": "gold"
+     },
+     {
+      "program_type": "geophysics",
+      "project": "Anderson-Davidson",
+      "status": "completed",
+      "historical": false,
+      "survey_type": "magnetic",
+      "target_metal": "gold"
+     },
+     {
+      "program_type": "ground",
+      "project": "Anderson-Davidson",
+      "status": "completed",
+      "historical": false,
+      "survey_type": "soil",
+      "target_metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 37,
+   "event_id": "8a8dd49d7a54ff6f0b48ff6da5e16aed2e290b3b",
+   "ticker": "PLLR.CN",
+   "stratum": "drill_start",
+   "body_sha1": "5f379f310000c84007e5b6701ba2811a6864388d",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "ground",
+      "project": "Val-d’Or North",
+      "status": "completed",
+      "season": "2021",
+      "historical": true,
+      "operator": "Goldseek Resources Inc.",
+      "survey_type": "till",
+      "target_metal": "gold+copper"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Val-d’Or North",
+      "status": "completed",
+      "season": "1988",
+      "historical": true,
+      "operator": "Finneth Expl Inc",
+      "drill_method": "diamond",
+      "target_metal": "gold+copper"
+     },
+     {
+      "program_type": "geophysics",
+      "project": "Val-d’Or North",
+      "status": "completed",
+      "season": "1988",
+      "historical": true,
+      "operator": "Finneth Expl Inc",
+      "survey_type": "other",
+      "target_metal": "gold+copper"
+     },
+     {
+      "program_type": "ground",
+      "project": "Val-d’Or North",
+      "status": "completed",
+      "season": "1976",
+      "historical": true,
+      "operator": "Shell Canada Ltd.",
+      "survey_type": "mapping",
+      "target_metal": "copper"
+     }
+    ]
+   }
+  },
+  {
+   "n": 38,
+   "event_id": "f6fb9f54666fe19f0d56e72f7c6eb5525357093a397bcd41b36fa87d8d844135",
+   "ticker": "GXP.CN",
+   "stratum": "drill_done_update",
+   "body_sha1": "e6f549bbabb08e0ade9d26207075b488e86d7c14",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "ground",
+      "project": "Weyman",
+      "status": "completed",
+      "season": "2024",
+      "historical": false,
+      "survey_type": "mixed",
+      "target_metal": "copper"
+     },
+     {
+      "program_type": "ground",
+      "project": "Weyman",
+      "status": "completed",
+      "season": "2021",
+      "historical": true,
+      "operator": "previous owner (unnamed)",
+      "survey_type": "soil",
+      "target_metal": "copper"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Nut Lake",
+      "status": "completed",
+      "season": "1978",
+      "historical": true,
+      "operator": "Pan Ocean Oil Ltd.",
+      "target_metal": "uranium"
+     }
+    ]
+   }
+  },
+  {
+   "n": 39,
+   "event_id": "6cf39f06e60cb9c438a67c4f47551f076163e76a",
+   "ticker": "PWRO.V",
+   "stratum": "tagged_other",
+   "body_sha1": "acf061be1053098ecd95cff3acf8e608aa8b9bb5",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "drilling",
+      "project": "Pecors",
+      "status": "planned",
+      "metres": 1500,
+      "holes": 1,
+      "historical": false,
+      "target_metal": "nickel+copper+pge"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Pecors",
+      "status": "completed",
+      "season": "2024",
+      "historical": false,
+      "target_metal": "gold"
+     },
+     {
+      "program_type": "geophysics",
+      "project": "Pecors",
+      "status": "completed",
+      "season": "2008",
+      "historical": true,
+      "operator": "previous owner (unnamed)",
+      "survey_type": "VTEM",
+      "target_metal": "nickel+copper+pge",
+      "contractor": "Geotech"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Pecors",
+      "status": "completed",
+      "holes": 2,
+      "season": "2015",
+      "historical": true,
+      "operator": "previous owner (unnamed)",
+      "target_metal": "nickel+copper+pge"
+     },
+     {
+      "program_type": "geophysics",
+      "project": "Pecors",
+      "status": "completed",
+      "season": "2018",
+      "historical": true,
+      "operator": "previous owner (unnamed)",
+      "survey_type": "EM",
+      "target_metal": "nickel+copper+pge",
+      "contractor": "Geotech"
+     }
+    ]
+   }
+  },
+  {
+   "n": 40,
+   "event_id": "a4e17f8519d93e1297545d9f4e38c45a045b29bf",
+   "ticker": "KLD.V",
+   "stratum": "untagged_candidate",
+   "body_sha1": "eea5dbc270a1af511d085de38f43ae951d139c51",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "drilling",
+      "project": "Western Wabigoon",
+      "status": "completed",
+      "metres": 4089,
+      "holes": 9,
+      "season": "2026",
+      "historical": false,
+      "drill_method": "diamond",
+      "target_metal": "gold"
+     },
+     {
+      "program_type": "ground",
+      "project": "Western Wabigoon",
+      "status": "completed",
+      "season": "2026",
+      "historical": false,
+      "survey_type": "mixed",
+      "target_metal": "gold"
+     },
+     {
+      "program_type": "ground",
+      "project": "Western Wabigoon",
+      "status": "completed",
+      "season": "2025",
+      "historical": false,
+      "survey_type": "till",
+      "target_metal": "gold"
+     },
+     {
+      "program_type": "ground",
+      "project": "Western Wabigoon",
+      "status": "completed",
+      "season": "2024",
+      "historical": false,
+      "survey_type": "till",
+      "target_metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 41,
+   "event_id": "ec3c205cd6a878fac8afae089e9ba8a894b3fca53dfde0c584205eb9f64d4507",
+   "ticker": "QIMC.CN",
+   "stratum": "results_surface",
+   "body_sha1": "54a76b99e1ec87bfcf7b45764389a2748852bb61",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "ground",
+      "project": "East Advocate",
+      "status": "completed",
+      "season": "2025",
+      "historical": false,
+      "survey_type": "soil",
+      "target_metal": "hydrogen"
+     },
+     {
+      "program_type": "ground",
+      "project": "West Advocate",
+      "status": "completed",
+      "season": "2025",
+      "historical": false,
+      "survey_type": "soil",
+      "target_metal": "hydrogen"
+     }
+    ]
+   }
+  },
+  {
+   "n": 42,
+   "event_id": "3315c9d0642a2c7c10146086ca48fe80c49d7f1de97246d261e0a320a3bfa3e8",
+   "ticker": "HWG.CN",
+   "stratum": "geophysics",
+   "body_sha1": "474298cd2ef53ebcfa77ea4d6cf50306aad27571",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "drilling",
+      "project": "Lodestar",
+      "status": "completed",
+      "metres": 2950,
+      "season": "2025-2026",
+      "historical": false,
+      "target_metal": "gold"
+     },
+     {
+      "program_type": "geophysics",
+      "project": "Lodestar",
+      "status": "planned",
+      "historical": false,
+      "survey_type": "IP",
+      "line_km": 12.6,
+      "target_metal": "gold"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Spring Peak",
+      "status": "completed",
+      "historical": false,
+      "target_metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 43,
+   "event_id": "afacfda1ef29a60f62abc5fde0c3016445a882e6",
+   "ticker": "ASHL.CN",
+   "stratum": "geophysics",
+   "body_sha1": "28466c5854d9a35484d50fdce20be482e29ecbfd",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "geophysics",
+      "project": "Burnthut",
+      "status": "completed",
+      "season": "2026",
+      "historical": false,
+      "survey_type": "IP",
+      "line_km": 19.5,
+      "target_metal": "gold",
+      "contractor": "Abitibi Geophysics"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Burnthut",
+      "status": "completed",
+      "historical": true,
+      "operator": "Triex",
+      "target_metal": "gold"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Burnthut",
+      "status": "completed",
+      "historical": true,
+      "operator": "Southern Rio",
+      "target_metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 44,
+   "event_id": "a9a4b925728457e11e5cfdd6dd9aa5ad33189afe",
+   "ticker": "BEX.V",
+   "stratum": "ground",
+   "body_sha1": "97684e3718a0789dc286f968a7167a069535a005",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "drilling",
+      "project": "Great Burnt",
+      "status": "underway",
+      "holes": 23,
+      "historical": false,
+      "target_metal": "gold+copper"
+     },
+     {
+      "program_type": "ground",
+      "project": "Great Burnt",
+      "status": "completed",
+      "historical": false,
+      "survey_type": "mixed",
+      "target_metal": "copper+gold"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Great Burnt",
+      "status": "completed",
+      "phase": "Phase 1",
+      "historical": false,
+      "target_metal": "copper"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Great Burnt",
+      "status": "completed",
+      "phase": "Phase 2",
+      "historical": false,
+      "target_metal": "copper"
+     }
+    ]
+   }
+  },
+  {
+   "n": 45,
+   "event_id": "9af55edc697bfd835832038bb928bf4e80789cdf",
+   "ticker": "BGD.V",
+   "stratum": "drill_start",
+   "body_sha1": "a03059bb6e63833d4762df59b18772b965cb2d22",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "drilling",
+      "project": "Bousquet",
+      "status": "underway",
+      "metres": 2400,
+      "phase": "Phase 1",
+      "historical": false,
+      "target_metal": "gold"
+     },
+     {
+      "program_type": "geophysics",
+      "project": "Bousquet",
+      "status": "completed",
+      "season": "2025",
+      "historical": false,
+      "survey_type": "IP",
+      "target_metal": "gold"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Bousquet",
+      "status": "completed",
+      "holes": 14,
+      "season": "1940",
+      "historical": true,
+      "operator": "previous owner (unnamed)",
+      "target_metal": "gold"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Bousquet",
+      "status": "completed",
+      "season": "1945",
+      "historical": true,
+      "operator": "previous owner (unnamed)",
+      "target_metal": "gold"
+     },
+     {
+      "program_type": "ground",
+      "project": "Bousquet",
+      "status": "completed",
+      "season": "1996",
+      "historical": true,
+      "operator": "previous owner (unnamed)",
+      "survey_type": "mixed",
+      "target_metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 46,
+   "event_id": "7b7acc14afc8df87b2417144102844f382545543",
+   "ticker": "LAM.TO",
+   "stratum": "drill_start",
+   "body_sha1": "cfc0e51883527d899eb6cf876dbe5dac5a13686b",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "drilling",
+      "project": "Chu-Sarysu",
+      "status": "planned",
+      "metres": 15000,
+      "season": "2025",
+      "phase": "Phase 1",
+      "historical": false,
+      "target_metal": "uranium+copper+rare earths"
+     }
+    ]
+   }
+  },
+  {
+   "n": 47,
+   "event_id": "89e1d9f19e7dd17f07644c115ad3be79412bf161305831f262d1167a381ecb7b",
+   "ticker": "PAU.CN",
+   "stratum": "drill_done_update",
+   "body_sha1": "64f3bcf6c1a2db437a0c271c1b4a9ad535b37cb9",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "drilling",
+      "project": "Eldorado",
+      "status": "underway",
+      "metres": 500,
+      "holes": 2,
+      "season": "2024",
+      "historical": false,
+      "drill_method": "diamond",
+      "target_metal": "gold"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Eldorado",
+      "status": "completed",
+      "season": "2023",
+      "historical": false,
+      "target_metal": "gold"
+     },
+     {
+      "program_type": "geophysics",
+      "project": "Eldorado",
+      "status": "completed",
+      "season": "summer 2024",
+      "historical": false,
+      "survey_type": "IP",
+      "target_metal": "gold"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Eldorado",
+      "status": "planned",
+      "season": "spring 2025",
+      "historical": false,
+      "target_metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 48,
+   "event_id": "afa4751ab5e4c05f4a047d848f74f3abeef0afb3f59a82daae7cf23b51f88200",
+   "ticker": "SMN.V",
+   "stratum": "drill_done_update",
+   "body_sha1": "6dae2371cfb5a580bd4616635ce5b3426fe2bc79",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "drilling",
+      "project": "JD",
+      "status": "underway",
+      "metres": 5100,
+      "holes": 13,
+      "season": "2026",
+      "historical": false,
+      "drill_method": "diamond",
+      "target_metal": "gold+silver",
+      "rigs": 2
+     },
+     {
+      "program_type": "geophysics",
+      "project": "JD",
+      "status": "completed",
+      "season": "2026",
+      "historical": false,
+      "survey_type": "other",
+      "line_km": 740,
+      "target_metal": "gold+silver"
+     },
+     {
+      "program_type": "drilling",
+      "project": "JD",
+      "status": "completed",
+      "season": "2025",
+      "historical": false,
+      "target_metal": "gold+silver"
+     },
+     {
+      "program_type": "ground",
+      "project": "JD",
+      "status": "completed",
+      "season": "2025",
+      "historical": false,
+      "survey_type": "mixed",
+      "target_metal": "gold+silver"
+     },
+     {
+      "program_type": "ground",
+      "project": "JD",
+      "status": "completed",
+      "season": "1994",
+      "historical": true,
+      "operator": "previous owner (unnamed)",
+      "survey_type": "mixed",
+      "target_metal": "gold+silver"
+     },
+     {
+      "program_type": "ground",
+      "project": "JD",
+      "status": "completed",
+      "season": "1995",
+      "historical": true,
+      "operator": "previous owner (unnamed)",
+      "survey_type": "mapping",
+      "target_metal": "gold+silver"
+     },
+     {
+      "program_type": "ground",
+      "project": "JD",
+      "status": "completed",
+      "season": "1997",
+      "historical": true,
+      "operator": "Antares Mining and Exploration Corporation and AGC Americas Gold Corporation",
+      "survey_type": "mixed",
+      "target_metal": "gold+silver"
+     },
+     {
+      "program_type": "drilling",
+      "project": "JD",
+      "status": "completed",
+      "season": "2012",
+      "historical": true,
+      "operator": "previous owner (unnamed)",
+      "drill_method": "diamond",
+      "target_metal": "gold+silver"
+     },
+     {
+      "program_type": "drilling",
+      "project": "JD",
+      "status": "completed",
+      "season": "2013",
+      "historical": true,
+      "operator": "previous owner (unnamed)",
+      "drill_method": "diamond",
+      "target_metal": "gold+silver"
+     }
+    ]
+   }
+  },
+  {
+   "n": 49,
+   "event_id": "bf26fd10e3840576c65d36efc7f7d53cbed90ff3",
+   "ticker": "TIG.V",
+   "stratum": "tagged_other",
+   "body_sha1": "1dcd4de4d2e6477cec98f1636b42823a81ba58a5",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "ground",
+      "project": "Freegold Mountain",
+      "status": "completed",
+      "season": "2025",
+      "historical": false,
+      "survey_type": "rock",
+      "target_metal": "gold+silver"
+     },
+     {
+      "program_type": "drilling",
+      "project": "Freegold Mountain",
+      "status": "completed",
+      "metres": 3565.17,
+      "holes": 12,
+      "season": "2021",
+      "historical": false,
+      "drill_method": "diamond",
+      "target_metal": "gold+silver+copper"
+     },
+     {
+      "program_type": "ground",
+      "project": "Freegold Mountain",
+      "status": "completed",
+      "season": "2019",
+      "historical": false,
+      "survey_type": "rock",
+      "target_metal": "gold+silver"
+     }
+    ]
+   }
+  },
+  {
+   "n": 50,
+   "event_id": "b28623e12aef7ceb5b451bc0d60d296450ce09f6",
+   "ticker": "STMN.CN",
+   "stratum": "untagged_candidate",
+   "body_sha1": "11fe8e061f7e0ea833ec14c74365a3625b7e9bbe",
+   "review": "confirmed",
+   "note": "see claude/MNT_EXPL_SET_LABELS_CONFIRMED_2026-09-21.json",
+   "expect": {
+    "is_program": true,
+    "complete": true,
+    "rows": [
+     {
+      "program_type": "drilling",
+      "project": "Murphy Lake",
+      "status": "planned",
+      "season": "spring 2026",
+      "historical": false,
+      "target_metal": "uranium"
+     },
+     {
+      "program_type": "geophysics",
+      "project": "Murphy Lake",
+      "status": "underway",
+      "season": "2026",
+      "historical": false,
+      "survey_type": "EM",
+      "target_metal": "uranium"
+     }
+    ]
+   }
+  }
+ ]
+}

@@ -1,0 +1,30 @@
+{# MNT_SPEED_V1 (2026-09-25): one release's detail rows, fetched when a /drills row is opened.
+   The same markup data_page.html builds inline for non-lazy pages; context: spec, det. #}
+<table class="dp-sub">
+  {% set _dc = namespace(cols=[], w=0) %}
+  {% for c in spec.detail_columns %}
+    {% set _any = namespace(v=(c.kind == 'strong')) %}
+    {% for d in det %}{% if d[c.key] is not none and d[c.key] != "" %}{% set _any.v = true %}{% endif %}{% endfor %}
+    {% if _any.v %}{% set _dc.cols = _dc.cols + [c] %}{% set _dc.w = _dc.w + c.width %}{% endif %}
+  {% endfor %}
+  <colgroup>{% for c in _dc.cols %}<col style="width: {{ (c.width * 100 / _dc.w)|round|int }}%">{% endfor %}</colgroup>
+  <thead><tr>{% for c in _dc.cols %}<th>{{ c.label }}</th>{% endfor %}</tr></thead>
+  <tbody>
+    {% for d in det %}
+    <tr class="{% if d.is_best %}dp-best{% endif %}{% if d.including %} dp-incl{% endif %}">
+      {% for c in _dc.cols %}
+        {% set dv = d[c.key] %}
+        {% if c.kind == 'strong' %}
+          <td>{% if d.including %}<span class="dp-incl-mark">incl.</span> {% endif %}{% if d.is_best %}<strong>{{ dv or "—" }}</strong>{% else %}{{ dv or "—" }}{% endif %}</td>
+        {% elif c.kind == 'num' %}
+          <td class="dp-num">{{ ('%g' % dv) if dv is not none else "—" }}</td>
+        {% elif c.kind == 'plain' %}
+          <td>{{ dv if dv else "" }}</td>
+        {% else %}
+          <td>{{ dv or "—" }}</td>
+        {% endif %}
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>

@@ -15,7 +15,7 @@
    "ticker": "SIEN.V",
    "published_at": "2025-03-20T12:00:00Z",
    "stratum": "no_row",
-   "body_sha1": "570dd81982b351ae01530e8f0c0c78250e8bf68d",
+   "body_sha1": "78b496efe646c9c0cadadce8a551590e2c11a32d",
    "review": "confirmed",
    "expect": {
     "is_result": false,
@@ -28,7 +28,7 @@
     ],
     "confidence": "high"
    },
-   "note": "Drilling completed with visual sulphide descriptions only; 117 core samples sent to lab, assays pending."
+   "note": "Drilling completed with visual sulphide descriptions only; 117 core samples sent to lab, assays pending. [2026-10-05: text fingerprint refreshed (was 570dd81982b3) after a headline tidy-up / re-ingest; labels unchanged; Justin OK]"
   },
   {
    "n": 1,
@@ -1613,7 +1613,7 @@
    "ticker": "FOR.V",
    "published_at": "2026-03-03T12:00:00Z",
    "stratum": "row:Au",
-   "body_sha1": "c74d0bb568d07400f8d07dba38d9a5869f10f80b",
+   "body_sha1": "9e25b96ff1362583f6c6ab110f821c5a3ed1d24d",
    "review": "confirmed",
    "expect": {
     "is_result": true,
@@ -1749,7 +1749,7 @@
     ],
     "confidence": "high"
    },
-   "note": "Table 1 core lengths; 7.0m@2.76 is inside 19.0m@1.86 and itself contains 3.0m@5.63; 8.72 g/t over 2.0m is a standalone interval (432-434m)."
+   "note": "Table 1 core lengths; 7.0m@2.76 is inside 19.0m@1.86 and itself contains 3.0m@5.63; 8.72 g/t over 2.0m is a standalone interval (432-434m). [2026-10-05: text fingerprint refreshed (was c74d0bb568d0) after a headline tidy-up / re-ingest; labels unchanged; Justin OK]"
   },
   {
    "n": 9,
@@ -3761,7 +3761,7 @@
    "ticker": "FMAN.V",
    "published_at": "2026-01-06T12:00:00Z",
    "stratum": "no_row",
-   "body_sha1": "38fc1312bb61a1a79eddc4f8065278f0ff5b8cf8",
+   "body_sha1": "6244fedf5b92cfca10d96334a730630f832f4d5e",
    "review": "confirmed",
    "expect": {
     "is_result": false,
@@ -3774,7 +3774,7 @@
     ],
     "confidence": "high"
    },
-   "note": "Year-end 2025 recap; the 8.0 m @ 3.1 g/t Au intercept was released in earlier news releases."
+   "note": "Year-end 2025 recap; the 8.0 m @ 3.1 g/t Au intercept was released in earlier news releases. [2026-10-05: text fingerprint refreshed (was 38fc1312bb61) after a headline tidy-up / re-ingest; labels unchanged; Justin OK]"
   },
   {
    "n": 30,
@@ -4005,7 +4005,7 @@
    "ticker": "SVRS.V",
    "published_at": "2026-07-22T12:00:00Z",
    "stratum": "row:Ag|AgEq",
-   "body_sha1": "0e08634ed9f88bbc7d7a9935ed40b988c5d71d15",
+   "body_sha1": "1b6459004777c953f941fb5bc4b11c8e5a0f539e",
    "review": "confirmed",
    "expect": {
     "is_result": true,
@@ -4132,7 +4132,7 @@
     ],
     "confidence": "high"
    },
-   "note": "New underground diamond drill results at San Marcos, lengths are drilled lengths (ETW given separately); headline 3.7 m and 15.4 m are the same intercepts rounded; Table 1 not in text."
+   "note": "New underground diamond drill results at San Marcos, lengths are drilled lengths (ETW given separately); headline 3.7 m and 15.4 m are the same intercepts rounded; Table 1 not in text. [2026-10-05: text fingerprint refreshed (was 0e08634ed9f8) after a headline tidy-up / re-ingest; labels unchanged; Justin OK]"
   },
   {
    "n": 32,
@@ -4140,7 +4140,7 @@
    "ticker": "AG.TO",
    "published_at": "2025-08-18T12:00:00Z",
    "stratum": "row:Au",
-   "body_sha1": "d4ee3e0e046b046ef0a66602e95b66768be57259",
+   "body_sha1": "d9e695897fdbf6eaddc115fc200c7b6a87781102",
    "review": "confirmed",
    "expect": {
     "is_result": true,
@@ -4346,7 +4346,7 @@
     ],
     "confidence": "medium"
    },
-   "note": "New 2025 exploration drill results; only true lengths are written (From/To only imply core length), so true lengths used; text cut off at Table 2 so further intercepts may exist."
+   "note": "New 2025 exploration drill results; only true lengths are written (From/To only imply core length), so true lengths used; text cut off at Table 2 so further intercepts may exist. [2026-10-05: text fingerprint refreshed (was d4ee3e0e046b) after a headline tidy-up / re-ingest; labels unchanged; Justin OK]"
   },
   {
    "n": 33,
@@ -4375,7 +4375,7 @@
    "ticker": "EPL.V",
    "published_at": "2025-12-01T12:00:00Z",
    "stratum": "row:Au",
-   "body_sha1": "f5a59d5115ebe6723c990221ca5b74dc7bd93072",
+   "body_sha1": "8919af7d99c0e7cd4cf67e5741ceddbbb339948a",
    "review": "confirmed",
    "expect": {
     "is_result": false,
@@ -4389,7 +4389,7 @@
     ],
     "confidence": "high"
    },
-   "note": "Only 2025 rock chip and grab samples (29.9 g/t Au over 1.8 m is a rock chip); drill intercepts quoted are historical."
+   "note": "Only 2025 rock chip and grab samples (29.9 g/t Au over 1.8 m is a rock chip); drill intercepts quoted are historical. [2026-10-05: text fingerprint refreshed (was f5a59d5115eb) after a headline tidy-up / re-ingest; labels unchanged; Justin OK]"
   },
   {
    "n": 35,
@@ -4397,7 +4397,7 @@
    "ticker": "MKO.V",
    "published_at": "2025-02-05T12:00:00Z",
    "stratum": "row:Au",
-   "body_sha1": "c84745d127acbf1f259c802d67d35a019b9f841b",
+   "body_sha1": "d484304da9b0b7adc454baa9cb6fe0c519a18811",
    "review": "confirmed",
    "expect": {
     "is_result": true,
@@ -4440,7 +4440,7 @@
     ],
     "confidence": "medium"
    },
-   "note": "New geotechnical/infill drill assays plus a channel sample (SACH24-001, excluded); pitgeotech015 uses 16.0 m drilled length, headline 15.4 m is ETW; text cut off."
+   "note": "New geotechnical/infill drill assays plus a channel sample (SACH24-001, excluded); pitgeotech015 uses 16.0 m drilled length, headline 15.4 m is ETW; text cut off. [2026-10-05: text fingerprint refreshed (was c84745d127ac) after a headline tidy-up / re-ingest; labels unchanged; Justin OK]"
   },
   {
    "n": 36,
@@ -4663,7 +4663,7 @@
    "ticker": "IRV.CN",
    "published_at": "2020-02-07T12:00:00Z",
    "stratum": "row:Au",
-   "body_sha1": "4f65ddb743b3d6b84ee1e4bfb8c4f56477629170",
+   "body_sha1": "09186c2c18527cac7b62851e89a483650904bcad",
    "review": "confirmed",
    "expect": {
     "is_result": true,
@@ -4999,7 +4999,7 @@
     ],
     "confidence": "medium"
    },
-   "note": "New assays for 19OMI-009/-010: 36 table rows x Au/Ag/AuEq = 108 entries, top 40 kept by Au grade x length; 19OMI-008 no significant values; text cut off."
+   "note": "New assays for 19OMI-009/-010: 36 table rows x Au/Ag/AuEq = 108 entries, top 40 kept by Au grade x length; 19OMI-008 no significant values; text cut off. [2026-10-05: text fingerprint refreshed (was 4f65ddb743b3) after a headline tidy-up / re-ingest; labels unchanged; Justin OK]"
   },
   {
    "n": 44,
@@ -5886,7 +5886,7 @@
    "ticker": "IRV.CN",
    "published_at": "2019-12-17T12:00:00Z",
    "stratum": "no_row",
-   "body_sha1": "1e317fe10f8cf1b777cf55322e956ad869415c2f",
+   "body_sha1": "4d995f6ad45ace1e9232721b468a29fe61714801",
    "review": "confirmed",
    "expect": {
     "is_result": true,
@@ -6094,7 +6094,7 @@
     ],
     "confidence": "high"
    },
-   "note": "First assays for 19OMI-001/-002 (8 rows x Au/Ag/AuEq); deep hole 19OMI-010 only visually logged, assays pending."
+   "note": "First assays for 19OMI-001/-002 (8 rows x Au/Ag/AuEq); deep hole 19OMI-010 only visually logged, assays pending. [2026-10-05: text fingerprint refreshed (was 1e317fe10f8c) after a headline tidy-up / re-ingest; labels unchanged; Justin OK]"
   }
  ],
  "review_process": "Justin marked all 50 items correct in the review page (17:12-17:17Z). Claude then re-read the release text for the 28 items where the live page disagreed with the label; Justin approved 3 corrections (#7, #15, #17) and 3 exclusions (#1, #42, #47)."

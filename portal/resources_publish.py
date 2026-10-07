@@ -313,12 +313,19 @@ def publish(conn, version, log=print):
     t0 = time.time()
     rows, st = compute(load_items(conn, version))
     _ensure_schema(conn)
+    # OPTD step A (2026-10-06): the same rowsync calls, run once before the write lock to work out the
+    # differences; the locked pass below then only applies them (portal/rowsync.py, planning). Kill switch:
+    # /opt/mnt/app/portal/rowsync_plan_OFF.
+    from portal import rowsync as _rowsync_plan
+    with _rowsync_plan.planning(conn):
+        # OPSFIX item 1 (2026-10-05): write only the rows that changed; same table contents (portal/rowsync.py)
+        from portal import rowsync
+        st["rowsync"] = rowsync.sync_rows(conn, "resource_estimates", "res_id", _COLS, rows, {"extractor_version": version})
     conn.execute("BEGIN IMMEDIATE")
     try:
-        conn.execute("DELETE FROM resource_estimates")
-        conn.executemany(
-            "INSERT INTO resource_estimates(" + ", ".join(_COLS) + ", extractor_version) VALUES ("
-            + ", ".join(":" + c for c in _COLS) + ", '" + version + "')", rows)
+        # OPSFIX item 1 (2026-10-05): write only the rows that changed; same table contents (portal/rowsync.py)
+        from portal import rowsync
+        st["rowsync"] = rowsync.sync_rows(conn, "resource_estimates", "res_id", _COLS, rows, {"extractor_version": version})
         conn.execute("COMMIT")
     except Exception:
         conn.execute("ROLLBACK")

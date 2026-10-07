@@ -55,7 +55,7 @@ _TICKER_RE = re.compile(r"^[A-Za-z0-9.\-]{1,16}$")
 _COLS = ("event_id, ordinal, ticker, slug, raw_headline, published_at, project, study_type, context, "
          "scenario, basis, currency, discount_pct, npv_pre_tax, npv_after_tax, irr_pre_tax_pct, "
          "irr_after_tax_pct, payback_years, initial_capex, capex_sensitivity, aisc, aisc_unit, "
-         "mine_life_years, tag_confirmed")
+         "mine_life_years, opex, opex_unit, throughput_tpd, annual_production, production_unit, tag_confirmed")
 
 
 # --------------------------------------------------------------------------- helpers (pure)
@@ -218,8 +218,38 @@ def _title(s: Optional[str]) -> str:
 
 # --------------------------------------------------------------------------- queries
 
+# MNT_FIX8B_API (2026-10-06): operating cost, plant throughput and annual production are served. economics
+# 1.0.14 reads them so that impossible figures are not stored; these bounds are a second guard at the door, so a
+# figure no mine can have never reaches a page even from an older row.
+_PROD_OK = {"oz": (500.0, 6e7), "lb": (1e4, 3e9), "t": (1.0, 3e8), "mtu": (1e3, 1e7)}
+
+
+def _fnum(v):
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return None
+    return f if math.isfinite(f) else None
+
+
+def _operating(r) -> dict:
+    keys = r.keys() if hasattr(r, "keys") else ()
+    g = lambda k: r[k] if k in keys else None
+    opex, ou = _fnum(g("opex")), (g("opex_unit") or "").strip()
+    if opex is None or not ou or abs(opex) > 1e5 or opex == 0:
+        opex, ou = None, ""
+    tpd = _fnum(g("throughput_tpd"))
+    if tpd is not None and not (1.0 <= tpd <= 5e5):
+        tpd = None
+    ap, pu = _fnum(g("annual_production")), (g("production_unit") or "").strip()
+    lo_hi = _PROD_OK.get(pu.lower())
+    if ap is None or lo_hi is None or not (lo_hi[0] <= ap <= lo_hi[1]):
+        ap, pu = None, ""
+    return {"opex": opex, "opex_unit": ou, "throughput_tpd": tpd, "annual_production": ap, "production_unit": pu}
+
+
 def _scenario(r) -> dict:
-    return {
+    return {**_operating(r),
         "scenario": r["scenario"] or "",
         "basis": r["basis"] or "",
         "currency": (r["currency"] or "").upper(),
@@ -278,7 +308,9 @@ def _study_type(members: list) -> str:
 
 
 _FILL = ("discount_pct", "npv_pre_tax", "irr_after_tax_pct", "irr_pre_tax_pct", "initial_capex", "payback_years",
-         "aisc", "mine_life_years")
+         "aisc", "mine_life_years", "opex", "throughput_tpd", "annual_production")
+_UNIT_OF = {"aisc": "aisc_unit", "opex": "opex_unit", "annual_production": "production_unit"}
+_OPERATING = ("aisc", "opex", "throughput_tpd", "annual_production")
 
 
 def _filled(rep: dict, rels: list) -> list:
@@ -296,10 +328,13 @@ def _filled(rep: dict, rels: list) -> list:
         if base["currency"] and ob["currency"] and base["currency"] != ob["currency"]:
             continue
         for k in _FILL:
+            if k in _OPERATING and not other.get("announced") and re.search(r"\b(Q[1-4]|quarter|results|production|operat)", other.get("headline") or "", re.I):
+                continue   # MNT_AUD3_ECON_V1: an AISC in a results or production release is the mine's operating AISC, not the study's
             if base.get(k) is None and ob.get(k) is not None:
                 base[k] = ob[k]
-                if k == "aisc":
-                    base["aisc_unit"] = ob.get("aisc_unit") or base.get("aisc_unit") or ""
+                if k in _UNIT_OF:
+                    u = _UNIT_OF[k]
+                    base[u] = ob.get(u) or base.get(u) or ""
     return out
 
 
@@ -655,6 +690,29 @@ def _selftest() -> int:
     r = query_studies(conn, P(ticker="GGG.V"), names, None)
     ok("type and project filled from a later release", r["total"] == 1 and r["items"][0]["study_type"] == "PFS"
        and r["items"][0]["project"] == "Gee Hill" and r["items"][0]["study_id"] == "g1")
+
+    # MNT_FIX8B_API: operating figures served, impossible ones held back, gaps filled like the other figures
+    conn.execute("INSERT INTO economic_studies (event_id, ticker, slug, study_type, context, scenario, currency, "
+                 "npv_after_tax, irr_after_tax_pct, opex, opex_unit, throughput_tpd, annual_production, production_unit, "
+                 "raw_headline, published_at) VALUES ('o1','OOO.V','s-o1','PEA','announced','base case','USD',300e6,"
+                 "30.0,45.2,'t',5000.0,150000.0,'oz','OOO PEA','2025-03-10T12:00:00')")
+    conn.execute("INSERT INTO economic_studies (event_id, ticker, slug, study_type, context, scenario, currency, "
+                 "npv_after_tax, irr_after_tax_pct, opex, opex_unit, throughput_tpd, annual_production, production_unit, "
+                 "raw_headline, published_at) VALUES ('q1','QQQ.V','s-q1','PEA','announced','base case','USD',90e6,"
+                 "20.0,1.0,'',1.8e9,5.0,'oz','QQQ PEA','2025-03-10T12:00:00')")
+    conn.execute("INSERT INTO economic_studies (event_id, ticker, slug, study_type, context, scenario, currency, "
+                 "npv_after_tax, irr_after_tax_pct, raw_headline, published_at) VALUES ('q2','QQQ.V','s-q2','PEA',"
+                 "'background','base case','USD',90e6,20.0,'QQQ restates','2025-04-10T12:00:00')")
+    conn.execute("INSERT INTO economic_studies (event_id, ticker, slug, study_type, context, scenario, currency, "
+                 "npv_after_tax, irr_after_tax_pct, annual_production, production_unit, raw_headline, published_at) VALUES "
+                 "('q3','QQQ.V','s-q3','PEA','background','base case','USD',90e6,20.0,61000.0,'oz',"
+                 "'QQQ Q2 production results','2025-07-10T12:00:00')")
+    o = query_studies(conn, P(ticker="OOO.V"), names, None)["items"][0]["scenarios"][0]
+    ok("FIX8B operating figures served", (o["opex"], o["opex_unit"], o["throughput_tpd"], o["annual_production"],
+       o["production_unit"]) == (45.2, "t", 5000.0, 150000.0, "oz"))
+    q = query_studies(conn, P(ticker="QQQ.V"), names, None)["items"][0]["scenarios"][0]
+    ok("FIX8B impossible figures held back; a results release does not fill the study's production",
+       (q["opex"], q["throughput_tpd"], q["annual_production"], q["production_unit"]) == (None, None, None, ""))
 
     print("economics_api selftest: %d failed" % len(fails))
     return 1 if fails else 0

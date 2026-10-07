@@ -441,7 +441,7 @@ def pending_events(conn, extractor, version, limit=2000, only_tagged=None, since
     return out
 
 
-def run_batch(conn, spec, events, batch=200, log=None):
+def run_batch(conn, spec, events, batch=200, log=None, extract_all=None):
     """Run spec over events, committing every `batch` events.
 
     Extraction happens BEFORE the write transaction opens, so the write lock is
@@ -450,6 +450,11 @@ def run_batch(conn, spec, events, batch=200, log=None):
     619 ms). An extractor exception, or output that fails validation
     (FactsError), is recorded as an error run and does not stop the rest; a
     database error is not caught: the batch rolls back and the run stops.
+
+    FACTS_PAR_V1 (2026-09-23): extract_all(spec, [(headline, body), ...]) -> [(records, error or None), ...] in the
+    same order, when given, does the extraction (facts_sync.py hands it to 3 low-priority worker processes).
+    Writing stays here, in this one process, in the same order, so the store gets exactly what the inline loop
+    would have written.
     Returns counts."""
     register_version(conn, spec.name, spec.version, spec.kind, spec.tag, spec.code_sha)
     counts = {"events": 0, "records": 0, "errors": 0, "tagged": 0, "fired_tagged": 0, "fired_untagged": 0,
@@ -464,13 +469,20 @@ def run_batch(conn, spec, events, batch=200, log=None):
         chunk = events[i:i + batch]
         t_ex = _t.monotonic()
         prepared = []
-        for ev in chunk:
-            tagged = has_tag(ev["categories"], spec.tag)
-            try:
-                recs = spec.extract(ev["raw_headline"] or "", ev["raw_body"] or "")
-                prepared.append((ev, tagged, recs, None))
-            except Exception as exc:  # recorded as an error run, not swallowed
-                prepared.append((ev, tagged, [], f"{type(exc).__name__}: {exc}"))
+        if extract_all is not None:
+            got = extract_all(spec, [(ev["raw_headline"] or "", ev["raw_body"] or "") for ev in chunk])
+            if len(got) != len(chunk):
+                raise FactsError(f"extract_all returned {len(got)} results for {len(chunk)} events")
+            for ev, (recs, err) in zip(chunk, got):
+                prepared.append((ev, has_tag(ev["categories"], spec.tag), recs if err is None else [], err))
+        else:
+            for ev in chunk:
+                tagged = has_tag(ev["categories"], spec.tag)
+                try:
+                    recs = spec.extract(ev["raw_headline"] or "", ev["raw_body"] or "")
+                    prepared.append((ev, tagged, recs, None))
+                except Exception as exc:  # recorded as an error run, not swallowed
+                    prepared.append((ev, tagged, [], f"{type(exc).__name__}: {exc}"))
         counts["extract_ms"] += (_t.monotonic() - t_ex) * 1000
         t0 = _t.monotonic()
         conn.execute("BEGIN IMMEDIATE")
@@ -710,6 +722,36 @@ def _selftest():
        and conn.execute("SELECT COUNT(*) FROM fx_runs WHERE version='2.0.0'").fetchone()[0] == 0)
     bad("rejected cannot activate", lambda: activate(conn, "economic_studies", "1.0.1"))
     ok("fk cascade on", conn.execute("PRAGMA foreign_keys").fetchone()[0] == 1)
+    # FACTS_PAR_V1: an outside extraction step (worker processes) writes exactly what the inline loop writes
+    spec_in = ExtractorSpec("par_check", "1.0.0", "economic_study", "Economic Studies", extract_v1, "sha-p1")
+    spec_out = ExtractorSpec("par_check", "1.0.1", "economic_study", "Economic Studies", extract_v1, "sha-p2")
+
+    def ext_all(sp, pairs):
+        out = []
+        for h, b in pairs:
+            try:
+                out.append((sp.extract(h, b), None))
+            except Exception as exc:  # noqa: BLE001
+                out.append(([], f"{type(exc).__name__}: {exc}"))
+        return out
+    run_batch(conn, spec_in, pending_events(conn, "par_check", "1.0.0"), batch=2)
+    c_out = run_batch(conn, spec_out, pending_events(conn, "par_check", "1.0.1"), batch=2, extract_all=ext_all)
+
+    def facts_of(v):
+        return sorted(tuple(r) for r in conn.execute(
+            "SELECT r.event_id, r.ordinal, f.field, f.seq, f.value_num, f.value_text, f.unit FROM fx_records r "
+            "JOIN fx_facts f ON f.record_id = r.record_id WHERE r.extractor='par_check' AND r.version=?", (v,)))
+    ok("outside extraction writes what inline writes", facts_of("1.0.0") == facts_of("1.0.1") and facts_of("1.0.0")
+       and c_out["errors"] == 0)
+    spec_to = ExtractorSpec("par_check", "1.0.2", "economic_study", "Economic Studies", extract_v1, "sha-p3")
+    c_to = run_batch(conn, spec_to, pending_events(conn, "par_check", "1.0.2"),
+                     extract_all=lambda sp, pairs: [([], "Timeout: over 30 s") for _ in pairs])
+    ok("a worker timeout is an error run", c_to["errors"] == c_to["events"] > 0 and conn.execute(
+        "SELECT COUNT(*) FROM fx_runs WHERE extractor='par_check' AND version='1.0.2' AND status='error' "
+        "AND error LIKE 'Timeout%'").fetchone()[0] == c_to["events"])
+    spec_bad_n = ExtractorSpec("par_check", "1.0.3", "economic_study", "Economic Studies", extract_v1, "sha-p4")
+    bad("extract_all must answer every event", lambda: run_batch(
+        conn, spec_bad_n, pending_events(conn, "par_check", "1.0.3"), extract_all=lambda sp, pairs: []))
     ok("integrity", conn.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
        and conn.execute("PRAGMA foreign_key_check").fetchall() == [])
     return passed

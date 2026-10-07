@@ -20,6 +20,10 @@ List parameters
   days       only deals whose latest release is in the last N days
   page, limit    1-based page, limit 1..200 (default 50) - counted in deals
   universe   all (default) | mtp -> only deals issued by companies on MTP's list (fails open)
+  include    deal (default) | vendor | held | all, or a comma list such as vendor,held  (MNT_ROY_API_KINDS_V1)
+             deal = royalty and stream deals; vendor = a royalty kept by or granted to a property's seller or
+             optionor in a property deal; held = a release about a royalty the company already holds.
+             Every item carries `kind` and `kind_label` (Deal / Vendor royalty / Held royalty).
 
 Registered from portal.serve via royalties_api.register(app).
 Self-tests: python3 -m portal.royalties_api --selftest   (in-memory; touches nothing live)
@@ -48,6 +52,8 @@ MAX_LIMIT = 200
 DEFAULT_LIMIT = 50
 TYPES = {"nsr": "NSR", "grr": "GRR", "npi": "NPI", "stream": "stream", "other": "other"}
 ACTIONS = ("new", "transfer", "buyback", "amendment")
+KINDS = ("deal", "vendor", "held")                                     # MNT_ROY_API_KINDS_V1
+KIND_LABELS = {"deal": "Deal", "vendor": "Vendor royalty", "held": "Held royalty"}
 TYPE_LABELS = {"NSR": "NSR", "GRR": "GRR", "NPI": "NPI", "stream": "Stream", "other": "Royalty"}
 ACTION_LABELS = {"new": "New / granted", "transfer": "Bought / sold", "buyback": "Buyback / buy-down",
                  "amendment": "Amended"}
@@ -55,7 +61,7 @@ ACTION_LABELS = {"new": "New / granted", "transfer": "Bought / sold", "buyback":
 _TICKER_RE = re.compile(r"^[A-Za-z0-9.\-]{1,16}$")
 
 _COLS = ("rd_id, event_id, ordinal, ticker, slug, type, rate_pct, metal, property, operator, buyer, seller, price, "
-         "currency, price_note, action, status, deal_key, raw_headline, published_at")
+         "currency, price_note, action, status, deal_key, raw_headline, published_at, kind")   # MNT_ROY_API_KINDS_V1: + kind
 
 
 # --------------------------------------------------------------------------- helpers (pure)
@@ -200,8 +206,16 @@ class BadRequest(ValueError):
 
 
 def parse_params(ticker=None, type=None, action=None, days=None, page=None, limit=None, universe=None,
-                 today=None) -> dict:
+                 today=None, include=None) -> dict:
     p: dict[str, Any] = {}
+    inc = [x.strip().lower() for x in str(include or "").split(",") if x.strip()]   # MNT_ROY_API_KINDS_V1
+    inc = ["deal" if x == "deals" else x for x in inc]
+    if "all" in inc:
+        inc = list(KINDS)
+    for x in inc:
+        if x not in KINDS:
+            raise BadRequest("include: deal, vendor, held or all")
+    p["kinds"] = tuple(k for k in KINDS if k in inc) or ("deal",)
     t = (ticker or "").strip()
     if t:
         if not _TICKER_RE.match(t):
@@ -288,6 +302,7 @@ def build_deals(rows, names: dict) -> list[dict]:
             "operator": d["operator"] or "", "buyer": d["buyer"] or "", "seller": d["seller"] or "",
             "price": _num(d["price"]), "currency": d["currency"] or "", "price_note": d["price_note"] or "",
             "action": last["action"] or "", "action_label": ACTION_LABELS.get(last["action"] or "", last["action"] or ""),
+            "kind": _kind(last), "kind_label": KIND_LABELS.get(_kind(last), "Deal"),   # MNT_ROY_API_KINDS_V1
             "status": d["status"] or "",
             "date": (last["published_at"] or "")[:10], "published_at": last["published_at"] or "",
             "first_reported": (rs[0]["published_at"] or "")[:10], "releases": len(releases),
@@ -298,6 +313,14 @@ def build_deals(rows, names: dict) -> list[dict]:
         })
     out.sort(key=lambda x: (x["published_at"], x["deal_id"]), reverse=True)
     return out
+
+
+def _kind(r) -> str:
+    try:
+        k = (r["kind"] or "deal").strip().lower()
+    except (IndexError, KeyError):
+        k = "deal"
+    return k if k in KINDS else "deal"
 
 
 def roles_for(deal: dict, ticker: str, company: str) -> list:
@@ -311,8 +334,9 @@ def roles_for(deal: dict, ticker: str, company: str) -> list:
 
 
 def query_deals(conn, p: dict, names: dict, universe: Optional[frozenset]) -> dict:
-    rows = conn.execute("SELECT " + _COLS + " FROM royalty_deals WHERE type IS NOT NULL "
-                        "ORDER BY published_at, event_id, ordinal").fetchall()
+    kinds = tuple(p.get("kinds") or ("deal",))   # ROY11: deals only by default; MNT_ROY_API_KINDS_V1: include=
+    rows = conn.execute("SELECT " + _COLS + " FROM royalty_deals WHERE type IS NOT NULL AND COALESCE(kind, 'deal') IN ("
+                        + ",".join("?" * len(kinds)) + ") ORDER BY published_at, event_id, ordinal", kinds).fetchall()
     deals = build_deals(rows, names)
     t = p.get("ticker")
     if t:
@@ -344,6 +368,7 @@ def query_deals(conn, p: dict, names: dict, universe: Optional[frozenset]) -> di
         "ok": True, "api_version": API_VERSION, "total": total, "page": page,
         "pages": max(1, math.ceil(total / limit)) if total else 0, "limit": limit,
         "filters": {k: p[k] for k in ("ticker", "type", "action", "since") if p.get(k)},
+        "include": list(p.get("kinds") or ("deal",)),   # MNT_ROY_API_KINDS_V1
         "universe": p["universe"], "universe_applied": bool(universe) and not t,
         "items": deals[(page - 1) * limit: page * limit],
     }
@@ -360,9 +385,9 @@ def register(app) -> None:
     @app.get("/api/v1/royalties")
     def royalties_list(ticker: Optional[str] = None, type: Optional[str] = None, action: Optional[str] = None,
                        days: Optional[str] = None, page: Optional[str] = None,
-                       limit: Optional[str] = None, universe: Optional[str] = None):
+                       limit: Optional[str] = None, universe: Optional[str] = None, include: Optional[str] = None):
         try:
-            p = parse_params(ticker, type, action, days, page, limit, universe)
+            p = parse_params(ticker, type, action, days, page, limit, universe, include=include)
         except BadRequest as e:
             return _err(str(e), 400)
         uni = None
@@ -395,7 +420,7 @@ def _selftest() -> int:
         property TEXT, operator TEXT, buyer TEXT, seller TEXT, price REAL, currency TEXT, price_note TEXT,
         action TEXT, status TEXT, deal_key TEXT, deal_releases INTEGER NOT NULL DEFAULT 1, first_reported TEXT,
         is_latest INTEGER NOT NULL DEFAULT 1, n_rows INTEGER NOT NULL DEFAULT 1, tag_confirmed INTEGER NOT NULL DEFAULT 0,
-        raw_headline TEXT, published_at TEXT, extractor_version TEXT);
+        raw_headline TEXT, published_at TEXT, extractor_version TEXT, kind TEXT);
     """)
 
     def row(eid, t, date, typ="NSR", rate=None, prop=None, op=None, buyer=None, seller=None, price=None, cur=None,
@@ -453,6 +478,24 @@ def _selftest() -> int:
         except BadRequest:
             return True
     ok("bad params", bad(type="x") and bad(action="x") and bad(ticker="A'--") and bad(universe="x"))
+    # MNT_ROY_API_KINDS_V1
+    conn.execute("INSERT INTO royalty_deals (event_id, ticker, slug, type, rate_pct, property, seller, action, deal_key, "
+                 "raw_headline, published_at, kind) VALUES ('v1','SPA.V','s-v1','NSR',2.0,'Lucky','Vendor Co','new',"
+                 "'vendor:NSR:lucky','H','2026-08-01T12:00:00','vendor')")
+    conn.execute("INSERT INTO royalty_deals (event_id, ticker, slug, type, rate_pct, property, action, deal_key, "
+                 "raw_headline, published_at, kind) VALUES ('h1','EVR.CN','s-h1','NSR',1.0,'Azules','held',"
+                 "'held:NSR:azules','H','2026-08-02T12:00:00','held')")
+    r = query_deals(conn, P(), names, None)
+    ok("default is deals only, unchanged", r["total"] == 3 and all(d["kind"] == "deal" for d in r["items"])
+       and r["include"] == ["deal"] and r["items"][0]["kind_label"] == "Deal")
+    r = query_deals(conn, P(include="all"), names, None)
+    ok("include=all adds vendor and held", r["total"] == 5 and sorted(d["kind"] for d in r["items"]).count("deal") == 3
+       and {d["kind_label"] for d in r["items"]} == {"Deal", "Vendor royalty", "Held royalty"})
+    ok("include=vendor,held", query_deals(conn, P(include="vendor,held"), names, None)["total"] == 2)
+    ok("include=held", [d["property"] for d in query_deals(conn, P(include="held"), names, None)["items"]] == ["Azules"])
+    ok("include=deals alias", query_deals(conn, P(include="deals"), names, None)["total"] == 3)
+    ok("include ticker", query_deals(conn, P(ticker="SPA", include="all"), names, None)["total"] == 2)
+    ok("bad include", bad(include="x") and bad(include="deal,x"))
     print("royalties_api selftest: %d failed" % len(fails))
     return 1 if fails else 0
 

@@ -264,6 +264,164 @@ def build_permits(rows, names: dict) -> list[dict]:
     return out
 
 
+# MNT_SPEED_V2 (2026-09-25): without a ticker the whole table was rebuilt on every call (~4 s for exploration at
+# ~50k rows). The built list is kept per worker while the table is unchanged (row count and max rowid) and for at
+# most 5 minutes; filters and paging still run per call on a copy of the list. Only for a database file, so the
+# in-memory self-tests always build fresh.
+# OPSFIX item 3 (2026-10-05): the build took 11 s for exploration (69,903 rows) and ran once per worker after every
+# update and every 5 minutes. Now: in memory for up to 30 minutes (the row-count/max-rowid fingerprint still
+# invalidates it on any change), one build at a time per worker, and the result is shared with the other worker
+# through a file in _DISK_DIR keyed on the table, query, fingerprint and company names, so each data change costs
+# one build in total. Any file problem falls back to building, exactly as before.
+import os as _o3
+import pickle as _p3
+import hashlib as _h3
+
+_BUILT_CACHE: dict = {}
+_BUILT_TTL = 1800.0
+_BUILT_LOCK = threading.Lock()
+_BUILD_LOCKS: dict = {}
+_DISK_DIR = _o3.environ.get("MNT_LISTCACHE_DIR", "/opt/mnt/app/data/listcache")
+
+
+def _disk_path(table: str, sql: str, args: list, names: dict, fp) -> str:
+    h = _h3.sha256(repr((table, sql, tuple(args), tuple(fp))).encode("utf-8"))
+    try:
+        h.update(repr(sorted(names.items())).encode("utf-8"))
+    except Exception:
+        h.update(repr(id(names)).encode("utf-8"))
+    return _o3.path.join(_DISK_DIR, "%s-%s.pkl" % (table, h.hexdigest()[:24]))
+
+
+def _disk_load(path: str):
+    try:
+        with open(path, "rb") as f:
+            return _p3.load(f)
+    except Exception:
+        return None
+
+
+def _disk_save(path: str, built, table: str) -> None:
+    try:
+        _o3.makedirs(_DISK_DIR, exist_ok=True)
+        tmp = "%s.%d.tmp" % (path, _o3.getpid())
+        with open(tmp, "wb") as f:
+            _p3.dump(built, f, protocol=_p3.HIGHEST_PROTOCOL)
+        _o3.replace(tmp, path)
+        now = time.time()
+        for name in _o3.listdir(_DISK_DIR):          # drop this table's older builds after an hour
+            p = _o3.path.join(_DISK_DIR, name)
+            if name.startswith(table + "-") and p != path and now - _o3.path.getmtime(p) > 3600:
+                _o3.remove(p)
+    except Exception:
+        pass
+
+
+def _built_all(conn, sql: str, args: list, names: dict, build, table: str) -> list:
+    # OPSFIX item 3b+3c (2026-10-05): the in-memory copy was keyed on id(names), and the company-name map is a new
+    # object every time tickers.json is rewritten (several times an hour), so each rewrite added another full copy
+    # of the list (~250 MB for exploration) until 17 had piled up; workers grew to 1.2-1.6 GB. Now there is one
+    # copy per query, replaced in place, and it is reused while the table and the names of the tickers it shows
+    # are unchanged (a rename elsewhere in tickers.json no longer forces an 11 s rebuild).
+    def fresh():
+        return build(conn.execute(sql + " ORDER BY published_at, event_id, ordinal", args).fetchall(), names)
+    try:
+        dbfile = conn.execute("PRAGMA database_list").fetchone()[2] or ""
+    except Exception:
+        dbfile = ""
+    if not dbfile:
+        return fresh()
+    fp = tuple(conn.execute("SELECT count(*), max(rowid) FROM " + table).fetchone())
+    nkey = _names_key(conn, table, fp, names)
+    key = (dbfile, sql, tuple(args))
+    with _BUILT_LOCK:
+        hit = _BUILT_CACHE.get(key)
+        lock = _BUILD_LOCKS.setdefault(key, threading.Lock())
+    if hit is not None and hit[1] == fp and hit[2] == nkey and time.monotonic() - hit[0] < _BUILT_TTL:
+        return list(hit[3])
+    # OPSFIX item 3c (2026-10-05): when this worker already holds a copy and the data or names moved on, hand the
+    # visitor that copy at once and rebuild it in the background on a read-only connection of its own (one rebuild
+    # at a time per query). Only a worker's very first request for a list waits for a build.
+    if hit is not None and lock.acquire(blocking=False):
+        try:
+            _th3.Thread(target=_refresh_bg, args=(dbfile, conn.row_factory, sql, args, names, build, table, key, lock),
+                        name="listcache-refresh", daemon=True).start()
+        except Exception:
+            lock.release()
+            raise
+        return list(hit[3])
+    if hit is not None:
+        return list(hit[3])            # a refresh is already running
+    with lock:
+        with _BUILT_LOCK:
+            hit = _BUILT_CACHE.get(key)
+        if hit is not None and hit[1] == fp and hit[2] == nkey and time.monotonic() - hit[0] < _BUILT_TTL:
+            return list(hit[3])
+        path = _o3.path.join(_DISK_DIR, "%s-%s.pkl" % (table, _h3.sha256(
+            repr((table, sql, tuple(args), tuple(fp), nkey)).encode("utf-8")).hexdigest()[:24]))
+        built = _disk_load(path)
+        if built is None:
+            built = fresh()
+            _disk_save(path, built, table)
+        _store_built(key, (time.monotonic(), fp, nkey, built))
+    return list(built)
+
+
+_BUILT_MAX = 8
+
+
+def _store_built(key, entry) -> None:
+    # at most _BUILT_MAX lists per worker; the oldest-built goes first (filtered variants of a list are separate keys)
+    with _BUILT_LOCK:
+        _BUILT_CACHE[key] = entry
+        while len(_BUILT_CACHE) > _BUILT_MAX:
+            _BUILT_CACHE.pop(min(_BUILT_CACHE, key=lambda k: _BUILT_CACHE[k][0]), None)
+
+
+_NKEY_CACHE: dict = {}
+
+
+def _names_key(conn, table: str, fp, names: dict) -> str:
+    """Fingerprint of the company names of the tickers this table holds (the only names a list row shows)."""
+    k = (table, fp, id(names), len(names))
+    with _BUILT_LOCK:
+        v = _NKEY_CACHE.get(k)
+    if v is None:
+        tickers = sorted((r[0] or "") for r in conn.execute("SELECT DISTINCT ticker FROM " + table))
+        v = _h3.sha256(repr([(t, names.get(t, "")) for t in tickers]).encode("utf-8")).hexdigest()[:24]
+        with _BUILT_LOCK:
+            if len(_NKEY_CACHE) > 64:
+                _NKEY_CACHE.clear()
+            _NKEY_CACHE[k] = v
+    return v
+
+
+import threading as _th3
+import sqlite3 as _sq3
+
+
+def _refresh_bg(dbfile, row_factory, sql, args, names, build, table, key, lock):
+    try:
+        c = _sq3.connect("file:%s?mode=ro" % dbfile, uri=True, timeout=30)
+        try:
+            c.row_factory = row_factory
+            fp = tuple(c.execute("SELECT count(*), max(rowid) FROM " + table).fetchone())
+            nkey = _names_key(c, table, fp, names)
+            path = _o3.path.join(_DISK_DIR, "%s-%s.pkl" % (table, _h3.sha256(
+                repr((table, sql, tuple(args), tuple(fp), nkey)).encode("utf-8")).hexdigest()[:24]))
+            built = _disk_load(path)
+            if built is None:
+                built = build(c.execute(sql + " ORDER BY published_at, event_id, ordinal", args).fetchall(), names)
+                _disk_save(path, built, table)
+            _store_built(key, (time.monotonic(), fp, nkey, built))
+        finally:
+            c.close()
+    except Exception:
+        pass
+    finally:
+        lock.release()
+
+
 def query_permits(conn, p: dict, names: dict, universe: Optional[frozenset]) -> dict:
     sql = "SELECT " + _COLS + " FROM permits WHERE status IS NOT NULL"
     args: list = []
@@ -272,10 +430,13 @@ def query_permits(conn, p: dict, names: dict, universe: Optional[frozenset]) -> 
         b = bare(t)
         sql += " AND (UPPER(ticker) = ? OR UPPER(ticker) = ? OR UPPER(ticker) LIKE ?)"
         args += [t, b, b + ".%"]
-    rows = conn.execute(sql + " ORDER BY published_at, event_id, ordinal", args).fetchall()
-    if t and "." in t and any(_s(r["ticker"]).upper() == t for r in rows):
-        rows = [r for r in rows if _s(r["ticker"]).upper() == t]    # the listing asked for, not a namesake
-    pms = build_permits(rows, names)
+    if not t:
+        pms = _built_all(conn, sql, args, names, build_permits, "permits")    # MNT_SPEED_V2
+    else:
+        rows = conn.execute(sql + " ORDER BY published_at, event_id, ordinal", args).fetchall()
+        if "." in t and any(_s(r["ticker"]).upper() == t for r in rows):
+            rows = [r for r in rows if _s(r["ticker"]).upper() == t]    # the listing asked for, not a namesake
+        pms = build_permits(rows, names)
     if p["scope"] == "tagged":
         pms = [x for x in pms if x["tagged"]]      # same rule as /permits-approvals: the lead release is tagged
     if universe and not t:

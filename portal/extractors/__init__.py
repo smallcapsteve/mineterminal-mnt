@@ -27,6 +27,11 @@ from portal.extractors import production as _production
 from portal.extractors import royalties as _royalties
 from portal.extractors import exploration as _exploration
 from portal.extractors import technical as _technical
+from portal.extractors import permits as _permits
+from portal.extractors import options as _options
+from portal.extractors import debt as _debt
+from portal.extractors import mine_dev as _mine_dev
+from portal.extractors import sampling as _sampling
 
 # FIN_V1 (2026-09-17): the new financings reader; portal/financing_publish.py publishes the active version
 # MGMT_V1 (2026-09-17): the new management-changes reader, one record per person;
@@ -47,4 +52,19 @@ REGISTRY = [_drill_results.SPEC, _financings.SPEC, _management.SPEC, _resources.
             _exploration.SPEC,
             # TECH_V1 (2026-09-22): the Technical Reports reader, one record per NI 43-101 report;
             # portal/technical_publish.py publishes the active version
-            _technical.SPEC]
+            _technical.SPEC,
+            # PERMIT_V1 (2026-09-22): the Permits & Approvals reader, one record per permit at its stage;
+            # portal/permits_publish.py publishes the active version
+            _permits.SPEC,
+            # OPT_V1 (2026-09-23): the Property Options & Staking reader, one record per land deal at its stage;
+            # portal/options_publish.py publishes the active version
+            _options.SPEC,
+            # DEBT_V1 (2026-09-24): the Debt & Credit Facilities reader, one record per debt instrument at its
+            # stage; portal/debt_publish.py publishes the active version
+            _debt.SPEC,
+            # DEV_V1 (2026-09-28): the Mine Development & Operations reader, one record per headline event;
+            # portal/mine_dev_publish.py publishes the active version (tagged releases only)
+            _mine_dev.SPEC,
+            # SMP_V1 (2026-09-29): the Sampling & Geoscience Results reader, one record per sample type per
+            # project; portal/sampling_publish.py publishes the active version (tagged releases)
+            _sampling.SPEC]

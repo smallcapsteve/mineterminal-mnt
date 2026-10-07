@@ -561,6 +561,8 @@ def find_match(pcon: sqlite3.Connection, rel: dict,
     `title` overrides rel["title"]. That is how a TMX release is matched: the
     caller pulls the real headline out of the PDF and passes it here, because
     rel["title"] is the string "News release" for every TMX row in the store."""
+    # EXCOV_V1 (2026-09-28): only a release visitors can see, or a hidden duplicate of one, counts as found. A
+    # copy parked in a review queue does not: the release is not on the site.
     d = rel["published_date"]
     n1 = norm(title if title is not None else rel["title"])
     if not n1 or n1 in ("newsrelease", "newsreleases"):
@@ -582,13 +584,13 @@ def find_match(pcon: sqlite3.Connection, rel: dict,
     if _w:
         own = pcon.execute(
             "SELECT event_id, raw_headline, ticker FROM events "
-            "WHERE (ticker = ? OR ticker LIKE ?) AND published_at >= ? AND published_at < ?",
+            "WHERE review_status IN ('auto_approved', 'duplicate_of_wire') AND (ticker = ? OR ticker LIKE ?) AND published_at >= ? AND published_at < ?",
             (rel["bare"], rel["bare"] + ".%", _w[0], _w[1]),
         ).fetchall()
     else:
         own = pcon.execute(
             "SELECT event_id, raw_headline, ticker FROM events "
-            "WHERE (ticker = ? OR ticker LIKE ?) AND date(published_at) BETWEEN date(?,'-3 day') AND date(?,'+3 day')",
+            "WHERE review_status IN ('auto_approved', 'duplicate_of_wire') AND (ticker = ? OR ticker LIKE ?) AND date(published_at) BETWEEN date(?,'-3 day') AND date(?,'+3 day')",
             (rel["bare"], rel["bare"] + ".%", d, d),
         ).fetchall()
     eid, tk = scan(own)
@@ -599,13 +601,13 @@ def find_match(pcon: sqlite3.Connection, rel: dict,
     if _w:
         other = pcon.execute(
             "SELECT event_id, raw_headline, ticker FROM events "
-            "WHERE published_at >= ? AND published_at < ?",
+            "WHERE review_status IN ('auto_approved', 'duplicate_of_wire') AND published_at >= ? AND published_at < ?",
             (_w[0], _w[1]),
         ).fetchall()
     else:
         other = pcon.execute(
             "SELECT event_id, raw_headline, ticker FROM events "
-            "WHERE date(published_at) BETWEEN date(?,'-2 day') AND date(?,'+2 day')",
+            "WHERE review_status IN ('auto_approved', 'duplicate_of_wire') AND date(published_at) BETWEEN date(?,'-2 day') AND date(?,'+2 day')",
             (d, d),
         ).fetchall()
     eid, tk = scan(other)
@@ -638,19 +640,21 @@ def covered_by_count(pcon: sqlite3.Connection, rels: list[dict]) -> set:
     # SHORTFIX_V1 (2026-09-24): the company's own events only - exact ticker or ticker plus exchange suffix. A prefix
     # match ('K%') counted KRY and KNT events as Kinross's and marked its releases covered. Events rejected as not
     # being releases (NRHIDE_V1) do not count either.
+    # EXCOV_V1 (2026-09-28): only events visitors can see count. A copy parked for review (the newswire.ca queue)
+    # counted as coverage, so the exchange copy was skipped and ~500 releases stayed off the site.
     for (b, d), group in by_day.items():
         _w = _win(d, 1, 1)
         if _w:
             have = pcon.execute(
                 "SELECT COUNT(*) FROM events WHERE (ticker = ? OR ticker LIKE ?) "
-                "AND COALESCE(review_status, '') <> 'rejected' "
+                "AND review_status = 'auto_approved' "
                 "AND published_at >= ? AND published_at < ?",
                 (b, b + ".%", _w[0], _w[1]),
             ).fetchone()[0]
         else:
             have = pcon.execute(
                 "SELECT COUNT(*) FROM events WHERE (ticker = ? OR ticker LIKE ?) "
-                "AND COALESCE(review_status, '') <> 'rejected' "
+                "AND review_status = 'auto_approved' "
                 "AND date(published_at) BETWEEN date(?,'-1 day') AND date(?,'+1 day')",
                 (b, b + ".%", d, d),
             ).fetchone()[0]
@@ -1113,7 +1117,12 @@ def main() -> int:
     settled = {r[0] for r in con.execute(
         "SELECT uid FROM releases WHERE status IN "
         "('covered','matched','ingested','skipped') "
-        "OR (status='error' AND acted_at > datetime('now','-3 day'))")}
+        "OR (status='error' AND acted_at > datetime('now','-3 day') "
+        # MNT_EXCH_RETRY_V1 (2026-09-29): a TMX/quotemedia HTTP 5xx and a timed-out post to MNT are passing faults -
+        # the same PDF links answered 500 one minute and 200 the next. Retry those on the next run instead of
+        # holding them back for three days (Sep 25 and 28 lost 43 releases that way); unreadable PDFs still wait.
+        "AND COALESCE(note,'') NOT LIKE 'fetch: HTTPError HTTP Error 5%' "
+        "AND COALESCE(note,'') NOT LIKE 'post -1: timed out%')")}
     fresh = [r for r in releases
              if uid_for(r["source"], r["ticker"], r["published_date"], r["title"])
              not in settled]

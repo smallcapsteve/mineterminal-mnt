@@ -1272,3 +1272,20 @@ main {
    with the same specificity, so a selected coloured chip kept its pale
    background under white text. Two classes outrank one. */
 .cat-chip.cat-chip-on { background: var(--brand-red); border-color: var(--brand-red); }
+
+/* NEWTAGS_V1 (2026-09-26): five tags from the Corporate Updates audit. Selected state is handled by
+   .cat-chip.cat-chip-on above (higher specificity), so order here does not matter. */
+.cat-chip-dev, .cat-dev { background: #fdeee3; border-color: #e9c3a3; color: #7a3f12; }
+.cat-chip-smp, .cat-smp { background: #e6f5ef; border-color: #a9d8c4; color: #1e5b45; }
+.cat-chip-leg, .cat-leg { background: #efeef3; border-color: #c6c3d6; color: #45405e; }
+.cat-chip-ltr, .cat-ltr { background: #e8f2fb; border-color: #b3d0ee; color: #1f4f7a; }
+.cat-chip-cmt, .cat-cmt { background: #f3f1ec; border-color: #d5cfc2; color: #5a5245; }
+
+/* RELFMT_V1 (2026-10-02): release tables keep their alignment; exchange-PDF bodies */
+.body-html td p, .body-html th p { margin: 0; }
+.body-html td[align="right" i], .body-html th[align="right" i], .body-html .prntar, .body-html .bwalignr { text-align: right; }
+.body-html td[align="center" i], .body-html th[align="center" i], .body-html .prntac, .body-html .bwalignc { text-align: center; }
+.body-html td.num, .body-html th.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.body-html table.pdf-table th { text-align: left; vertical-align: bottom; }
+.body-html .pdf-sub { margin: 1.2em 0 0.5em; }
+.body-html .txt-rows { font-variant-numeric: tabular-nums; background: #fafafa; border-left: 3px solid var(--line); padding: 6px 10px; }

@@ -70,7 +70,10 @@
     {% if event["raw_html"] %}
       <div class="body body-html">{{ event["raw_html"] | clean_html(event["source_url"] or "") | safe }}</div>
     {% elif event["raw_body"] %}
-      <div class="body">{% for para in event["raw_body"].replace("\r\n","\n").split("\n") %}{% if para.strip() %}<p>{{ para }}</p>{% endif %}{% endfor %}</div>
+      {# RELFMT_V1: HTML rebuilt from the release PDF when we have it, else the text re-joined into paragraphs #}
+      {% set _pdfh = event["event_id"] | pdf_html %}
+      {% if _pdfh %}<div class="body body-html body-pdf">{{ _pdfh | safe }}</div>
+      {% else %}<div class="body body-html body-text">{{ event["raw_body"] | reflow_text(event["raw_headline"] or "") | safe }}</div>{% endif %}
     {% elif event["raw_excerpt"] %}
       <p class="excerpt">{{ event["raw_excerpt"] }}</p>
     {% else %}

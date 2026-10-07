@@ -24,7 +24,8 @@ Grouping, per ticker, oldest first (compute() is pure, so the accuracy gate can 
 
 Deal values: status follows the latest release that changes it (updates do not), size announced is
 the latest size offered, size closed is a running total (a stated aggregate replaces it, a tranche
-adds to it), price, warrant and currency come from the earliest release that states them.
+adds to it), price, warrant and currency come from the earliest release that states them. Unit count (1.0.4
+reader) follows the same rules and is left blank when any tranche of a closed total has no count.
 
 Timer use (sync_structured.py): python3 -m portal.financing_publish
   - an active financings version exists  -> publish it
@@ -323,7 +324,8 @@ def compute(items):
         d = {"id": None, "ticker": tk, "seed": ev["event_id"], "first_date": dt, "last_date": dt, "releases": [],
              "types": list(a.get("types") or []), "offering": a.get("offering"), "currency": None, "offered": None,
              "offered_alt": [], "final": False, "terminated": False, "status": None, "closed": None,
-             "n_tranches": 0, "price": None, "prices": [], "warrant": None, "orphan": role != "announcement"}
+             "n_tranches": 0, "price": None, "prices": [], "warrant": None, "orphan": role != "announcement",
+             "units_offered": None, "units_closed": None}
         deals.append(d)
         mine.append(d)
         st["deals"] += 1
@@ -349,6 +351,7 @@ def _part_analysis(a, p):
     q["conversion"] = p.get("price") if "CD" in q["types"] else None
     q["warrants"] = [] if set(q["types"]) & ({"CD"} | DEBTISH) else list(a.get("warrants") or [])
     q["parts"] = []
+    q["units_offered"] = q["units_this_close"] = q["units_closed_total"] = None     # counts belong to the whole release
     return q
 
 
@@ -445,6 +448,7 @@ def _attach(d, rel, a, dt, head, duplicate=False, secondary=False):
         else:
             d["offered"] = a["offered"]
             d["offered_alt"] = list(a.get("offered_alt") or [])
+            d["units_offered"] = a.get("units_offered")
     if a.get("prices"):
         for p in a["prices"]:
             if all(not same_price(p, q, 0.001) for q in d["prices"]):
@@ -461,6 +465,12 @@ def _attach(d, rel, a, dt, head, duplicate=False, secondary=False):
                 d["closed"] = a["closed_total"]
         elif a.get("this_close"):
             d["closed"] = (d["closed"] or 0) + a["this_close"]
+        if a.get("closed_total"):
+            d["units_closed"] = a.get("units_closed_total")
+        elif a.get("this_close"):
+            first = d["n_tranches"] == 1
+            d["units_closed"] = (a["units_this_close"] + (0 if first else d["units_closed"])) if a.get("units_this_close") and \
+                (first or d["units_closed"] is not None) else None
         if role == "final_close":
             d["final"] = True
         new = STATUS_OF[role]
@@ -486,7 +496,8 @@ def rows_for(deals, releases, version):
             "financing_id": d["id"], "ticker": d["ticker"], "announced_at": d["first_date"], "last_update_at": d["last_date"],
             "kind": kind, "status": d["status"], "gross_announced": d["offered"], "gross_closed": d["closed"],
             "unit_price": d["price"], "unit_comp": unit_comp(w.get("per_unit")), "warrant_strike": w.get("strike"),
-            "warrant_term_months": w.get("term_months"), "unit_count": None, "n_tranches": d["n_tranches"],
+            "warrant_term_months": w.get("term_months"),
+            "unit_count": d.get("units_closed") if d["closed"] else d.get("units_offered"), "n_tranches": d["n_tranches"],
             "n_events": len(d["releases"]), "seed_event_id": d["seed"], "currency": d["currency"] or "CAD",
             "extractor_version": version,
             "gross_offered_max": max(d["offered_alt"]) if d["offered_alt"] else None,
@@ -502,7 +513,10 @@ def rows_for(deals, releases, version):
             "event_id": ev["event_id"], "financing_id": r["deal"]["id"] if r["deal"] else None, "ticker": ev.get("ticker") or "",
             "role": role, "tranche_label": a.get("tranche"),
             "kind": "+".join(list(a.get("types") or []) + ([a["offering"]] if a.get("offering") else [])) or None,
-            "gross_total": gross, "unit_count": None, "unit_price": (a.get("prices") or [None])[0],
+            "gross_total": gross,
+            "unit_count": ((a.get("units_this_close") if a.get("this_close") else a.get("units_closed_total")) if closing
+                           else a.get("units_offered")),
+            "unit_price": (a.get("prices") or [None])[0],
             "unit_comp": unit_comp(w.get("per_unit")), "warrant_strike": w.get("strike"),
             "warrant_term_months": w.get("term_months"), "ref_dates": "|".join(a.get("refs") or []),
             "event_date": (ev.get("published_at") or "")[:10], "raw_headline": (ev.get("raw_headline") or "")[:500],
@@ -586,14 +600,29 @@ def publish(conn, version, log=print):
     ensure_schema(conn)
     fcols = list(fin_rows[0].keys()) if fin_rows else None
     ecols = list(ev_rows[0].keys()) if ev_rows else None
+    # OPTD step A (2026-10-06): the same rowsync calls, run once before the write lock to work out the
+    # differences; the locked pass below then only applies them (portal/rowsync.py, planning). Kill switch:
+    # /opt/mnt/app/portal/rowsync_plan_OFF.
+    from portal import rowsync as _rowsync_plan
+    with _rowsync_plan.planning(conn):
+        # OPSFIX item 1 (2026-10-05): write only the rows that changed; same table contents (portal/rowsync.py)
+        from portal import rowsync
+        # OPSFIX item 1b (2026-10-05): a deal identical to a stored one keeps its stored number, so one new deal no
+        # longer renumbers (and rewrites) every deal after it and all their releases.
+        st["stable_ids"] = rowsync.stable_ids(conn, "financings", "financing_id", fin_rows,
+                                              [(ev_rows, ("financing_id", "second_financing_id"))])
+        st["rowsync"] = [rowsync.sync_rows_pk(conn, "financings", ("financing_id",), fcols, fin_rows),
+                         rowsync.sync_rows_pk(conn, "financing_events", ("event_id",), ecols, ev_rows)]
     conn.execute("BEGIN IMMEDIATE")
     try:
-        conn.execute("DELETE FROM financing_events")
-        conn.execute("DELETE FROM financings")
-        if fin_rows:
-            conn.executemany("INSERT INTO financings(%s) VALUES (%s)" % (",".join(fcols), ",".join(":" + c for c in fcols)), fin_rows)
-        if ev_rows:
-            conn.executemany("INSERT INTO financing_events(%s) VALUES (%s)" % (",".join(ecols), ",".join(":" + c for c in ecols)), ev_rows)
+        # OPSFIX item 1 (2026-10-05): write only the rows that changed; same table contents (portal/rowsync.py)
+        from portal import rowsync
+        # OPSFIX item 1b (2026-10-05): a deal identical to a stored one keeps its stored number, so one new deal no
+        # longer renumbers (and rewrites) every deal after it and all their releases.
+        st["stable_ids"] = rowsync.stable_ids(conn, "financings", "financing_id", fin_rows,
+                                              [(ev_rows, ("financing_id", "second_financing_id"))])
+        st["rowsync"] = [rowsync.sync_rows_pk(conn, "financings", ("financing_id",), fcols, fin_rows),
+                         rowsync.sync_rows_pk(conn, "financing_events", ("event_id",), ecols, ev_rows)]
         conn.execute("COMMIT")
     except Exception:
         conn.execute("ROLLBACK")
@@ -731,6 +760,18 @@ def _selftest():
     ok("events table covers tagged releases only", sorted(ev) == ["x1", "x2", "x3"])
     ok("results release kept with no deal", ev["x3"] == (None, "not_financing", 0))
     ok("publish is repeatable", publish(conn, "9.9.9", log=lambda _: None)["rows"] == 1)
+    # 1.0.4: unit count follows the amounts
+    u = [(E("c1", "CCC", "2026-03-01", "CCC Announces Placement"), dict(A("announcement", 1_000_000, prices=[0.10]), units_offered=10_000_000)),
+         (E("c2", "CCC", "2026-03-20", "CCC Closes First Tranche"), dict(A("tranche_close", None, 400_000, None, prices=[0.10]), units_this_close=4_000_000)),
+         (E("c3", "CCC", "2026-04-10", "CCC Closes Final Tranche"), dict(A("final_close", None, 600_000, None, prices=[0.10]), units_this_close=6_000_000)),
+         (E("d1", "DDD", "2026-03-01", "DDD Announces Placement"), dict(A("announcement", 500_000, prices=[0.05]), units_offered=10_000_000)),
+         (E("d2", "DDD", "2026-03-20", "DDD Closes First Tranche"), dict(A("tranche_close", None, 200_000, None, prices=[0.05]), units_this_close=4_000_000)),
+         (E("d3", "DDD", "2026-04-10", "DDD Closes Final Tranche"), A("final_close", None, 300_000, None, prices=[0.05]))]
+    du, ru, _s = compute(u)
+    fr, er = rows_for(du, ru, "9.9.9")
+    ok("unit count: tranches add up; announced count before", ({r["ticker"]: r["unit_count"] for r in fr}["CCC"],
+                                                              {r["event_id"]: r["unit_count"] for r in er}["c1"]) == (10_000_000, 10_000_000))
+    ok("unit count: a tranche without a count leaves the total blank", {r["ticker"]: r["unit_count"] for r in fr}["DDD"] is None)
     print(f"failures: {bad}")
     return 1 if bad else 0
 

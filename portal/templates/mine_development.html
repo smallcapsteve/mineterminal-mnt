@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}Mine Development & Operations — MiningNewsTerminal{% endblock %}
+{% block meta_description %}Mine development and operations news from CSE, TSXV and TSX mining companies: construction decisions and progress, commissioning, first and commercial production, restarts and suspensions, incidents, offtakes and contracts, read from their news releases.{% endblock %}
+{% block content %}
+  <style>
+    .md-table td { vertical-align: top; }
+    .md-table .md-sub { display: block; font-size: .8em; opacity: .7; }
+    .md-kind { display: inline-block; padding: 0 .4em; border-radius: 3px; font-size: .75em; letter-spacing: .02em;
+               border: 1px solid currentColor; opacity: .85; white-space: nowrap; }
+    .md-st-achieved { font-weight: 600; }
+    .md-st-planned { opacity: .75; font-style: italic; }
+    .md-table tr.md-cont td.md-quiet { opacity: .35; }
+    .md-none { opacity: .55; font-style: italic; }
+    .md-note { font-size: .85em; opacity: .75; margin: .2em 0 .8em; }
+  </style>
+
+  <h2 class="page-title">Mine Development &amp; Operations</h2>
+  <p class="md-note">Early version: each row is read automatically from the headline of a release tagged Mine Development
+    &amp; Operations, and some rows are wrong. Every row links to its release.</p>
+
+  <section class="filters fin-filters">
+    <form method="get" action="/mine-development">
+      <label for="ticker">Company:</label>
+      <select name="ticker" id="ticker" onchange="this.form.submit()">
+        <option value="">All companies</option>
+        {% for t in tickers %}
+          <option value="{{ t }}" {% if t == selected_ticker %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="group">Events:</label>
+      <select name="group" id="group" onchange="this.form.submit()">
+        <option value="" {% if not group %}selected{% endif %}>All events</option>
+        {% for v, label in group_options %}
+          <option value="{{ v }}" {% if v == group %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="type">Type:</label>
+      <select name="type" id="type" onchange="this.form.submit()">
+        <option value="" {% if not etype %}selected{% endif %}>All types</option>
+        {% for v, label in type_options %}
+          <option value="{{ v }}" {% if v == etype %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="status">Status:</label>
+      <select name="status" id="status" onchange="this.form.submit()">
+        {% for v, label in [('', 'Any status'), ('achieved', 'Achieved'), ('underway', 'Underway'), ('planned', 'Planned')] %}
+          <option value="{{ v }}" {% if v == status %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="days">Window:</label>
+      <select name="days" id="days" onchange="this.form.submit()">
+        {% for d, label in [(0, 'All time'), (30, 'Last 30 days'), (90, 'Last 90 days'), (180, 'Last 6 months'), (365, 'Last year')] %}
+          <option value="{{ d }}" {% if d == days %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="show">Show:</label>
+      <select name="show" id="show" onchange="this.form.submit()">
+        <option value="events" {% if show == 'events' %}selected{% endif %}>Events</option>
+        <option value="all" {% if show == 'all' %}selected{% endif %}>Also tagged releases with no event read</option>
+      </select>
+
+      {% if selected_ticker or days or group or etype or status or show != 'events' %}
+        <a class="cat-clear" href="/mine-development">Reset</a>
+      {% endif %}
+      <span class="muted">{{ rows|length }} shown · {{ total_filtered }} matching · {{ total }} events from {{ releases }} releases</span>
+    </form>
+  </section>
+
+  {% if not rows %}
+    <p class="empty">No mine development or operations events in this window.</p>
+  {% else %}
+    <div class="table-scroll">
+    <table class="fin-table md-table">
+      <colgroup>
+        <col style="width: 7%">   <!-- Ticker   -->
+        <col style="width: 13%">  <!-- Company  -->
+        <col style="width: 8%">   <!-- Date     -->
+        <col style="width: 15%">  <!-- Event    -->
+        <col style="width: 16%">  <!-- Mine     -->
+        <col style="width: 9%">   <!-- Status   -->
+        <col style="width: 26%">  <!-- Headline -->
+        <col style="width: 6%">   <!-- View     -->
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Ticker</th>
+          <th>Company</th>
+          <th>Date</th>
+          <th>Event</th>
+          <th title="The mine, plant or project as the release names it">Mine / project</th>
+          <th title="Achieved: it happened. Underway: in progress. Planned: a stated target or next step.">Status</th>
+          <th>Headline</th>
+          <th>View</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr class="{% if not r['first_of_release'] %}md-cont{% endif %}">
+            <td class="fin-ticker {% if not r['first_of_release'] %}md-quiet{% endif %}">
+              {%- if r['first_of_release'] -%}
+                {% set _mtp = r["ticker"] | mtp_url('mining') %}{% if _mtp %}<a class="mtp-co" href="{{ _mtp }}" target="_blank" rel="noopener" title="Open {{ r['ticker'] }} mining data on MineTerminalPro">{{ r["ticker"] }}</a>{% else %}{{ r["ticker"] }}{% endif %}
+              {%- else -%}
+                {{ r["ticker"] }}
+              {%- endif -%}
+            </td>
+            <td class="{% if not r['first_of_release'] %}md-quiet{% endif %}">{% if r['first_of_release'] %}{{ r["company_name"] }}{% endif %}</td>
+            <td class="fin-date {% if not r['first_of_release'] %}md-quiet{% endif %}">{% if r['first_of_release'] %}{{ (r["published_at"] or "")[:10] }}{% endif %}</td>
+            {% if r["event_type"] %}
+              <td>
+                <span class="md-kind">{{ r["event_type"] | md_type }}</span>
+                {%- if r["event_type"] == "incident" and r["incident_kind"] %}<span class="md-sub">{{ r["incident_kind"] }}</span>{% endif -%}
+              </td>
+              <td>{{ r["mine"] or "—" }}</td>
+              <td class="md-st-{{ r['status'] or 'none' }}">{{ r["status"] | md_status }}</td>
+            {% else %}
+              <td colspan="3" class="md-none">No event read from the headline</td>
+            {% endif %}
+            <td>{% if r['first_of_release'] %}{{ r["raw_headline"] or "" }}{% endif %}</td>
+            <td>
+              {% if r["url"] and r['first_of_release'] %}<a href="{{ r['url'] }}">View ↗</a>{% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  {% endif %}
+  {% include "_pager.html" %}
+{% endblock %}

@@ -28,7 +28,7 @@
 
       <label for="kind">Kind:</label>
       <select name="kind" id="kind" onchange="this.form.submit()">
-        {% for v, label in [('', 'Production, guidance and milestones'), ('actual', 'Production'), ('guidance', 'Guidance'), ('milestone', 'Milestones')] %}
+        {% for v, label in [('', 'All rows'), ('actual', 'Production'), ('recovered', 'Recovered'), ('guidance', 'Guidance'), ('milestone', 'Milestones')] %}
           <option value="{{ v }}" {% if v == kind %}selected{% endif %}>{{ label }}</option>
         {% endfor %}
       </select>
@@ -108,8 +108,8 @@
               <td><span class="pr-kind">Milestone</span></td>
               <td colspan="5">{{ r["milestone"] | pr_milestone }}{% if r["asset"] %} · {{ r["asset"] }}{% endif %}</td>
             {% elif r["kind"] %}
-              <td><span class="pr-kind">{{ 'Guidance' if r["kind"] == 'guidance' else 'Produced' }}</span></td>
-              <td>{{ r["period"] or "—" }}</td>
+              <td><span class="pr-kind"{% if r["kind"] == 'recovered' %} title="Ounces the release says were recovered: shown apart from production, never counted as production"{% endif %}>{{ 'Guidance' if r["kind"] == 'guidance' else 'Recovered' if r["kind"] == 'recovered' else 'Produced' }}</span></td>
+              <td>{{ r["period"] or "—" }}{% if (r["period"] or "").startswith("9M") %}<span class="pr-tag" title="Nine months, year to date">YTD</span>{% endif %}</td>
               <td>
                 {{ r["metal"] or "—" }}
                 {%- if r["basis"] %}<span class="pr-tag" title="{{ r['basis'] }}">{{ 'sold' if r['basis'] == 'sold' else r['basis'] }}</span>{% endif -%}

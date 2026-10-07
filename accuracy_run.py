@@ -46,11 +46,11 @@ def connect(path):
 
 
 def measure(conn, name, set_file=None, details=False, quiet=False, record=True):
-    spec = A.SPECS.get(name)
-    if spec is None:
-        print(f"[accuracy] no spec named {name!r}; known: {sorted(A.SPECS)}")
-        return 2
     aset = A.load_set(set_file or name)
+    spec = A.SPECS.get(A.set_spec_name(aset, None if set_file else name))  # ACC_RECALL_V1: fresh sets name their spec
+    if spec is None:
+        print(f"[accuracy] no spec for set {name!r}; known: {sorted(A.SPECS)}")
+        return 2
     rep = A.evaluate(spec, aset, A.stored_predictor(spec, conn), A.load_events(conn, aset))
     run_id = A.record_run(conn, rep, f"stored:{name}", "measure") if record else "not recorded"
     head = f"[accuracy] {name} run {run_id}: set {aset['status']}"
@@ -77,6 +77,11 @@ def daily(conn):
             continue
         name = fn[:-5]
         spec = A.SPECS.get(name)
+        if spec is None:  # ACC_RECALL_V1: a fresh random set names its spec inside the file
+            try:
+                spec = A.SPECS.get(A.set_spec_name(A.load_set(name)))
+            except Exception:  # noqa: BLE001
+                spec = None
         if spec is None or spec.stored is None:
             continue
         n_sets += 1
@@ -127,8 +132,28 @@ def gate(conn, extractor, set_name=None):
     ok = selftests(mods)
     result = A.gate_and_activate(conn, facts, tagspec, ex, aset, selftest_ok=ok)
     for c in result["checks"]:
-        print(f"[gate]   {'PASS' if c['passed'] else 'FAIL'} {c['name']}: {c['detail']}")
+        word = "FAIL" if not c["passed"] else "WARN" if c.get("warn") else "PASS"
+        print(f"[gate]   {word} {c['name']}: {c['detail']}")
+    for xs in result.get("extra_sets") or []:  # ACC_RECALL_V1: fresh random sets, reported only
+        print(f"[gate]   INFO fresh set {xs['set']} ({xs['status']}), reported only:")
+        for line in xs["lines"]:
+            print(f"[gate]        {line}")
     return 0 if result["passed"] else 3
+
+
+def project_names(conn):
+    """ACC_PN_V1: portal/project_names.py on the shared test set, per set and in total. Read-only."""
+    from portal import project_names as PN
+    tot = {"items": 0, "hit": 0, "wrong": 0, "none": 0, "stale": 0}
+    for name, c in A.project_name_report(conn):
+        print(f"[project-names] {name:28s} items {c['items']:3d}  right {c['hit']:3d}  wrong {c['wrong']:3d}  "
+              f"none {c['none']:3d}  (stale {c['stale']})")
+        for k in tot:
+            tot[k] += c[k]
+    n = tot["items"] or 1
+    print(f"[project-names] helper {PN.VERSION}: {tot['items']} releases, right {tot['hit'] / n * 100:.1f}%, "
+          f"wrong {tot['wrong'] / n * 100:.1f}%, none {tot['none'] / n * 100:.1f}%")
+    return 0
 
 
 def main(argv=None):
@@ -140,12 +165,13 @@ def main(argv=None):
     m.add_argument("--details", action="store_true")
     m.add_argument("--no-record", action="store_true", help="read-only: do not write fx_eval_runs")
     sub.add_parser("daily")
+    sub.add_parser("project-names", help="the shared project-name helper on every answer key (read-only)")
     g = sub.add_parser("gate")
     g.add_argument("extractor")
     g.add_argument("--set")
     ap.add_argument("--db", default=DB)
     argv = sys.argv[1:] if argv is None else argv
-    if not any(a in ("measure", "daily", "gate") for a in argv):
+    if not any(a in ("measure", "daily", "gate", "project-names") for a in argv):
         argv = list(argv) + ["daily"]
     args = ap.parse_args(argv)
     conn = connect(args.db)
@@ -153,6 +179,8 @@ def main(argv=None):
         return measure(conn, args.set, args.set_file, args.details, record=not args.no_record)
     if args.cmd == "daily":
         return daily(conn)
+    if args.cmd == "project-names":
+        return project_names(conn)
     return gate(conn, args.extractor, args.set)
 
 

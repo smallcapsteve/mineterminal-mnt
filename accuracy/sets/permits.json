@@ -1,0 +1,1486 @@
+{
+ "schema": 1,
+ "name": "permits",
+ "tag": "Permits & Approvals",
+ "status": "confirmed",
+ "created": "2026-09-22",
+ "reviewer": "Justin",
+ "reviewed_at": "2026-09-22",
+ "row_shape": "one row per permit or government approval an item reports, at its stage: planned, applied, in review, granted, renewed or contested",
+ "items": [
+  {
+   "n": 1,
+   "event_id": "69942ef675e13c0e6440a61a79f1f3b0b175583b",
+   "ticker": "EFF.V",
+   "stratum": "drill_permit_granted",
+   "body_sha1": "28e147b705b7f80bf06af8822bae2b0986a115d1",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "drill_exploration",
+      "project": "Vortex/Vallières Project",
+      "status": "granted",
+      "authority": "Quebec Ministry of Natural Resources and Forests (MRNF)",
+      "date": "2025-10-30",
+      "permit_name": "Work Authorization for Impact (Authorisation de travaux d'impact, ATI)",
+      "jurisdiction": "Quebec, Canada",
+      "metal": "copper+molybdenum+gold"
+     },
+     {
+      "permit_type": "drill_exploration",
+      "project": "Vortex/Vallières Project",
+      "status": "granted",
+      "authority": "Quebec Ministry of Natural Resources and Forests (MRNF)",
+      "date": "2025-10-30",
+      "permit_name": "drilling permit",
+      "jurisdiction": "Quebec, Canada",
+      "metal": "copper+molybdenum+gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 2,
+   "event_id": "d66dcc59062804c43932faaa5121e5d525ad7c88",
+   "ticker": "CMET.CN",
+   "stratum": "drill_permit_granted",
+   "body_sha1": "b3e73edef4f7bfb76c03e99b14eee98dda98bb9b",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "drill_exploration",
+      "project": "Lithium381 Project",
+      "status": "granted",
+      "date": "2023-02-08",
+      "permit_name": "drilling permit",
+      "jurisdiction": "Quebec, Canada",
+      "metal": "lithium"
+     }
+    ]
+   }
+  },
+  {
+   "n": 3,
+   "event_id": "d42be8a0c49844e232b9d69076bce4dd94b2ee88",
+   "ticker": "MEC.CN",
+   "stratum": "expl_permit_granted",
+   "body_sha1": "f3eeec0c93e198c6e104e1ecd4fffbcc4d8e56dd",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "drill_exploration",
+      "project": "Ford Lake Project",
+      "status": "granted",
+      "authority": "Saskatchewan Government",
+      "date": "2024-10-21",
+      "permit_name": "exploration permit",
+      "term": "September 1, 2024 to September 30, 2027",
+      "expiry": "2027-09-30",
+      "jurisdiction": "Saskatchewan, Canada",
+      "metal": "uranium"
+     }
+    ]
+   }
+  },
+  {
+   "n": 4,
+   "event_id": "7ae49ba06ab2c5b9d80562eb9436afc5ba1a50a7f4d3c25357280745057aa252",
+   "ticker": "SURG.V",
+   "stratum": "applied_or_submitted",
+   "body_sha1": "66ff966fc05e1fdb6a7e1759d8f20c9cb396092d",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "environmental_assessment",
+      "project": "Berg Copper Project",
+      "status": "in_review",
+      "authority": "British Columbia Environmental Assessment Office (EAO)",
+      "date": "2026-09-16",
+      "permit_name": "provincial environmental assessment (Early Engagement phase)",
+      "jurisdiction": "British Columbia, Canada",
+      "metal": "copper+molybdenum+silver+gold"
+     },
+     {
+      "permit_type": "environmental_assessment",
+      "project": "Berg Copper Project",
+      "status": "in_review",
+      "authority": "Impact Assessment Agency of Canada (IAAC)",
+      "date": "2026-09-16",
+      "permit_name": "federal impact assessment (Planning phase)",
+      "jurisdiction": "British Columbia, Canada",
+      "metal": "copper+molybdenum+silver+gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 5,
+   "event_id": "612e47c237a777629a39ed6a6231df7a31846023",
+   "ticker": "DML.TO",
+   "stratum": "environmental",
+   "body_sha1": "b4f99775075c5c46671dc28a11a08b100703e7db",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "environmental_assessment",
+      "project": "Wheeler River Project",
+      "status": "granted",
+      "authority": "Saskatchewan Ministry of Environment",
+      "date": "2025-08-05",
+      "permit_name": "Provincial Environmental Assessment approval (The Environmental Assessment Act (Saskatchewan))",
+      "jurisdiction": "Saskatchewan, Canada",
+      "metal": "uranium"
+     },
+     {
+      "permit_type": "environmental_assessment",
+      "project": "Wheeler River Project",
+      "status": "in_review",
+      "authority": "Canadian Nuclear Safety Commission (CNSC)",
+      "date": "2025-08-05",
+      "permit_name": "Federal approval of the EA",
+      "jurisdiction": "Saskatchewan, Canada",
+      "metal": "uranium"
+     },
+     {
+      "permit_type": "construction_operating",
+      "project": "Wheeler River Project",
+      "status": "in_review",
+      "authority": "Canadian Nuclear Safety Commission (CNSC)",
+      "date": "2025-08-05",
+      "permit_name": "Federal License to Prepare the Site & Construct",
+      "jurisdiction": "Saskatchewan, Canada",
+      "metal": "uranium"
+     },
+     {
+      "permit_type": "construction_operating",
+      "project": "Wheeler River Project",
+      "status": "planned",
+      "date": "2025-08-05",
+      "permit_name": "Provincial Pollutant Control Facility Permit",
+      "jurisdiction": "Saskatchewan, Canada",
+      "metal": "uranium"
+     }
+    ]
+   }
+  },
+  {
+   "n": 6,
+   "event_id": "123b19533d690881e512126db146bf7c8093e424037a1e0a56847494307f8197",
+   "ticker": "MANU.V",
+   "stratum": "mine_level",
+   "body_sha1": "a1f73234b932142f98467b4fe7eeadd5fc5bb472",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "plan_of_operations",
+      "project": "Apex Uranium Project",
+      "status": "granted",
+      "authority": "U.S. Forest Service",
+      "date": "2026-05-18",
+      "permit_name": "Apex Plan of Operations",
+      "term": "one year once surface-disturbing activities commence",
+      "jurisdiction": "Nevada, USA",
+      "metal": "uranium"
+     }
+    ]
+   }
+  },
+  {
+   "n": 7,
+   "event_id": "e2837b29db6450863ef6600d8c4ee4c7bdb302851afc9fbe128ca4eb240f64b4",
+   "ticker": "GTCH.CN",
+   "stratum": "renewed_amended",
+   "body_sha1": "a83447cf4d012f8a6c92324ea368d6008cc5a2ad",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "plan_of_operations",
+      "project": "Fondaway Canyon Gold Project",
+      "status": "renewed",
+      "authority": "Bureau of Land Management",
+      "date": "2023-08-09",
+      "permit_name": "Notice level permit",
+      "jurisdiction": "Nevada, USA",
+      "metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 8,
+   "event_id": "25385cf4b03b6cf018bd463ca95219557b0b041b",
+   "ticker": "EQX.TO",
+   "stratum": "land_community",
+   "body_sha1": "10603d72e71e609ca8b7267f4136d0b567d0938b",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "land_community",
+      "project": "Los Filos Mine",
+      "status": "granted",
+      "authority": "Carrizalillo",
+      "date": "2026-06-25",
+      "permit_name": "land access agreements",
+      "term": "20 years",
+      "jurisdiction": "Guerrero, Mexico",
+      "metal": "gold"
+     },
+     {
+      "permit_type": "land_community",
+      "project": "Los Filos Mine",
+      "status": "granted",
+      "authority": "Mezcala",
+      "date": "2026-06-25",
+      "permit_name": "land access agreements",
+      "term": "20 years",
+      "jurisdiction": "Guerrero, Mexico",
+      "metal": "gold"
+     },
+     {
+      "permit_type": "land_community",
+      "project": "Los Filos Mine",
+      "status": "granted",
+      "authority": "Xochipala",
+      "date": "2026-06-25",
+      "permit_name": "land access agreements",
+      "term": "20 years",
+      "jurisdiction": "Guerrero, Mexico",
+      "metal": "gold"
+     },
+     {
+      "permit_type": "construction_operating",
+      "project": "Los Filos Mine",
+      "status": "planned",
+      "date": "2026-06-25",
+      "permit_name": "restart permitting",
+      "jurisdiction": "Guerrero, Mexico",
+      "metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 9,
+   "event_id": "6ea6d1865e62acfd880d90e0d4d42d0424adaed0ccb724bca1a63ac5bcccdec1",
+   "ticker": "PSE.CN",
+   "stratum": "tagged_other",
+   "body_sha1": "6ff624276b25ea526454a3b8c60f5a8717b930e8",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 10,
+   "event_id": "7932eb0cfb7a7fa8bce1e816c83e3465a6775c5685b1545a8e05ffe679fadb6a",
+   "ticker": "HAMR.CN",
+   "stratum": "drill_permit_granted",
+   "body_sha1": "77af6b9d655de21895f0c0b4c09bb0d2b0152fd2",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "drill_exploration",
+      "project": "Silverton Project",
+      "status": "renewed",
+      "authority": "Bureau of Land Management",
+      "date": "2025-10-10",
+      "permit_name": "exploration drill permit",
+      "jurisdiction": "Nevada, USA",
+      "metal": "silver"
+     }
+    ]
+   }
+  },
+  {
+   "n": 11,
+   "event_id": "b7d26cfe610928730c6e7130c5ef525698646161",
+   "ticker": "IRV.CN",
+   "stratum": "drill_permit_granted",
+   "body_sha1": "f0ae5e7e25b9e2460653155617f786668e454fc5",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "drill_exploration",
+      "project": "Omu Gold-Silver Project",
+      "status": "granted",
+      "authority": "Ministry of Economy, Trade and Industry (METI)",
+      "date": "2019-01-02",
+      "permit_name": "Otoineppu Prospecting Plan",
+      "jurisdiction": "Hokkaido, Japan",
+      "metal": "gold+silver"
+     },
+     {
+      "permit_type": "other",
+      "project": "Omu Gold-Silver Project",
+      "status": "planned",
+      "date": "2019-01-02",
+      "permit_name": "Otoineppu Mine Safety Regulation",
+      "jurisdiction": "Hokkaido, Japan",
+      "metal": "gold+silver"
+     }
+    ]
+   }
+  },
+  {
+   "n": 12,
+   "event_id": "164f461d745cf8c05b9b10c87a68e5aa5a6d8607",
+   "ticker": "AUCU.CN",
+   "stratum": "expl_permit_granted",
+   "body_sha1": "a5b8662a19d7723d149cf5a2a1642249b6fc1d91",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "drill_exploration",
+      "project": "Molong North project",
+      "status": "granted",
+      "date": "2025-08-27",
+      "permit_name": "Exploration Licenses",
+      "jurisdiction": "New South Wales, Australia",
+      "metal": "copper+gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 13,
+   "event_id": "fd8f28e218db1605966ffd22b9486f38588fa292c086d5c8ecb54fb96fc086f2",
+   "ticker": "CS.TO",
+   "stratum": "applied_or_submitted",
+   "body_sha1": "ab9028d3dcb6b760d246913351b5930ca349c838",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "environmental_assessment",
+      "project": "Mantos Blancos Phase II Project",
+      "status": "applied",
+      "date": "2026-06-19",
+      "permit_name": "Environmental Impact Assessment (EIA)",
+      "jurisdiction": "Antofagasta, Chile",
+      "metal": "copper"
+     },
+     {
+      "permit_type": "other",
+      "project": "Mantos Blancos Phase II Project",
+      "status": "planned",
+      "date": "2026-06-19",
+      "permit_name": "sectoral permits",
+      "jurisdiction": "Antofagasta, Chile",
+      "metal": "copper"
+     }
+    ]
+   }
+  },
+  {
+   "n": 14,
+   "event_id": "83676c781bac269276e622296caf3bf4d45047e9",
+   "ticker": "BULL.CN",
+   "stratum": "environmental",
+   "body_sha1": "3ae4dd1d4ac2fcc07bb843b0f2bdaecaad8966b7",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 15,
+   "event_id": "a0d25de06e49c0b367d88df7d94c1162cfe964896c6f3d3a80814a3998e9c28f",
+   "ticker": "ROAR.V",
+   "stratum": "mine_level",
+   "body_sha1": "366edb4f4bb5f32e0e627189500d19b47e1e38a8",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "other",
+      "project": "Volney Critical Minerals and Gold Project",
+      "status": "granted",
+      "authority": "Lawrence County",
+      "date": "2026-06-17",
+      "permit_name": "Conditional Use Permit (CUP)",
+      "jurisdiction": "South Dakota, USA",
+      "metal": "lithium+tin+tantalum"
+     },
+     {
+      "permit_type": "mining_licence",
+      "project": "Volney Critical Minerals and Gold Project",
+      "status": "planned",
+      "authority": "South Dakota Department of Agriculture and Natural Resources",
+      "date": "2026-06-17",
+      "permit_name": "state mining license",
+      "jurisdiction": "South Dakota, USA",
+      "metal": "lithium+tin+tantalum"
+     }
+    ]
+   }
+  },
+  {
+   "n": 16,
+   "event_id": "b8b8e5b9a5bbab8c3e19b433d7d49cdfb01ad8a9bc49b7c74ea0e02b4b5cdaa3",
+   "ticker": "GGA.V",
+   "stratum": "denied_or_contested",
+   "body_sha1": "9313807b7d58d965d921bb6c1fe5f6027586d7ab",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 17,
+   "event_id": "bcf51e944ad866fa7f8b0f2d270c926c",
+   "ticker": "RSG.CN",
+   "stratum": "land_community",
+   "body_sha1": "1a48d869a339b37ecd6120369c68ba2e44a930a5",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "drill_exploration",
+      "project": "Project Idaho",
+      "status": "granted",
+      "authority": "Ministry of Mines, Natural Resources and Forestry",
+      "date": "2022-09-28",
+      "permit_name": "exploration permit",
+      "jurisdiction": "Ontario, Canada"
+     },
+     {
+      "permit_type": "land_community",
+      "project": "Project Idaho",
+      "status": "granted",
+      "authority": "Biigtigong Nishnaabeg",
+      "date": "2022-09-28",
+      "permit_name": "Exploration Agreement",
+      "jurisdiction": "Ontario, Canada"
+     },
+     {
+      "permit_type": "land_community",
+      "project": "Pic Project",
+      "status": "granted",
+      "authority": "Biigtigong Nishnaabeg",
+      "date": "2022-09-28",
+      "permit_name": "Exploration Agreement",
+      "jurisdiction": "Ontario, Canada"
+     }
+    ]
+   }
+  },
+  {
+   "n": 18,
+   "event_id": "97d640ee1724c1b61d0ac475393696b6c09dd0488d7a164d4c7723a441ad7037",
+   "ticker": "KBX.CN",
+   "stratum": "tagged_other",
+   "body_sha1": "e2447dc74327b06e2dcc3750094480238941b7bd",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "drill_exploration",
+      "project": "El Perdido Project",
+      "status": "granted",
+      "authority": "Mendoza Directorate of Mining and Directorate of Environmental Protection",
+      "date": "2025-07-29",
+      "permit_name": "Environmental Impact Report update",
+      "permit_id": "Resolution Nº 246/25 and Resolution Nº 64/25",
+      "holder": "Kobrea Exploraciones Argentina S.A.",
+      "jurisdiction": "Mendoza, Argentina",
+      "metal": "copper+gold+molybdenum"
+     },
+     {
+      "permit_type": "water",
+      "project": "El Perdido Project",
+      "status": "granted",
+      "authority": "General Superintendence of Irrigation of Mendoza",
+      "date": "2025-07-29",
+      "permit_name": "water supply permit",
+      "jurisdiction": "Mendoza, Argentina",
+      "metal": "copper+gold+molybdenum"
+     }
+    ]
+   }
+  },
+  {
+   "n": 19,
+   "event_id": "302f3863e0679e031c1a75dc29ebef0b51d8b2d8",
+   "ticker": "TCEC.CN",
+   "stratum": "drill_permit_granted",
+   "body_sha1": "7c57dcb5a892e34e5d82b443b462effb72316e4b",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "land_community",
+      "project": "South Falcon East Project",
+      "status": "granted",
+      "authority": "English River First Nation",
+      "date": "2024-12-23",
+      "permit_name": "Exploration Agreement",
+      "jurisdiction": "Saskatchewan, Canada",
+      "metal": "uranium"
+     },
+     {
+      "permit_type": "drill_exploration",
+      "project": "South Falcon East Project",
+      "status": "granted",
+      "authority": "Saskatchewan Ministry of Environment",
+      "date": "2024-12-23",
+      "permit_name": "drilling permits",
+      "term": "three years",
+      "jurisdiction": "Saskatchewan, Canada",
+      "metal": "uranium"
+     }
+    ]
+   }
+  },
+  {
+   "n": 20,
+   "event_id": "d4755ceb035773f1f08c94e292f9b4d6f1df5779",
+   "ticker": "RKL.CN",
+   "stratum": "drill_permit_granted",
+   "body_sha1": "6fd35b10d44f26e301d053c28a122b8d72ebb380",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "drill_exploration",
+      "project": "Cole Gold Mines Property",
+      "status": "in_review",
+      "date": "2024-04-18",
+      "permit_name": "drill permits",
+      "jurisdiction": "Ontario, Canada",
+      "metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 21,
+   "event_id": "8cc0e261e26b0362ebbab2039bdafed39cb2c8dd",
+   "ticker": "SRC.V",
+   "stratum": "expl_permit_granted",
+   "body_sha1": "3fb29b7dd4a4d90b6e8ffc3ab57aef90c59040a0",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "drill_exploration",
+      "project": "Ballarat Gold-Copper Project",
+      "status": "granted",
+      "authority": "Yukon Government",
+      "date": "2026-01-20",
+      "permit_name": "Class 1 Exploration Notification",
+      "jurisdiction": "Yukon, Canada",
+      "metal": "gold+copper"
+     }
+    ]
+   }
+  },
+  {
+   "n": 22,
+   "event_id": "2cb3f1c65b7e35df78ed4fb7362ea99b1157526c3b0c52594aa3e91b5743a0fa",
+   "ticker": "CDN.CN",
+   "stratum": "applied_or_submitted",
+   "body_sha1": "dfbf9dd56d8f2a94217083732ae16b761318a325",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "drill_exploration",
+      "project": "Nottaway Property",
+      "status": "granted",
+      "authority": "Québec Ministère des Ressources Naturelles et des Forêts",
+      "date": "2026-02-16",
+      "permit_name": "Authorization of impact-causing exploration work permit (ATI)",
+      "term": "3 years",
+      "expiry": "2029-02-16",
+      "jurisdiction": "Québec, Canada",
+      "metal": "copper+zinc+gold+silver"
+     }
+    ]
+   }
+  },
+  {
+   "n": 23,
+   "event_id": "bb6d68561a341977523653dc2f212db20bcac6e8",
+   "ticker": "AXO.V",
+   "stratum": "environmental",
+   "body_sha1": "5361026cfd20035d05d8a7ad5c6326758c849c65",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "environmental_assessment",
+      "project": "San Antonio Gold Project",
+      "status": "granted",
+      "authority": "SEMARNAT",
+      "date": "2026-07-27",
+      "permit_name": "Environmental Impact Statement (Manifestos de Impacto Ambiental, MIA)",
+      "jurisdiction": "Sonora, Mexico",
+      "metal": "gold"
+     },
+     {
+      "permit_type": "other",
+      "project": "San Antonio Gold Project",
+      "status": "applied",
+      "date": "2026-07-27",
+      "permit_name": "Change of Use of Soils (CUS)",
+      "jurisdiction": "Sonora, Mexico",
+      "metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 24,
+   "event_id": "38751cc471b5019415874fced4184a301b21a418db0517842a80cc587bfdb533",
+   "ticker": "AUAG.CN",
+   "stratum": "mine_level",
+   "body_sha1": "3428a9f6777cadad94217119341298a663f6e9e2",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "mining_licence",
+      "project": "Minastyc Project",
+      "status": "granted",
+      "authority": "National Mining Agency (ANM)",
+      "date": "2023-10-04",
+      "permit_name": "Mining Registration Certificate (mining title)",
+      "permit_id": "CRM-202308221848-479897; mining title LFH-14431X",
+      "term": "until August 21, 2040",
+      "expiry": "2040-08-21",
+      "holder": "Mr. Climaco Unda",
+      "jurisdiction": "Vichada, Colombia",
+      "metal": "tin"
+     },
+     {
+      "permit_type": "other",
+      "project": "Minastyc Project",
+      "status": "applied",
+      "date": "2023-10-04",
+      "permit_name": "export license",
+      "jurisdiction": "Vichada, Colombia",
+      "metal": "tin"
+     },
+     {
+      "permit_type": "environmental_assessment",
+      "project": "Minastyc Project",
+      "status": "planned",
+      "date": "2023-10-04",
+      "permit_name": "Global Environmental Licence",
+      "jurisdiction": "Vichada, Colombia",
+      "metal": "tin"
+     }
+    ]
+   }
+  },
+  {
+   "n": 25,
+   "event_id": "4e8bdcd91ee7cbd8eb7b9613899d34cb9e62cc3a",
+   "ticker": "NGEX.TO",
+   "stratum": "denied_or_contested",
+   "body_sha1": "13e3dc5e7e7ebac854eb60e452ab8576eca70cd6",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 26,
+   "event_id": "d72482098604763b17628ad4d0fd47f9d9c55172",
+   "ticker": "ARL.V",
+   "stratum": "exchange_deal_approval",
+   "body_sha1": "5ea20009b5edf235ca83ca8330e0350fc52e709b",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 27,
+   "event_id": "8700572a761fa71eed042256812d5e26a5ce1a0d67db354a472a931b1e7b5216",
+   "ticker": "MANN.CN",
+   "stratum": "drill_permit_granted",
+   "body_sha1": "2de53d7f79c4fb0ef987965de91d6aa4ae391576",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "drill_exploration",
+      "project": "Copper Hill Project",
+      "status": "granted",
+      "date": "2024-10-24",
+      "permit_name": "Drill Permit",
+      "jurisdiction": "Nevada, USA",
+      "metal": "copper"
+     }
+    ]
+   }
+  },
+  {
+   "n": 28,
+   "event_id": "b19636cd33ea6710a53dc3b3fb0411fec7af089e352deca0fc4550f4b61d73f2",
+   "ticker": "EPG.CN",
+   "stratum": "expl_permit_granted",
+   "body_sha1": "22d1c8d948c04ee64685816c6b80c3d2d568fc06",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "drill_exploration",
+      "project": "Bullseye",
+      "status": "granted",
+      "authority": "Province of Newfoundland and Labrador",
+      "date": "2022-12-07",
+      "permit_name": "exploration permit",
+      "jurisdiction": "Newfoundland and Labrador, Canada",
+      "metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 29,
+   "event_id": "b9a3b3665d9e071040afa2906f9e065719c337c9",
+   "ticker": "ARA.TO",
+   "stratum": "applied_or_submitted",
+   "body_sha1": "f4dfb7accd94a753491026c12245ab70147fcee2",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "environmental_assessment",
+      "project": "Carina Project",
+      "status": "applied",
+      "authority": "SEMAD (Goiás Secretariat of the Environment and Sustainable Development)",
+      "date": "2025-05-29",
+      "permit_name": "Environmental Impact Assessment (EIA) / Previous License",
+      "jurisdiction": "Goiás, Brazil",
+      "metal": "rare earths"
+     }
+    ]
+   }
+  },
+  {
+   "n": 30,
+   "event_id": "1061fdc2901adb2c0937e0fbdaa072f7222dabec",
+   "ticker": "PURR.CN",
+   "stratum": "applied_or_submitted",
+   "body_sha1": "fe3b4326cab0843786975f85131e3bd9b83f60b1",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "mining_licence",
+      "status": "applied",
+      "date": "2022-08-18",
+      "permit_name": "exploitation license of the manganese concession",
+      "holder": "Ermazon SARL",
+      "jurisdiction": "Morocco",
+      "metal": "manganese"
+     }
+    ]
+   }
+  },
+  {
+   "n": 31,
+   "event_id": "65c591ed1503da96f525392c7834651283b38c33",
+   "ticker": "CERT.V",
+   "stratum": "environmental",
+   "body_sha1": "029a0f5b1d62a1bb9e5340aeb96a1830dfa8c94a",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "environmental_assessment",
+      "project": "Lagoa Salgada Project",
+      "status": "granted",
+      "authority": "Agência Portuguesa do Ambiente (APA)",
+      "date": "2026-01-22",
+      "permit_name": "Environmental Impact Assessment (EIA) / Environmental Impact Declaration (DIA)",
+      "jurisdiction": "Portugal",
+      "metal": "zinc+copper+lead+tin+silver+gold"
+     },
+     {
+      "permit_type": "environmental_assessment",
+      "project": "Lagoa Salgada Project",
+      "status": "planned",
+      "authority": "Agência Portuguesa do Ambiente (APA)",
+      "date": "2026-01-22",
+      "permit_name": "Environmental Compliance Report (RECAPE)",
+      "jurisdiction": "Portugal",
+      "metal": "zinc+copper+lead+tin+silver+gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 32,
+   "event_id": "0dd9f14bae4d3d582621331b44e6290b0221007a",
+   "ticker": "EMO.V",
+   "stratum": "renewed_amended",
+   "body_sha1": "fc6456fc001a75b958171e07b9fe15e34e75e021",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "drill_exploration",
+      "project": "San Antonio",
+      "status": "granted",
+      "authority": "Ministry of Industrial Policy and Energy of Huelva, Andalusia",
+      "date": "2025-03-17",
+      "permit_name": "Exploration Permit",
+      "term": "initial period of three years, renewable",
+      "jurisdiction": "Andalusia, Spain",
+      "metal": "copper"
+     },
+     {
+      "permit_type": "drill_exploration",
+      "project": "Terranova",
+      "status": "granted",
+      "authority": "Ministry of Industrial Policy and Energy of Huelva, Andalusia",
+      "date": "2025-03-17",
+      "permit_name": "Exploration Permit",
+      "term": "initial period of three years, renewable",
+      "jurisdiction": "Andalusia, Spain",
+      "metal": "copper"
+     }
+    ]
+   }
+  },
+  {
+   "n": 33,
+   "event_id": "b78c60833090e86ca7a1752b1012fea118658211",
+   "ticker": "CERT.V",
+   "stratum": "denied_or_contested",
+   "body_sha1": "4be3533759ef5a9f0668ac2bc34534a2453b49c6",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "environmental_assessment",
+      "project": "Lagoa Salgada Project",
+      "status": "contested",
+      "authority": "APA",
+      "date": "2026-01-23",
+      "permit_name": "Environmental Impact Assessment",
+      "jurisdiction": "Portugal",
+      "metal": "zinc+copper+lead+tin+silver+gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 34,
+   "event_id": "ef292e3ec4c9a9af26ca522d3ed57d444461470a",
+   "ticker": "AAUC.TO",
+   "stratum": "exchange_deal_approval",
+   "body_sha1": "2aa899db73de1d82eb7be58b283c5075c7a74eda",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 35,
+   "event_id": "5ee3c0a988345854f19a22cb6d5a64b993f72114",
+   "ticker": "CUAU.CN",
+   "stratum": "drill_permit_granted",
+   "body_sha1": "02090fecb9ed6292417abab19060cdbf9ac44a57",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "drill_exploration",
+      "project": "Miscanthus Property",
+      "status": "granted",
+      "date": "2022-03-01",
+      "permit_name": "DIA environmental drilling permit",
+      "term": "five (5) years",
+      "holder": "GlobeTrotters",
+      "jurisdiction": "Peru",
+      "metal": "gold+copper"
+     }
+    ]
+   }
+  },
+  {
+   "n": 36,
+   "event_id": "b31b2c3c1aa8f58678e6f370bce5447737c32fdd90e97de11eb6641ca921de3d",
+   "ticker": "KOG.CN",
+   "stratum": "expl_permit_granted",
+   "body_sha1": "4ec48d3320414fbe0725418e1f1e1dbc67f44e89",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "drill_exploration",
+      "project": "Carrick Gold Project",
+      "status": "applied",
+      "authority": "Department of Conservation",
+      "date": "2024-06-17",
+      "permit_name": "minimum impact activity (MIA) application",
+      "jurisdiction": "Otago, New Zealand",
+      "metal": "gold"
+     },
+     {
+      "permit_type": "land_community",
+      "project": "Carrick Gold Project",
+      "status": "in_review",
+      "authority": "Department of Conservation",
+      "date": "2024-06-17",
+      "permit_name": "access agreement",
+      "jurisdiction": "Otago, New Zealand",
+      "metal": "gold"
+     },
+     {
+      "permit_type": "land_community",
+      "project": "Hyde EP",
+      "status": "in_review",
+      "date": "2024-06-17",
+      "permit_name": "access agreements",
+      "jurisdiction": "Otago, New Zealand",
+      "metal": "gold"
+     },
+     {
+      "permit_type": "land_community",
+      "project": "Glenpark EP",
+      "status": "in_review",
+      "date": "2024-06-17",
+      "permit_name": "access agreement",
+      "jurisdiction": "Otago, New Zealand",
+      "metal": "gold"
+     },
+     {
+      "permit_type": "land_community",
+      "project": "Carrick Gold Project",
+      "status": "planned",
+      "date": "2024-06-17",
+      "permit_name": "access agreements (private land)",
+      "jurisdiction": "Otago, New Zealand",
+      "metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 37,
+   "event_id": "c4037079f3db7f389e12242e867785269ad579f397f35b3aefcb013bf66978f5",
+   "ticker": "MLM.CN",
+   "stratum": "applied_or_submitted",
+   "body_sha1": "bf8c7db6cfb1117ce951d98db619ac803858c923",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "drill_exploration",
+      "project": "Juby Gold Project",
+      "status": "applied",
+      "authority": "Ontario Ministry of Mines",
+      "date": "2025-10-07",
+      "permit_name": "Exploration Permit",
+      "jurisdiction": "Ontario, Canada",
+      "metal": "gold"
+     },
+     {
+      "permit_type": "other",
+      "project": "Juby Gold Project",
+      "status": "planned",
+      "date": "2025-10-07",
+      "permit_name": "Advanced Exploration Permit",
+      "jurisdiction": "Ontario, Canada",
+      "metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 38,
+   "event_id": "6cd10c04e01a1796c64718c3a119b83628d75593",
+   "ticker": "GQC.V",
+   "stratum": "environmental",
+   "body_sha1": "f547a5f5da0699268388f1d5106e56ea501bfeb8",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "environmental_assessment",
+      "project": "Romero Project",
+      "status": "in_review",
+      "authority": "Ministry of Environment and Natural Resources (MIMARENA)",
+      "date": "2025-08-15",
+      "permit_name": "Environmental and Social Impact Assessment (ESIA)",
+      "jurisdiction": "Dominican Republic",
+      "metal": "gold+copper"
+     }
+    ]
+   }
+  },
+  {
+   "n": 39,
+   "event_id": "e960044ec4882be61ed9c825ff67ba720dded958d6481df263e138cd6ba82236",
+   "ticker": "BLLG.CN",
+   "stratum": "mine_level",
+   "body_sha1": "5aba02fbc25ca17f539ed47ccb225ad7e215cd6d",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 40,
+   "event_id": "e7bb69bb01d2b3bcd2c7043d71db89ceb1763475",
+   "ticker": "API.CN",
+   "stratum": "renewed_amended",
+   "body_sha1": "e46e3c7d2eda665465c51d96a3a66e89090b16ac",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 41,
+   "event_id": "35833c62f904a67385663d5ddd2b7da136ac4970",
+   "ticker": "BSX.TO",
+   "stratum": "denied_or_contested",
+   "body_sha1": "869038791c5c6dbdc67de5c9a1556dfe92b0bdf7",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "government_policy",
+      "project": "Volta Grande Gold Project",
+      "status": "granted",
+      "authority": "Federal Court of Appeals in Brasília (TRF1)",
+      "date": "2025-01-23",
+      "jurisdiction": "Pará, Brazil",
+      "metal": "gold"
+     },
+     {
+      "permit_type": "construction_operating",
+      "project": "Volta Grande Gold Project",
+      "status": "contested",
+      "authority": "SEMAS",
+      "date": "2025-01-23",
+      "permit_name": "Construction License (LI)",
+      "jurisdiction": "Pará, Brazil",
+      "metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 42,
+   "event_id": "fd8f1cf597a9592d2f3180cad921124f7d017735",
+   "ticker": "SLA.CN",
+   "stratum": "exchange_deal_approval",
+   "body_sha1": "ff78b7bc400a50e654342ef6830700ec95d61eaf",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 43,
+   "event_id": "bf148df3055e6bdd5c232f0da5c77e823b1e86c2c0455222f76602e727db373b",
+   "ticker": "SUU.CN",
+   "stratum": "drill_permit_granted",
+   "body_sha1": "3f63c18c48e559e69010a0d11d70951c0642064e",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "drill_exploration",
+      "project": "Beaver Rim project",
+      "status": "granted",
+      "authority": "State of Wyoming",
+      "date": "2024-09-10",
+      "permit_name": "Drill Notice permit",
+      "jurisdiction": "Wyoming, USA",
+      "metal": "uranium"
+     }
+    ]
+   }
+  },
+  {
+   "n": 44,
+   "event_id": "7a9c54600fa39927d558498a6e4a3ede1f944887",
+   "ticker": "GCC.CN",
+   "stratum": "expl_permit_granted",
+   "body_sha1": "b74cc06873ada65a2d2fcb1d53d2782f44855732",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "drill_exploration",
+      "project": "Quesnelle Gold Quartz Mine Project",
+      "status": "renewed",
+      "date": "2024-02-07",
+      "permit_name": "Notice of Work",
+      "term": "additional five years",
+      "jurisdiction": "British Columbia, Canada",
+      "metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 45,
+   "event_id": "2c856447757fd65c01a31fa56c65bda709446430",
+   "ticker": "LCR.CN",
+   "stratum": "applied_or_submitted",
+   "body_sha1": "d1733422d57dad72fafddf81b217eaecce93c012",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "drill_exploration",
+      "project": "Alkali Flat Lithium Brine Project",
+      "status": "applied",
+      "authority": "New Mexico Energy, Mines, and Natural Resources Department (EMNRD)",
+      "date": "2023-09-27",
+      "permit_name": "drilling permit",
+      "jurisdiction": "New Mexico, USA",
+      "metal": "lithium"
+     },
+     {
+      "permit_type": "plan_of_operations",
+      "project": "Alkali Flat Lithium Brine Project",
+      "status": "applied",
+      "authority": "Bureau of Land Management",
+      "date": "2023-09-27",
+      "permit_name": "drilling permit",
+      "jurisdiction": "New Mexico, USA",
+      "metal": "lithium"
+     }
+    ]
+   }
+  },
+  {
+   "n": 46,
+   "event_id": "abc3b0d3ceef609169f69ef4dc8b2e8d86943f9c34d598c86b36d5ad44a7bb93",
+   "ticker": "SCM.CN",
+   "stratum": "environmental",
+   "body_sha1": "1cdf869e59c3c83669736b2591688227ca758ae8",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "mining_licence",
+      "project": "Copper Valley Project",
+      "status": "applied",
+      "date": "2026-01-24",
+      "permit_name": "Mining License",
+      "holder": "EMTF Sarl",
+      "jurisdiction": "Morocco",
+      "metal": "copper+lead+silver"
+     },
+     {
+      "permit_type": "environmental_assessment",
+      "project": "Copper Valley Project",
+      "status": "applied",
+      "date": "2026-01-24",
+      "permit_name": "Environmental Permit",
+      "holder": "EMTF Sarl",
+      "jurisdiction": "Morocco",
+      "metal": "copper+lead+silver"
+     }
+    ]
+   }
+  },
+  {
+   "n": 47,
+   "event_id": "edbf2101167c54b80d1f0049be8fe87de3adf6156700dce8d4268b42177d31f3",
+   "ticker": "CCMI.V",
+   "stratum": "mine_level",
+   "body_sha1": "afcf587fd3c99f663eda1fc6d6bc929de0b71f60",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "mining_licence",
+      "project": "Bull River Mine",
+      "status": "renewed",
+      "authority": "Chief Gold Commissioner, BC Ministry of Mining and Critical Minerals",
+      "date": "2026-06-03",
+      "permit_name": "Mining Lease",
+      "permit_id": "212492",
+      "term": "30 years (Nov 23, 2022 to Nov 23, 2052)",
+      "expiry": "2052-11-23",
+      "jurisdiction": "British Columbia, Canada",
+      "metal": "copper+gold+silver"
+     },
+     {
+      "permit_type": "mining_licence",
+      "project": "Bull River Mine",
+      "status": "renewed",
+      "authority": "Chief Gold Commissioner, BC Ministry of Mining and Critical Minerals",
+      "date": "2026-06-03",
+      "permit_name": "Mining Lease",
+      "permit_id": "212493",
+      "term": "30 years (Feb 21, 2023 to Feb 21, 2053)",
+      "expiry": "2053-02-21",
+      "jurisdiction": "British Columbia, Canada",
+      "metal": "copper+gold+silver"
+     },
+     {
+      "permit_type": "mining_licence",
+      "project": "Bull River Mine",
+      "status": "planned",
+      "authority": "First Nations and Major Mines Permitting Office, BC Ministry of Mining and Critical Minerals",
+      "date": "2026-06-03",
+      "permit_name": "Mining Permit M33 update (Project Description and Information Requirements Table)",
+      "permit_id": "M33",
+      "jurisdiction": "British Columbia, Canada",
+      "metal": "copper+gold+silver"
+     }
+    ]
+   }
+  },
+  {
+   "n": 48,
+   "event_id": "9983a29568a70fa24286ee8da259bac5f0627180",
+   "ticker": "NOBL.V",
+   "stratum": "renewed_amended",
+   "body_sha1": "b190570f413ce4fc632be3d31ef67f94205b95b1",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "drill_exploration",
+      "project": "Duck Creek Project",
+      "status": "granted",
+      "date": "2025-11-25",
+      "permit_name": "drill permit",
+      "jurisdiction": "Wyoming, USA",
+      "metal": "uranium"
+     }
+    ]
+   }
+  },
+  {
+   "n": 49,
+   "event_id": "ed56c93e9215c75b60d6e27d0a282ffdc882b4c4",
+   "ticker": "UGD.V",
+   "stratum": "land_community",
+   "body_sha1": "9705697d4c6be89afd0c1d8fa222166ef90c6495",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "land_community",
+      "project": "Neita Project",
+      "status": "granted",
+      "authority": "Restauracion Municipal Development Council; Restauracion Town Council and Mayor",
+      "date": "2026-09-01",
+      "permit_name": "community support for ESIA initiation",
+      "jurisdiction": "Dajabon Province, Dominican Republic",
+      "metal": "gold"
+     },
+     {
+      "permit_type": "mining_licence",
+      "project": "Neita Project",
+      "status": "in_review",
+      "authority": "President of the Dominican Republic",
+      "date": "2026-09-01",
+      "permit_name": "Exploitation Concession",
+      "jurisdiction": "Dajabon Province, Dominican Republic",
+      "metal": "gold"
+     },
+     {
+      "permit_type": "environmental_assessment",
+      "project": "Neita Project",
+      "status": "planned",
+      "authority": "President of the Dominican Republic",
+      "date": "2026-09-01",
+      "permit_name": "Environmental and Social Impact Assessment (ESIA)",
+      "jurisdiction": "Dajabon Province, Dominican Republic",
+      "metal": "gold"
+     }
+    ]
+   }
+  },
+  {
+   "n": 50,
+   "event_id": "f6a9e7d29c0c0310216a5ea608a8063be85ac8ec",
+   "ticker": "QIMC.CN",
+   "stratum": "tagged_other",
+   "body_sha1": "201cc9a338107feb5e7b633278d7dff10e1c02fc",
+   "review": "confirmed",
+   "note": "see claude/MNT_PERMIT_SET_LABELS_CONFIRMED_2026-09-22.json",
+   "expect": {
+    "is_permit": true,
+    "complete": true,
+    "rows": [
+     {
+      "permit_type": "drill_exploration",
+      "project": "Charlevoix Silica Project",
+      "status": "granted",
+      "authority": "Québec Ministère des Forêts, de la Faune et des Parcs",
+      "date": "2023-10-04",
+      "permit_name": "permit",
+      "jurisdiction": "Québec, Canada",
+      "metal": "silica"
+     }
+    ]
+   }
+  }
+ ]
+}

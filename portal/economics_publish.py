@@ -81,7 +81,8 @@ CREATE TABLE IF NOT EXISTS economic_studies (
     raw_headline      TEXT,
     published_at      TEXT,
     other_owner       TEXT,
-    extractor_version TEXT
+    extractor_version TEXT,
+    study_type_read   TEXT
 );
 """
 INDEX_SQL = """
@@ -95,7 +96,7 @@ _COLS = ("event_id", "ordinal", "ticker", "slug", "project", "study_type", "cont
          "irr_pre_tax_pct", "irr_after_tax_pct", "payback_years", "initial_capex", "capex_sensitivity",
          "opex", "opex_unit", "aisc", "aisc_unit", "mine_life_years", "throughput_tpd",
          "annual_production", "production_unit", "n_rows", "tag_confirmed", "raw_headline",
-         "published_at", "other_owner")
+         "published_at", "other_owner", "study_type_read")
 _SCEN_FIELDS = ("scenario", "basis", "currency", "discount_pct", "npv_pre_tax", "npv_after_tax",
                 "irr_pre_tax_pct", "irr_after_tax_pct", "payback_years", "initial_capex",
                 "capex_sensitivity", "opex", "opex_unit", "aisc", "aisc_unit", "mine_life_years",
@@ -210,10 +211,83 @@ def compute(items, names):
                        context=p.get("context"), n_rows=len(scen), tag_confirmed=1 if tagged else 0,
                        raw_headline=(ev.get("raw_headline") or "")[:500],
                        published_at=ev.get("published_at"))
+            row["study_type_read"] = p.get("study_type")
             rows.append(row)
             st["rows"] += 1
             st["background_rows"] += 1 if p.get("context") == "background" else 0
+    st["types_settled"] = settle_study_types(rows)
     return rows, st
+
+
+def settle_study_types(rows):
+    """ECON 1.0.2 (Justin, 2026-09-21): every release of one study carries that study's type, so the page shows
+    the Cabacal PFS as a PFS in all 30 releases that repeat it, and says what MTP says. Releases are grouped into
+    studies exactly as portal/economics_api.py groups them for MTP (same company, after-tax NPV to three
+    significant figures, IRR within 0.5 points, discount rate where both state one), and the type is settled by
+    that module's rule and override table. The reader's own label for the release stays in study_type_read.
+    Returns how many rows changed type. If the API module is missing, nothing is settled."""
+    try:
+        from portal import economics_api as A
+    except Exception:  # noqa: BLE001
+        return 0
+    rels, order = {}, []
+    for r in rows:                                    # rows are in (published_at, event_id, ordinal) order
+        if not r.get("scenario") or r.get("other_owner"):
+            continue
+        rel = rels.get(r["event_id"])
+        if rel is None:
+            rel = rels[r["event_id"]] = {"rows": [], "announced": False, "type": r.get("study_type"),
+                                         "ticker": (r.get("ticker") or "").strip(), "headline": r.get("raw_headline"),
+                                         "published_at": r.get("published_at") or ""}
+            order.append(r["event_id"])
+        rel["rows"].append(r)
+        rel["announced"] = rel["announced"] or r.get("context") == "announced"
+        rel["type"] = rel["type"] or r.get("study_type")
+    studies, by_key = [], {}
+    for eid in order:                                 # the matching loop of economics_api.build_studies
+        rel = rels[eid]
+        base = A._scenario(rel["rows"][0])
+        fp = A.fingerprint(rel["ticker"], rel["type"], base)
+        st, key = None, None
+        if fp is not None:
+            _tk, typ, npv, irr, disc = fp
+            key = (_tk, "npv", npv) if npv is not None else (_tk, "irr", irr)
+            for cand in by_key.get(key, []):
+                if npv is not None:
+                    ok = irr is None or cand["irr"] is None or abs(irr - cand["irr"]) <= A.IRR_TOL + 1e-9
+                else:
+                    ok = not typ or not cand["type"] or typ == cand["type"]
+                ok = ok and (disc is None or cand["disc"] is None or float(disc) == float(cand["disc"]))
+                if ok:
+                    st = cand
+                    break
+        if st is None:
+            st = {"type": fp[1] if fp else (rel["type"] or "").upper(), "irr": fp[3] if fp else None,
+                  "disc": fp[4] if fp else None, "rep": rel, "members": [], "rels": []}
+            studies.append(st)
+            if key is not None:
+                by_key.setdefault(key, []).append(st)
+        else:
+            st["irr"] = st["irr"] if st["irr"] is not None else fp[3]
+            st["disc"] = st["disc"] if st["disc"] is not None else fp[4]
+            if rel["announced"] and not st["rep"]["announced"]:
+                st["rep"] = rel
+        st["members"].append((rel["published_at"], (fp[1] if fp else (rel["type"] or "").upper()),
+                              rel["announced"], rel["headline"]))
+        st["rels"].append(rel)
+    changed = 0
+    for st in studies:
+        settled = A._study_type(st["members"]) or st["type"]
+        rep = st["rep"]
+        settled = A.TYPE_OVERRIDES.get((A.bare(rep["ticker"]), A._sig(rep["rows"][0].get("npv_after_tax"))), settled)
+        if not settled:
+            continue
+        for rel in st["rels"]:
+            for r in rel["rows"]:
+                if r.get("study_type") != settled:
+                    r["study_type"] = settled
+                    changed += 1
+    return changed
 
 
 # ------------------------------------------------------------------ reading the facts store
@@ -282,12 +356,19 @@ def publish(conn, version, log=print, names=None):
     t0 = time.time()
     rows, st = compute(load_items(conn, version), company_names() if names is None else names)
     _ensure_schema(conn)
+    # OPTD step A (2026-10-06): the same rowsync calls, run once before the write lock to work out the
+    # differences; the locked pass below then only applies them (portal/rowsync.py, planning). Kill switch:
+    # /opt/mnt/app/portal/rowsync_plan_OFF.
+    from portal import rowsync as _rowsync_plan
+    with _rowsync_plan.planning(conn):
+        # OPSFIX item 1 (2026-10-05): write only the rows that changed; same table contents (portal/rowsync.py)
+        from portal import rowsync
+        st["rowsync"] = rowsync.sync_rows(conn, "economic_studies", "es_id", _COLS, rows, {"extractor_version": version})
     conn.execute("BEGIN IMMEDIATE")
     try:
-        conn.execute("DELETE FROM economic_studies")
-        conn.executemany(
-            "INSERT INTO economic_studies(" + ", ".join(_COLS) + ", extractor_version) VALUES ("
-            + ", ".join(":" + c for c in _COLS) + ", '" + version + "')", rows)
+        # OPSFIX item 1 (2026-10-05): write only the rows that changed; same table contents (portal/rowsync.py)
+        from portal import rowsync
+        st["rowsync"] = rowsync.sync_rows(conn, "economic_studies", "es_id", _COLS, rows, {"extractor_version": version})
         conn.execute("COMMIT")
     except Exception:
         conn.execute("ROLLBACK")
@@ -369,6 +450,20 @@ def _selftest():
     eq("money", (fmt_money(9.214e9, "USD"), fmt_money(532e6, "CAD"), fmt_money(24e6, None)),
        ("US$9.21B", "C$532M", "$24M"))
     eq("pct and years", (fmt_pct(22.8), fmt_pct(48.0), fmt_years(3.25)), ("22.8%", "48%", "3.2 yr"))
+    # 1.0.2: one study, one type -- a restatement labelled with the study the company is working on next takes
+    # the type of the study it restates; the reader's own label is kept
+    def srow(eid, pub, typ, ctx, hl):
+        r = {c: None for c in _COLS}
+        r.update(event_id=eid, ordinal=0, ticker="MNO.TO", scenario="base case", context=ctx, study_type=typ,
+                 study_type_read=typ, npv_after_tax=984e6, irr_after_tax_pct=61.2, discount_pct=5.0,
+                 published_at=pub, raw_headline=hl)
+        return r
+    rs = [srow("m1", "2025-03-10", "PFS", "announced", "Meridian Announces Positive Cabacal Pre-Feasibility Study"),
+          srow("m2", "2026-05-27", "FS", "background", "Meridian Provides DFS Update"),
+          srow("m3", "2026-06-02", None, "background", "Meridian Announces Notice of AGM")]
+    eq("rows settled", settle_study_types(rs), 2)
+    eq("every release of the study is the PFS", [r["study_type"] for r in rs], ["PFS", "PFS", "PFS"])
+    eq("the reader's own label is kept", [r["study_type_read"] for r in rs], ["PFS", "FS", None])
     print("economics_publish: %s" % ("ok" if not bad else "%d FAILURES" % bad))
     return 1 if bad else 0
 

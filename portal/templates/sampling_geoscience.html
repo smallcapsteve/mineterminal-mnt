@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Sampling & Geoscience Results — MiningNewsTerminal{% endblock %}
+{% block meta_description %}Surface sampling and geoscience results from CSE, TSXV and TSX mining companies: grab, chip, channel and trench assays, soil, till and sediment geochemistry, geophysical surveys, bulk and brine samples, read from their news releases.{% endblock %}
+{% block content %}
+  <style>
+    .smp-table td { vertical-align: top; }
+    .smp-table .smp-sub { display: block; font-size: .8em; opacity: .7; }
+    .smp-kind { display: inline-block; padding: 0 .4em; border-radius: 3px; font-size: .75em; letter-spacing: .02em;
+                border: 1px solid currentColor; opacity: .85; white-space: nowrap; }
+    .smp-hist { display: inline-block; margin-left: .3em; font-size: .7em; opacity: .7; font-style: italic; }
+    .smp-grade { white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .smp-table tr.smp-cont td.smp-quiet { opacity: .35; }
+    .smp-none { opacity: .55; font-style: italic; }
+    .smp-note { font-size: .85em; opacity: .75; margin: .2em 0 .8em; }
+  </style>
+
+  <h2 class="page-title">Sampling &amp; Geoscience Results</h2>
+  <p class="smp-note">Early version: each row is read automatically from a release tagged Sampling &amp; Geoscience
+    Results, one row per sample type, and some rows or grades are wrong. Every row links to its release.</p>
+
+  <section class="filters fin-filters">
+    <form method="get" action="/sampling-geoscience">
+      <label for="ticker">Company:</label>
+      <select name="ticker" id="ticker" onchange="this.form.submit()">
+        <option value="">All companies</option>
+        {% for t in tickers %}
+          <option value="{{ t }}" {% if t == selected_ticker %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="group">Results:</label>
+      <select name="group" id="group" onchange="this.form.submit()">
+        <option value="" {% if not group %}selected{% endif %}>All results</option>
+        {% for v, label in group_options %}
+          <option value="{{ v }}" {% if v == group %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="type">Sample type:</label>
+      <select name="type" id="type" onchange="this.form.submit()">
+        <option value="" {% if not stype %}selected{% endif %}>All types</option>
+        {% for v, label in type_options %}
+          <option value="{{ v }}" {% if v == stype %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="hist">New / historical:</label>
+      <select name="hist" id="hist" onchange="this.form.submit()">
+        {% for v, label in [('all', 'New and historical'), ('new', 'New results only'), ('historical', 'Historical only')] %}
+          <option value="{{ v }}" {% if v == hist %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="days">Window:</label>
+      <select name="days" id="days" onchange="this.form.submit()">
+        {% for d, label in [(0, 'All time'), (30, 'Last 30 days'), (90, 'Last 90 days'), (180, 'Last 6 months'), (365, 'Last year')] %}
+          <option value="{{ d }}" {% if d == days %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="show">Show:</label>
+      <select name="show" id="show" onchange="this.form.submit()">
+        <option value="results" {% if show == 'results' %}selected{% endif %}>Results</option>
+        <option value="all" {% if show == 'all' %}selected{% endif %}>Also tagged releases with no result read</option>
+      </select>
+
+      {% if selected_ticker or days or group or stype or hist != 'all' or show != 'results' %}
+        <a class="cat-clear" href="/sampling-geoscience">Reset</a>
+      {% endif %}
+      <span class="muted">{{ rows|length }} shown · {{ total_filtered }} matching · {{ total }} results from {{ releases }} releases</span>
+    </form>
+  </section>
+
+  {% if not rows %}
+    <p class="empty">No sampling or geoscience results in this window.</p>
+  {% else %}
+    <div class="table-scroll">
+    <table class="fin-table smp-table">
+      <colgroup>
+        <col style="width: 7%">   <!-- Ticker     -->
+        <col style="width: 13%">  <!-- Company    -->
+        <col style="width: 8%">   <!-- Date       -->
+        <col style="width: 13%">  <!-- Type       -->
+        <col style="width: 16%">  <!-- Project    -->
+        <col style="width: 13%">  <!-- Best grade -->
+        <col style="width: 24%">  <!-- Headline   -->
+        <col style="width: 6%">   <!-- View       -->
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Ticker</th>
+          <th>Company</th>
+          <th>Date</th>
+          <th title="The kind of sample or survey; geophysics shows its method. Historical: results from earlier work or a previous operator.">Sample type</th>
+          <th title="The project or property as the release names it">Project</th>
+          <th title="The best grade the release reports for that sample type (with its length for channel, chip and trench samples)">Best grade</th>
+          <th>Headline</th>
+          <th>View</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr class="{% if not r['first_of_release'] %}smp-cont{% endif %}">
+            <td class="fin-ticker {% if not r['first_of_release'] %}smp-quiet{% endif %}">
+              {%- if r['first_of_release'] -%}
+                {% set _mtp = r["ticker"] | mtp_url('mining') %}{% if _mtp %}<a class="mtp-co" href="{{ _mtp }}" target="_blank" rel="noopener" title="Open {{ r['ticker'] }} mining data on MineTerminalPro">{{ r["ticker"] }}</a>{% else %}{{ r["ticker"] }}{% endif %}
+              {%- else -%}
+                {{ r["ticker"] }}
+              {%- endif -%}
+            </td>
+            <td class="{% if not r['first_of_release'] %}smp-quiet{% endif %}">{% if r['first_of_release'] %}{{ r["company_name"] }}{% endif %}</td>
+            <td class="fin-date {% if not r['first_of_release'] %}smp-quiet{% endif %}">{% if r['first_of_release'] %}{{ (r["published_at"] or "")[:10] }}{% endif %}</td>
+            {% if r["sample_type"] %}
+              <td>
+                <span class="smp-kind">{{ r["sample_type"] | smp_type }}</span>
+                {%- if r["historical"] %}<span class="smp-hist">historical</span>{% endif -%}
+                {%- if r["sample_type"] == "geophysics" and r["survey_type"] %}<span class="smp-sub">{{ r["survey_type"] | smp_survey }}</span>{% endif -%}
+              </td>
+              <td>{{ r["project"] or "—" }}</td>
+              <td class="smp-grade">{{ r["grade_text"] or "—" }}</td>
+            {% else %}
+              <td colspan="3" class="smp-none">No result read from the release</td>
+            {% endif %}
+            <td>{% if r['first_of_release'] %}{{ r["raw_headline"] or "" }}{% endif %}</td>
+            <td>
+              {% if r["url"] and r['first_of_release'] %}<a href="{{ r['url'] }}">View ↗</a>{% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  {% endif %}
+  {% include "_pager.html" %}
+{% endblock %}

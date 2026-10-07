@@ -309,13 +309,18 @@ _DOC_START_JUNK = re.compile(
     r"|\boffices?\s*:?\s*$"                                          # "Principal & Registered Office:"
     r"|\(\s*(?:the\s+)?[\"\N{LEFT DOUBLE QUOTATION MARK}][^\"\N{RIGHT DOUBLE QUOTATION MARK}]{1,40}[\"\N{RIGHT DOUBLE QUOTATION MARK}]"                  # defined terms: (the "Company")
     r"|^\d{2,5}[\s,]+(?:rue|boul\w*|av\.?|avenue|chemin|de\s+la|du|des)\b", re.I)
+# NEWSFIX_V1 (2026-10-05): a share count is letterhead. Globex prints
+# '“At Home in North America” 56,941,936 shares issued and outstanding' above every headline.
+_SHARE_COUNT = re.compile(r"\d[\d,.]{3,}\s*(?:common\s+)?shares?\s+(?:(?:are\s+)?(?:issued\s*(?:and|&)\s*)?outstanding)\b", re.I)
+# A line that is only a quoted slogan is a tagline, not a headline.
+_QUOTED_TAGLINE = re.compile("^\\s*[\u201c\"][^\u201d\"]{3,60}[\u201d\"]\\s*$")
 _DISCLAIMER_WORDS = re.compile(r"(?i)\b(?:dissemination|distribution|news\s*wires?|newswires?)\b")
 _PLACE_ONLY = re.compile(r"^[A-Z][\w.\-']*(?:\s+[A-Z][\w.\-']*)*(?:\s*,\s*[A-Z][\w.\-']*(?:\s+[A-Z][\w.\-']*)*){1,3}\s*,?\s*$")
 
 
 def _start_junk(s: str) -> bool:
     """Letterhead that only ever appears ABOVE a headline."""
-    if _DOC_START_JUNK.search(s):
+    if _DOC_START_JUNK.search(s) or _SHARE_COUNT.search(s) or _QUOTED_TAGLINE.match(s):     # NEWSFIX_V1
         return True
     if len(s) <= 70 and _DOC_EXCH.search(s) and not _DOC_VERB.search(s):
         return True                     # "OTC Pink: TRXXF", "TSX Venture:  RCT"
@@ -354,7 +359,7 @@ def _is_letterhead(s: str) -> bool:
                 or _has_dateline(s) or _DOC_LISTING.match(s)
                 or _DOC_LABEL.match(s) or _DOC_DISCLAIMER.match(s)
                 or _DOC_BULLET.match(s) or _DOC_FILENAME.search(s)
-                or _DOC_WIRE.search(s))
+                or _DOC_WIRE.search(s) or _SHARE_COUNT.search(s))   # NEWSFIX_V1
 
 
 def _starts_headline(s: str) -> bool:
@@ -780,6 +785,16 @@ DOC_TEST = [
     ("Moneta Porcupine Mines Inc. (TSX:ME)\n(XETRA:MOP) (\"Moneta\" or the \"Company\")\n"
      "Moneta Announces Drill Results at Golden Highway\n",
      "Moneta Announces Drill Results at Golden Highway"),
+
+    # NEWSFIX_V1: a tagline with the share count is letterhead (Globex, every release)
+    ("GLOBEX MINING ENTERPRISES INC.\n\u201cAt Home in North America\u201d\n56,941,936 shares issued and outstanding\n"
+     "Globex Reports Strong Exploration Results from Option and Royalty Partners\n"
+     "Rouyn-Noranda, Quebec, Canada. July 31, 2026 \u2013 GLOBEX MINING ENTERPRISES INC.\n",
+     "Globex Reports Strong Exploration Results from Option and Royalty Partners"),
+    ("\u201cAt Home in North America\u201d 56,941,936 shares issued and outstanding\n"
+     "Globex reports Gold assays of up to 1.88 g/t Au over 4.85 metres in the Main Antimony Zone\n"
+     "Rouyn-Noranda, Quebec, Canada. July 3, 2026 \u2013 GLOBEX MINING ENTERPRISES INC.\n",
+     "Globex reports Gold assays of up to 1.88 g/t Au over 4.85 metres in the Main Antimony Zone"),
 
     # a company whose name contains a street word must keep its headline
     ("MINERAL ROAD COMMISSIONS STRATEGIC REVIEW OF SIGNIFICANT\n"

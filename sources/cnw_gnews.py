@@ -128,16 +128,35 @@ def fetch_gnews_items(days: int = 7) -> list[dict]:
     return out
 
 
+_LAST_TITLE = ""   # MNT_FIX_20261003: the release page's own headline, set by _extract_body_html
+
+
+def _full_title(gn_title: str, page_title: str) -> str:
+    """MNT_FIX_20261003: Google News shortens long titles ("Big Bear Gold Corp. Signs Assignment and Assumption of");
+    the release page's own headline is complete. Use it when it starts the same way and is longer."""
+    p = re.sub(r"\s+", " ", page_title or "").strip()
+    p = re.sub(r"\s*[-|]\s*(?:Canada\s+)?(?:CNW|Newswire\.ca|PR\s*Newswire|GlobeNewswire|GLOBE\s+NEWSWIRE)\b.*$", "", p, flags=re.I)
+    g = re.sub(r"\s*(?:\.\.\.|…)\s*$", "", gn_title or "").strip()
+    n = lambda s: re.sub(r"[^a-z0-9]+", " ", s.lower()).strip()
+    if len(p) >= 15 and g and n(p).startswith(n(g)[:40]) and len(n(p)) > len(n(g)):
+        return p
+    return gn_title
+
+
 def _extract_body_html(real_url: str, client: httpx.Client) -> tuple[str, str]:
     """Fetch a CNW release page and extract title + body HTML.
 
     Selectors mirror the proven per-company adapter (sources/cnw.py).
     """
+    global _LAST_TITLE
+    _LAST_TITLE = ""
     r = client.get(real_url, follow_redirects=True, timeout=20)
     if r.status_code != 200:
         return "", ""
     from bs4 import BeautifulSoup
     soup = BeautifulSoup(r.text, "html.parser")
+    _h1 = soup.select_one("h1")
+    _LAST_TITLE = _h1.get_text(" ", strip=True) if _h1 else ""
     for tag in soup(["script", "style", "nav", "header", "footer", "aside",
                      "form", "noscript", "iframe"]):
         tag.decompose()
@@ -190,6 +209,7 @@ def list_mining_events(days: int = 7) -> Iterator[dict]:
             ticker, exch = extract_ticker(body_text)
             if not ticker:
                 continue
+            title = _full_title(title, _LAST_TITLE)       # MNT_FIX_20261003
             pub_iso = _parse_pubdate(raw["pub"]) or ""
             yield {
                 "event_id":     _event_id(real_url, pub_iso),

@@ -1,0 +1,1119 @@
+{
+  "schema": 1,
+  "name": "royalties",
+  "tag": "Royalties & Streams",
+  "status": "confirmed",
+  "created": "2026-09-21",
+  "reviewer": "Justin",
+  "reviewed_at": "2026-09-21",
+  "row_shape": "one row per royalty or stream interest a release reports as news: bought, sold, granted, bought back or amended",
+  "items": [
+    {
+      "n": 1,
+      "event_id": "0c7c3b5f940139818e4d5b9b86d4ab1e1ad27ef6",
+      "ticker": "LUG.TO",
+      "stratum": "tagged_stream",
+      "body_sha1": "865ac81fa5b1e299c537c56ea736bf7a949cc3e1",
+      "review": "confirmed",
+      "note": "see claude/MNT_ROY_SET_LABELS_CONFIRMED_2026-09-21.json",
+      "expect": {
+        "is_royalty": true,
+        "complete": true,
+        "rows": [
+          {
+            "type": "stream",
+            "metal": "silver",
+            "property": "Fruta del Norte",
+            "operator": "Lundin Gold",
+            "buyer": "LunR Royalties",
+            "seller": "Lundin Gold",
+            "price_note": "50,505,051 LunR shares",
+            "action": "new",
+            "status": "agreed"
+          }
+        ]
+      }
+    },
+    {
+      "n": 2,
+      "event_id": "b2ac73ce0cd513bf1d5669d3d883446c1ad571090d8e1a89293683bcb3d204b5",
+      "ticker": "SUM.V",
+      "stratum": "tagged_stream",
+      "body_sha1": "d06826cfa6a4467dfd2665dfda0389106ae70e0d",
+      "review": "confirmed",
+      "note": "Paid promo (Market One) recapping Summit's earlier Star portfolio acquisition; the deal belongs to the original release.",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 3,
+      "event_id": "920781fd9125bc7e4de76f6dcc570ec34ed5922c",
+      "ticker": "RI.CN",
+      "stratum": "out_of_scope",
+      "body_sha1": "37e33a70f639bc43e809700f700675ccf7bf4de1",
+      "review": "confirmed",
+      "note": "Quarterly results + court ruling on the Cozamin 2% NSR: a dispute, which you ruled out. | 2026-09-28 ROY11 re-label approved by Justin (k3)",
+      "expect": {
+        "complete": true,
+        "is_royalty": true,
+        "rows": [
+          {
+            "action": "held",
+            "buyer": "Royalties Inc. (Minera Portree de Zacatecas)",
+            "operator": "Capstone Copper",
+            "price_note": "ownership of the 2% NSR confirmed by the Zacatecas appeals court",
+            "property": "Cozamin Mine (Portree claims)",
+            "rate_pct": 2,
+            "type": "NSR"
+          }
+        ]
+      }
+    },
+    {
+      "n": 4,
+      "event_id": "b9406ab2e61beedc01974ccbf16af4d0587479fb",
+      "ticker": "SPA.V",
+      "stratum": "tagged_deal",
+      "body_sha1": "01295ea944fef5bfe6bdeb22aa6d671df74a2d43",
+      "review": "confirmed",
+      "note": "see claude/MNT_ROY_SET_LABELS_CONFIRMED_2026-09-21.json",
+      "expect": {
+        "is_royalty": true,
+        "complete": true,
+        "rows": [
+          {
+            "type": "NSR",
+            "rate_pct": 1.5,
+            "metal": "gold, silver",
+            "property": "Spanish Mountain Gold Project",
+            "operator": "Spanish Mountain Gold",
+            "buyer": "Wheaton Precious Metals",
+            "seller": "Spanish Mountain Gold",
+            "price": 55000000,
+            "currency": "USD",
+            "price_note": "three instalments; 1/3 buy-back on change of control",
+            "action": "new",
+            "status": "agreed"
+          }
+        ]
+      }
+    },
+    {
+      "n": 5,
+      "event_id": "17ae316f5303ad676f817407020496d9718aab68",
+      "ticker": "OTMC.V",
+      "stratum": "tagged_deal",
+      "body_sha1": "a3fc0eaae7dcecb5139e8c0ea458388f76957a2b",
+      "review": "confirmed",
+      "note": "see claude/MNT_ROY_SET_LABELS_CONFIRMED_2026-09-21.json",
+      "expect": {
+        "is_royalty": true,
+        "complete": true,
+        "rows": [
+          {
+            "type": "NSR",
+            "rate_pct": 1.0,
+            "property": "Newmont Lake",
+            "operator": "Enduro Metals",
+            "buyer": "Enduro Metals",
+            "seller": "Oreterra Metals",
+            "price": 550000,
+            "currency": "CAD",
+            "price_note": "option to buy down half of the 2% NSR; 3.9M shares + $550k, then staged payments up to $22M",
+            "action": "buyback",
+            "status": "closed"
+          }
+        ]
+      }
+    },
+    {
+      "n": 6,
+      "event_id": "aa4e94b6f360a8729ae5627369ee5f17728d5e03",
+      "ticker": "GGO.V",
+      "stratum": "tagged_deal",
+      "body_sha1": "d84aa622eb85335fe5be8e29ae16385a9ccd5de6",
+      "review": "confirmed",
+      "note": "see claude/MNT_ROY_SET_LABELS_CONFIRMED_2026-09-21.json",
+      "expect": {
+        "is_royalty": true,
+        "complete": true,
+        "rows": [
+          {
+            "type": "NSR",
+            "rate_pct": 3.0,
+            "metal": "gold",
+            "property": "West Cache",
+            "operator": "Galleon Gold",
+            "buyer": "Galleon Gold",
+            "seller": "Newmont",
+            "price": 11000000,
+            "currency": "CAD",
+            "price_note": "C$1M for the first 1%, then C$10M for the remaining 2%",
+            "action": "buyback",
+            "status": "agreed"
+          }
+        ]
+      }
+    },
+    {
+      "n": 7,
+      "event_id": "32afee51f6443c480355c16321fc28b8d12c3d62df6523724f466d6a66cbbfc2",
+      "ticker": "MCL.CN",
+      "stratum": "tagged_deal",
+      "body_sha1": "248157c2bb961f02ab32642acb69279a01fc99ea",
+      "review": "confirmed",
+      "note": "see claude/MNT_ROY_SET_LABELS_CONFIRMED_2026-09-21.json",
+      "expect": {
+        "is_royalty": true,
+        "complete": true,
+        "rows": [
+          {
+            "type": "NSR",
+            "rate_pct": 1.0,
+            "metal": "gold",
+            "property": "McCool",
+            "operator": "McLaren Resources",
+            "buyer": "McLaren Resources",
+            "seller": "a prospector",
+            "price": 6000,
+            "currency": "CAD",
+            "price_note": "$6,000 cash + 100,000 shares",
+            "action": "buyback",
+            "status": "closed"
+          }
+        ]
+      }
+    },
+    {
+      "n": 8,
+      "event_id": "e38e0da0dffc3d377a62d08ee6a23efab528cf09",
+      "ticker": "NGEX.TO",
+      "stratum": "tagged_other",
+      "body_sha1": "8823fd1130d5253adcc7b530c12ead995fd18abc",
+      "review": "confirmed",
+      "note": "Closing of the spin-out. This release gives no rates; they come from the July 2025 announcement (#34).",
+      "expect": {
+        "is_royalty": true,
+        "complete": true,
+        "rows": [
+          {
+            "type": "NSR",
+            "rate_pct": 1.0,
+            "property": "Lunahuasi",
+            "operator": "NGEx Minerals",
+            "buyer": "LunR Royalties",
+            "seller": "NGEx Minerals",
+            "action": "new",
+            "status": "closed"
+          },
+          {
+            "type": "NSR",
+            "rate_pct": 1.38,
+            "property": "Los Helados",
+            "operator": "NGEx Minerals",
+            "buyer": "LunR Royalties",
+            "seller": "NGEx Minerals",
+            "action": "new",
+            "status": "closed"
+          }
+        ]
+      }
+    },
+    {
+      "n": 9,
+      "event_id": "15833a041d39c9f966b570d8a903de48eafbbc31",
+      "ticker": "VMET.TO",
+      "stratum": "tagged_other",
+      "body_sha1": "7573de3b0cd9cc8dc47f10356a4cfaf7b7a24624",
+      "review": "confirmed",
+      "note": "Equity financing by a royalty company; no royalty deal.",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 10,
+      "event_id": "8b7f432fb2ebec3ca2aec7e3007944ce163d11d0",
+      "ticker": "RI.CN",
+      "stratum": "untagged_candidate",
+      "body_sha1": "aca2097ab5cc2ccafca4590b16360dc3860d4ffe",
+      "review": "confirmed",
+      "note": "Conference notice; royalties only in the About section.",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 11,
+      "event_id": "d7c8c24b1d9e0183ead9f450dbb94786",
+      "ticker": "PGOL.CN",
+      "stratum": "untagged_candidate",
+      "body_sha1": "eafdfecb6e8038b4c91c70c613c8a9df2c124d5c",
+      "review": "confirmed",
+      "note": "First gold pour at Moss (a royalty holder's update); no deal. | 2026-09-28 ROY11 re-label approved by Justin (k11)",
+      "expect": {
+        "complete": true,
+        "is_royalty": true,
+        "rows": [
+          {
+            "action": "held",
+            "buyer": "Patriot Gold",
+            "metal": "gold",
+            "price_note": "royalty Patriot already holds",
+            "property": "Moss Mine",
+            "type": "other"
+          }
+        ]
+      }
+    },
+    {
+      "n": 12,
+      "event_id": "defcf73cd33c66338796a750fa78c185a4d0ac94",
+      "ticker": "KNG.V",
+      "stratum": "passing_mention",
+      "body_sha1": "cf0eb27dc473579928b74e7d29de505d52ebcf1d",
+      "review": "confirmed",
+      "note": "Claim bought 'free of any NSR'; the La Trini NSR is an About mention.",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 13,
+      "event_id": "28af8075e49d9cea12b27102acb5e4f67664424b",
+      "ticker": "XRI.CN",
+      "stratum": "passing_mention",
+      "body_sha1": "79842e91ef3d473c7cb41f46b7ac5101a819a4f4",
+      "review": "confirmed",
+      "note": "Property purchase in which the buyer grants the vendor a 2% NSR (1% buy-back for $1M): a vendor NSR, not the release's news. | 2026-09-28 ROY11 re-label approved by Justin (k13)",
+      "expect": {
+        "complete": true,
+        "is_royalty": true,
+        "rows": [
+          {
+            "action": "new",
+            "buyer": "Bullion",
+            "operator": "Xcite Resources",
+            "price_note": "granted to the vendor in the property purchase; Xcite may buy 1% for $1,000,000",
+            "property": "Turgeon Lake",
+            "rate_pct": 2,
+            "seller": "Xcite Resources",
+            "status": "closed",
+            "type": "NSR"
+          }
+        ]
+      }
+    },
+    {
+      "n": 14,
+      "event_id": "8a4d71ecfa9f9da9a3c294313dc3ebe951a7c638",
+      "ticker": "NGC.V",
+      "stratum": "tagged_stream",
+      "body_sha1": "22f7d4397b3f29a724f7592eb3aa63f3ecb96107",
+      "review": "confirmed",
+      "note": "Q2 results repeating the April 29 Sprott restructuring (#27); no new deal event. | 2026-09-28 ROY11 re-label approved by Justin (k14)",
+      "expect": {
+        "complete": true,
+        "is_royalty": true,
+        "rows": [
+          {
+            "action": "amendment",
+            "buyer": "Sprott Streaming",
+            "metal": "graphite",
+            "operator": "Northern Graphite",
+            "price_note": "binding agreement; stream converted to a 1% royalty as part of the debt restructuring",
+            "property": "Okanjande",
+            "seller": "Northern Graphite",
+            "status": "agreed",
+            "type": "stream"
+          }
+        ]
+      }
+    },
+    {
+      "n": 15,
+      "event_id": "dc2666f0b6e0b2eb5ffadf8223d29640d8f10017",
+      "ticker": "FNV.TO",
+      "stratum": "tagged_stream",
+      "body_sha1": "c7703b36877988a1ceef426ed89c2546bac28509",
+      "review": "confirmed",
+      "note": "see claude/MNT_ROY_SET_LABELS_CONFIRMED_2026-09-21.json",
+      "expect": {
+        "is_royalty": true,
+        "complete": true,
+        "rows": [
+          {
+            "type": "stream",
+            "rate_pct": 5.0,
+            "metal": "gold",
+            "property": "Casa Berardi",
+            "operator": "Orezone Gold",
+            "buyer": "Franco-Nevada",
+            "seller": "Orezone Gold",
+            "price": 100000000,
+            "currency": "USD",
+            "price_note": "6,500 oz/yr fixed for 5 years, then 5% (2.5% on Heva-Hosco); 20% of spot ongoing payment",
+            "action": "new",
+            "status": "agreed"
+          }
+        ]
+      }
+    },
+    {
+      "n": 16,
+      "event_id": "8a6b7be9b651825d6d6ba8d576d5c925ce52502e1af7b6698eaa0dd1006bc4be",
+      "ticker": "V.TO",
+      "stratum": "out_of_scope",
+      "body_sha1": "7ead0e08207cad7d052848335ecf355ddf698c7b",
+      "review": "confirmed",
+      "note": "Quarterly royalty income on an oil & gas GOR: out of scope twice over.",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 17,
+      "event_id": "6706c7da67d2fbb422f6a4db97a4dbd2",
+      "ticker": "RSG.CN",
+      "stratum": "tagged_deal",
+      "body_sha1": "7fee991c22f7b1add447ad6da8c8810ed351eb58",
+      "review": "confirmed",
+      "note": "Ticker on the event is RSG.CN but the issuer is Hemlo Explorers (HMLO) — a ticker-attribution issue.",
+      "expect": {
+        "is_royalty": true,
+        "complete": true,
+        "rows": [
+          {
+            "type": "NSR",
+            "rate_pct": 0.5,
+            "metal": "gold",
+            "property": "Hawkins Gold Project",
+            "operator": "E2Gold",
+            "buyer": "Vox Royalty",
+            "seller": "Hemlo Explorers",
+            "price": 100000,
+            "currency": "CAD",
+            "action": "transfer",
+            "status": "closed"
+          }
+        ]
+      }
+    },
+    {
+      "n": 18,
+      "event_id": "f3f5e4079c2070fd74282286e9a6db2eaadbe801",
+      "ticker": "VROY.V",
+      "stratum": "tagged_deal",
+      "body_sha1": "57445c5829ee51ecd4653abf1292b1984bbb61df",
+      "review": "confirmed",
+      "note": "see claude/MNT_ROY_SET_LABELS_CONFIRMED_2026-09-21.json",
+      "expect": {
+        "is_royalty": true,
+        "complete": true,
+        "rows": [
+          {
+            "type": "NSR",
+            "rate_pct": 3.0,
+            "metal": "silver, gold",
+            "property": "Panuco (Silverstone concessions)",
+            "operator": "Vizsla Silver",
+            "buyer": "Vizsla Royalties",
+            "seller": "Grupo Minero Bacis",
+            "price": 40000000,
+            "currency": "USD",
+            "price_note": "US$1.95M repurchase of 50% + US$38.05M for the rest",
+            "action": "transfer",
+            "status": "agreed"
+          }
+        ]
+      }
+    },
+    {
+      "n": 19,
+      "event_id": "0da83eea7dfddc35b5f6a3b91b2b3137ad426e74",
+      "ticker": "EVR.CN",
+      "stratum": "tagged_deal",
+      "body_sha1": "e087b13037156d9973df0b7118bc836d0a828911",
+      "review": "confirmed",
+      "note": "see claude/MNT_ROY_SET_LABELS_CONFIRMED_2026-09-21.json",
+      "expect": {
+        "is_royalty": true,
+        "complete": true,
+        "rows": [
+          {
+            "type": "GRR",
+            "metal": "tin",
+            "property": "Uis",
+            "operator": "Andrada Mining",
+            "buyer": "Evolve Royalties",
+            "seller": "Orion Resource Partners",
+            "price": 32500000,
+            "currency": "USD",
+            "price_note": "sliding scale 9.63%–0.86%; US$22.5M cash + US$10M shares",
+            "action": "transfer",
+            "status": "agreed"
+          }
+        ]
+      }
+    },
+    {
+      "n": 20,
+      "event_id": "3a2c9bc8e68d1d44f86379c35eb07debd6ecff3b",
+      "ticker": "CTV.V",
+      "stratum": "tagged_deal",
+      "body_sha1": "aee0bd6c392c81d78a49eb3bc813daef52a4eaeb",
+      "review": "confirmed",
+      "note": "see claude/MNT_ROY_SET_LABELS_CONFIRMED_2026-09-21.json",
+      "expect": {
+        "is_royalty": true,
+        "complete": true,
+        "rows": [
+          {
+            "type": "NSR",
+            "rate_pct": 2.0,
+            "metal": "fluorspar",
+            "property": "Illinois fluorspar properties",
+            "operator": "CleanTech Vanadium Mining",
+            "buyer": "Oracle Commodity Holding",
+            "seller": "CleanTech Vanadium Mining",
+            "price": 13740,
+            "currency": "USD",
+            "price_note": "20% of US$68,700; royalty extended to new parcels",
+            "action": "amendment",
+            "status": "agreed"
+          }
+        ]
+      }
+    },
+    {
+      "n": 21,
+      "event_id": "662f1d45d5f60ffb546ca4a106b35eaa88c042f0",
+      "ticker": "FWM.CN",
+      "stratum": "tagged_other",
+      "body_sha1": "b84d5c83d7e577f33517816661ee8602d76b3cb5",
+      "review": "confirmed",
+      "note": "Advance royalty payment under a property option, settled in shares: a payment, not a deal.",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 22,
+      "event_id": "86c37fdf4573079f2e4d5b77e30ef11137c1627b",
+      "ticker": "EVR.CN",
+      "stratum": "tagged_other",
+      "body_sha1": "1797e3fcf4f42543b19e7b6948efd8e8e4fe525f",
+      "review": "confirmed",
+      "note": "RTO approval and board; royalties only as company description.",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 23,
+      "event_id": "b8fe01da6dd1b2e43ea59a55e660240e8301274d",
+      "ticker": "ACM.CN",
+      "stratum": "untagged_candidate",
+      "body_sha1": "313d00cdf5d99d2ff00eff8171891bd5a5c16957",
+      "review": "confirmed",
+      "note": "Untagged release — the reader must find it without the tag.",
+      "expect": {
+        "is_royalty": true,
+        "complete": true,
+        "rows": [
+          {
+            "type": "NPI",
+            "rate_pct": 10.0,
+            "metal": "tungsten",
+            "property": "Vila Verde pilot plant",
+            "operator": "Allied Critical Metals",
+            "buyer": "DeepRock Minerals",
+            "seller": "Allied Critical Metals",
+            "price": 1000000,
+            "currency": "CAD",
+            "price_note": "C$200k deposit + C$800k; min C$500k/yr for 10 years",
+            "action": "new",
+            "status": "agreed"
+          }
+        ]
+      }
+    },
+    {
+      "n": 24,
+      "event_id": "74818b8cc8c0e01aed7943253917c028903483c8",
+      "ticker": "RI.CN",
+      "stratum": "untagged_candidate",
+      "body_sha1": "bd7663d94e000752eff9680365787d7a72db77f3",
+      "review": "confirmed",
+      "note": "Music royalties: non-mining, out of scope. The Bilbao NSR is in the About section.",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 25,
+      "event_id": "7b7cfa60c2fbead8382d73e257adacc11156ce8045246465eb081e92b40f9d66",
+      "ticker": "OTMC.V",
+      "stratum": "passing_mention",
+      "body_sha1": "83c89176ec10aad9781d167c0fd2f11f9a269d8b",
+      "review": "confirmed",
+      "note": "Drill camp news; NSRs only in About.",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 26,
+      "event_id": "2d16529a46d359711cfcba786ee300e39f5fcbec",
+      "ticker": "NIX.CN",
+      "stratum": "passing_mention",
+      "body_sha1": "54e35a43d7df1a4dab5cb05a585d95e3d9bf0901",
+      "review": "confirmed",
+      "note": "Asset purchase in which Archer grants Wallbridge a 2% NSR: a vendor NSR. | 2026-09-28 ROY11 re-label approved by Justin (k26)",
+      "expect": {
+        "complete": true,
+        "is_royalty": true,
+        "rows": [
+          {
+            "action": "new",
+            "buyer": "Wallbridge Mining",
+            "operator": "Archer Exploration",
+            "price_note": "granted to the vendor in the asset purchase",
+            "property": "Grasset Project",
+            "rate_pct": 2,
+            "seller": "Archer Exploration",
+            "status": "closed",
+            "type": "NSR"
+          }
+        ]
+      }
+    },
+    {
+      "n": 27,
+      "event_id": "099c35afcf8fec8717fba20ef6f0df684371bc73",
+      "ticker": "NGC.V",
+      "stratum": "tagged_stream",
+      "body_sha1": "2e4963eb17fdf172ec10d07927edae9847f93ed1",
+      "review": "confirmed",
+      "note": "see claude/MNT_ROY_SET_LABELS_CONFIRMED_2026-09-21.json",
+      "expect": {
+        "is_royalty": true,
+        "complete": true,
+        "rows": [
+          {
+            "type": "stream",
+            "metal": "graphite",
+            "property": "Okanjande",
+            "operator": "Northern Graphite",
+            "buyer": "Sprott Streaming",
+            "seller": "Northern Graphite",
+            "price_note": "cap of 350,000 t removed, stream covers all future production; part of a debt-for-shares restructuring",
+            "action": "amendment",
+            "status": "agreed"
+          }
+        ]
+      }
+    },
+    {
+      "n": 28,
+      "event_id": "ce6e55b81f8f887c3ad16db7dd40f200cb91ecc6c86646c1df347ed8d0ec035c",
+      "ticker": "SRR.V",
+      "stratum": "out_of_scope",
+      "body_sha1": "78235e9597ec1bddfc398ab3f67a0c08601afc6a",
+      "review": "confirmed",
+      "note": "Oil & gas royalty company: out of scope.",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 29,
+      "event_id": "a573662031eae037e087d5b98bca6917be42c378",
+      "ticker": "FNV.TO",
+      "stratum": "tagged_deal",
+      "body_sha1": "7c5cc7ef25e9d6e64957298458b622370b053c94",
+      "review": "confirmed",
+      "note": "see claude/MNT_ROY_SET_LABELS_CONFIRMED_2026-09-21.json",
+      "expect": {
+        "is_royalty": true,
+        "complete": true,
+        "rows": [
+          {
+            "type": "other",
+            "rate_pct": 7.5,
+            "metal": "gold",
+            "property": "Côté Gold Mine",
+            "operator": "IAMGOLD",
+            "buyer": "Franco-Nevada",
+            "seller": "a private third party",
+            "price": 1050000000,
+            "currency": "USD",
+            "price_note": "gross margin royalty; IAMGOLD/Sumitomo may buy down up to 50%",
+            "action": "transfer",
+            "status": "agreed"
+          }
+        ]
+      }
+    },
+    {
+      "n": 30,
+      "event_id": "18486602bf82e0537a4b5a922e3a1d29db23640c",
+      "ticker": "LUNR.V",
+      "stratum": "tagged_deal",
+      "body_sha1": "46a223a47bd8babeaa73c84a4e59a213d7e405f3",
+      "review": "confirmed",
+      "note": "Same deal as #1, from the buyer's side.",
+      "expect": {
+        "is_royalty": true,
+        "complete": true,
+        "rows": [
+          {
+            "type": "stream",
+            "metal": "silver",
+            "property": "Fruta del Norte",
+            "operator": "Lundin Gold",
+            "buyer": "LunR Royalties",
+            "seller": "Lundin Gold",
+            "price_note": "LunR shares distributed to Lundin Gold shareholders",
+            "action": "new",
+            "status": "agreed"
+          }
+        ]
+      }
+    },
+    {
+      "n": 31,
+      "event_id": "7b0b1640655a682f7513cc16f95f0d6d204f35a8e90c4e7764ebf8070e2ae988",
+      "ticker": "CTGO.TO",
+      "stratum": "tagged_deal",
+      "body_sha1": "def919f132b21fd4620ae128c1be3eae9d106d74",
+      "review": "confirmed",
+      "note": "Body is a 1,900-character teaser; no rate or price.",
+      "expect": {
+        "is_royalty": true,
+        "complete": true,
+        "rows": [
+          {
+            "type": "NSR",
+            "property": "Lucky Shot",
+            "operator": "Contango Silver & Gold",
+            "buyer": "Contango Silver & Gold",
+            "price_note": "bought with the underlying lease",
+            "action": "buyback"
+          }
+        ]
+      }
+    },
+    {
+      "n": 32,
+      "event_id": "3207f0ab21bd9ff2b0d30a7b7f4d2884732e4cc5",
+      "ticker": "HAY.V",
+      "stratum": "tagged_deal",
+      "body_sha1": "c9d412a45d7890797878a396d0cc516156d07bb2",
+      "review": "confirmed",
+      "note": "see claude/MNT_ROY_SET_LABELS_CONFIRMED_2026-09-21.json",
+      "expect": {
+        "is_royalty": true,
+        "complete": true,
+        "rows": [
+          {
+            "type": "NSR",
+            "rate_pct": 1.25,
+            "metal": "all minerals",
+            "property": "Urasar",
+            "operator": "Hayasa Metals",
+            "buyer": "Franco-Nevada; EMX Royalty",
+            "seller": "Hayasa Metals",
+            "price": 1000000,
+            "currency": "USD",
+            "action": "new",
+            "status": "agreed"
+          }
+        ]
+      }
+    },
+    {
+      "n": 33,
+      "event_id": "688b4d6cee3d187199389bd56e33fba3771ddee5",
+      "ticker": "HAY.V",
+      "stratum": "tagged_deal",
+      "body_sha1": "c4d7f9c678f7cea399d4995574dc6a8bce3fcb74",
+      "review": "confirmed",
+      "note": "see claude/MNT_ROY_SET_LABELS_CONFIRMED_2026-09-21.json",
+      "expect": {
+        "is_royalty": true,
+        "complete": true,
+        "rows": [
+          {
+            "type": "NSR",
+            "rate_pct": 1.25,
+            "metal": "all minerals",
+            "property": "Urasar",
+            "operator": "Hayasa Metals",
+            "buyer": "Franco-Nevada; EMX Royalty",
+            "seller": "Hayasa Metals",
+            "price": 1000000,
+            "currency": "USD",
+            "price_note": "FNV US$550k, EMX US$450k; 0.625% each",
+            "action": "new",
+            "status": "closed"
+          }
+        ]
+      }
+    },
+    {
+      "n": 34,
+      "event_id": "332e834a839e76aeb0a15890071d89c578363da9",
+      "ticker": "NGEX.TO",
+      "stratum": "tagged_other",
+      "body_sha1": "62453e72f0565ea72ecefa1ad1dd5c3ffd5e8dee",
+      "review": "confirmed",
+      "note": "RoyaltyCo became LunR Royalties.",
+      "expect": {
+        "is_royalty": true,
+        "complete": true,
+        "rows": [
+          {
+            "type": "NSR",
+            "rate_pct": 1.0,
+            "property": "Lunahuasi",
+            "operator": "NGEx Minerals",
+            "buyer": "LunR Royalties",
+            "seller": "NGEx Minerals",
+            "action": "new",
+            "status": "agreed"
+          },
+          {
+            "type": "NSR",
+            "rate_pct": 1.38,
+            "property": "Los Helados",
+            "operator": "NGEx Minerals",
+            "buyer": "LunR Royalties",
+            "seller": "NGEx Minerals",
+            "action": "new",
+            "status": "agreed"
+          },
+          {
+            "type": "NSR",
+            "rate_pct": 0.62,
+            "property": "Los Helados",
+            "operator": "NGEx Minerals",
+            "buyer": "Nippon Caserones Resources",
+            "seller": "NGEx Minerals",
+            "action": "new",
+            "status": "agreed"
+          }
+        ]
+      }
+    },
+    {
+      "n": 35,
+      "event_id": "e46a3861fad606b771d95eeba47c2886af0dd38a",
+      "ticker": "EMR.V",
+      "stratum": "tagged_other",
+      "body_sha1": "c13f27c238c10ed14eea5c05b1fca70c04af9e6d",
+      "review": "confirmed",
+      "note": "Portfolio update restating royalties created in earlier deals.",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 36,
+      "event_id": "7870a13d3d20cbbfac6c6ac528b014274bde7f29",
+      "ticker": "EVR.CN",
+      "stratum": "untagged_candidate",
+      "body_sha1": "a4fc7a6af3ef6358e2c145c92c5cc8513dda55e8",
+      "review": "confirmed",
+      "note": "Business combination closing; no royalty deal.",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 37,
+      "event_id": "ff44ae6191aa49efe2463862628808366e75488e",
+      "ticker": "VROY.V",
+      "stratum": "untagged_candidate",
+      "body_sha1": "2f3156fa386a9f8fb61241be07aec6d07242f927",
+      "review": "confirmed",
+      "note": "OTCQB listing.",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 38,
+      "event_id": "9bf0407f967a7103944c8370eba004efb5e9529c",
+      "ticker": "FRDM.CN",
+      "stratum": "passing_mention",
+      "body_sha1": "4f2fb4ee622a63fb8d605348a863c2a4707c9ab4",
+      "review": "confirmed",
+      "note": "Option agreement granting optionors a 1.5% NSR (0.5% buy-back for $500k): a vendor NSR. | 2026-09-28 ROY11 re-label approved by Justin (k38)",
+      "expect": {
+        "complete": true,
+        "is_royalty": true,
+        "rows": [
+          {
+            "action": "new",
+            "buyer": "Gravel Ridge Resources; 1544230 Ontario; 2873454 Ontario",
+            "operator": "EEE Exploration",
+            "price_note": "granted to the optionors on exercise of the option; EEE may buy 0.5% for $500,000",
+            "property": "Byron Pegmatite Project",
+            "rate_pct": 1.5,
+            "seller": "EEE Exploration",
+            "status": "agreed",
+            "type": "NSR"
+          }
+        ]
+      }
+    },
+    {
+      "n": 39,
+      "event_id": "38d1acc4ed8ae679f4a8a2b5ec24b0a784623d72",
+      "ticker": "BNKR.TO",
+      "stratum": "tagged_stream",
+      "body_sha1": "9cd70b167a5ad360fd8a5fdd77f274480bfd7b68",
+      "review": "confirmed",
+      "note": "see claude/MNT_ROY_SET_LABELS_CONFIRMED_2026-09-21.json",
+      "expect": {
+        "is_royalty": true,
+        "complete": true,
+        "rows": [
+          {
+            "type": "GRR",
+            "property": "Bunker Hill Mine",
+            "operator": "Bunker Hill Mining",
+            "buyer": "Sprott Streaming",
+            "seller": "Bunker Hill Mining",
+            "price_note": "royalty extended to additional claims",
+            "action": "amendment",
+            "status": "closed"
+          }
+        ]
+      }
+    },
+    {
+      "n": 40,
+      "event_id": "6931aadb3e8c15b172822c19928c262ae2063de2",
+      "ticker": "RI.CN",
+      "stratum": "out_of_scope",
+      "body_sha1": "5976ed1be3ce8815dda705f1bcb1a480a19086d7",
+      "review": "confirmed",
+      "note": "Music royalties: non-mining, out of scope.",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 41,
+      "event_id": "aee328ba2e0d959e0b89e5bcff61a0523c081c8f",
+      "ticker": "LIF.TO",
+      "stratum": "tagged_deal",
+      "body_sha1": "d3598a3016fd157e637cb27d2759ca5dbf1b3006",
+      "review": "confirmed",
+      "note": "IOC production report; royalty income information only.",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 42,
+      "event_id": "54b1a3ccc100655b9a5bc234696f02a0ae717254",
+      "ticker": "WDGY.CN",
+      "stratum": "tagged_deal",
+      "body_sha1": "b7cb572cc55ccd6897e6ca5231862991effe02d0",
+      "review": "confirmed",
+      "note": "Oil & gas ORRI sale: out of scope.",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 43,
+      "event_id": "14c04be941e47fe3adf5813ffbc64a73e85601d7",
+      "ticker": "GSKR.V",
+      "stratum": "tagged_deal",
+      "body_sha1": "550fc9606ddd044fe8cc67bcc48fd67ee794681d",
+      "review": "confirmed",
+      "note": "Goldsky buys Elemental's Nordic unit; Elemental keeps a 1% NSR on future new projects: a vendor NSR. | 2026-09-28 ROY11 re-label approved by Justin (k43)",
+      "expect": {
+        "complete": true,
+        "is_royalty": true,
+        "rows": [
+          {
+            "action": "new",
+            "buyer": "Elemental Royalty",
+            "operator": "Goldsky Resources",
+            "price_note": "retained by Elemental on projects Goldsky newly stakes, as part of the Nordic unit sale",
+            "property": "Portfolio: new projects Goldsky stakes in Sweden and Finland",
+            "rate_pct": 1,
+            "seller": "Goldsky Resources",
+            "status": "closed",
+            "type": "NSR"
+          }
+        ]
+      }
+    },
+    {
+      "n": 44,
+      "event_id": "3362bd701059dfade9722c7a6cc1f820cf4f28c1",
+      "ticker": "SX.CN",
+      "stratum": "tagged_deal",
+      "body_sha1": "0e73aca030795a32b1c4a30ecdf27b0ba421b026",
+      "review": "confirmed",
+      "note": "see claude/MNT_ROY_SET_LABELS_CONFIRMED_2026-09-21.json",
+      "expect": {
+        "is_royalty": true,
+        "complete": true,
+        "rows": [
+          {
+            "type": "other",
+            "property": "Manicouagan",
+            "operator": "St-Georges Eco-Mining",
+            "buyer": "St-Georges Eco-Mining",
+            "seller": "Exploration J.F.",
+            "price": 500000,
+            "currency": "CAD",
+            "price_note": "1,000,000 shares at deemed $500,000; one of two royalty holders",
+            "action": "buyback",
+            "status": "agreed"
+          }
+        ]
+      }
+    },
+    {
+      "n": 45,
+      "event_id": "3071f862b32fa76800847ee53d8713281b246202",
+      "ticker": "FNV.TO",
+      "stratum": "tagged_deal",
+      "body_sha1": "1cee2754c319e73e2b5d70e0d2c9afc1d5dae035",
+      "review": "confirmed",
+      "note": "see claude/MNT_ROY_SET_LABELS_CONFIRMED_2026-09-21.json",
+      "expect": {
+        "is_royalty": true,
+        "complete": true,
+        "rows": [
+          {
+            "type": "NSR",
+            "rate_pct": 1.0,
+            "metal": "gold",
+            "property": "Arthur Gold Project",
+            "operator": "AngloGold Ashanti",
+            "buyer": "Franco-Nevada",
+            "seller": "Altius",
+            "price": 250000000,
+            "currency": "USD",
+            "price_note": "+US$25M contingent on arbitration",
+            "action": "transfer",
+            "status": "closed"
+          }
+        ]
+      }
+    },
+    {
+      "n": 46,
+      "event_id": "b964be0acb4dec0090212616cc13e2fd212cdf67",
+      "ticker": "ELEC.V",
+      "stratum": "tagged_other",
+      "body_sha1": "430ad58d9484b7f538efe8e816f4a2bf10082608",
+      "review": "confirmed",
+      "note": "CEO letter recapping the portfolio.",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 47,
+      "event_id": "bc868759490202590d2f873769ba3f61b91284b3",
+      "ticker": "VMET.TO",
+      "stratum": "tagged_other",
+      "body_sha1": "92223d70432b5f9f691c7e46da20cd87b68afd93",
+      "review": "confirmed",
+      "note": "New shareholders.",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 48,
+      "event_id": "cf94551228ec0fc73fb0d56e9d910b6584ef8b74",
+      "ticker": "RI.CN",
+      "stratum": "untagged_candidate",
+      "body_sha1": "bd04089de5667ff463c190727e17272d87f6975b",
+      "review": "confirmed",
+      "note": "Conference notice.",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 49,
+      "event_id": "886d71c61947101cb4ae82f2ee2e76c6fae21eb1ad1eb4a4c0817a0f393b4b58",
+      "ticker": "ELE.TO",
+      "stratum": "untagged_candidate",
+      "body_sha1": "ed31b1182a6118923777c8387d2bb7678063c044",
+      "review": "confirmed",
+      "note": "Index inclusion.",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 50,
+      "event_id": "abe0aaa1cf737b81148911ec9bcec7ea7f28deef",
+      "ticker": "CDA.V",
+      "stratum": "passing_mention",
+      "body_sha1": "e0e947e8f4a7b3db9dec7446c6c61599f991d154",
+      "review": "confirmed",
+      "note": "Circular supplement; NSR is background.",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    }
+  ],
+  "edited_2026_09_28": "2026-09-28: Royalties 1.1 rules (Justin, ROY11 review page): every vendor royalty is a row; a held row when the headline is about a named royalty the company holds (Q12 A); items #3, #11, #13, #14, #26, #38, #43 edited with his per-item OK."
+}

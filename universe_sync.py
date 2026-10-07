@@ -56,6 +56,18 @@ def load_current() -> list[dict]:
         return []
 
 
+def _renames() -> dict:
+    """TICKER_RENAME_V1 (2026-09-29): {new symbol: [{"ticker": old symbol, "ended_at": date}]} for companies
+    whose exchange symbol changed. Keeps previous_tickers in tickers.json - which every MNT reader uses to
+    resolve an old symbol - through the rebuild from the universe."""
+    import json as _json_rn
+    try:
+        d = _json_rn.load(open("/opt/mnt/app/data/ticker_renames.json"))
+        return {str(k).upper(): v for k, v in d.items() if isinstance(v, list)}
+    except (OSError, ValueError, AttributeError):
+        return {}
+
+
 def build(universe_rows: list[dict]) -> list[dict]:
     """The universe in tickers.json's own shape, so every existing reader —
     pipeline/run.py, the portal's name lookups, text_helpers — keeps working
@@ -75,6 +87,9 @@ def build(universe_rows: list[dict]) -> list[dict]:
         }
         if c.get("exchange"):
             entry["exchange"] = c["exchange"]
+        prev = _renames().get(str(sym).upper())   # TICKER_RENAME_V1
+        if prev:
+            entry["previous_tickers"] = prev
         out.append(entry)
     return out
 

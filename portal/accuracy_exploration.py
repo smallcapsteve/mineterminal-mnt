@@ -198,10 +198,14 @@ def stored_exploration(conn, event_id):
     """What /exploration-programs shows for one release. A marker row (program_type NULL) states nothing."""
     if not _table_exists(conn):
         return None
+    # MNT_EXPL_STORED_FIX_V1 (2026-09-29): _ROW_FIELDS names reader fields the table never stored (start_date,
+    # end_date, best_*); selecting them failed on every item, so the daily check scored nothing since 09-23.
+    have = {r[1] for r in conn.execute("PRAGMA table_info(exploration_programs)")}
+    cols = [f for f in _ROW_FIELDS if f in have]
     rows = list(conn.execute(
-        "SELECT " + ", ".join(_ROW_FIELDS) + " FROM exploration_programs WHERE event_id=? AND program_type IS NOT NULL "
+        "SELECT " + ", ".join(cols) + " FROM exploration_programs WHERE event_id=? AND program_type IS NOT NULL "
         "ORDER BY ordinal", (event_id,)))
-    return {"rows": [dict(zip(_ROW_FIELDS, r)) for r in rows]} if rows else None
+    return {"rows": [dict({f: None for f in _ROW_FIELDS}, **dict(zip(cols, r))) for r in rows]} if rows else None
 
 
 def _expl_from_records(records):

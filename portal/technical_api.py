@@ -51,7 +51,8 @@ _TICKER_RE = re.compile(r"^[A-Za-z0-9.\-]{1,16}$")
 
 _COLS = ("tr_id, event_id, ordinal, ticker, slug, report_type, project, status, effective_date, report_date, "
          "filing_date, expected, author_firm, qps, title, amended, metal, npv, npv_discount, irr, capex, currency, "
-         "after_tax, mine_life_years, payback_years, doc_kind, report_key, is_latest, raw_headline, published_at")
+         "after_tax, mine_life_years, payback_years, doc_kind, report_key, is_latest, raw_headline, published_at, "
+         "resource_json")
 
 
 # --------------------------------------------------------------------------- helpers (pure)
@@ -216,6 +217,63 @@ def _s(v) -> str:
     return "" if v is None else str(v).strip()
 
 
+# MNT_FIX8B_API (2026-10-06): stored JSON detail is served only in a known shape, with figures no deposit,
+# survey or mine can have dropped, so a bad reading never reaches a page as a number.
+def _fin(v, lo=None, hi=None):
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(f) or (lo is not None and f < lo) or (hi is not None and f > hi):
+        return None
+    return f
+
+
+def _small_json(raw, max_items=12):
+    """A JSON object or list of objects -> the same, keeping short text and finite numbers only."""
+    try:
+        v = json.loads(raw) if isinstance(raw, str) and raw.strip() else None
+    except ValueError:
+        return None
+    def one(d):
+        if not isinstance(d, dict):
+            return None
+        o = {}
+        for k, x in list(d.items())[:16]:
+            if not isinstance(k, str) or len(k) > 40:
+                continue
+            if isinstance(x, bool) or x is None:
+                continue
+            if isinstance(x, (int, float)):
+                f = _fin(x)
+                if f is not None:
+                    o[k] = f
+            elif isinstance(x, str) and len(x.strip()) <= 60:
+                o[k] = x.strip()
+        return o or None
+    if isinstance(v, list):
+        out = [y for y in (one(d) for d in v[:max_items]) if y]
+        return out or None
+    return one(v)
+
+
+def resources(raw) -> list:
+    """resource_json -> [{category, tonnes, grade, grade_unit, metal, contained, contained_unit}]. A zero or negative
+    tonnage, grade or contained figure is a misreading and is dropped (the row stays if anything is left)."""
+    rows = _small_json(raw, 24)
+    if isinstance(rows, dict):
+        rows = [rows]
+    out = []
+    for d in rows or []:
+        t, g, c = _fin(d.get("tonnes"), 1.0, 1e11), _fin(d.get("grade"), 1e-6, 1e6), _fin(d.get("contained"), 1e-6, 1e13)
+        if t is None and g is None and c is None:
+            continue
+        out.append({"category": _s(d.get("category")), "tonnes": t, "grade": g,
+                    "grade_unit": _s(d.get("grade_unit")) if g is not None else "", "metal": _s(d.get("metal")),
+                    "contained": c, "contained_unit": _s(d.get("contained_unit")) if c is not None else ""})
+    return out
+
+
 def build_reports(rows, names: dict) -> list[dict]:
     """rows in (published_at, event_id, ordinal) order -> reports, newest first."""
     groups: dict[str, list] = {}
@@ -258,6 +316,7 @@ def build_reports(rows, names: dict) -> list[dict]:
             "after_tax": None if at in (None, "") else str(at) == "1",
             "mine_life_years": _num(last["mine_life_years"]), "payback_years": _num(last["payback_years"]),
             "doc_kind": _s(last["doc_kind"]),
+            "resources": next((x for x in (resources(r["resource_json"]) for r in ([last] + rs[::-1])) if x), []),
             "date": _s(last["published_at"])[:10], "published_at": _s(last["published_at"]),
             "first_reported": _s(rs[0]["published_at"])[:10], "items": len(items),
             "headline": _title(_s(last["raw_headline"])),
@@ -391,6 +450,13 @@ def _selftest() -> int:
        and query_reports(conn, P(type="property"), names, None)["items"][0]["project"] == "Haile")
     ok("universe", query_reports(conn, P(universe="mtp"), names, frozenset({"OGC"}))["total"] == 2)
     ok("days", query_reports(conn, P(days="30"), names, None)["total"] == 1)
+
+    ok("FIX8B resources: zero contained dropped, junk skipped",
+       resources('[{"category":"Inferred","tonnes":53520000.0,"grade":0.7,"grade_unit":"%","metal":"Cu",'
+                 '"contained":0.0,"contained_unit":"lb"},{"category":"x","tonnes":-1,"grade":null}]')
+       == [{"category": "Inferred", "tonnes": 53520000.0, "grade": 0.7, "grade_unit": "%", "metal": "Cu",
+            "contained": None, "contained_unit": ""}] and resources(None) == [] and resources("nope") == [])
+    ok("FIX8B resources field present", sm.get("resources") == [])
 
     def bad(**kw):
         try:

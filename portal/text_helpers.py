@@ -105,6 +105,12 @@ def _titleize_token(tok: str, first: bool) -> str:
 
 
 def smart_title(s: str | None) -> str:
+    # TITLECASE_V2 (2026-09-28): portal/titlecase.py; the rules below are the fallback if it is missing or fails.
+    try:
+        from portal.titlecase import smart_title as _tc2
+        return _tc2(s)
+    except Exception:
+        pass
     if not s: return s or ""
     letters = [c for c in s if c.isalpha()]
     if not letters: return s

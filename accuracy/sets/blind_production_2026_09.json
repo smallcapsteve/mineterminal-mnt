@@ -1,0 +1,998 @@
+{
+ "schema": 1,
+ "name": "blind_production_2026_09",
+ "spec": "production",
+ "tag": "Production Results",
+ "status": "confirmed",
+ "created": "2026-09-23",
+ "drawn": "payloads/blind/draw_blind.py seed 20260923: 20 random tagged + 10 random untagged headline-net releases, none from any existing set",
+ "labelled": "blind, from headline and body only, by six labelling agents following the confirmed label guides; reviewer Justin",
+ "items": [
+  {
+   "n": 1,
+   "event_id": "38d386f25d32daac8ec1f0a3ea6e7f204dcd2301",
+   "ticker": "AAUC.TO",
+   "published_at": "2026-03-31T12:00:00Z",
+   "stratum": "tagged",
+   "body_sha1": "5d67f1b13261a6f8448abd5bc4e0c35859766195",
+   "review": "confirmed",
+   "confidence": "low",
+   "note": "Q4 and FY2025 company totals from the Operating Results Summary; FY2025 met one-sided 'above 375,000' guidance, carried on the actual row as guided_low only (decisions 6 and 9). Judgement call: FY2026 guidance row uses the total incl. Kurmuk (485-575k), not the producing-mines range (385-425k); the 375-400k 'historical profile' is not a row. Body truncated at 24,000 chars, so complete=false.",
+   "question": "Allied's 2026 guidance: is the row the total including Kurmuk (485,000-575,000 oz) or the producing-mines range (385,000-425,000 oz), with Kurmuk's 100,000-150,000 oz treated as mine-level?",
+   "expect": {
+    "is_production": true,
+    "complete": false,
+    "rows": [
+     {
+      "kind": "actual",
+      "period": "Q4 2025",
+      "metal": "gold",
+      "unit": "oz",
+      "qty": 117004,
+      "sold": 113446,
+      "aisc": 1980
+     },
+     {
+      "kind": "actual",
+      "period": "FY 2025",
+      "metal": "gold",
+      "unit": "oz",
+      "qty": 379081,
+      "sold": 418168,
+      "aisc": 2037,
+      "guided_low": 375000
+     },
+     {
+      "kind": "guidance",
+      "period": "FY 2026",
+      "metal": "gold",
+      "unit": "oz",
+      "low": 485000,
+      "high": 575000
+     }
+    ]
+   }
+  },
+  {
+   "n": 2,
+   "event_id": "512e00659086e5c72021d7ffd4d3e053d0f73755",
+   "ticker": "LTHM.CN",
+   "published_at": "2023-06-19T12:00:00Z",
+   "stratum": "tagged",
+   "body_sha1": "97cc8bf86fa5beb01489411bea87b651082e5f6e",
+   "review": "confirmed",
+   "confidence": "high",
+   "note": "Exploration company re-mobilizing a field crew after a forest-fire ban; not a mining resumption and no production figures.",
+   "question": "",
+   "expect": {
+    "is_production": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 3,
+   "event_id": "de691162045c8b24ba9feae5975f3cd13ce51bea",
+   "ticker": "GRD.V",
+   "published_at": "2025-08-22T12:00:00Z",
+   "stratum": "tagged",
+   "body_sha1": "95b25f833a863fce4925574e7f9f0d006041157c",
+   "review": "confirmed",
+   "confidence": "high",
+   "note": "Lithium-brine developer's quarterly financials; 'operating results' contain no production (PFS still pending).",
+   "question": "",
+   "expect": {
+    "is_production": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 4,
+   "event_id": "03f640f686e43bc230183a2e8072cc9b3af97d7b633dfdfbd0ed6c8f4af02f62",
+   "ticker": "CBR.V",
+   "published_at": "2026-07-09T10:29:00",
+   "stratum": "tagged",
+   "body_sha1": "d4927e7118c21b3eb3b75bdc850dd39746bbad81",
+   "review": "confirmed",
+   "confidence": "low",
+   "note": "Commissioning update: ore mining and stacking have begun but no gold has been produced; first gold and commercial production are planned (a planned milestone is not a milestone). Judgement call: commencement of mining is not one of the milestone types.",
+   "question": "Is 'commencement of mining / first ore stacked on the heap leach pad' (before any gold is produced) a milestone row, or only first pour / first production / commercial production?",
+   "expect": {
+    "is_production": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 5,
+   "event_id": "74c1af99668535b3629f73ab0fc0358ed82364bde127383613e8a8ebec572dd7",
+   "ticker": "ADY.V",
+   "published_at": "2026-06-18T10:00:00",
+   "stratum": "tagged",
+   "body_sha1": "d9158b8d9a5b43c2652b73740d6cc5335714db08",
+   "review": "confirmed",
+   "confidence": "high",
+   "note": "Approval of a bulk-sample licence variation as preparation for a mining restart; the restart is only planned, so no milestone and no figures.",
+   "question": "",
+   "expect": {
+    "is_production": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 6,
+   "event_id": "a08a81a64b22a69321d2f74d42749c89f3627da87094393a7a62dd84d73d3f0f",
+   "ticker": "TXG.TO",
+   "published_at": "2026-04-09T22:17:20",
+   "stratum": "tagged",
+   "body_sha1": "97989408011d01fc44b126f5f240f3c2dff12ac0",
+   "review": "confirmed",
+   "confidence": "high",
+   "note": "Same shape as key #31/#32 (Torex): AuEq plus each metal, with sold. This release only prints production 'before payable deductions', so that is the produced figure; 543.0 koz and 14.9 mlb converted to oz and lb.",
+   "question": "",
+   "expect": {
+    "is_production": true,
+    "complete": true,
+    "rows": [
+     {
+      "kind": "actual",
+      "period": "Q1 2026",
+      "metal": "AuEq",
+      "unit": "oz",
+      "qty": 100874,
+      "sold": 109222
+     },
+     {
+      "kind": "actual",
+      "period": "Q1 2026",
+      "metal": "gold",
+      "unit": "oz",
+      "qty": 73647,
+      "sold": 81233
+     },
+     {
+      "kind": "actual",
+      "period": "Q1 2026",
+      "metal": "silver",
+      "unit": "oz",
+      "qty": 543000,
+      "sold": 539000
+     },
+     {
+      "kind": "actual",
+      "period": "Q1 2026",
+      "metal": "copper",
+      "unit": "lb",
+      "qty": 14900000,
+      "sold": 15600000
+     },
+     {
+      "kind": "guidance",
+      "period": "FY 2026",
+      "metal": "AuEq",
+      "unit": "oz",
+      "low": 420000,
+      "high": 470000
+     }
+    ]
+   }
+  },
+  {
+   "n": 7,
+   "event_id": "f8e35cd12ee3e0e3015751193f43f63218fa8f12",
+   "ticker": "PAAS.TO",
+   "published_at": "2026-01-20T12:00:00Z",
+   "stratum": "tagged",
+   "body_sha1": "21a8a9c41939045f04012db72afe2f5edcff2fe4",
+   "review": "confirmed",
+   "confidence": "high",
+   "note": "Company attributable totals only (segment and mine lines are not rows); base metals included like Luca's (key #14), converted from kt to t. FY2025 guidance is referenced but no figures are printed, so no guided_low/high. Copper 2026 single figure 2.0 kt stored low=high.",
+   "question": "",
+   "expect": {
+    "is_production": true,
+    "complete": true,
+    "rows": [
+     {
+      "kind": "actual",
+      "period": "Q4 2025",
+      "metal": "silver",
+      "unit": "oz",
+      "qty": 7280000
+     },
+     {
+      "kind": "actual",
+      "period": "FY 2025",
+      "metal": "silver",
+      "unit": "oz",
+      "qty": 22840000
+     },
+     {
+      "kind": "actual",
+      "period": "Q4 2025",
+      "metal": "gold",
+      "unit": "oz",
+      "qty": 197800
+     },
+     {
+      "kind": "actual",
+      "period": "FY 2025",
+      "metal": "gold",
+      "unit": "oz",
+      "qty": 742200
+     },
+     {
+      "kind": "actual",
+      "period": "Q4 2025",
+      "metal": "zinc",
+      "unit": "t",
+      "qty": 16800
+     },
+     {
+      "kind": "actual",
+      "period": "FY 2025",
+      "metal": "zinc",
+      "unit": "t",
+      "qty": 55900
+     },
+     {
+      "kind": "actual",
+      "period": "Q4 2025",
+      "metal": "lead",
+      "unit": "t",
+      "qty": 8200
+     },
+     {
+      "kind": "actual",
+      "period": "FY 2025",
+      "metal": "lead",
+      "unit": "t",
+      "qty": 27000
+     },
+     {
+      "kind": "actual",
+      "period": "Q4 2025",
+      "metal": "copper",
+      "unit": "t",
+      "qty": 800
+     },
+     {
+      "kind": "actual",
+      "period": "FY 2025",
+      "metal": "copper",
+      "unit": "t",
+      "qty": 3000
+     },
+     {
+      "kind": "guidance",
+      "period": "FY 2026",
+      "metal": "silver",
+      "unit": "oz",
+      "low": 25000000,
+      "high": 27000000
+     },
+     {
+      "kind": "guidance",
+      "period": "FY 2026",
+      "metal": "gold",
+      "unit": "oz",
+      "low": 700000,
+      "high": 750000
+     },
+     {
+      "kind": "guidance",
+      "period": "FY 2026",
+      "metal": "zinc",
+      "unit": "t",
+      "low": 58500,
+      "high": 62500
+     },
+     {
+      "kind": "guidance",
+      "period": "FY 2026",
+      "metal": "lead",
+      "unit": "t",
+      "low": 30500,
+      "high": 32500
+     },
+     {
+      "kind": "guidance",
+      "period": "FY 2026",
+      "metal": "copper",
+      "unit": "t",
+      "low": 2000,
+      "high": 2000
+     }
+    ]
+   }
+  },
+  {
+   "n": 8,
+   "event_id": "507fd8d0ff50fc0cd1ac38f7fa0e9e1e114b5eda",
+   "ticker": "LIF.TO",
+   "published_at": "2025-01-15T12:00:00Z",
+   "stratum": "tagged",
+   "body_sha1": "658bcb3f627afeb85c8734bb3767344dcf6b95ed",
+   "review": "confirmed",
+   "confidence": "high",
+   "note": "Iron-ore royalty company relaying Rio Tinto's IOC production; royalty companies are in scope only when they report GEOs (the guide lists the iron-ore royalty as a tag leak).",
+   "question": "",
+   "expect": {
+    "is_production": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 9,
+   "event_id": "01ed272ba666130f4658924b0ee3c09e1022df93",
+   "ticker": "III.TO",
+   "published_at": "2026-04-23T12:00:00Z",
+   "stratum": "tagged",
+   "body_sha1": "b81834b384eafb5b9f4d95335856afd7dfe89020",
+   "review": "corrected",
+   "confidence": "low",
+   "note": "Single-mine report kept with the mine named (decision 5). Judgement call: the release gives both 100% and Imperial's 30% share (5.695 Mlb, 6,032 oz); 100% chosen because it is the headline figure and the only basis the guidance is given on.",
+   "question": "For Red Chris, where Imperial states both 100% and its 30% share, should the actual rows use the 100% figures (matching the guidance basis) or Imperial's 30% share?",
+   "expect": {
+    "is_production": true,
+    "complete": true,
+    "rows": [
+     {
+      "kind": "actual",
+      "period": "Q1 2026",
+      "metal": "copper",
+      "unit": "lb",
+      "qty": 18982000,
+      "basis": "Red Chris 100%"
+     },
+     {
+      "kind": "actual",
+      "period": "Q1 2026",
+      "metal": "gold",
+      "unit": "oz",
+      "qty": 20108,
+      "basis": "Red Chris 100%"
+     },
+     {
+      "kind": "actual",
+      "period": "Q1 2026",
+      "metal": "copper",
+      "unit": "lb",
+      "qty": 5695000,
+      "basis": "Imperial 30% of Red Chris"
+     },
+     {
+      "kind": "actual",
+      "period": "Q1 2026",
+      "metal": "gold",
+      "unit": "oz",
+      "qty": 6032,
+      "basis": "Imperial 30% of Red Chris"
+     },
+     {
+      "kind": "guidance",
+      "period": "FY 2026",
+      "metal": "copper",
+      "unit": "lb",
+      "low": 60000000,
+      "high": 66000000,
+      "basis": "Red Chris 100%"
+     },
+     {
+      "kind": "guidance",
+      "period": "FY 2026",
+      "metal": "gold",
+      "unit": "oz",
+      "low": 47500,
+      "high": 52500,
+      "basis": "Red Chris 100%"
+     }
+    ]
+   },
+   "reviewer_note": "Note Imperial's share in a new row",
+   "correction": "Justin 2026-09-23: Imperial's 30% share is added as its own rows next to the 100% rows."
+  },
+  {
+   "n": 10,
+   "event_id": "b8bc3a89a64e25bd00c8508dfe61f39e78c57a36",
+   "ticker": "SXTY.CN",
+   "published_at": "2025-11-18T12:00:00Z",
+   "stratum": "tagged",
+   "body_sha1": "f0879c4c85985d63d2cc65b7a8f6009f7f2c81c6",
+   "review": "confirmed",
+   "confidence": "high",
+   "note": "Loan financing to fund development toward a restart at Mon; the restart is only planned, so no milestone and no production figures (historical 1990s output is not a row).",
+   "question": "",
+   "expect": {
+    "is_production": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 11,
+   "event_id": "2c4842e4880bff741aff193eacdb29924d49bbdd",
+   "ticker": "USA.TO",
+   "published_at": "2026-01-21T12:00:00Z",
+   "stratum": "tagged",
+   "body_sha1": "5ab047e023a03efa29fe82c8665211470b3815da",
+   "review": "corrected",
+   "confidence": "low",
+   "note": "Consolidated attributable silver for 2025 is the only company total; Cosala's 1.19 Moz and Q4 463,000 oz are mine-level. EC 120 reached commercial production on Jan 1, 2026 (completed). Judgement call: Galena Complex antimony (~561,000 lb) and copper (~797,000 lb; Q4 127,000 / 200,000 lb) are stated per mine, so left out.",
+   "question": "Should Galena Complex's approximate antimony and copper by-product figures (FY 2025 and Q4 2025) be rows? Galena is the company's only antimony source, but the release frames them as mine-level.",
+   "expect": {
+    "is_production": true,
+    "complete": true,
+    "rows": [
+     {
+      "kind": "actual",
+      "period": "FY 2025",
+      "metal": "silver",
+      "unit": "oz",
+      "qty": 2650000
+     },
+     {
+      "kind": "actual",
+      "period": "FY 2025",
+      "metal": "antimony",
+      "unit": "lb",
+      "qty": 561000,
+      "approx": true,
+      "basis": "Galena Complex"
+     },
+     {
+      "kind": "actual",
+      "period": "FY 2025",
+      "metal": "copper",
+      "unit": "lb",
+      "qty": 797000,
+      "approx": true,
+      "basis": "Galena Complex"
+     },
+     {
+      "kind": "actual",
+      "period": "Q4 2025",
+      "metal": "antimony",
+      "unit": "lb",
+      "qty": 127000,
+      "approx": true,
+      "basis": "Galena Complex"
+     },
+     {
+      "kind": "actual",
+      "period": "Q4 2025",
+      "metal": "copper",
+      "unit": "lb",
+      "qty": 200000,
+      "approx": true,
+      "basis": "Galena Complex"
+     },
+     {
+      "kind": "milestone",
+      "milestone": "commercial_production",
+      "asset": "EC 120"
+     }
+    ]
+   },
+   "reviewer_note": "they should be rows",
+   "correction": "Justin 2026-09-23: Galena's by-product antimony and copper are rows (approximate figures, basis Galena Complex)."
+  },
+  {
+   "n": 12,
+   "event_id": "7ca20390dca997df26d145dfe9edc936b907760e",
+   "ticker": "LUG.TO",
+   "published_at": "2025-02-20T12:00:00Z",
+   "stratum": "tagged",
+   "body_sha1": "e0dbf5b75beb091cc065b29f8ee76ceae6084059",
+   "review": "confirmed",
+   "confidence": "high",
+   "note": "Single-asset (FDN) company totals; FY2024 guidance printed beside the actuals goes on the actual row (decision 9). Body truncated at 24,000 chars, so complete=false.",
+   "question": "",
+   "expect": {
+    "is_production": true,
+    "complete": false,
+    "rows": [
+     {
+      "kind": "actual",
+      "period": "Q4 2024",
+      "metal": "gold",
+      "unit": "oz",
+      "qty": 135241,
+      "sold": 131175,
+      "aisc": 879
+     },
+     {
+      "kind": "actual",
+      "period": "FY 2024",
+      "metal": "gold",
+      "unit": "oz",
+      "qty": 502029,
+      "sold": 495374,
+      "aisc": 875,
+      "guided_low": 450000,
+      "guided_high": 500000
+     },
+     {
+      "kind": "guidance",
+      "period": "FY 2025",
+      "metal": "gold",
+      "unit": "oz",
+      "low": 475000,
+      "high": 525000
+     }
+    ]
+   }
+  },
+  {
+   "n": 13,
+   "event_id": "b6b61184ac42858fd2e016ca9e44808ba02232e4",
+   "ticker": "OMM.V",
+   "published_at": "2025-12-05T12:00:00Z",
+   "stratum": "tagged",
+   "body_sha1": "e63973fce11751ce0a0dcb7aec857d1446450275",
+   "review": "confirmed",
+   "confidence": "low",
+   "note": "Placer gold recovery has actually begun at Wingdam, read as a completed first-production milestone; no quantities are given.",
+   "question": "Is the start of placer gold recovery from a test crosscut (no ounces reported, contractor-operated) a first_production milestone, or too early to count?",
+   "expect": {
+    "is_production": true,
+    "complete": true,
+    "rows": [
+     {
+      "kind": "milestone",
+      "milestone": "first_production",
+      "asset": "Wingdam"
+     }
+    ]
+   }
+  },
+  {
+   "n": 14,
+   "event_id": "70eb75edb8f29aea1966fa0624034962763adb2c",
+   "ticker": "HSTR.V",
+   "published_at": "2025-12-31T12:00:00Z",
+   "stratum": "tagged",
+   "body_sha1": "4094bb4043540a0e4f3459573ecd8e1638df1f8f",
+   "review": "confirmed",
+   "confidence": "high",
+   "note": "Consolidated Q4 and FY2025 figures; the finished year's consolidated guidance goes on the actual rows (decision 9). The mine-level lines are not rows, and there is no 2026 guidance yet.",
+   "question": "",
+   "expect": {
+    "is_production": true,
+    "complete": true,
+    "rows": [
+     {
+      "kind": "actual",
+      "period": "Q4 2025",
+      "metal": "GEO",
+      "unit": "oz",
+      "qty": 8459
+     },
+     {
+      "kind": "actual",
+      "period": "Q4 2025",
+      "metal": "gold",
+      "unit": "oz",
+      "qty": 8180
+     },
+     {
+      "kind": "actual",
+      "period": "Q4 2025",
+      "metal": "silver",
+      "unit": "oz",
+      "qty": 21494
+     },
+     {
+      "kind": "actual",
+      "period": "FY 2025",
+      "metal": "GEO",
+      "unit": "oz",
+      "qty": 34098,
+      "guided_low": 31000,
+      "guided_high": 41000
+     },
+     {
+      "kind": "actual",
+      "period": "FY 2025",
+      "metal": "gold",
+      "unit": "oz",
+      "qty": 32990,
+      "guided_low": 30000,
+      "guided_high": 40000
+     },
+     {
+      "kind": "actual",
+      "period": "FY 2025",
+      "metal": "silver",
+      "unit": "oz",
+      "qty": 80527,
+      "guided_low": 76500,
+      "guided_high": 94500
+     }
+    ]
+   }
+  },
+  {
+   "n": 15,
+   "event_id": "ece963f8016da4dac7044fff288dde85a1942111",
+   "ticker": "MKO.V",
+   "published_at": "2026-01-13T12:00:00Z",
+   "stratum": "tagged",
+   "body_sha1": "d4d5419af299c9139087ef30f68299c46d0260b3",
+   "review": "confirmed",
+   "confidence": "low",
+   "note": "No company production total is stated (Moss gives only sales of 2,297 oz), so the San Albino recovered figures are kept with the mine named. Company sales of 11,604 oz are not paired with any production figure. Q1-Q3 table columns are prior periods, not rows.",
+   "question": "Mako reports production only for San Albino (Moss only as sales): should San Albino's Q4 recovered gold, silver and AuEq be rows with basis 'San Albino', or should the release have no actual rows because it gives no company total?",
+   "expect": {
+    "complete": true,
+    "is_production": true,
+    "rows": [
+     {
+      "basis": "San Albino",
+      "kind": "recovered",
+      "metal": "gold",
+      "period": "Q4 2025",
+      "qty": 9621,
+      "sold": 9307,
+      "unit": "oz"
+     },
+     {
+      "basis": "San Albino",
+      "kind": "recovered",
+      "metal": "silver",
+      "period": "Q4 2025",
+      "qty": 9442,
+      "unit": "oz"
+     },
+     {
+      "basis": "San Albino",
+      "kind": "recovered",
+      "metal": "AuEq",
+      "period": "Q4 2025",
+      "qty": 9745,
+      "sold": 9394,
+      "unit": "oz"
+     }
+    ]
+   }
+  },
+  {
+   "n": 16,
+   "event_id": "3b67f8f16a05dfad62f75a50a1f0733df470cfc5",
+   "ticker": "ARTG.V",
+   "published_at": "2025-08-12T12:00:00Z",
+   "stratum": "tagged",
+   "body_sha1": "020bcedf051eb0cefd53800c0a7733a7d97db930",
+   "review": "confirmed",
+   "confidence": "low",
+   "note": "Q2 2025 gold 50,623 oz (no Q2 sold/AISC: the 34,112 oz sold and US$805 AISC cover only May-June). April is a monthly actual (rule: monthly actuals are rows). H1 2025 63,343 oz is the year-to-date at Q2, a row since 1.3 (decision #37). Not rows: May-June 34,824 oz (non-standard span), the post-commercial 160-200k guidance span, the Q1 2025 12,720 oz comparative, and the commercial-production milestone (declared May 1 and announced earlier; here only restated).",
+   "question": "Two calls: (a) Is a single month inside a reported quarter (April 15,799 oz, alongside Q2 50,623 oz) a row, or only standalone monthly reports? (b) Does a quarterly report that restates an already-announced milestone (commercial production May 1, 2025 at Blackwater) get a milestone row, and is the prior-quarter figure 'Gold production in Q1 2025 was 12,720 ounces' a row?",
+   "expect": {
+    "complete": true,
+    "is_production": true,
+    "rows": [
+     {
+      "kind": "actual",
+      "metal": "gold",
+      "period": "Q2 2025",
+      "qty": 50623,
+      "unit": "oz"
+     },
+     {
+      "kind": "actual",
+      "metal": "gold",
+      "period": "2025-04",
+      "qty": 15799,
+      "unit": "oz"
+     },
+     {
+      "high": 230000,
+      "kind": "guidance",
+      "low": 190000,
+      "metal": "gold",
+      "period": "FY 2025",
+      "unit": "oz"
+     },
+     {
+      "kind": "actual",
+      "metal": "gold",
+      "period": "H1 2025",
+      "qty": 63343,
+      "unit": "oz"
+     }
+    ]
+   }
+  },
+  {
+   "n": 17,
+   "event_id": "f7edc44461c8176ad5568b93f13053d283b9269786743680c9a0c10646c31c6a",
+   "ticker": "ELD.TO",
+   "published_at": "2026-07-30T21:00:00",
+   "stratum": "tagged",
+   "body_sha1": "9fec10cd0ae7d4de3ccb0395a91083e8779eaf82",
+   "review": "confirmed",
+   "confidence": "low",
+   "note": "Company-total Q2 2026 gold with sold and AISC; consolidated FY 2026 gold guidance (the 430-490k ex-Skouries/McIlvenna range and the mine-level Skouries and McIlvenna Bay ranges are not rows); McIlvenna Bay first copper concentrate June 7, 2026 is a completed first-production milestone. H1 204,974 oz is YTD (#37). McIlvenna Bay's 65,398 lb payable copper is mine-level and not a company total, so not a row. Body is truncated (97,784 chars), so complete=false.",
+   "question": "McIlvenna Bay's 'Q2 2026 ... 65,398 payable copper pounds produced' is the only copper figure in the (truncated) body: is it a row with basis 'McIlvenna Bay', or left out as mine-level?",
+   "expect": {
+    "is_production": true,
+    "complete": false,
+    "rows": [
+     {
+      "kind": "actual",
+      "period": "Q2 2026",
+      "metal": "gold",
+      "unit": "oz",
+      "qty": 104616,
+      "sold": 102691,
+      "aisc": 1926
+     },
+     {
+      "kind": "guidance",
+      "period": "FY 2026",
+      "metal": "gold",
+      "unit": "oz",
+      "low": 495000,
+      "high": 600000
+     },
+     {
+      "kind": "milestone",
+      "milestone": "first_production",
+      "asset": "McIlvenna Bay"
+     }
+    ]
+   }
+  },
+  {
+   "n": 18,
+   "event_id": "f9e71d5f144c76e71585a0819a9c801f761c7fd0",
+   "ticker": "KG.V",
+   "published_at": "2025-11-13T12:00:00Z",
+   "stratum": "tagged",
+   "body_sha1": "d0f4717aa49c4cc319389aaadd0da9e38729a576",
+   "review": "confirmed",
+   "confidence": "high",
+   "note": "A royalty holder reporting dollar royalty payments from a leased placer operation; no GEOs, ounces or other production figure. Royalty payments are out of scope, and the lessee's 'began production' is not the company's milestone.",
+   "question": "",
+   "expect": {
+    "is_production": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 19,
+   "event_id": "4c5007834217636ff010f3d52a5d2aff5d5826a7",
+   "ticker": "BUFF.V",
+   "published_at": "2026-07-06T12:00:00Z",
+   "stratum": "tagged",
+   "body_sha1": "4817ee5795622bf021a44c2acfe1c22dc0446dc4",
+   "review": "confirmed",
+   "confidence": "high",
+   "note": "A developer's roadmap: first production is only targeted for Q1 2027, and the 125,000/1,125,000 TPA figures are design capacity and PEA figures. A planned milestone is not a milestone.",
+   "question": "",
+   "expect": {
+    "is_production": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 20,
+   "event_id": "88ef244b2bb77907930834a0a0f237f71fb85aa6",
+   "ticker": "WDO.TO",
+   "published_at": "2026-07-13T12:00:00Z",
+   "stratum": "tagged",
+   "body_sha1": "0bc9abc83979c9339b2e713c622c96b341fe2237",
+   "review": "confirmed",
+   "confidence": "high",
+   "note": "Q2 2026 total gold production with ounces sold, plus full-year guidance. YTD 89,126 oz is not a row (#37); the mine lines are not company totals; the Presqu'ile stope is only expected to enter production.",
+   "question": "",
+   "expect": {
+    "is_production": true,
+    "complete": true,
+    "rows": [
+     {
+      "kind": "actual",
+      "period": "Q2 2026",
+      "metal": "gold",
+      "unit": "oz",
+      "qty": 43823,
+      "sold": 44100
+     },
+     {
+      "kind": "guidance",
+      "period": "FY 2026",
+      "metal": "gold",
+      "unit": "oz",
+      "low": 180000,
+      "high": 205000
+     }
+    ]
+   }
+  },
+  {
+   "n": 21,
+   "event_id": "75b7ec21c0bce1b77869fd8481f471d7b8555ff4139e2f5199c021d519d539c2",
+   "ticker": "CNL.TO",
+   "published_at": "2026-09-01T10:30:00",
+   "stratum": "untagged_net",
+   "body_sha1": "92aafc019749e6e6f18650898a08dc23ceb82867",
+   "review": "confirmed",
+   "confidence": "high",
+   "note": "Drill results from a developer; no production figures. The body is a short 2,554-char extract, but nothing in it or the headline suggests production.",
+   "question": "",
+   "expect": {
+    "is_production": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 22,
+   "event_id": "28b90099bf038dadd19d0842bab729ab8b0d99d57e7b79c7f80af4dbe73aa5d7",
+   "ticker": "WSR.CN",
+   "published_at": "2026-05-19T11:30:00",
+   "stratum": "untagged_net",
+   "body_sha1": "dae306235277d551d6ad0846c8d6dd7f4f5f981e",
+   "review": "confirmed",
+   "confidence": "high",
+   "note": "Property acquisition; the only production figure is historical 1950s tonnage from a past producer.",
+   "question": "",
+   "expect": {
+    "is_production": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 23,
+   "event_id": "52d995b157a9e975a764af113d3696d19964aa5a",
+   "ticker": "SRC.V",
+   "published_at": "2025-02-13T12:00:00Z",
+   "stratum": "untagged_net",
+   "body_sha1": "fbdce49e6ccf57f6d93ba0b8c253924355a942b9",
+   "review": "confirmed",
+   "confidence": "low",
+   "note": "A dimension-stone (white quartzite block) quarry. Sales 'will begin next week', so no shipment/sale has happened; the first block was cut. I treated dimension stone as outside the mined-metals-and-minerals scope and gave no milestone.",
+   "question": "Is a dimension-stone (quartzite) quarry in scope, and if so is 'first block produced' from quarry #3 a first_production milestone?",
+   "expect": {
+    "is_production": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 24,
+   "event_id": "744371202baf8b274d3246c9d24ecea7e2e99bfb",
+   "ticker": "NEV.V",
+   "published_at": "2025-02-20T12:00:00Z",
+   "stratum": "untagged_net",
+   "body_sha1": "26592819e594dd902b032e0e321a44a971395f39",
+   "review": "confirmed",
+   "confidence": "high",
+   "note": "Acquisition of a past-producing mine; 62,661 oz is 1998-1999 historical production by another operator, and the other figures are neighbours' output.",
+   "question": "",
+   "expect": {
+    "is_production": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 25,
+   "event_id": "7ce43c523796552c4cb6e10850b33ae18579dfd0",
+   "ticker": "NAU.V",
+   "published_at": "2025-10-16T12:00:00Z",
+   "stratum": "untagged_net",
+   "body_sha1": "274c6a230d220e5fd862fc7b476a0917bd8d0718",
+   "review": "confirmed",
+   "confidence": "high",
+   "note": "Exploration drill results; historical antimony prospects are mentioned without figures.",
+   "question": "",
+   "expect": {
+    "is_production": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 26,
+   "event_id": "cc63eda5d27f7a76530b5309d123b771196984ed",
+   "ticker": "EQX.TO",
+   "published_at": "2025-08-06T12:00:00Z",
+   "stratum": "untagged_net",
+   "body_sha1": "63304e6470bae39fff39b14a9e571fc42d2eac57",
+   "review": "confirmed",
+   "confidence": "high",
+   "note": "A notice of the results date; it contains no figures.",
+   "question": "",
+   "expect": {
+    "is_production": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 27,
+   "event_id": "319a077ddea4b0a5cf4ae649f1f693b4cfb7b96d6ff8ec4669c8296e2eb6ea0d",
+   "ticker": "IVS.V",
+   "published_at": "2026-07-14T11:00:00",
+   "stratum": "untagged_net",
+   "body_sha1": "91842d4bc8210e898cbe50e67d3b5c009d7e570f",
+   "review": "confirmed",
+   "confidence": "low",
+   "note": "A developer's bulk-sample result: 564 oz recovered over two campaigns (March and May 27-June 4, 2026), with no standard reporting period, plus a cumulative 1,549 oz. I treated bulk-sample recoveries as test work, not periodic production, but they are real recovered and sold gold.",
+   "question": "Are bulk-sample recoveries (Inventus Trench 1: 564 oz total; 392 oz in the May 27-June 4 campaign) actual rows, as the Borealis first-pour ounces were, and if so under what period?",
+   "expect": {
+    "is_production": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 28,
+   "event_id": "e6924653075824383019daaaa5857de117968ada",
+   "ticker": "NOP.CN",
+   "published_at": "2023-05-31T12:00:00Z",
+   "stratum": "untagged_net",
+   "body_sha1": "38dc47ca85fd69d4c4cd699d8bf3598e576df7ad",
+   "review": "confirmed",
+   "confidence": "high",
+   "note": "A board appointment at an exploration company; no production.",
+   "question": "",
+   "expect": {
+    "is_production": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 29,
+   "event_id": "d362e8bb37a5e093744fa48a72d4aecb3dc90107",
+   "ticker": "ANOR.V",
+   "published_at": "2025-02-11T12:00:00Z",
+   "stratum": "untagged_net",
+   "body_sha1": "9d20a34d0c390e167cbf22b975aa3aa894cce9dc",
+   "review": "confirmed",
+   "confidence": "high",
+   "note": "A process patent filing; 25 t of crushed anorthosite delivered for pilot testing is test material, not production. The 125 Mt alumina is a global industry figure.",
+   "question": "",
+   "expect": {
+    "is_production": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 30,
+   "event_id": "25bf52174ffa5eeb55fda5ddeaf1db9e69cb220e",
+   "ticker": "ARQ.CN",
+   "published_at": "2024-02-08T12:00:00Z",
+   "stratum": "untagged_net",
+   "body_sha1": "8f02c42c272eff2056bf3ae23c1e81cc0a0ef51f",
+   "review": "confirmed",
+   "confidence": "high",
+   "note": "Oil production from minority well interests; oil and gas are out of scope (decision 4).",
+   "question": "",
+   "expect": {
+    "is_production": false,
+    "complete": true,
+    "rows": []
+   }
+  }
+ ],
+ "reviewer": "Justin",
+ "reviewed_at": "2026-09-23",
+ "review_page": "https://claude.ai/artifact/1KwSgsqKaMSMNJAyDECniw (db collection reviews)",
+ "corrections": [
+  {
+   "date": "2026-09-28",
+   "by": "Claude, from the release text; per-item OK by Justin 2026-09-28",
+   "rule": "Production 1.3 (Justin): year-to-date figures are rows labelled H1 / 9M / FY (decision #37); ounces a release says were recovered are their own row kind 'recovered', never production (Mako decision).",
+   "effect": "items #15, #16 edited"
+  }
+ ]
+}

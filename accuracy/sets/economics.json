@@ -1,0 +1,1929 @@
+{
+ "schema": 1,
+ "name": "economics",
+ "tag": "Economic Studies",
+ "status": "confirmed",
+ "created": "2026-09-18",
+ "reviewer": "Justin",
+ "reviewed_at": "2026-09-20",
+ "rules": [
+  "A case with a NAME is a row -- Low, Base, High, Spot, Medium, A1, A2, B, consensus, spot (Justin, 2026-09-20). A row identified only by a percentage swing or a bare parameter value is a sweep and is not a row. Canagold's four named columns are four rows even though its table is titled a sensitivity; Desert Gold's -20% to +35% sweeps are not, and as rows that one release would be twenty-two.",
+  "A release announcing that a study WILL happen is not a study, even when it names NPV, IRR and payback as things the study will report.",
+  "Figures a release restates from an earlier study are background. 19 of 49 rows are background -- nearly two in five.",
+  "Whose study is it? PMC.CN announces a webinar quoting Surge Battery Metals' PEA. Those figures must never be filed under PMC.",
+  "An NPV is meaningless without its discount rate, and the rate is usually welded to the label: NPV5, NPV10%, NPV @ 7%, 'using an 8% discount'.",
+  "Payback has more than one definition. Allied Critical Metals states 2.2 years from start of construction and 4.2 from commencement of commercial production, for the same scenario.",
+  "Currency mixes inside one release: Radisson gives NPV and capex in C$ and cash cost and AISC in US$.",
+  "NPV is sometimes stated nominal AND real, both pre-tax -- Tantalex, $764M nominal against $638M real. The agreed row shape has no column for this.",
+  "The forward-looking-statements paragraph names every metric and states none. It must be cut before reading, or it is the densest run of economics vocabulary in the release.",
+  "A filed technical report is not always identical to the announcement: Surge announced US$9.21B and OPEX US$5,097/t, then filed US$9.17B and US$5,243/t.",
+  "NPV is sometimes stated nominal AND real. Rows carry a basis; real is the default when a release does not say."
+ ],
+ "row_shape": "Justin, 2026-09-18: one row per SCENARIO, with pre-tax and after-tax as columns on the same row. Extended 2026-09-20: rows also carry a nominal/real basis, and a release stating both produces two rows. Extended 2026-09-20: rows carry both the stated initial capital and, where a CAPEX sensitivity table exists, its unswung base row.",
+ "corrections": [
+  {
+   "date": "2026-09-20",
+   "by": "Justin",
+   "rule": "A NI 43-101 technical report filing is the authoritative release: it is announced, and where its figures differ from the press release that broke the study, the filing's figures are the ones to publish.",
+   "effect": "context background -> announced on every filing headline in the set",
+   "moved": [
+    "QGR.V ef0e8453f8f8 (2 rows)",
+    "ABRA.TO 5c7d456a4079 (1 rows)",
+    "LFLR.CN cef441915538 (1 rows)",
+    "NILI.V 4d5f57f9a53d (1 rows)",
+    "RDS.V 7325922f7a76 (1 rows)",
+    "DBG.V eb87d75595b9 (6 rows)"
+   ],
+   "also": "Cancels the pending LMR.V 345847f40783 correction. LMR is a filing ('Files a Positive Preliminary Feasibility Study'), so its 'no material differences' sentence does not make it background, and its original 'announced' label stands."
+  },
+  {
+   "date": "2026-09-20",
+   "by": "Justin",
+   "rule": "Where a release states its initial capital two ways, show both: the figure the release states, and the base row of its CAPEX sensitivity table.",
+   "effect": "initial_capex set to the stated figure and a capex_sensitivity column added, on the two Desert Gold PEA releases (4 rows)",
+   "detail": "DAU.V a32e12a20c53 states $15M in its highlights and summary table, 20.9 at the 0%% row of its CAPX sensitivity; c74762796009 states $20M and 33.9."
+  },
+  {
+   "date": "2026-09-20",
+   "by": "Claude, checked against the release bodies; confirmed by Justin 2026-09-21",
+   "rule": "Two figures in the set do not appear in the releases they are attributed to.",
+   "effect": "EMN.V ec626af4fcbe irr_after_tax_pct 13.0 -> 13.8; GCU.TO afa8df24ed6b payback_years 3.0 -> 3.9",
+   "evidence": {
+    "ec626af4fcbe": "Body states it twice: 'Pre-tax IRR of 16.0% and Post-tax IRR of 13.8%' and, in the Project Economics table, 'Internal Rate of Return 16.0% 13.8%'. 13.0 appears nowhere.",
+    "afa8df24ed6b": "Body states it three times: 'Payback (after-tax) #Years 3.9 2.6', 'an attractive 3.9 year payback', and 'Payback Period # years 3.9'. 3.0 appears nowhere."
+   },
+   "confirmed": {
+    "by": "Justin",
+    "at": "2026-09-21",
+    "via": "answer-key review page"
+   }
+  },
+  {
+   "date": "2026-09-21",
+   "by": "Claude, from the release text; confirmed by Justin 2026-09-21",
+   "rule": "A case with a NAME is a row (Justin, 2026-09-20). Three releases state a named spot case the set did not record.",
+   "effect": "DAU.V a32e12a20c53 + row 'spot US$3,366/oz Au'; WHN.V 1dc5de38e3b3 + row 'spot US$2,900/oz Au, US$30/oz Ag'; DAU.V c74762796009 + row 'spot US$4,070/oz Au'",
+   "evidence": {
+    "a32e12a20c53": "At the current spot gold price of USD $3,366 the project generates an after-tax Net Present Value (NPV) at a 10% discount rate of USD $54 million, an Internal Rate of Return (IRR) of 64%, and a projected payback period of 2.5 years.",
+    "1dc5de38e3b3": "After-tax (NPV 6%) increases to $634M and After-tax IRR increases to 56.6% using spot prices of US$2,900 gold and US$30 silver.",
+    "c74762796009": "At the current spot gold price of USD $4,070 the project generates an after-tax Net Present Value (NPV) at a 10% discount rate of USD $124 million, an Internal Rate of Return (IRR) of 101%, and a projected payback period of 2.1 years."
+   },
+   "confirmed": {
+    "by": "Justin",
+    "at": "2026-09-21",
+    "via": "answer-key review page"
+   }
+  },
+  {
+   "date": "2026-09-21",
+   "by": "Claude, checked against the release body; confirmed by Justin 2026-09-21",
+   "rule": "A figure in the set that the release does not state.",
+   "effect": "STLR.TO 196d479ec2de irr_pre_tax_pct 16.0 -> 16.1",
+   "evidence": {
+    "196d479ec2de": "The results table reads 'Pre-tax internal rate of return (“IRR”)(%) 16.1% 28.6%'. 16.0 does not appear in the release."
+   },
+   "confirmed": {
+    "by": "Justin",
+    "at": "2026-09-21",
+    "via": "answer-key review page"
+   }
+  },
+  {
+   "date": "2026-09-21",
+   "by": "Justin",
+   "rule": "IVN.TO Platreef: asked whether the NPV8 $1.4B / IRR 20% figures are the Feasibility Study or a PEA.",
+   "effect": "none: Justin answered 'not sure, leave it'. The reader (1.0.2+) reads FS from the release text ('4.1 Mtpa Feasibility Study (Phase 1 & 2) yields after-tax NPV8% of $1.4 billion and IRR of 20%'); IVN is not in this set, so no key row changes."
+  },
+  {
+   "date": "2026-09-29",
+   "by": "Justin",
+   "rule": "Restated studies: drop paid articles, non-mining issuers and other companies' projects; label the rest 'mentioned in' (reader review decision 'Drop bad, label rest').",
+   "effect": "RUA.TO 4d65c18fe83f: 2 rows (Auld Creek base case US$3,300/oz Au, spot US$4,700/oz Au) removed; the item now expects no study",
+   "confirmed": {
+    "by": "Justin",
+    "at": "2026-09-29",
+    "via": "chat ('Remove 2 rows + install')"
+   }
+  }
+ ],
+ "items": [
+  {
+   "n": 1,
+   "event_id": "e496e0d322f8c24f75eb429385ce3f8bcdc666d4adfcfd999737901a134895e4",
+   "ticker": "FL.V",
+   "stratum": "untagged_announces",
+   "body_sha1": "bd59963c7052cf165e801b9b7d1d90be5c12af8d",
+   "review": "confirmed",
+   "note": "Headline announces INITIATING an update. The figures are the 2025 FS, explicitly 'disclosed in a press release dated May 28, 2025' -- background, not news.",
+   "expect": {
+    "is_economic_study": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "PAK Lithium",
+      "scenario": "base case",
+      "study_type": "FS",
+      "currency": "CAD",
+      "discount_pct": 8.0,
+      "npv_after_tax": 932000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 17.9,
+      "irr_pre_tax_pct": null,
+      "payback_years": null,
+      "initial_capex": null,
+      "opex": null,
+      "aisc": null,
+      "mine_life_years": 31,
+      "throughput_tpd": null,
+      "annual_production": null,
+      "context": "background",
+      "basis": "real"
+     }
+    ]
+   }
+  },
+  {
+   "n": 2,
+   "event_id": "ec626af4fcbe56ec55c3d3a0b43e0fd9300c1cb2",
+   "ticker": "EMN.V",
+   "stratum": "untagged_announces",
+   "body_sha1": "2931354c1102b4f6ed8439c9d8205444d328f4d8",
+   "review": "corrected",
+   "note": "Announced: the 'previously announced' back-reference is to the Optimization Program, not to the PEA. Full body gives both bases -- pre-tax NPV $740M at 16% IRR, post-tax $492M at 13% -- and says the 8% discount is REAL.",
+   "expect": {
+    "is_economic_study": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "Chvaletice Manganese",
+      "scenario": "base case",
+      "study_type": "PEA",
+      "currency": "USD",
+      "discount_pct": 8.0,
+      "npv_after_tax": 492000000,
+      "npv_pre_tax": 740000000,
+      "irr_after_tax_pct": 13.8,
+      "irr_pre_tax_pct": 16.0,
+      "payback_years": null,
+      "initial_capex": null,
+      "opex": null,
+      "aisc": null,
+      "mine_life_years": null,
+      "throughput_tpd": null,
+      "annual_production": null,
+      "context": "announced",
+      "basis": "real"
+     }
+    ]
+   }
+  },
+  {
+   "n": 3,
+   "event_id": "2593487e3743471b7574353b6a3533862ccc601b",
+   "ticker": "IE.TO",
+   "stratum": "untagged_announces",
+   "body_sha1": "6a8f30bf18a542971e9fb6f795e4212e54fefdf9",
+   "review": "confirmed",
+   "note": "TWO scenarios the company itself presents: a base case at US$4.25/lb Cu and the COMEX spot case at US$4.83/lb. The seven-row price table underneath is a sensitivity, not seven scenarios.",
+   "expect": {
+    "is_economic_study": true,
+    "complete": false,
+    "rows": [
+     {
+      "project": "Santa Cruz Copper",
+      "scenario": "base case US$4.25/lb Cu",
+      "study_type": "PFS",
+      "currency": "USD",
+      "discount_pct": 8.0,
+      "npv_after_tax": 1380000000,
+      "npv_pre_tax": 1880000000,
+      "irr_after_tax_pct": 20.0,
+      "irr_pre_tax_pct": 22.0,
+      "payback_years": null,
+      "initial_capex": null,
+      "opex": null,
+      "aisc": null,
+      "mine_life_years": null,
+      "throughput_tpd": null,
+      "annual_production": null,
+      "context": "announced",
+      "basis": "real"
+     },
+     {
+      "project": "Santa Cruz Copper",
+      "scenario": "COMEX spot US$4.83/lb Cu",
+      "study_type": "PFS",
+      "currency": "USD",
+      "discount_pct": 8.0,
+      "npv_after_tax": 1910000000,
+      "npv_pre_tax": 2560000000,
+      "irr_after_tax_pct": 24.0,
+      "irr_pre_tax_pct": 26.6,
+      "payback_years": null,
+      "initial_capex": null,
+      "opex": null,
+      "aisc": null,
+      "mine_life_years": null,
+      "throughput_tpd": null,
+      "annual_production": null,
+      "context": "announced",
+      "basis": "real"
+     }
+    ]
+   }
+  },
+  {
+   "n": 4,
+   "event_id": "3929a664c94001ed4f102d3490af3ac27159b20c4736d5f2e6cc2182f0a7819b",
+   "ticker": "ESAU.CN",
+   "stratum": "untagged_announces",
+   "body_sha1": "d9ffa187c28abdd8bfbf55c73f4588e76def5e59",
+   "review": "confirmed",
+   "note": "Announces that an updated PEA WILL be done. Names IRR, NPV and payback as things the update will assess. States no figure at all. A hard negative that the strict NPV+IRR+payback test lets through.",
+   "expect": {
+    "is_economic_study": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 5,
+   "event_id": "ef0e8453f8f8957f6e062db18dff26fbb20580b1",
+   "ticker": "QGR.V",
+   "stratum": "untagged_announces",
+   "body_sha1": "d0d3f9f524c3a78550c953b68b08d01f386d879f",
+   "review": "corrected",
+   "note": "BACKGROUND, corrected 2026-09-20: 'The Technical Report supports the strong results previously announced by the Company.' The draft had this as announced.",
+   "expect": {
+    "is_economic_study": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "Quartz Mountain",
+      "scenario": "base case",
+      "study_type": "PEA",
+      "currency": "USD",
+      "discount_pct": 5.0,
+      "npv_after_tax": 1710000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 55.2,
+      "irr_pre_tax_pct": null,
+      "payback_years": null,
+      "initial_capex": 290000000,
+      "opex": null,
+      "aisc": 1216,
+      "mine_life_years": 14,
+      "throughput_tpd": null,
+      "annual_production": 135400,
+      "context": "announced",
+      "basis": "real"
+     },
+     {
+      "project": "Quartz Mountain",
+      "scenario": "recent spot gold price",
+      "study_type": "PEA",
+      "currency": "USD",
+      "discount_pct": 5.0,
+      "npv_after_tax": 3200000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 92.0,
+      "irr_pre_tax_pct": null,
+      "payback_years": null,
+      "initial_capex": null,
+      "opex": null,
+      "aisc": null,
+      "mine_life_years": null,
+      "throughput_tpd": null,
+      "annual_production": null,
+      "context": "announced",
+      "basis": "real"
+     }
+    ]
+   }
+  },
+  {
+   "n": 6,
+   "event_id": "5879bebc624c6679e81583a63f220462285c3dc5",
+   "ticker": "NICU.V",
+   "stratum": "untagged_announces",
+   "body_sha1": "1284f07c1d054d956bc8abef80890fe6d90da7db",
+   "review": "confirmed",
+   "note": "Announces that a PFS will be initiated. The figures are headed '2024 PEA Highlights' -- background. Payback stated in words ('within the first year'), not as a number.",
+   "expect": {
+    "is_economic_study": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "Crean Hill",
+      "scenario": "base case",
+      "study_type": "PEA",
+      "currency": "CAD",
+      "discount_pct": 8.0,
+      "npv_after_tax": 194100000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 129.0,
+      "irr_pre_tax_pct": null,
+      "payback_years": 1.0,
+      "initial_capex": 27700000,
+      "opex": 158,
+      "aisc": null,
+      "mine_life_years": 13,
+      "throughput_tpd": 2200,
+      "annual_production": null,
+      "context": "background",
+      "basis": "real"
+     }
+    ]
+   }
+  },
+  {
+   "n": 7,
+   "event_id": "e89c73b7763179a8c88d978600a191b56947b7e2",
+   "ticker": "LCE.V",
+   "stratum": "untagged_mentions",
+   "body_sha1": "31cdd48431e91d58c245b64d2c2182dbb5ed0c4b",
+   "review": "confirmed",
+   "note": "A permitting update. Every economics word in it is inside the forward-looking-statements disclaimer: 'estimates of life of mine, lithium prices, production and recoveries, capital and operating costs, IRR, NPV and cash flows'. No figure anywhere. This is the shape of most of the 748.",
+   "expect": {
+    "is_economic_study": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 8,
+   "event_id": "7efaae38e44c636d5ca2bffdb7f7ab034cac75ba",
+   "ticker": "WHN.V",
+   "stratum": "untagged_mentions",
+   "body_sha1": "5ab057f9bc2bde68d13f006f9f403d83e2545887",
+   "review": "confirmed",
+   "note": "A shareholder-meeting notice. The economics are the standing 'about the project' paragraph recapping the Shovelnose PEA. Real figures, entirely background.",
+   "expect": {
+    "is_economic_study": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "Shovelnose",
+      "scenario": "base case",
+      "study_type": "PEA",
+      "currency": "CAD",
+      "discount_pct": 6.0,
+      "npv_after_tax": 454000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 43.2,
+      "irr_pre_tax_pct": null,
+      "payback_years": null,
+      "initial_capex": null,
+      "opex": null,
+      "aisc": null,
+      "mine_life_years": 11,
+      "throughput_tpd": null,
+      "annual_production": 56000,
+      "context": "background",
+      "basis": "real"
+     }
+    ]
+   }
+  },
+  {
+   "n": 9,
+   "event_id": "7a1d4177cb7a05278791c6eed5ab3abe4207257a",
+   "ticker": "BUFF.V",
+   "stratum": "untagged_mentions",
+   "body_sha1": "746279342ca836f376d5cf4e3397332707b01113",
+   "review": "confirmed",
+   "note": "A drilling update. Recaps the maiden PEA released 22 May 2026, with the date stated. Background.",
+   "expect": {
+    "is_economic_study": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "Disley",
+      "scenario": "base case",
+      "study_type": "PEA",
+      "currency": "USD",
+      "discount_pct": 8.0,
+      "npv_after_tax": 1100000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 30.0,
+      "irr_pre_tax_pct": null,
+      "payback_years": null,
+      "initial_capex": null,
+      "opex": null,
+      "aisc": null,
+      "mine_life_years": null,
+      "throughput_tpd": null,
+      "annual_production": null,
+      "context": "background",
+      "basis": "real"
+     }
+    ]
+   }
+  },
+  {
+   "n": 10,
+   "event_id": "6a81edb76ff7a1113912ff0547224b2343289ee0",
+   "ticker": "WHN.V",
+   "stratum": "untagged_mentions",
+   "body_sha1": "0f87f688eb7a7d31752b4a12c4b14ef15bc388ff",
+   "review": "confirmed",
+   "note": "An earn-in agreement. Same Shovelnose paragraph, with an explicit footnote pointing at the 3 March 2025 release. Background, and the citation makes it provable.",
+   "expect": {
+    "is_economic_study": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "Shovelnose",
+      "scenario": "base case",
+      "study_type": "PEA",
+      "currency": "CAD",
+      "discount_pct": 6.0,
+      "npv_after_tax": 454000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 43.2,
+      "irr_pre_tax_pct": null,
+      "payback_years": null,
+      "initial_capex": null,
+      "opex": null,
+      "aisc": null,
+      "mine_life_years": 11,
+      "throughput_tpd": null,
+      "annual_production": 56000,
+      "context": "background",
+      "basis": "real"
+     }
+    ]
+   }
+  },
+  {
+   "n": 11,
+   "event_id": "7344bcfaa08818f54449b110ce59493c003e3af3",
+   "ticker": "LCE.V",
+   "stratum": "untagged_mentions",
+   "body_sha1": "91db83004755ae573bfb4394b2510d1468cddb25",
+   "review": "confirmed",
+   "note": "Disclaimer vocabulary only, no figure anywhere. Hard negative.",
+   "expect": {
+    "is_economic_study": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 12,
+   "event_id": "62322abcc6270ddf53b91db54dc99838063fe671",
+   "ticker": "TAU.V",
+   "stratum": "untagged_mentions",
+   "body_sha1": "c6aae987c3bcec7e4b172fd98d7e1c6f05e6ff3c",
+   "review": "confirmed",
+   "note": "A drill-results release that recaps the 2024 PEA and cites the September 2024 release. Background. Also says a 2025 PFS is coming, which is not a figure.",
+   "expect": {
+    "is_economic_study": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "Thesis Gold",
+      "scenario": "base case",
+      "study_type": "PEA",
+      "currency": "CAD",
+      "discount_pct": 5.0,
+      "npv_after_tax": 1280000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 35.2,
+      "irr_pre_tax_pct": null,
+      "payback_years": 2.0,
+      "initial_capex": null,
+      "opex": null,
+      "aisc": null,
+      "mine_life_years": null,
+      "throughput_tpd": null,
+      "annual_production": null,
+      "context": "background",
+      "basis": "real"
+     }
+    ]
+   }
+  },
+  {
+   "n": 13,
+   "event_id": "afa8df24ed6b09394d460787ac3152512d840ad4",
+   "ticker": "GCU.TO",
+   "stratum": "multi_scenario",
+   "body_sha1": "e03dcdf565fa3e3fbeed9d7cc9d1f92458216390",
+   "review": "corrected",
+   "note": "Announced -- the 2026 PEA 'supersedes the previous PEA released in December 2024 in all respects'. Stated figure is $1,952M at 8%; the headline rounds it to US$2.0 billion, and the reader should take the table. A second column of 3,219 sits beside it, price deck unidentified, so the row list is incomplete. NPV at 10% (1,419) is a second discount rate, not a scenario. The 1,543.7 the draft recorded as capex was the total from the capex table, not initial.",
+   "expect": {
+    "is_economic_study": true,
+    "complete": false,
+    "rows": [
+     {
+      "project": "Gunnison Copper",
+      "scenario": "base case US$4.60/lb Cu",
+      "study_type": "PEA",
+      "currency": "USD",
+      "discount_pct": 8.0,
+      "npv_after_tax": 1952000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 22.7,
+      "irr_pre_tax_pct": null,
+      "payback_years": 3.9,
+      "initial_capex": null,
+      "opex": null,
+      "aisc": null,
+      "mine_life_years": 21,
+      "throughput_tpd": null,
+      "annual_production": null,
+      "context": "announced",
+      "basis": "real"
+     }
+    ]
+   }
+  },
+  {
+   "n": 14,
+   "event_id": "ebaae82bd87998f2e32afb2eba004b8458333fc6b73ba38c94ddf8624e1a7a15",
+   "ticker": "MAI.V",
+   "stratum": "multi_scenario",
+   "body_sha1": "e42a918c8cc1770d572bd040be928e9973b23e50",
+   "review": "confirmed",
+   "note": "Textbook two-case release: base at US$3,500/oz and spot at US$4,500/oz, both quoted in the highlights.",
+   "expect": {
+    "is_economic_study": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "Copperstone",
+      "scenario": "base case US$3,500/oz Au",
+      "study_type": "PFS",
+      "currency": "USD",
+      "discount_pct": 5.0,
+      "npv_after_tax": 374000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 108.0,
+      "irr_pre_tax_pct": null,
+      "payback_years": 1.2,
+      "initial_capex": 58000000,
+      "opex": 1070,
+      "aisc": 1314,
+      "mine_life_years": 6.3,
+      "throughput_tpd": null,
+      "annual_production": 46000,
+      "context": "announced",
+      "basis": "real"
+     },
+     {
+      "project": "Copperstone",
+      "scenario": "spot US$4,500/oz Au",
+      "study_type": "PFS",
+      "currency": "USD",
+      "discount_pct": 5.0,
+      "npv_after_tax": 537000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 154.0,
+      "irr_pre_tax_pct": null,
+      "payback_years": 0.8,
+      "initial_capex": 58000000,
+      "opex": 1070,
+      "aisc": 1314,
+      "mine_life_years": 6.3,
+      "throughput_tpd": null,
+      "annual_production": 46000,
+      "context": "announced",
+      "basis": "real"
+     }
+    ]
+   }
+  },
+  {
+   "n": 15,
+   "event_id": "7c4705ff6f42a74911bec56ee6fe7ed75498d1f1",
+   "ticker": "CCM.TO",
+   "stratum": "multi_scenario",
+   "body_sha1": "2503e01293ca818f0fb6f2da800fc1645b78d1a2",
+   "review": "confirmed",
+   "note": "Four NAMED cases -- Low, Base, High, Spot -- so four rows (Justin, 2026-09-20). The table calls itself a sensitivity, but the columns carry names, and a named case is what the company is putting forward. Contrast Desert Gold, whose rows are labelled only by percentage swing and are a sweep.",
+   "expect": {
+    "is_economic_study": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "New Polaris",
+      "scenario": "Low Case US$2,200/oz Au",
+      "study_type": "FS",
+      "currency": "CAD",
+      "discount_pct": 5.0,
+      "npv_after_tax": 287000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 23.5,
+      "irr_pre_tax_pct": null,
+      "payback_years": 2.9,
+      "initial_capex": 250000000,
+      "opex": null,
+      "aisc": 1247,
+      "mine_life_years": null,
+      "throughput_tpd": null,
+      "annual_production": null,
+      "context": "announced",
+      "basis": "real"
+     },
+     {
+      "project": "New Polaris",
+      "scenario": "Base Case US$2,500/oz Au",
+      "study_type": "FS",
+      "currency": "CAD",
+      "discount_pct": 5.0,
+      "npv_after_tax": 425000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 30.9,
+      "irr_pre_tax_pct": null,
+      "payback_years": 2.4,
+      "initial_capex": 250000000,
+      "opex": null,
+      "aisc": 1247,
+      "mine_life_years": null,
+      "throughput_tpd": null,
+      "annual_production": null,
+      "context": "announced",
+      "basis": "real"
+     },
+     {
+      "project": "New Polaris",
+      "scenario": "High Case US$2,800/oz Au",
+      "study_type": "FS",
+      "currency": "CAD",
+      "discount_pct": 5.0,
+      "npv_after_tax": 564000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 37.5,
+      "irr_pre_tax_pct": null,
+      "payback_years": 2.1,
+      "initial_capex": 250000000,
+      "opex": null,
+      "aisc": 1247,
+      "mine_life_years": null,
+      "throughput_tpd": null,
+      "annual_production": null,
+      "context": "announced",
+      "basis": "real"
+     },
+     {
+      "project": "New Polaris",
+      "scenario": "Spot Case US$3,300/oz Au",
+      "study_type": "FS",
+      "currency": "CAD",
+      "discount_pct": 5.0,
+      "npv_after_tax": 793000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 47.3,
+      "irr_pre_tax_pct": null,
+      "payback_years": 1.7,
+      "initial_capex": 250000000,
+      "opex": null,
+      "aisc": 1247,
+      "mine_life_years": null,
+      "throughput_tpd": null,
+      "annual_production": null,
+      "context": "announced",
+      "basis": "real"
+     }
+    ]
+   }
+  },
+  {
+   "n": 16,
+   "event_id": "e54d8e5e9080d5ad2d2b825d07fefb9c50707efb",
+   "ticker": "WRLG.V",
+   "stratum": "multi_scenario",
+   "body_sha1": "c2ff40d6166116a9a4ed74e1a3972bf44b7ef02c",
+   "review": "confirmed",
+   "note": "Announced, no back-references. The discount rate the draft could not find is stated in prose twice -- 'post-tax NPV (5%) of $315' and 'after-tax NPV of $315 using 5% discount rate'. It is absent from the table only. C$392M/C$391M are cash flows, not NPVs.",
+   "expect": {
+    "is_economic_study": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "Madsen",
+      "scenario": "base case US$2,200/oz Au",
+      "study_type": "PFS",
+      "currency": "CAD",
+      "discount_pct": 5.0,
+      "npv_after_tax": 315000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 255.0,
+      "irr_pre_tax_pct": null,
+      "payback_years": 1.0,
+      "initial_capex": 44100000,
+      "opex": 919,
+      "aisc": 1681,
+      "mine_life_years": 7.25,
+      "throughput_tpd": 800,
+      "annual_production": 67600,
+      "context": "announced",
+      "basis": "real"
+     }
+    ]
+   }
+  },
+  {
+   "n": 17,
+   "event_id": "345847f40783b8d9138317e0ef6dbeb6ccf466e4",
+   "ticker": "LMR.V",
+   "stratum": "multi_scenario",
+   "body_sha1": "a27aa0b30a16998c3b04f76eafb44b4a2ec45324",
+   "review": "confirmed",
+   "note": "One scenario stating BOTH tax bases in full -- exactly the shape the one-row-per-scenario decision is for. Pre-tax and after-tax paybacks even differ (3.1 vs 3.2 years).",
+   "expect": {
+    "is_economic_study": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "La Loutre",
+      "scenario": "base case US$1,524/t Cg",
+      "study_type": "PFS",
+      "currency": "CAD",
+      "discount_pct": 8.0,
+      "npv_after_tax": 617400000,
+      "npv_pre_tax": 797500000,
+      "irr_after_tax_pct": 24.7,
+      "irr_pre_tax_pct": 30.3,
+      "payback_years": 3.2,
+      "initial_capex": 504600000,
+      "opex": null,
+      "aisc": null,
+      "mine_life_years": 28,
+      "throughput_tpd": null,
+      "annual_production": null,
+      "context": "announced",
+      "basis": "real"
+     }
+    ]
+   }
+  },
+  {
+   "n": 18,
+   "event_id": "a32e12a20c53120d82938458a73a42e67edf7952",
+   "ticker": "DAU.V",
+   "stratum": "multi_scenario",
+   "body_sha1": "079f91ef6676c5759ab0070e02f8f8b098dc4f8b",
+   "review": "corrected",
+   "note": "Base case plus one higher-price case stated in prose. The three sensitivity tables beneath (gold price, OPEX, CAPEX) are explicitly 'for illustrative purposes only' and are not rows -- as rows they would be twenty-two.",
+   "expect": {
+    "is_economic_study": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "SMSZ",
+      "scenario": "base case US$2,500/oz Au",
+      "study_type": "PEA",
+      "currency": "USD",
+      "discount_pct": 10.0,
+      "npv_after_tax": 24000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 34.0,
+      "irr_pre_tax_pct": null,
+      "payback_years": 3.3,
+      "initial_capex": 15000000,
+      "opex": 35,
+      "aisc": null,
+      "mine_life_years": null,
+      "throughput_tpd": null,
+      "annual_production": 5500,
+      "context": "announced",
+      "basis": "real",
+      "capex_sensitivity": 20900000
+     },
+     {
+      "project": "SMSZ",
+      "scenario": "US$3,000/oz Au",
+      "study_type": "PEA",
+      "currency": "USD",
+      "discount_pct": 10.0,
+      "npv_after_tax": 41000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 51.0,
+      "irr_pre_tax_pct": null,
+      "payback_years": 2.8,
+      "initial_capex": 15000000,
+      "opex": 35,
+      "aisc": null,
+      "mine_life_years": null,
+      "throughput_tpd": null,
+      "annual_production": 5500,
+      "context": "announced",
+      "basis": "real",
+      "capex_sensitivity": 20900000
+     },
+     {
+      "project": "SMSZ",
+      "scenario": "spot US$3,366/oz Au",
+      "study_type": "PEA",
+      "currency": "USD",
+      "discount_pct": 10.0,
+      "npv_after_tax": 54000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 64.0,
+      "irr_pre_tax_pct": null,
+      "payback_years": 2.5,
+      "initial_capex": 15000000,
+      "opex": 35,
+      "aisc": null,
+      "mine_life_years": null,
+      "throughput_tpd": null,
+      "annual_production": 5500,
+      "context": "announced",
+      "basis": "real",
+      "capex_sensitivity": 20900000
+     }
+    ]
+   }
+  },
+  {
+   "n": 19,
+   "event_id": "1dc5de38e3b3ea47ad32354536049d8ee333be32",
+   "ticker": "WHN.V",
+   "stratum": "multi_scenario",
+   "body_sha1": "d172b72488743c7dbbfffca86cc852a704a2a71d",
+   "review": "corrected",
+   "note": "The release the two Westhaven background recaps point back at. One scenario; the six discount rates beneath it are a sensitivity. Note the payback here is 4.1 years for the total project including pre-production, which is a different quantity from the capex paybacks other releases quote.",
+   "expect": {
+    "is_economic_study": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "Shovelnose",
+      "scenario": "base case",
+      "study_type": "PEA",
+      "currency": "CAD",
+      "discount_pct": 6.0,
+      "npv_after_tax": 454000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 43.2,
+      "irr_pre_tax_pct": null,
+      "payback_years": 4.1,
+      "initial_capex": null,
+      "opex": 142,
+      "aisc": 1161,
+      "mine_life_years": null,
+      "throughput_tpd": null,
+      "annual_production": null,
+      "context": "announced",
+      "basis": "real"
+     },
+     {
+      "project": "Shovelnose",
+      "scenario": "spot US$2,900/oz Au, US$30/oz Ag",
+      "study_type": "PEA",
+      "currency": "CAD",
+      "discount_pct": 6.0,
+      "npv_after_tax": 634000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 56.6,
+      "irr_pre_tax_pct": null,
+      "payback_years": null,
+      "initial_capex": null,
+      "opex": 142,
+      "aisc": 1161,
+      "mine_life_years": null,
+      "throughput_tpd": null,
+      "annual_production": null,
+      "context": "announced",
+      "basis": "real"
+     }
+    ]
+   }
+  },
+  {
+   "n": 20,
+   "event_id": "4140e6ed07073d776a6efa97d3dc9b85cf2a26a4",
+   "ticker": "BVA.V",
+   "stratum": "multi_scenario",
+   "body_sha1": "5544fd621874664495f1f668710c0f66af3e1d3f",
+   "review": "confirmed",
+   "note": "Two cases, and every NPV is stated twice, once in USD and once in CAD. The reader has to pick one currency and record which, or the same figure lands as two different numbers.",
+   "expect": {
+    "is_economic_study": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "Wind Mountain",
+      "scenario": "base case US$3,600/oz Au",
+      "study_type": "PEA",
+      "currency": "USD",
+      "discount_pct": 5.0,
+      "npv_after_tax": 415000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 60.0,
+      "irr_pre_tax_pct": null,
+      "payback_years": 2.0,
+      "initial_capex": 98100000,
+      "opex": 1504,
+      "aisc": 1653,
+      "mine_life_years": 11.2,
+      "throughput_tpd": null,
+      "annual_production": 40700,
+      "context": "announced",
+      "basis": "real"
+     },
+     {
+      "project": "Wind Mountain",
+      "scenario": "US$4,500/oz Au",
+      "study_type": "PEA",
+      "currency": "USD",
+      "discount_pct": 5.0,
+      "npv_after_tax": 681000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 86.0,
+      "irr_pre_tax_pct": null,
+      "payback_years": 1.5,
+      "initial_capex": 98100000,
+      "opex": 1504,
+      "aisc": 1653,
+      "mine_life_years": 11.2,
+      "throughput_tpd": null,
+      "annual_production": 40700,
+      "context": "announced",
+      "basis": "real"
+     }
+    ]
+   }
+  },
+  {
+   "n": 21,
+   "event_id": "4d65c18fe83f3725e77c53b5292eda3f577ba71ece8caafbbf32c61179059c69",
+   "ticker": "RUA.TO",
+   "stratum": "flat_table",
+   "body_sha1": "39191dcd50cfeb3c0d2d5a0090de6b53a5b7d235",
+   "review": "confirmed",
+   "note": "A syndicated rewrite of Rua Gold's Auld Creek PEA, and the same study appears again under a different headline elsewhere in the corpus. Throughput is stated per annum, not per day. 2026-09-29 (Justin): a paid/syndicated article, not Rua Gold's own release -- no rows (reader review 'drop bad, label rest').",
+   "expect": {
+    "is_economic_study": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 22,
+   "event_id": "f6a9a23a4d8f1464fa4cb5167a970ad4247c952ea51f32b7ec302ea06a4ff8dd",
+   "ticker": "SLI.V",
+   "stratum": "flat_table",
+   "body_sha1": "adeb53946aeb7fc2d9750ef5ed047f468453a307",
+   "review": "confirmed",
+   "note": "Cleanest table in the sample: discount rate, both NPVs, both IRRs and both paybacks each on their own labelled line.",
+   "expect": {
+    "is_economic_study": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "Smackover",
+      "scenario": "base case US$22,400/t LCE",
+      "study_type": "PEA",
+      "currency": "USD",
+      "discount_pct": 8.0,
+      "npv_after_tax": 4992000000,
+      "npv_pre_tax": 5924000000,
+      "irr_after_tax_pct": 24.0,
+      "irr_pre_tax_pct": 25.7,
+      "payback_years": 3.1,
+      "initial_capex": 3496000000,
+      "opex": 4226,
+      "aisc": 5054,
+      "mine_life_years": null,
+      "throughput_tpd": null,
+      "annual_production": null,
+      "context": "announced",
+      "basis": "real"
+     }
+    ]
+   }
+  },
+  {
+   "n": 23,
+   "event_id": "788d33548b61f970b38f333d5689bf838976e14e",
+   "ticker": "ACM.CN",
+   "stratum": "flat_table",
+   "body_sha1": "70b707f3c6601ededdcc57cdb01c19b36487cd85",
+   "review": "confirmed",
+   "note": "BACKGROUND confirmed: 'previously announced after-tax NPV(8%) of $473.4 million' and 'the previously announced PEA economics remain unchanged'. The release is an amending and restating one, correcting the 9 March release from European comma to North American decimal nomenclature -- so the SAME figures were published two days running in two number formats. Three named pricing frameworks confirmed in the text, so the three rows stand. Payback recorded from start of construction; CCP is also stated.",
+   "expect": {
+    "is_economic_study": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "Borralha",
+      "scenario": "medium CAD$1,365/mtu WO3",
+      "study_type": "PEA",
+      "currency": "CAD",
+      "discount_pct": 8.0,
+      "npv_after_tax": 473400000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 48.8,
+      "irr_pre_tax_pct": null,
+      "payback_years": 2.2,
+      "initial_capex": null,
+      "opex": null,
+      "aisc": null,
+      "mine_life_years": null,
+      "throughput_tpd": null,
+      "annual_production": null,
+      "context": "background",
+      "basis": "real"
+     },
+     {
+      "project": "Borralha",
+      "scenario": "base CAD$962/mtu WO3",
+      "study_type": "PEA",
+      "currency": "CAD",
+      "discount_pct": 8.0,
+      "npv_after_tax": 182700000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 27.2,
+      "irr_pre_tax_pct": null,
+      "payback_years": 3.8,
+      "initial_capex": null,
+      "opex": null,
+      "aisc": null,
+      "mine_life_years": null,
+      "throughput_tpd": null,
+      "annual_production": null,
+      "context": "background",
+      "basis": "real"
+     },
+     {
+      "project": "Borralha",
+      "scenario": "high CAD$2,049/mtu WO3",
+      "study_type": "PEA",
+      "currency": "CAD",
+      "discount_pct": 8.0,
+      "npv_after_tax": 963800000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 78.4,
+      "irr_pre_tax_pct": null,
+      "payback_years": 1.2,
+      "initial_capex": null,
+      "opex": null,
+      "aisc": null,
+      "mine_life_years": null,
+      "throughput_tpd": null,
+      "annual_production": null,
+      "context": "background",
+      "basis": "real"
+     }
+    ]
+   }
+  },
+  {
+   "n": 24,
+   "event_id": "c74762796009a32d26d58237d9ab34a51d21c878",
+   "ticker": "DAU.V",
+   "stratum": "flat_table",
+   "body_sha1": "e14922b533fd1abe05508b395fbc86b16d59bc14",
+   "review": "corrected",
+   "note": "A second PEA release for the same project three months after the first, with a NEW base case of US$2,850 replacing US$2,500. Both are legitimate announcements; the page will show the project twice and should. Payback is stated in MONTHS here and years elsewhere.",
+   "expect": {
+    "is_economic_study": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "SMSZ",
+      "scenario": "base case US$2,850/oz Au",
+      "study_type": "PEA",
+      "currency": "USD",
+      "discount_pct": 10.0,
+      "npv_after_tax": 61000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 57.0,
+      "irr_pre_tax_pct": null,
+      "payback_years": 2.5,
+      "initial_capex": 20000000,
+      "opex": 30,
+      "aisc": null,
+      "mine_life_years": null,
+      "throughput_tpd": null,
+      "annual_production": 11300,
+      "context": "announced",
+      "basis": "real",
+      "capex_sensitivity": 33900000
+     },
+     {
+      "project": "SMSZ",
+      "scenario": "US$3,350/oz Au",
+      "study_type": "PEA",
+      "currency": "USD",
+      "discount_pct": 10.0,
+      "npv_after_tax": 87000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 76.0,
+      "irr_pre_tax_pct": null,
+      "payback_years": 2.3,
+      "initial_capex": 20000000,
+      "opex": 30,
+      "aisc": null,
+      "mine_life_years": null,
+      "throughput_tpd": null,
+      "annual_production": 11300,
+      "context": "announced",
+      "basis": "real",
+      "capex_sensitivity": 33900000
+     },
+     {
+      "project": "SMSZ",
+      "scenario": "spot US$4,070/oz Au",
+      "study_type": "PEA",
+      "currency": "USD",
+      "discount_pct": 10.0,
+      "npv_after_tax": 124000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 101.0,
+      "irr_pre_tax_pct": null,
+      "payback_years": 2.1,
+      "initial_capex": 20000000,
+      "opex": 30,
+      "aisc": null,
+      "mine_life_years": null,
+      "throughput_tpd": null,
+      "annual_production": 11300,
+      "context": "announced",
+      "basis": "real",
+      "capex_sensitivity": 33900000
+     }
+    ]
+   }
+  },
+  {
+   "n": 25,
+   "event_id": "4629ef10f3a4503cadc3770276a14163a3b2d984",
+   "ticker": "NILI.V",
+   "stratum": "flat_table",
+   "body_sha1": "d39820f29bd3520fbfe5e0dbc287104b174f554b",
+   "review": "confirmed",
+   "note": "The original Nevada North PEA announcement. Both tax bases in full. Capex is split across two build phases and only the total is comparable.",
+   "expect": {
+    "is_economic_study": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "Nevada North Lithium",
+      "scenario": "base case US$24,000/t LCE",
+      "study_type": "PEA",
+      "currency": "USD",
+      "discount_pct": 8.0,
+      "npv_after_tax": 9214000000,
+      "npv_pre_tax": 11395000000,
+      "irr_after_tax_pct": 22.8,
+      "irr_pre_tax_pct": 25.5,
+      "payback_years": 4.7,
+      "initial_capex": 5323000000,
+      "opex": 5097,
+      "aisc": null,
+      "mine_life_years": 42,
+      "throughput_tpd": null,
+      "annual_production": 86300,
+      "context": "announced",
+      "basis": "real"
+     }
+    ]
+   }
+  },
+  {
+   "n": 26,
+   "event_id": "f4b5ccc491b29761c0656a6a4664fb515b12849b",
+   "ticker": "RDS.V",
+   "stratum": "flat_table",
+   "body_sha1": "0a844b940052b84f3e24944c411dc748ca0839cb",
+   "review": "confirmed",
+   "note": "MIXED CURRENCY inside one release: NPV and capex in C$, cash cost and AISC in US$. Recording one currency per row would misstate half the figures.",
+   "expect": {
+    "is_economic_study": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "O'Brien",
+      "scenario": "base case US$2,550/oz Au",
+      "study_type": "PEA",
+      "currency": "CAD",
+      "discount_pct": 5.0,
+      "npv_after_tax": 532000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 48.0,
+      "irr_pre_tax_pct": null,
+      "payback_years": 2.0,
+      "initial_capex": 175000000,
+      "opex": 861,
+      "aisc": 1059,
+      "mine_life_years": 11,
+      "throughput_tpd": null,
+      "annual_production": 70000,
+      "context": "announced",
+      "basis": "real"
+     },
+     {
+      "project": "O'Brien",
+      "scenario": "spot US$3,300/oz Au",
+      "study_type": "PEA",
+      "currency": "CAD",
+      "discount_pct": 5.0,
+      "npv_after_tax": 871000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 74.0,
+      "irr_pre_tax_pct": null,
+      "payback_years": 1.1,
+      "initial_capex": 175000000,
+      "opex": 861,
+      "aisc": 1059,
+      "mine_life_years": 11,
+      "throughput_tpd": null,
+      "annual_production": 70000,
+      "context": "announced",
+      "basis": "real"
+     }
+    ]
+   }
+  },
+  {
+   "n": 27,
+   "event_id": "0643b1fbea1d45a9748511c01cbfd1a19a575fa1",
+   "ticker": "FMAN.V",
+   "stratum": "flat_table",
+   "body_sha1": "3836e9e4c7eb862ccfebf1046e8cc91b076633a0",
+   "review": "confirmed",
+   "note": "A conference-attendance and drill-completion release, tagged Economic Studies. Recaps a November 2023 PEA as updated by an April 2025 sensitivity release, both dated in the text. Background.",
+   "expect": {
+    "is_economic_study": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "Lemhi",
+      "scenario": "base case US$2,200/oz Au",
+      "study_type": "PEA",
+      "currency": "USD",
+      "discount_pct": 5.0,
+      "npv_after_tax": 329000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 28.2,
+      "irr_pre_tax_pct": null,
+      "payback_years": null,
+      "initial_capex": 215000000,
+      "opex": 925,
+      "aisc": 1105,
+      "mine_life_years": 11.2,
+      "throughput_tpd": null,
+      "annual_production": 75900,
+      "context": "background",
+      "basis": "real"
+     }
+    ]
+   }
+  },
+  {
+   "n": 28,
+   "event_id": "5c7d456a4079eedc754b321883e5a676ae66f2c7aeb14cae6648dd8a89706614",
+   "ticker": "ABRA.TO",
+   "stratum": "flat_table",
+   "body_sha1": "45fe0c728f81fabd395b1733d09a7dc032570921",
+   "review": "corrected",
+   "note": "Filing the DFS technical report and saying outright there are 'no material differences from the results disclosed in the Company's June 22, 2026 news release'. Background by its own statement. Also states both USD and CAD for the same NPV.",
+   "expect": {
+    "is_economic_study": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "Diablillos",
+      "scenario": "base case US$50/oz Ag, US$3,650/oz Au",
+      "study_type": "FS",
+      "currency": "USD",
+      "discount_pct": 5.0,
+      "npv_after_tax": 3000000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 41.9,
+      "irr_pre_tax_pct": null,
+      "payback_years": 1.7,
+      "initial_capex": null,
+      "opex": null,
+      "aisc": null,
+      "mine_life_years": null,
+      "throughput_tpd": 9000,
+      "annual_production": null,
+      "context": "announced",
+      "basis": "real"
+     }
+    ]
+   }
+  },
+  {
+   "n": 29,
+   "event_id": "cef441915538c05b3d2bd9d3cbfe946415f64637e983a8f5329612c54196e2ed",
+   "ticker": "LFLR.CN",
+   "stratum": "prose",
+   "body_sha1": "35feea5f756c9561ad84923810f582be8cbfb038",
+   "review": "corrected",
+   "note": "BACKGROUND, corrected 2026-09-20: 'no material differences between the key results ... and those disclosed in its news release dated March 3, 2026'. The draft had this as announced because the excerpt did not reach the sentence.",
+   "expect": {
+    "is_economic_study": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "Beacon Gold Mill",
+      "scenario": "base case US$2,750/oz Au",
+      "study_type": "PEA",
+      "currency": "CAD",
+      "discount_pct": 5.0,
+      "npv_after_tax": 101000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 65.0,
+      "irr_pre_tax_pct": null,
+      "payback_years": null,
+      "initial_capex": null,
+      "opex": null,
+      "aisc": 1569,
+      "mine_life_years": null,
+      "throughput_tpd": 1250,
+      "annual_production": null,
+      "context": "announced",
+      "basis": "real"
+     }
+    ]
+   }
+  },
+  {
+   "n": 30,
+   "event_id": "4d5f57f9a53d7af5c7d004e4730147c8c86399d5",
+   "ticker": "NILI.V",
+   "stratum": "prose",
+   "body_sha1": "5d3a9849ca4d64bd998559f3404be146d9a07162",
+   "review": "corrected",
+   "note": "Filing the technical report for the June PEA -- and the numbers MOVED. After-tax NPV is US$9.17B here against US$9.21B in the announcement, and OPEX US$5,243/t against US$5,097/t. The filed report is not identical to the press release. Background, but not a copy.",
+   "expect": {
+    "is_economic_study": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "Nevada North Lithium",
+      "scenario": "base case US$24,000/t LCE",
+      "study_type": "PEA",
+      "currency": "USD",
+      "discount_pct": 8.0,
+      "npv_after_tax": 9170000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 22.8,
+      "irr_pre_tax_pct": null,
+      "payback_years": 4.6,
+      "initial_capex": 5320000000,
+      "opex": 5243,
+      "aisc": null,
+      "mine_life_years": 42,
+      "throughput_tpd": null,
+      "annual_production": 86300,
+      "context": "announced",
+      "basis": "real"
+     }
+    ]
+   }
+  },
+  {
+   "n": 31,
+   "event_id": "a3d088612a46a5ca25c9219a5d4c76c4f0975ff2",
+   "ticker": "ESAU.CN",
+   "stratum": "prose",
+   "body_sha1": "4a5b8e5465f00146e7c85c79f3a9565ec96b132d",
+   "review": "confirmed",
+   "note": "Both tax bases, and the gap between them is the point: C$24.27M after tax against C$44.53M before. Payback stated in words, 'less than two years'.",
+   "expect": {
+    "is_economic_study": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "Montauban",
+      "scenario": "base case US$2,900/oz Au, US$31.72/oz Ag",
+      "study_type": "PEA",
+      "currency": "CAD",
+      "discount_pct": 5.0,
+      "npv_after_tax": 24270000,
+      "npv_pre_tax": 44530000,
+      "irr_after_tax_pct": 60.3,
+      "irr_pre_tax_pct": 105.1,
+      "payback_years": 2.0,
+      "initial_capex": 18810000,
+      "opex": null,
+      "aisc": null,
+      "mine_life_years": 4,
+      "throughput_tpd": null,
+      "annual_production": null,
+      "context": "announced",
+      "basis": "real"
+     }
+    ]
+   }
+  },
+  {
+   "n": 32,
+   "event_id": "7325922f7a76e1cddeecb41d9bad950c2d6dc500",
+   "ticker": "RDS.V",
+   "stratum": "prose",
+   "body_sha1": "e246d81d9be351d78439eaff0e03dc306cc3e8a8",
+   "review": "corrected",
+   "note": "Filing the report for the PEA announced 9 July 2025 and citing that release. Background, and the same figures as the announcement -- a clean pair for testing that the reader marks the second one.",
+   "expect": {
+    "is_economic_study": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "O'Brien",
+      "scenario": "base case US$2,550/oz Au",
+      "study_type": "PEA",
+      "currency": "CAD",
+      "discount_pct": 5.0,
+      "npv_after_tax": 532000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 48.0,
+      "irr_pre_tax_pct": null,
+      "payback_years": 2.0,
+      "initial_capex": 175000000,
+      "opex": 861,
+      "aisc": 1059,
+      "mine_life_years": 11,
+      "throughput_tpd": null,
+      "annual_production": 70000,
+      "context": "announced",
+      "basis": "real"
+     }
+    ]
+   }
+  },
+  {
+   "n": 33,
+   "event_id": "90d629ca3ed367747ced81af41956524d71561fc6c573125997d257f0de8253a",
+   "ticker": "PMC.CN",
+   "stratum": "prose",
+   "body_sha1": "adad178c4867b43c60760d22e62b9c08051ec946",
+   "review": "confirmed",
+   "note": "THE IMPORTANT NEGATIVE. This is a webinar announcement, filed under PMC.CN, quoting SURGE BATTERY METALS' Nevada North PEA -- another issuer's study entirely. Publishing these figures under this ticker would attribute a US$9.21 billion project to the wrong company. The reader must ask whose study it is, not just whether there is one.",
+   "expect": {
+    "is_economic_study": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 34,
+   "event_id": "4eb227fe68f802e978d1dc5fca272a1613049b32",
+   "ticker": "FOR.V",
+   "stratum": "prose",
+   "body_sha1": "c74d0bb568d07400f8d07dba38d9a5869f10f80b",
+   "review": "confirmed",
+   "note": "Re-cut with the disclaimer excluded: no economics vocabulary anywhere outside it. A drill-results release that mentions 'beyond the PEA open-pit' and nothing more. Tagged Economic Studies wrongly.",
+   "expect": {
+    "is_economic_study": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 35,
+   "event_id": "7197b17d9a2c02503c7065809c4dbba1c9b2ad0e",
+   "ticker": "NMI.V",
+   "stratum": "prose",
+   "body_sha1": "141fd1640de3663f6c0de76a4b9f38167d044a9f",
+   "review": "confirmed",
+   "note": "Re-cut: announces the filing of the Lofdal PFS and states no figure at all. Same shape as the Marimaca and Lithium Ionic filings.",
+   "expect": {
+    "is_economic_study": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 36,
+   "event_id": "9b651b1b7489c5063e1848c48063f60e58a241ae0b90454f2d3784ed16efc177",
+   "ticker": "TTX.CN",
+   "stratum": "prose",
+   "body_sha1": "05a8fc5bd4b4392b15fe9af8f233e2a9440d1c36",
+   "review": "confirmed",
+   "note": "States the same scenario on both bases: NPV10% of $638M at 82.3% IRR real, $764M at 87.4% nominal. Two rows differing only in basis (Justin, 2026-09-20). Everything else in the set is recorded as real, which is what a release means when it does not say -- and comparing one company's nominal against another's real is a ~20% error on the same project.",
+   "expect": {
+    "is_economic_study": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "Manono Lithium Tailings",
+      "scenario": "base case US$2,800/t SC5.5",
+      "study_type": "PEA",
+      "currency": "USD",
+      "discount_pct": 10.0,
+      "npv_after_tax": null,
+      "npv_pre_tax": 638000000,
+      "irr_after_tax_pct": null,
+      "irr_pre_tax_pct": 82.3,
+      "payback_years": 1.0,
+      "initial_capex": 147700000,
+      "opex": null,
+      "aisc": null,
+      "mine_life_years": 6,
+      "throughput_tpd": null,
+      "annual_production": 112000,
+      "context": "announced",
+      "basis": "real"
+     },
+     {
+      "project": "Manono Lithium Tailings",
+      "scenario": "base case US$2,800/t SC5.5",
+      "study_type": "PEA",
+      "currency": "USD",
+      "discount_pct": 10.0,
+      "npv_after_tax": null,
+      "npv_pre_tax": 764000000,
+      "irr_after_tax_pct": null,
+      "irr_pre_tax_pct": 87.4,
+      "payback_years": 1.0,
+      "initial_capex": 147700000,
+      "opex": null,
+      "aisc": null,
+      "mine_life_years": 6,
+      "throughput_tpd": null,
+      "annual_production": 112000,
+      "context": "announced",
+      "basis": "nominal"
+     }
+    ]
+   }
+  },
+  {
+   "n": 37,
+   "event_id": "91648ec05680f32bce390aacf0b7a10620a7c45bba371814cbb6cab461eb58c3",
+   "ticker": "MNO.TO",
+   "stratum": "prose",
+   "body_sha1": "dfe1be854c6f210b7ed9e429d14a673f8358bc21",
+   "review": "confirmed",
+   "note": "THE BODY IS A STUB -- 'This release is published on Accesswire. Click Original source to read the full release.' Every figure is in the HEADLINE. A reader that only reads bodies gets nothing from this one, and there will be more of them.",
+   "expect": {
+    "is_economic_study": true,
+    "complete": false,
+    "rows": [
+     {
+      "project": "Cabacal",
+      "scenario": "base case",
+      "study_type": "PFS",
+      "currency": "USD",
+      "discount_pct": 5.0,
+      "npv_after_tax": 984000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 61.2,
+      "irr_pre_tax_pct": null,
+      "payback_years": null,
+      "initial_capex": null,
+      "opex": null,
+      "aisc": null,
+      "mine_life_years": null,
+      "throughput_tpd": null,
+      "annual_production": 141000,
+      "context": "announced",
+      "basis": "real"
+     }
+    ]
+   }
+  },
+  {
+   "n": 38,
+   "event_id": "eb87d75595b96d470bc5dfcb57f1db6e1de36a19",
+   "ticker": "DBG.V",
+   "stratum": "prose",
+   "body_sha1": "5fa55ff29015c433824733be53a4048b8c045af9",
+   "review": "corrected",
+   "note": "The richest scenario case in the sample: THREE processing options (A1, A2, B) each at TWO price decks (consensus and spot) = six NPVs, all stated in the highlights. Filing of a PEA announced 2 March 2026 and clarified 23 March, so background.",
+   "expect": {
+    "is_economic_study": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "Hat",
+      "scenario": "A1 flotation, consensus prices",
+      "study_type": "PEA",
+      "currency": "CAD",
+      "discount_pct": 5.0,
+      "npv_after_tax": 4960000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 19.0,
+      "irr_pre_tax_pct": null,
+      "payback_years": null,
+      "initial_capex": null,
+      "opex": null,
+      "aisc": null,
+      "mine_life_years": null,
+      "throughput_tpd": null,
+      "annual_production": null,
+      "context": "announced",
+      "basis": "real"
+     },
+     {
+      "project": "Hat",
+      "scenario": "A2 expected recoveries, consensus prices",
+      "study_type": "PEA",
+      "currency": "CAD",
+      "discount_pct": 5.0,
+      "npv_after_tax": 6730000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 23.0,
+      "irr_pre_tax_pct": null,
+      "payback_years": null,
+      "initial_capex": null,
+      "opex": null,
+      "aisc": null,
+      "mine_life_years": null,
+      "throughput_tpd": null,
+      "annual_production": null,
+      "context": "announced",
+      "basis": "real"
+     },
+     {
+      "project": "Hat",
+      "scenario": "B with scandium circuit, consensus prices",
+      "study_type": "PEA",
+      "currency": "CAD",
+      "discount_pct": 5.0,
+      "npv_after_tax": 7270000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 19.0,
+      "irr_pre_tax_pct": null,
+      "payback_years": null,
+      "initial_capex": null,
+      "opex": null,
+      "aisc": null,
+      "mine_life_years": null,
+      "throughput_tpd": null,
+      "annual_production": null,
+      "context": "announced",
+      "basis": "real"
+     },
+     {
+      "project": "Hat",
+      "scenario": "A1 flotation, spot prices",
+      "study_type": "PEA",
+      "currency": "CAD",
+      "discount_pct": 5.0,
+      "npv_after_tax": 11050000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 34.0,
+      "irr_pre_tax_pct": null,
+      "payback_years": null,
+      "initial_capex": null,
+      "opex": null,
+      "aisc": null,
+      "mine_life_years": null,
+      "throughput_tpd": null,
+      "annual_production": null,
+      "context": "announced",
+      "basis": "real"
+     },
+     {
+      "project": "Hat",
+      "scenario": "A2 expected recoveries, spot prices",
+      "study_type": "PEA",
+      "currency": "CAD",
+      "discount_pct": 5.0,
+      "npv_after_tax": 13530000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 39.0,
+      "irr_pre_tax_pct": null,
+      "payback_years": null,
+      "initial_capex": null,
+      "opex": null,
+      "aisc": null,
+      "mine_life_years": null,
+      "throughput_tpd": null,
+      "annual_production": null,
+      "context": "announced",
+      "basis": "real"
+     },
+     {
+      "project": "Hat",
+      "scenario": "B with scandium circuit, spot prices",
+      "study_type": "PEA",
+      "currency": "CAD",
+      "discount_pct": 5.0,
+      "npv_after_tax": 14850000000,
+      "npv_pre_tax": null,
+      "irr_after_tax_pct": 32.0,
+      "irr_pre_tax_pct": null,
+      "payback_years": null,
+      "initial_capex": null,
+      "opex": null,
+      "aisc": null,
+      "mine_life_years": null,
+      "throughput_tpd": null,
+      "annual_production": null,
+      "context": "announced",
+      "basis": "real"
+     }
+    ]
+   }
+  },
+  {
+   "n": 39,
+   "event_id": "196d479ec2dea81025f427fa9b7e5339f06cb979",
+   "ticker": "STLR.TO",
+   "stratum": "prose",
+   "body_sha1": "f852bfff564563292586bfbbbae715f42167efca",
+   "review": "corrected",
+   "note": "TWO scenarios, and a currency trap: the table is in C$ (after-tax NPV5% C$1,355M and C$3,298M) while the HEADLINE quotes US$1.0 billion for the same figure. A reader taking the headline gets USD, taking the table gets CAD, and they differ by the exchange rate. The draft recorded one row at US$1.0bn.",
+   "expect": {
+    "is_economic_study": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "Tower Gold",
+      "scenario": "base case",
+      "study_type": "PEA",
+      "currency": "CAD",
+      "discount_pct": 5.0,
+      "npv_after_tax": 1355000000,
+      "npv_pre_tax": 2118000000,
+      "irr_after_tax_pct": 13.4,
+      "irr_pre_tax_pct": 16.1,
+      "payback_years": null,
+      "initial_capex": 1873000000,
+      "opex": null,
+      "aisc": null,
+      "mine_life_years": null,
+      "throughput_tpd": null,
+      "annual_production": null,
+      "context": "announced",
+      "basis": "real"
+     },
+     {
+      "project": "Tower Gold",
+      "scenario": "upside case",
+      "study_type": "PEA",
+      "currency": "CAD",
+      "discount_pct": 5.0,
+      "npv_after_tax": 3298000000,
+      "npv_pre_tax": 4961000000,
+      "irr_after_tax_pct": 24.0,
+      "irr_pre_tax_pct": null,
+      "payback_years": null,
+      "initial_capex": 1873000000,
+      "opex": null,
+      "aisc": null,
+      "mine_life_years": null,
+      "throughput_tpd": null,
+      "annual_production": null,
+      "context": "announced",
+      "basis": "real"
+     }
+    ]
+   }
+  },
+  {
+   "n": 40,
+   "event_id": "4a8a1a262052cd16f786d7c6f4f69387f6906110",
+   "ticker": "LTH.V",
+   "stratum": "tagged_no_economics",
+   "body_sha1": "6b5d858f85a32576ad52e62f7d5c4ef85860a0ce",
+   "review": "confirmed",
+   "note": "Files the Bandeira DFS technical report. No figure in the release.",
+   "expect": {
+    "is_economic_study": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 41,
+   "event_id": "f7a173a52bd6b7197d2420702defc3f7344e4e8f",
+   "ticker": "MARI.TO",
+   "stratum": "tagged_no_economics",
+   "body_sha1": "8c6509ce0379fb8556498c9d55706a858da5dca8",
+   "review": "confirmed",
+   "note": "Says 'Previously Announced' in the headline and states no figure. The cleanest possible example of a filing that is not news.",
+   "expect": {
+    "is_economic_study": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 42,
+   "event_id": "0f865306bdad5b513e1229b0877300d8e31f4fc1",
+   "ticker": "SCOT.V",
+   "stratum": "tagged_no_economics",
+   "body_sha1": "a2c81a79894a8796e005c696f4996453dcdb29fc",
+   "review": "confirmed",
+   "note": "Announces the selection of a consultant to lead a PEA targeted for Q4 2025.",
+   "expect": {
+    "is_economic_study": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 43,
+   "event_id": "1f73f5fdc05a606fef90f5bb050ae884ee5b94b5e95648ffece4618fa984395b",
+   "ticker": "FOX.CN",
+   "stratum": "tagged_no_economics",
+   "body_sha1": "3c830055d6b80c09b20122ce2efaf5502ab86e1e",
+   "review": "confirmed",
+   "note": "INGESTION DEFECT, not a reader problem: the stored body is raw PDF binary -- '%PDF-1.7' followed by compressed stream data. Nothing was ever extracted to text. Needs filing separately.",
+   "expect": {
+    "is_economic_study": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 44,
+   "event_id": "50fb89c510fd97af458345e284ee4ba7076a4abb",
+   "ticker": "FPC.V",
+   "stratum": "tagged_no_economics",
+   "body_sha1": "0c2100e15a48be504b29b0c26e2919c3b45c6229",
+   "review": "confirmed",
+   "note": "Files an updated FS and says outright the highlights 'were previously announced in the Corporation's June 17, 2026 news release'. No figures here.",
+   "expect": {
+    "is_economic_study": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 45,
+   "event_id": "f2912addd01d7a45a42cd68599fa461cb34babe8ebda57e9a92612967cf84df4",
+   "ticker": "LEO.CN",
+   "stratum": "tagged_no_economics",
+   "body_sha1": "1c66614446f8e857befc230f0153d626bc3ea978",
+   "review": "confirmed",
+   "note": "A progress update on a DFS due in Q1 2027. Discusses capital cost estimates being developed; states none.",
+   "expect": {
+    "is_economic_study": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 46,
+   "event_id": "f3fc21954d9db173b9d0f0e26b024cd924aa9998",
+   "ticker": "NILI.V",
+   "stratum": "tagged_no_economics",
+   "body_sha1": "891801f77417675fced30020289c34ca0383596c",
+   "review": "confirmed",
+   "note": "Surge's own webinar invitation, stating no figures -- the counterpart to the PMC.CN release that quoted the same study's numbers under the wrong ticker.",
+   "expect": {
+    "is_economic_study": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 47,
+   "event_id": "b2a24c72aa9a8bc572c85b29e73dcefa9cf814363ee091337417f55c53d950d1",
+   "ticker": "RUA.TO",
+   "stratum": "tagged_no_economics",
+   "body_sha1": "d6d64e65ad832023d801ad258327d809d62452d5",
+   "review": "confirmed",
+   "note": "Announces the filing of the Auld Creek PEA with no figures. The same study's numbers appear twice elsewhere in the sample under syndicated headlines.",
+   "expect": {
+    "is_economic_study": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 48,
+   "event_id": "cae26d8bcd15a5f56254e9244742d4f0bc28927a",
+   "ticker": "IAU.TO",
+   "stratum": "tagged_no_economics",
+   "body_sha1": "6973731a0f92ff1624945eca7ad9cdbfe7522ee3",
+   "review": "confirmed",
+   "note": "An at-the-market equity programme expiring, mentioning five PEAs due to be filed. Tagged Financings and Economic Studies; it is a financing.",
+   "expect": {
+    "is_economic_study": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 49,
+   "event_id": "45474332c63456d8cc9f4971276c1ff0f0794b26",
+   "ticker": "NGC.V",
+   "stratum": "tagged_no_economics",
+   "body_sha1": "b08ed7285e7cff9ce2494afa189fc6a2afd25e8d",
+   "review": "confirmed",
+   "note": "A private placement partly to fund a feasibility study. Tagged both; it is a financing.",
+   "expect": {
+    "is_economic_study": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 50,
+   "event_id": "b2451d5c317a821e6f97402d6c83c69f2b68213c",
+   "ticker": "TUD.V",
+   "stratum": "tagged_no_economics",
+   "body_sha1": "b6a100f6c604f35406e49772b8e562e85332f6f3",
+   "review": "confirmed",
+   "note": "Launches a PEA targeted for Q3. Carries a full mineral resource table -- tonnes, grades, contained metal -- and not one economic figure. A good test that the reader does not mistake a resource table for a study.",
+   "expect": {
+    "is_economic_study": false,
+    "complete": true,
+    "rows": []
+   }
+  }
+ ]
+}

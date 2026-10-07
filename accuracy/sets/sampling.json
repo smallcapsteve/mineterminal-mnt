@@ -1,0 +1,2340 @@
+{
+ "schema": 1,
+ "tag": "Sampling & Geoscience Results",
+ "row_shape": "one row per sample type per project a release reports results for: rock samples (grab, chip, channel, trench), soil / till / sediment / other geochemistry, geophysics by survey method, bulk and brine samples, mapping findings; historical results with a value are their own rows, flagged",
+ "name": "sampling",
+ "status": "confirmed",
+ "created": "2026-09-29",
+ "reviewer": "Justin",
+ "reviewed_at": "2026-09-29",
+ "items": [
+  {
+   "n": 1,
+   "event_id": "189d864e78503611711c13bc786772d4ad9e6d77",
+   "ticker": "REVX.V",
+   "stratum": "tagged_random",
+   "body_sha1": "ce4b8540e93099424445e886da20a2d963c37052",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "anomaly": {
+       "kind": "anomaly",
+       "length_m": null,
+       "metal": null,
+       "width_m": null
+      },
+      "project": "Snowbird",
+      "sample_type": "geophysics",
+      "survey_type": "magnetics"
+     },
+     {
+      "project": "Snowbird",
+      "sample_type": "mapping"
+     }
+    ]
+   }
+  },
+  {
+   "n": 2,
+   "event_id": "93c6506762a212373062d430bd42a8d7c66db311",
+   "ticker": "XTM.V",
+   "stratum": "tagged_random",
+   "body_sha1": "06ad1c3d1a6372dc32d404687795e010e2f0636d",
+   "review": "corrected",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Cu",
+       "unit": "%",
+       "value": 3.63
+      },
+      "project": "Pike Warden",
+      "sample_count": 79,
+      "sample_type": "grab"
+     },
+     {
+      "anomaly": {
+       "kind": "conductor",
+       "length_m": null,
+       "metal": null,
+       "width_m": null
+      },
+      "project": "Pike Warden",
+      "sample_type": "geophysics",
+      "survey_type": "EM"
+     },
+     {
+      "anomaly": {
+       "kind": "trend",
+       "length_m": null,
+       "metal": null,
+       "width_m": null
+      },
+      "project": "Pike Warden",
+      "sample_type": "geophysics",
+      "survey_type": "magnetics"
+     }
+    ]
+   }
+  },
+  {
+   "n": 3,
+   "event_id": "8ad97673a9a8d0169a5bd9bb8a2564b13b7eb0d9",
+   "ticker": "SPC.V",
+   "stratum": "tagged_random",
+   "body_sha1": "18ac86f01a139edac5c5c2d2e1de526b10b53475",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Cu",
+       "unit": "%",
+       "value": 19.5
+      },
+      "project": "Muskox",
+      "sample_count": 112,
+      "sample_type": "grab"
+     }
+    ]
+   }
+  },
+  {
+   "n": 4,
+   "event_id": "23c3157c484cb7e391fbc148ab3e68b2107ddfd0",
+   "ticker": "BGD.V",
+   "stratum": "tagged_width",
+   "body_sha1": "66904cfefcbf87db6b554c9e568e9b4d2047d9f1",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 22.2
+      },
+      "project": "Terragold",
+      "sample_type": "channel",
+      "width_m": 1.0
+     },
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 4.84
+      },
+      "historical": true,
+      "project": "Terragold",
+      "sample_type": "bulk"
+     }
+    ]
+   }
+  },
+  {
+   "n": 5,
+   "event_id": "baa1d38b621016100eed87a0f1e4a29e567333c2",
+   "ticker": "ABI.V",
+   "stratum": "tagged_random",
+   "body_sha1": "dbe4f99c69643273a8c36b72e91b25ac96d756c8",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "Flordin",
+      "sample_type": "mapping"
+     }
+    ]
+   }
+  },
+  {
+   "n": 6,
+   "event_id": "76e6e37334db30b1d2b7561aacd0f58db0c51a16",
+   "ticker": "ILC.V",
+   "stratum": "tagged_random",
+   "body_sha1": "b41f92734fc3c36a74b2acfe5c762501a0ecbfb7",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Cs",
+       "unit": "ppm",
+       "value": 339
+      },
+      "project": "Raleigh Lake",
+      "sample_count": 1089,
+      "sample_type": "grab"
+     }
+    ]
+   }
+  },
+  {
+   "n": 7,
+   "event_id": "cdc642f45094cec76483714a9aefc1dbac00f603",
+   "ticker": "CRI.V",
+   "stratum": "tagged_random",
+   "body_sha1": "b0f91b549d9dc179c45fad10517346ba8418e4d3",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "anomaly": {
+       "kind": "conductor",
+       "length_m": null,
+       "metal": null,
+       "width_m": 100
+      },
+      "project": "Taylor Brook",
+      "sample_type": "geophysics",
+      "survey_type": "MT"
+     }
+    ]
+   }
+  },
+  {
+   "n": 8,
+   "event_id": "6972fd3728b541bd3405a40eea675e14f327b193",
+   "ticker": "SPMC.V",
+   "stratum": "tagged_random",
+   "body_sha1": "a3198ce508fe137fd047b8f1c62ff963d4df9bd5",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "anomaly": {
+       "kind": "anomaly",
+       "length_m": null,
+       "metal": null,
+       "width_m": null
+      },
+      "project": "KRL North",
+      "sample_type": "geophysics",
+      "survey_type": "magnetics"
+     },
+     {
+      "anomaly": {
+       "kind": "trend",
+       "length_m": null,
+       "metal": null,
+       "width_m": null
+      },
+      "project": "KRL North",
+      "sample_type": "geophysics",
+      "survey_type": "MT"
+     },
+     {
+      "anomaly": {
+       "kind": "anomaly",
+       "length_m": null,
+       "metal": null,
+       "width_m": null
+      },
+      "project": "KRL South",
+      "sample_type": "geophysics",
+      "survey_type": "magnetics"
+     },
+     {
+      "anomaly": {
+       "kind": "conductor",
+       "length_m": null,
+       "metal": null,
+       "width_m": null
+      },
+      "project": "KRL South",
+      "sample_type": "geophysics",
+      "survey_type": "MT"
+     }
+    ]
+   }
+  },
+  {
+   "n": 9,
+   "event_id": "52a9a08457b28c51be8cb1c710bd5d15bae7b35a",
+   "ticker": "LAF.V",
+   "stratum": "tagged_random",
+   "body_sha1": "7761491bcca44ec7b90f865247d91de093ef036b",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Li2O",
+       "unit": "%",
+       "value": 1.98
+      },
+      "project": "Agboville",
+      "sample_count": 19,
+      "sample_type": "grab"
+     }
+    ]
+   }
+  },
+  {
+   "n": 10,
+   "event_id": "99be62508fcde8925969493eb85529980195a76a",
+   "ticker": "CBI.V",
+   "stratum": "tagged_bulk_brine",
+   "body_sha1": "c8d2d9f4fc05ef171f2c5355899a1237bfc29565",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 8.3
+      },
+      "project": "Pilar",
+      "sample_count": 37,
+      "sample_type": "trench"
+     }
+    ]
+   }
+  },
+  {
+   "n": 11,
+   "event_id": "4355b5f120546b75cda2394d72b66f22c14a3041",
+   "ticker": "ANK.V",
+   "stratum": "tagged_random",
+   "body_sha1": "ea1867082ff28f07f7e32af739fd1885ba83f339",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 20.6
+      },
+      "project": "Andong Meas",
+      "sample_type": "grab"
+     },
+     {
+      "project": "Andong Meas",
+      "sample_type": "mapping"
+     }
+    ]
+   }
+  },
+  {
+   "n": 12,
+   "event_id": "ee69cd2da660921b1d4867fcd21ab3e7a833744e",
+   "ticker": "CLIC.V",
+   "stratum": "tagged_random",
+   "body_sha1": "1819ae5aacaff2d11d4dde01c1ea96a5da9d2963",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "Elmer East",
+      "sample_type": "mapping"
+     }
+    ]
+   }
+  },
+  {
+   "n": 13,
+   "event_id": "f695dea0e1dc9eb9e923647ae57b8f089895bfbd",
+   "ticker": "ERDA.V",
+   "stratum": "tagged_random",
+   "body_sha1": "3eedbaa5e0bb531efe75ca873de62cf16be4288c",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "anomaly": {
+       "kind": "trend",
+       "length_m": 2200,
+       "metal": "Au",
+       "width_m": null
+      },
+      "best_grade": {
+       "metal": "Au",
+       "unit": "ppb",
+       "value": 178
+      },
+      "project": "Diléo",
+      "sample_count": 90,
+      "sample_type": "soil"
+     },
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 12.63
+      },
+      "historical": true,
+      "project": "Diléo",
+      "sample_type": "channel",
+      "width_m": 0.4
+     },
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 16.59
+      },
+      "historical": true,
+      "project": "Diléo",
+      "sample_type": "grab"
+     }
+    ]
+   }
+  },
+  {
+   "n": 14,
+   "event_id": "acfc58c6fe1d826c4cc5d584820dffbb1d948841",
+   "ticker": "TBK.V",
+   "stratum": "tagged_width",
+   "body_sha1": "fcc51fdb0ac7cdb638bb4b002deb3accf49a95e5",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 2.87
+      },
+      "project": "Lucky Strike",
+      "sample_type": "trench",
+      "width_m": 22.5
+     },
+     {
+      "anomaly": {
+       "kind": "anomaly",
+       "length_m": 1400,
+       "metal": "Au",
+       "width_m": 450
+      },
+      "project": "Lucky Strike",
+      "sample_type": "soil"
+     },
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 4
+      },
+      "project": "Hotspot",
+      "sample_count": 268,
+      "sample_type": "soil"
+     }
+    ]
+   }
+  },
+  {
+   "n": 15,
+   "event_id": "758b5e9dc250d37de194c706595edb6bbedbad6f",
+   "ticker": "SLV.CN",
+   "stratum": "tagged_random",
+   "body_sha1": "1f72ac4c2e13c15847f2f097d8704f1d3f624c24",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 29.61
+      },
+      "project": "Nora",
+      "sample_count": 89,
+      "sample_type": "chip",
+      "width_m": 0.35
+     }
+    ]
+   }
+  },
+  {
+   "n": 16,
+   "event_id": "f80e1b62f65e7443743e160e6d4ee7407c688867",
+   "ticker": "PA.V",
+   "stratum": "lookalike",
+   "body_sha1": "1b93450ed6b62f53b80250d87f9f9f5575f3cd3f",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "anomaly": {
+       "kind": "anomaly",
+       "length_m": null,
+       "metal": null,
+       "width_m": null
+      },
+      "project": "Galena",
+      "sample_type": "geophysics",
+      "survey_type": "remote_sensing"
+     }
+    ]
+   }
+  },
+  {
+   "n": 17,
+   "event_id": "a37ebc5ca0931f2672be0306e8022c7952c28aa5",
+   "ticker": "XTM.V",
+   "stratum": "tagged_random",
+   "body_sha1": "81379685654c92954b3ead1ec17d3af7060bd7a4",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 8.13
+      },
+      "project": "South Kirkland",
+      "sample_count": 32,
+      "sample_type": "grab"
+     },
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 5.6
+      },
+      "historical": true,
+      "project": "South Kirkland",
+      "sample_count": 4,
+      "sample_type": "trench"
+     },
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 17.8
+      },
+      "historical": true,
+      "project": "South Kirkland",
+      "sample_type": "grab"
+     }
+    ]
+   }
+  },
+  {
+   "n": 18,
+   "event_id": "88cb3fbbd3eb01546e09250073ab67d7b947a4a4",
+   "ticker": "BOL.V",
+   "stratum": "tagged_random",
+   "body_sha1": "ecee981776c718be3f3fca69988d547b2f4a4c83",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "anomaly": {
+       "kind": "anomaly",
+       "length_m": null,
+       "metal": "Au",
+       "width_m": null
+      },
+      "best_grade": {
+       "metal": "Au",
+       "unit": "ppb",
+       "value": 647
+      },
+      "project": "Burchell",
+      "sample_count": 474,
+      "sample_type": "soil"
+     },
+     {
+      "anomaly": {
+       "kind": "anomaly",
+       "length_m": null,
+       "metal": "Zn",
+       "width_m": null
+      },
+      "historical": true,
+      "project": "Burchell",
+      "sample_count": 400,
+      "sample_type": "till"
+     },
+     {
+      "project": "Burchell",
+      "sample_type": "mapping"
+     }
+    ]
+   }
+  },
+  {
+   "n": 19,
+   "event_id": "dad00d2b8887aa8d03dd0665b2ac8d63563c3776",
+   "ticker": "PA.V",
+   "stratum": "tagged_random",
+   "body_sha1": "e3d412738f4a284d299fee4faf4d02e7ad3f8d2b",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 14.2
+      },
+      "project": "Coasa",
+      "sample_type": "channel",
+      "width_m": 1.5
+     }
+    ]
+   }
+  },
+  {
+   "n": 20,
+   "event_id": "76900199a8b75f501aed9d87e2fd8058a513314c",
+   "ticker": "APN.V",
+   "stratum": "tagged_bulk_brine",
+   "body_sha1": "c6d4e5bbb0a06a34cf5a2e61d47ebbe8c60ba741",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Cu",
+       "unit": "%",
+       "value": 2.36
+      },
+      "project": "Farellon",
+      "sample_type": "bulk"
+     }
+    ]
+   }
+  },
+  {
+   "n": 21,
+   "event_id": "6992889bc3981e899c2da04c0dffb3eb6e69d64c",
+   "ticker": "MEK.V",
+   "stratum": "lookalike",
+   "body_sha1": "a6795fe9f87b9f5d3683ac50044ad73b3f5820ed",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "He",
+       "unit": "ppb",
+       "value": 8900
+      },
+      "historical": true,
+      "project": "Smoking Gun",
+      "sample_type": "other_geochem"
+     }
+    ]
+   }
+  },
+  {
+   "n": 22,
+   "event_id": "87ca652f3d631266c1329e3aeb275e1db18deaea",
+   "ticker": "TUO.V",
+   "stratum": "tagged_random",
+   "body_sha1": "3e4e478693abc7a8cfdf2c51fc879f735a8148ea",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 23,
+   "event_id": "a175c545dc9fc3a575e1d8991920879644c70e7a",
+   "ticker": "TWO.V",
+   "stratum": "tagged_random",
+   "body_sha1": "7558662a9d4faeeac839fdeba131985e2a6cd7f1",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Ag",
+       "unit": "g/t",
+       "value": 451
+      },
+      "project": "Shanghai",
+      "sample_count": 11,
+      "sample_type": "grab"
+     },
+     {
+      "best_grade": {
+       "metal": "Ag",
+       "unit": "g/t",
+       "value": 1182.8
+      },
+      "historical": true,
+      "project": "Shanghai",
+      "sample_type": "chip",
+      "width_m": 9.1
+     }
+    ]
+   }
+  },
+  {
+   "n": 24,
+   "event_id": "6f3623955de3ad18a1347c5832cae9dbe9b828f9",
+   "ticker": "JG.V",
+   "stratum": "tagged_random",
+   "body_sha1": "bfd7744b5f3ab981658d6feb1af946a5cdbd289e",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "anomaly": {
+       "kind": "anomaly",
+       "length_m": 1500,
+       "metal": "Au",
+       "width_m": null
+      },
+      "project": "Ikutahara",
+      "sample_count": 1597,
+      "sample_type": "soil"
+     }
+    ]
+   }
+  },
+  {
+   "n": 25,
+   "event_id": "c6691e0ddfa9d346389945d3127f0bb8441b13f5",
+   "ticker": "EDG.V",
+   "stratum": "tagged_random",
+   "body_sha1": "4f2d6c8adf12d514ba3c3df164ca208597ebaadf",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "ppm",
+       "value": 10.35
+      },
+      "project": "Elephant",
+      "sample_type": "grab"
+     },
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "ppm",
+       "value": 0.547
+      },
+      "project": "Elephant",
+      "sample_type": "trench",
+      "width_m": 9.14
+     },
+     {
+      "anomaly": {
+       "kind": "anomaly",
+       "length_m": 350,
+       "metal": "Au",
+       "width_m": 25
+      },
+      "project": "Elephant",
+      "sample_count": 76,
+      "sample_type": "soil"
+     }
+    ]
+   }
+  },
+  {
+   "n": 26,
+   "event_id": "e1ce3a287e69bc84c87fb2e8a2eed820be25ac89",
+   "ticker": "EDG.V",
+   "stratum": "tagged_random",
+   "body_sha1": "70260c4e22a9fb44ad3b1978345abd417d6811e6",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "anomaly": {
+       "kind": "anomaly",
+       "length_m": 2000,
+       "metal": "As",
+       "width_m": null
+      },
+      "project": "Reliance",
+      "sample_count": 1207,
+      "sample_type": "other_geochem"
+     }
+    ]
+   }
+  },
+  {
+   "n": 27,
+   "event_id": "29c9c6f9e26b005688dfb71c1ed943a6a991ae2c",
+   "ticker": "RJX.A.V",
+   "stratum": "tagged_random",
+   "body_sha1": "6909a8030b240b4c7f7193400ff717dee221803b",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "anomaly": {
+       "kind": "anomaly",
+       "length_m": 500,
+       "metal": "Au",
+       "width_m": null
+      },
+      "project": "Rolling Pond",
+      "sample_count": 381,
+      "sample_type": "soil"
+     }
+    ]
+   }
+  },
+  {
+   "n": 28,
+   "event_id": "38bbc1e7ab3a2a6a67d710a2a277be183ec5c6b7",
+   "ticker": "PGE.V",
+   "stratum": "lookalike",
+   "body_sha1": "cd627f76ef24a078c99a05bfbb479f8f28c50d54",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 29,
+   "event_id": "6f5881cea0fdcaeff13563599401a1db1d0a1fdac3691dd4e6b086aca5e88f7f",
+   "ticker": "PMAX.CN",
+   "stratum": "lookalike",
+   "body_sha1": "19f13cb54a8434998ac547bb176e2df61bd31ba8",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "anomaly": {
+       "kind": "trend",
+       "length_m": 1000,
+       "metal": "TREO",
+       "width_m": null
+      },
+      "best_grade": {
+       "metal": "TREO",
+       "unit": "ppm",
+       "value": 2840
+      },
+      "project": "Cameron",
+      "sample_type": "soil"
+     },
+     {
+      "best_grade": {
+       "metal": "TREO",
+       "unit": "ppm",
+       "value": 741
+      },
+      "project": "Cameron",
+      "sample_type": "grab"
+     }
+    ]
+   }
+  },
+  {
+   "n": 30,
+   "event_id": "2f9118bd57601b76684ac6c3c77edd73ea4881ba",
+   "ticker": "NRED.CN",
+   "stratum": "tagged_random",
+   "body_sha1": "ab62f56e5958c478cd52adb078b8159fc951b0e5",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 31,
+   "event_id": "9d36e8542740a3d4ad29a2b0cd37d1549b5ddea8",
+   "ticker": "PERU.V",
+   "stratum": "tagged_width",
+   "body_sha1": "8b057a7822279a37f85fcc2a993e30d29d06a9c8",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 2.52
+      },
+      "project": "Soledad",
+      "sample_type": "channel",
+      "width_m": 21.0
+     }
+    ]
+   }
+  },
+  {
+   "n": 32,
+   "event_id": "da4ce8c0656526b85ae41f3203072f2484673abb",
+   "ticker": "HAN.V",
+   "stratum": "tagged_random",
+   "body_sha1": "e99c94e4868f696533b4c5aebf2646b0220699b6",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Cu",
+       "unit": "%",
+       "value": 3.1
+      },
+      "project": "San Martin",
+      "sample_type": "channel",
+      "width_m": 5.8
+     }
+    ]
+   }
+  },
+  {
+   "n": 33,
+   "event_id": "4cd93dd2f467cda4c9464a64f7bc7670bd3bc3ad",
+   "ticker": "IMR.V",
+   "stratum": "tagged_random",
+   "body_sha1": "099a7c7d6c25fad6fa12e6d368f370dc67f819bd",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "anomaly": {
+       "kind": "anomaly",
+       "length_m": null,
+       "metal": null,
+       "width_m": 1400.0
+      },
+      "project": "Gowganda West",
+      "sample_type": "geophysics",
+      "survey_type": "IP"
+     },
+     {
+      "project": "Gowganda West",
+      "sample_type": "mapping"
+     }
+    ]
+   }
+  },
+  {
+   "n": 34,
+   "event_id": "1300bdf3abe45d94066875b27ca6831891190e7c",
+   "ticker": "SRI.V",
+   "stratum": "tagged_random",
+   "body_sha1": "8abb9473d19d8b9105ddc345299b6b7d65c807df",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "anomaly": {
+       "kind": "anomaly",
+       "length_m": null,
+       "metal": null,
+       "width_m": null
+      },
+      "project": "Oakes",
+      "sample_type": "geophysics",
+      "survey_type": "IP"
+     }
+    ]
+   }
+  },
+  {
+   "n": 35,
+   "event_id": "7c976b484cbc9f9c6870897e7629f84ad32f1c43",
+   "ticker": "DEC.V",
+   "stratum": "tagged_random",
+   "body_sha1": "deb7aca213766f6e374d76ce0d876b6516a0af42",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Ag",
+       "unit": "g/t",
+       "value": 5220
+      },
+      "project": "Del Norte",
+      "sample_type": "grab"
+     },
+     {
+      "best_grade": {
+       "metal": "Ag",
+       "unit": "g/t",
+       "value": 1100
+      },
+      "project": "Del Norte",
+      "sample_type": "chip",
+      "width_m": 1.4
+     },
+     {
+      "best_grade": {
+       "metal": "Ag",
+       "unit": "g/t",
+       "value": 4232.2
+      },
+      "historical": true,
+      "project": "Del Norte",
+      "sample_type": "grab"
+     }
+    ]
+   }
+  },
+  {
+   "n": 36,
+   "event_id": "26d2b9d466f1d82d49e363d81bebe385f06e6388",
+   "ticker": "APX.V",
+   "stratum": "tagged_random",
+   "body_sha1": "a35c84ec30418e06ba2cd6c486fa859e96ef9538",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "anomaly": {
+       "kind": "anomaly",
+       "length_m": null,
+       "metal": "Au",
+       "width_m": null
+      },
+      "best_grade": {
+       "metal": "Au",
+       "unit": "ppb",
+       "value": 351
+      },
+      "project": "Kena-Daylight",
+      "sample_count": 1266,
+      "sample_type": "soil"
+     },
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 9.05
+      },
+      "project": "Kena-Daylight",
+      "sample_count": 92,
+      "sample_type": "grab"
+     },
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 4.01
+      },
+      "project": "Kena-Daylight",
+      "sample_count": 234,
+      "sample_type": "chip",
+      "width_m": 1.5
+     },
+     {
+      "anomaly": {
+       "kind": "anomaly",
+       "length_m": null,
+       "metal": "Au",
+       "width_m": null
+      },
+      "best_grade": {
+       "metal": "Au",
+       "unit": "ppb",
+       "value": 1005
+      },
+      "project": "Toughnut",
+      "sample_type": "soil"
+     },
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 20.6
+      },
+      "project": "Toughnut",
+      "sample_type": "grab"
+     },
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 2.14
+      },
+      "project": "Toughnut",
+      "sample_type": "chip",
+      "width_m": 9.0
+     },
+     {
+      "historical": true,
+      "project": "Kena-Daylight",
+      "sample_count": 4152,
+      "sample_type": "soil"
+     }
+    ]
+   }
+  },
+  {
+   "n": 37,
+   "event_id": "6805d2973bf91970f3513971bf540033d2a410aa",
+   "ticker": "GLDC.V",
+   "stratum": "tagged_random",
+   "body_sha1": "d9b65ab07cd72802b5f01e0e40d7aa72f9dec7f8",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Zn",
+       "unit": "%",
+       "value": 8.97
+      },
+      "project": "Jackpot",
+      "sample_type": "chip",
+      "width_m": 3.0
+     }
+    ]
+   }
+  },
+  {
+   "n": 38,
+   "event_id": "584290281fe356c59a0ef4063fd242994f24b815",
+   "ticker": "BFG.CN",
+   "stratum": "tagged_random",
+   "body_sha1": "187268107227bf1ff05131eca034416a4a4ee2de",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Cu",
+       "unit": "%",
+       "value": 1.7
+      },
+      "project": "Majuba Hill",
+      "sample_count": 18,
+      "sample_type": "chip",
+      "width_m": 3.0
+     }
+    ]
+   }
+  },
+  {
+   "n": 39,
+   "event_id": "e068ca7fed00bb7e23d1e669f76a9386d7a1b949",
+   "ticker": "TWO.V",
+   "stratum": "tagged_random",
+   "body_sha1": "fe7877997f87fa044719fce0ea0acdb175015be2",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "anomaly": {
+       "kind": "anomaly",
+       "length_m": 500.0,
+       "metal": null,
+       "width_m": null
+      },
+      "project": "Lida",
+      "sample_type": "geophysics",
+      "survey_type": "IP"
+     },
+     {
+      "best_grade": {
+       "metal": "Cu",
+       "unit": "%",
+       "value": 26.2
+      },
+      "project": "Lida",
+      "sample_count": 57,
+      "sample_type": "grab"
+     },
+     {
+      "project": "Lida",
+      "sample_type": "mapping"
+     }
+    ]
+   }
+  },
+  {
+   "n": 40,
+   "event_id": "5f9bfb011e40055333d062c360018e002daf54c2",
+   "ticker": "PRG.V",
+   "stratum": "tagged_width",
+   "body_sha1": "e1a15ca49d39094f7c76614dc0febe58cb500c2d",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 6.4
+      },
+      "project": "Juan de Herrera",
+      "sample_type": "trench",
+      "width_m": 1.0
+     }
+    ]
+   }
+  },
+  {
+   "n": 41,
+   "event_id": "c45d475ecfd0f2e06cb9c9272ad97adf23132fbc",
+   "ticker": "TRU.V",
+   "stratum": "tagged_random",
+   "body_sha1": "6e86183e53144f7b7f4b7de55aa6609960322598",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "anomaly": {
+       "kind": "trend",
+       "length_m": 20000,
+       "metal": "Au",
+       "width_m": null
+      },
+      "project": "Golden Rose",
+      "sample_type": "soil"
+     },
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 14.3
+      },
+      "project": "Golden Rose",
+      "sample_type": "grab"
+     }
+    ]
+   }
+  },
+  {
+   "n": 42,
+   "event_id": "7142fc941ff3855deb07963540661e109e1fcacf",
+   "ticker": "VGD.V",
+   "stratum": "lookalike",
+   "body_sha1": "6392fad61bc1cb1a2aac0a213786053664b607a1",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 43,
+   "event_id": "15d2a8b212f41fb44bf450952f737a189a5f1068",
+   "ticker": "KNG.V",
+   "stratum": "tagged_random",
+   "body_sha1": "70bfb9fe36bf1dcc6101978a35226a6694e51ab9",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Ag",
+       "unit": "ppm",
+       "value": 497.97
+      },
+      "project": "Las Coloradas",
+      "sample_count": 21,
+      "sample_type": "chip",
+      "width_m": 0.7
+     }
+    ]
+   }
+  },
+  {
+   "n": 44,
+   "event_id": "1a1ea19f7a9405607eeb4e7216ddc94688771e74",
+   "ticker": "GRUN.CN",
+   "stratum": "tagged_random",
+   "body_sha1": "e8e85b95010319dcbc11b857e770b6750040a6b3",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "Castile Mountain",
+      "sample_count": 15,
+      "sample_type": "grab"
+     },
+     {
+      "project": "Castile Mountain",
+      "sample_type": "mapping"
+     }
+    ]
+   }
+  },
+  {
+   "n": 45,
+   "event_id": "866b7dc0a07e186a47de11e8c2c6c42ed1ada16e",
+   "ticker": "RDS.V",
+   "stratum": "lookalike",
+   "body_sha1": "e0b9ddf4ca8566fa2a1bc6b4748f35ee952db29e",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 46,
+   "event_id": "91c8ac0c8a74e443ac9314db4f67267f27453928",
+   "ticker": "BRAU.V",
+   "stratum": "tagged_random",
+   "body_sha1": "12285783a966d135efddf12d96a70d3c04306610",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "anomaly": {
+       "kind": "anomaly",
+       "length_m": null,
+       "metal": "Au",
+       "width_m": null
+      },
+      "project": "Mud Lake",
+      "sample_count": 40,
+      "sample_type": "till"
+     },
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 50.6
+      },
+      "historical": true,
+      "project": "Mud Lake",
+      "sample_type": "grab"
+     },
+     {
+      "project": "Mud Lake",
+      "sample_type": "mapping"
+     }
+    ]
+   }
+  },
+  {
+   "n": 47,
+   "event_id": "cb28a17de0b73ab52c467900ddb439f2015d0486",
+   "ticker": "GGM.V",
+   "stratum": "tagged_bulk_brine",
+   "body_sha1": "2140ba7adba9535b8324a2a20a3f7329d0a26ebc",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 3.95
+      },
+      "project": "Granada",
+      "sample_type": "bulk"
+     }
+    ]
+   }
+  },
+  {
+   "n": 48,
+   "event_id": "28fa68d00808a7155e3fe0b676ad5a8aa9069a71",
+   "ticker": "OCG.TO",
+   "stratum": "tagged_random",
+   "body_sha1": "59ce53a1d01c11d74921fcc4b8d28e0a7c09121f",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 58
+      },
+      "project": "Santa Ana",
+      "sample_type": "channel",
+      "width_m": 0.75
+     },
+     {
+      "best_grade": {
+       "metal": "Ag",
+       "unit": "g/t",
+       "value": 2987
+      },
+      "project": "Santa Ana",
+      "sample_type": "grab"
+     }
+    ]
+   }
+  },
+  {
+   "n": 49,
+   "event_id": "550f4d89a8d2de039d79013a302b15819e4a24f5",
+   "ticker": "GZD.V",
+   "stratum": "tagged_random",
+   "body_sha1": "add44c8477e2af9e607bf2ec324917eaf2ed17e4",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 32.0
+      },
+      "project": "Greenwood",
+      "sample_count": 51,
+      "sample_type": "grab"
+     },
+     {
+      "project": "Greenwood",
+      "sample_type": "mapping"
+     }
+    ]
+   }
+  },
+  {
+   "n": 50,
+   "event_id": "556c013eceb3af59899e865d8f72254224858e3d1822ed5e4b6e36c5eb1c4309",
+   "ticker": "AA.CN",
+   "stratum": "tagged_random",
+   "body_sha1": "dcbcc65242a1db0f96dc33ac4f396baa1d358fba",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 62.0
+      },
+      "project": "Horwood",
+      "sample_count": 5,
+      "sample_type": "grab"
+     },
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 6.01
+      },
+      "historical": true,
+      "project": "Horwood",
+      "sample_type": "grab"
+     }
+    ]
+   }
+  },
+  {
+   "n": 51,
+   "event_id": "a20dbb708a3209318894501778168ca1762df4b4",
+   "ticker": "JG.V",
+   "stratum": "tagged_random",
+   "body_sha1": "a26b6a5d201f9ac6125f434c20b301a862e2cf90",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 18.9
+      },
+      "project": "Mizobe",
+      "sample_count": 84,
+      "sample_type": "grab"
+     },
+     {
+      "anomaly": {
+       "kind": "anomaly",
+       "length_m": null,
+       "metal": null,
+       "width_m": null
+      },
+      "project": "Mizobe",
+      "sample_type": "geophysics",
+      "survey_type": "gravity"
+     }
+    ]
+   }
+  },
+  {
+   "n": 52,
+   "event_id": "e58eb3f662f549558c5442654d1977c64e73db9a",
+   "ticker": "CUEX.V",
+   "stratum": "tagged_width",
+   "body_sha1": "ffd28864b608301314325959260f23d8fee77eee",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 0.26
+      },
+      "project": "Exploradora Norte",
+      "sample_count": 807,
+      "sample_type": "trench",
+      "width_m": 40.0
+     }
+    ]
+   }
+  },
+  {
+   "n": 53,
+   "event_id": "73ece6cc34b59738f13b011954bec93ab84ac7e2",
+   "ticker": "NRN.V",
+   "stratum": "lookalike",
+   "body_sha1": "c6083d04917f06ee21f0a328520f26deddcb3530",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 54,
+   "event_id": "32e022b04744bc3694ea59a7f65470a9d6daaaaa",
+   "ticker": "MINK.V",
+   "stratum": "tagged_random",
+   "body_sha1": "83182cf7ec5858971fc56b338965f9408954b9a8",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "anomaly": {
+       "kind": "anomaly",
+       "length_m": null,
+       "metal": null,
+       "width_m": null
+      },
+      "project": "Montcalm",
+      "sample_type": "geophysics",
+      "survey_type": "IP"
+     }
+    ]
+   }
+  },
+  {
+   "n": 55,
+   "event_id": "ca8ffd495dc7efe5f5ebab2e3cc211ce458fdf8e",
+   "ticker": "PPX.V",
+   "stratum": "tagged_bulk_brine",
+   "body_sha1": "c5f6c27dc9343218ed8e266c3e3a157d56c68aa8",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 10.23
+      },
+      "project": "Igor",
+      "sample_type": "bulk"
+     }
+    ]
+   }
+  },
+  {
+   "n": 56,
+   "event_id": "297bd98ad5d1d16704a38fa789cb4daac09b0729",
+   "ticker": "BRVO.V",
+   "stratum": "tagged_width",
+   "body_sha1": "c2845eab33040a85f56566a5b0cccbc77bc2505b",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "PGM+Au",
+       "unit": "g/t",
+       "value": 2.59
+      },
+      "project": "Luanga",
+      "sample_type": "trench",
+      "width_m": 122.0
+     }
+    ]
+   }
+  },
+  {
+   "n": 57,
+   "event_id": "b18788b5d56a8e2d68f851e48b838dd89b77c45b",
+   "ticker": "IVS.V",
+   "stratum": "tagged_bulk_brine",
+   "body_sha1": "cd9844e738040b5104dc3390cc3e9f4f931dd087",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 58,
+   "event_id": "0d5525f75b87818db97c4a9f2ddab8c0c69bc652",
+   "ticker": "HHE.CN",
+   "stratum": "tagged_random",
+   "body_sha1": "641bb08e27eab64ca1a26f0d5002930d87a756c3",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 5.26
+      },
+      "project": "Goldsmith",
+      "sample_count": 2,
+      "sample_type": "trench",
+      "width_m": 3.0
+     }
+    ]
+   }
+  },
+  {
+   "n": 59,
+   "event_id": "6eb2e77de96e9898276aadb506d0373fd131a716",
+   "ticker": "FCI.V",
+   "stratum": "lookalike",
+   "body_sha1": "cb9abacd5f1d761a25d569fb899394517f37d808",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 60,
+   "event_id": "49804bf3d852f2314630eb1ede423fd9c54f6fc2",
+   "ticker": "CBI.V",
+   "stratum": "tagged_random",
+   "body_sha1": "80ae3121ebafdb0d7c01802a24f0a4a2a8651326",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 8.4
+      },
+      "project": "Evelyn",
+      "sample_count": 40,
+      "sample_type": "grab"
+     }
+    ]
+   }
+  },
+  {
+   "n": 61,
+   "event_id": "97152d82ae48b5d02b461ec0805cc140c5df4604",
+   "ticker": "TAU.V",
+   "stratum": "tagged_random",
+   "body_sha1": "a7ebdbbbf5920a7f15990ac39e7d839890623777",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 31.8
+      },
+      "project": "Lawyers",
+      "sample_count": 125,
+      "sample_type": "grab"
+     }
+    ]
+   }
+  },
+  {
+   "n": 62,
+   "event_id": "49f9edef1a4e2243b7ce95cf7a73e1018864fbf5",
+   "ticker": "TLG.TO",
+   "stratum": "tagged_random",
+   "body_sha1": "fe27e3cb367c4ca3b894eb30e3524e39a6c690cb",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 9.7
+      },
+      "project": "Troilus",
+      "sample_type": "grab"
+     }
+    ]
+   }
+  },
+  {
+   "n": 63,
+   "event_id": "ee00e54291bd5f1a1e6ca8ea11ce5721df2941d65971eec378c80a7b5e6fc21d",
+   "ticker": "FTEL.CN",
+   "stratum": "tagged_random",
+   "body_sha1": "6905e58667c8373d85b567af63f96fce68e8d2bf",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "Klondike",
+      "sample_type": "mapping"
+     }
+    ]
+   }
+  },
+  {
+   "n": 64,
+   "event_id": "c65dd43c845c97d94db0d773679f03d8c9668004",
+   "ticker": "YARR.V",
+   "stratum": "tagged_random",
+   "body_sha1": "8468b1a57e01dd3645e6a045f145e9b91506028f",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 65,
+   "event_id": "660e6b58b8c2683a984ecd0dcc726d8697b377a9",
+   "ticker": "TITI.V",
+   "stratum": "tagged_random",
+   "body_sha1": "dbc94d0e14d01464b4d9ba9e17750e1bf6b6f057",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "project": "Madre Sierra",
+      "sample_type": "mapping"
+     }
+    ]
+   }
+  },
+  {
+   "n": 66,
+   "event_id": "16c9fe8d79a1746c0f2ffb033709d191a1639dec",
+   "ticker": "SGD.TO",
+   "stratum": "tagged_random",
+   "body_sha1": "d7fbb7397a3b6197dadb5a10209c88fde713cf88",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "anomaly": {
+       "kind": "zone",
+       "length_m": 1000,
+       "metal": "Au",
+       "width_m": null
+      },
+      "best_grade": {
+       "metal": "Au",
+       "unit": "ppm",
+       "value": 0.758
+      },
+      "project": "Rogue",
+      "sample_type": "soil"
+     },
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 58.4
+      },
+      "project": "Rogue",
+      "sample_type": "grab"
+     },
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 152
+      },
+      "historical": true,
+      "project": "Rogue",
+      "sample_type": "grab"
+     }
+    ]
+   }
+  },
+  {
+   "n": 67,
+   "event_id": "7ab146630df033bde45252da7162371fd69fd593",
+   "ticker": "TMET.V",
+   "stratum": "tagged_random",
+   "body_sha1": "5130393f7e01fae196a6dba0d74b040c7617d5a1",
+   "review": "corrected",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Cu",
+       "unit": "%",
+       "value": 0.42
+      },
+      "project": "Kolos",
+      "sample_type": "grab"
+     },
+     {
+      "anomaly": {
+       "kind": "anomaly",
+       "length_m": 3700,
+       "metal": "Cu",
+       "width_m": 1200
+      },
+      "best_grade": {
+       "metal": "Cu",
+       "unit": "ppm",
+       "value": 4510
+      },
+      "historical": true,
+      "project": "Kolos",
+      "sample_count": 6941,
+      "sample_type": "soil"
+     },
+     {
+      "best_grade": {
+       "metal": "Cu",
+       "unit": "%",
+       "value": 1.1
+      },
+      "historical": true,
+      "project": "Kolos",
+      "sample_count": 293,
+      "sample_type": "grab"
+     },
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 20.78
+      },
+      "historical": true,
+      "project": "Kolos",
+      "sample_type": "trench",
+      "width_m": 0.56
+     }
+    ]
+   }
+  },
+  {
+   "n": 68,
+   "event_id": "b59afe62f228d20f6c7785bf25b504420bbeb3ef",
+   "ticker": "APN.V",
+   "stratum": "tagged_bulk_brine",
+   "body_sha1": "4235c1891a2df4442959ebfc5b1162613fbac409",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Cu",
+       "unit": "%",
+       "value": 11.33
+      },
+      "project": "Farellon",
+      "sample_count": 77,
+      "sample_type": "channel",
+      "width_m": 2.55
+     }
+    ]
+   }
+  },
+  {
+   "n": 69,
+   "event_id": "406f395c85ec42bde16510ce77412ec6bc970d9f",
+   "ticker": "RKR.V",
+   "stratum": "tagged_random",
+   "body_sha1": "4439fe3cc0848936199904a9509806f2dcb36851",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Ag",
+       "unit": "g/t",
+       "value": 657.0
+      },
+      "project": "Selkirk",
+      "sample_type": "grab"
+     }
+    ]
+   }
+  },
+  {
+   "n": 70,
+   "event_id": "b4e4d39e4f7e3f37c46cf2e3c24090003b6406a5",
+   "ticker": "CLIC.V",
+   "stratum": "tagged_random",
+   "body_sha1": "a761045ae0e7a3a2fb434b38f35394d7b49e57f8",
+   "review": "corrected",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 4.82
+      },
+      "project": "Monarch",
+      "sample_count": 293,
+      "sample_type": "channel",
+      "width_m": 4.5
+     },
+     {
+      "best_grade": {
+       "metal": "Li2O",
+       "unit": "%",
+       "value": 1.57
+      },
+      "project": "Monarch",
+      "sample_count": 90,
+      "sample_type": "grab"
+     },
+     {
+      "anomaly": {
+       "kind": "anomaly",
+       "length_m": null,
+       "metal": "Au",
+       "width_m": null
+      },
+      "best_grade": {
+       "metal": "Au",
+       "unit": "ppb",
+       "value": 151
+      },
+      "project": "Monarch",
+      "sample_count": 851,
+      "sample_type": "till"
+     },
+     {
+      "anomaly": {
+       "kind": "anomaly",
+       "length_m": 500,
+       "metal": null,
+       "width_m": null
+      },
+      "project": "Monarch",
+      "sample_type": "geophysics",
+      "survey_type": "IP"
+     }
+    ]
+   }
+  },
+  {
+   "n": 71,
+   "event_id": "afcfaf49c254aafdb6e7409aa8a2dd08e06eb636",
+   "ticker": "DTWO.V",
+   "stratum": "tagged_brine",
+   "body_sha1": "b02e4af87258c6a815a06b234ff0deabb27637cd",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 72,
+   "event_id": "bcc717564659ad52d0fbe29b561fa53557a4e81f",
+   "ticker": "PGX.V",
+   "stratum": "tagged_sed_till",
+   "body_sha1": "8d35418a4f21c47f6a7b303e0e840b7811e057d2",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "anomaly": {
+       "kind": "anomaly",
+       "length_m": 3300,
+       "metal": "Au",
+       "width_m": 500
+      },
+      "project": "Golden Sidewalk",
+      "sample_count": 40,
+      "sample_type": "till"
+     }
+    ]
+   }
+  },
+  {
+   "n": 73,
+   "event_id": "eef0cade023548ae1745bde29e60c9cae570cf79",
+   "ticker": "CLIC.V",
+   "stratum": "tagged_sed_till",
+   "body_sha1": "ae39841fc3c89b37dd7505e45d89c315edccb1c9",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "anomaly": {
+       "kind": "anomaly",
+       "length_m": null,
+       "metal": "Au",
+       "width_m": null
+      },
+      "project": "Troilus East",
+      "sample_count": 873,
+      "sample_type": "till"
+     },
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 0.224
+      },
+      "project": "Troilus East",
+      "sample_count": 142,
+      "sample_type": "grab"
+     }
+    ]
+   }
+  },
+  {
+   "n": 74,
+   "event_id": "5608ac29bed3232a6214295b45ef56f2c8814c4a",
+   "ticker": "LBNK.V",
+   "stratum": "tagged_brine",
+   "body_sha1": "e85779a5c910f36b96020dc962c9ed587d34e1f8",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 75,
+   "event_id": "b440f08c5dcef94f877a01d8fc87ef34c87220f55eeb1561a668a97698d7c038",
+   "ticker": "CQR.V",
+   "stratum": "tagged_sed_till",
+   "body_sha1": "41dfcdae137bb18527da849def80eea256388160",
+   "review": "corrected",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "anomaly": {
+       "kind": "anomaly",
+       "length_m": null,
+       "metal": "Au",
+       "width_m": null
+      },
+      "best_grade": {
+       "metal": "Au",
+       "unit": "ppb",
+       "value": 499.9
+      },
+      "project": "Valimaki",
+      "sample_count": 795,
+      "sample_type": "till"
+     },
+     {
+      "best_grade": {
+       "metal": "Au",
+       "unit": "g/t",
+       "value": 2.82
+      },
+      "project": "Valimaki",
+      "sample_count": 119,
+      "sample_type": "grab"
+     },
+     {
+      "project": "Valimaki",
+      "sample_type": "geophysics",
+      "survey_type": "magnetics"
+     },
+     {
+      "project": "Valimaki",
+      "sample_type": "mapping"
+     }
+    ]
+   }
+  },
+  {
+   "n": 76,
+   "event_id": "f75d378651c599677ee19ca323654f07df6bd244",
+   "ticker": "NAR.V",
+   "stratum": "tagged_sed_till",
+   "body_sha1": "1b1f501a356ac053be77f0492ead5787fd0d9dcd",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "anomaly": {
+       "kind": "anomaly",
+       "length_m": null,
+       "metal": null,
+       "width_m": null
+      },
+      "project": "Mel",
+      "sample_count": 144,
+      "sample_type": "till"
+     },
+     {
+      "project": "Mel",
+      "sample_count": 1,
+      "sample_type": "grab"
+     }
+    ]
+   }
+  },
+  {
+   "n": 77,
+   "event_id": "022d6553762ec2852d756cbe8e7616f6774d8b9d",
+   "ticker": "SILV.V",
+   "stratum": "tagged_brine",
+   "body_sha1": "bdcdaee86b927b6817d6d14efab0ec08c80b7c32",
+   "review": "corrected",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "K",
+       "unit": "mg/L",
+       "value": 27300
+      },
+      "project": "La Salada",
+      "sample_count": 38,
+      "sample_type": "brine"
+     }
+    ]
+   }
+  },
+  {
+   "n": 78,
+   "event_id": "8987acb87dcd4bd10a7562436904f724a466141a",
+   "ticker": "SLI.V",
+   "stratum": "tagged_brine",
+   "body_sha1": "a0e92b766b2341a7264f2a8f790c5c4d3b975305",
+   "review": "confirmed",
+   "note": "see claude/MNT_SMP_SET_LABELS_CONFIRMED_2026-09-29.json",
+   "expect": {
+    "is_result": true,
+    "complete": true,
+    "rows": [
+     {
+      "best_grade": {
+       "metal": "Li",
+       "unit": "mg/L",
+       "value": 616
+      },
+      "project": "SWA",
+      "sample_count": 3,
+      "sample_type": "brine"
+     }
+    ]
+   }
+  }
+ ]
+}

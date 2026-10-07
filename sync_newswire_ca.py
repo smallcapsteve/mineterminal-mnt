@@ -60,6 +60,211 @@ NON_MINING_HINTS = re.compile(
 )
 
 
+# ---------------------------------------------------------------- NWFIX_V1 (2026-09-28)
+# Justin, 2026-09-28: fix the newswire.ca collector so the coverage list decides what is visible. Until now every
+# release it collected was parked for review (hard-coded), nobody reviewed them, and 635 releases from companies on
+# the list were never shown. Now: publish, unless MNT already shows the same release from another wire (then it is
+# stored as duplicate_of_wire); the portal's universe gate still parks companies that are not on the list.
+import difflib as _nw_difflib
+import sqlite3 as _nw_sqlite3
+from datetime import timedelta as _nw_td
+try:
+    from zoneinfo import ZoneInfo as _NwZone
+    _ET = _NwZone("America/Toronto")
+except Exception:  # noqa: BLE001
+    _ET = timezone(_nw_td(hours=-4))
+
+PORTAL_DB = os.environ.get("PORTAL_DB", "/opt/mnt/app/portal/portal.db")
+TWIN_DAYS = 3          # same company, within 3 days of the release date
+SWEEP_DAYS = 3         # re-check releases published by this collector in the last 3 days
+SWEEP_MAX = 25         # refuse to hide more than this many in one run (something would be wrong)
+_MON = {m: i for i, m in enumerate("jan feb mar apr may jun jul aug sep oct nov dec".split(), 1)}
+_DATE_RE = re.compile(r"\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+(\d{1,2}),\s+(20\d{2})"
+                      r"(?:,\s+(\d{1,2}):(\d{2})\s*ET)?")
+_STOPW = set("the a an of and to in for on at with by from its is as inc corp ltd limited corporation".split())
+_ro_con = None
+
+
+def _now_et() -> str:
+    return datetime.now(_ET).strftime("%Y-%m-%dT%H:%M:%S")
+
+
+def _now_utc() -> str:
+    """MNT_FIX_20261003: stored when a page gives no time at all - now, in UTC with a 'Z'."""
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _utc_from_et_text(s: str):
+    """MNT_FIX_20261003: _date_text's Eastern wall clock -> UTC with a 'Z'; a date with no time -> MNT's date-only form
+    'YYYY-MM-DDT12:00:00+00:00'; a date more than a day ahead (one the release merely mentions) -> None."""
+    m = _DATE_RE.search(s or "")
+    v = _date_text(s)
+    if not v or not m:
+        return None
+    d = datetime.fromisoformat(v)
+    if d.date() > (datetime.now(timezone.utc) + _nw_td(days=1)).date():
+        return None
+    if m.group(4) is None:
+        return d.strftime("%Y-%m-%dT12:00:00+00:00")
+    return d.replace(tzinfo=_ET).astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _date_text(s: str):
+    """'Sep 23, 2026, 17:00 ET' / 'Sept. 23, 2026' / 'May 1, 2026' -> ET wall clock ISO, or None."""
+    m = _DATE_RE.search(s or "")
+    if not m:
+        return None
+    try:
+        d = datetime(int(m.group(3)), _MON[m.group(1).lower()[:3]], int(m.group(2)),
+                     int(m.group(4) or 0), int(m.group(5) or 0))
+    except ValueError:
+        return None
+    return d.strftime("%Y-%m-%dT%H:%M:%S")
+
+
+def release_time(soup, body_text: str):
+    """When the release went out. MNT_FIX_20261003: in UTC with a 'Z' ('YYYY-MM-DDTHH:MM:SSZ'), the time every other
+    wire's rows mean. Until 2026-10-03 this returned Eastern wall clock, which MNT and MTP both read as UTC, so
+    newswire.ca releases showed four hours early (CNW and GlobeNewswire rows are UTC, not Eastern). A date with no
+    time is 'YYYY-MM-DDT12:00:00+00:00'. The page's own <meta name="date"> first, then its 'Sep 23, 2026, 17:00 ET'
+    line, then the dateline."""
+    m = soup.select_one('meta[name="date"]')
+    v = (m.get("content") or "").strip() if m else ""
+    if v:
+        try:
+            d = datetime.fromisoformat(v.replace("Z", "+00:00"))
+            d = d if d.tzinfo else d.replace(tzinfo=_ET)
+            return d.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        except ValueError:
+            pass
+    for el in soup.select("p.mb-no"):
+        s = _utc_from_et_text(el.get_text(" ", strip=True))
+        if s:
+            return s
+    return _utc_from_et_text((body_text or "")[:600])
+
+
+def _nw_norm(s: str) -> str:
+    return re.sub(r"\s+", " ", re.sub(r"[^a-z0-9]+", " ", (s or "").lower())).strip()
+
+
+def _nw_toks(s: str, n: int = 150) -> set:
+    return set([w for w in _nw_norm(s).split() if w not in _STOPW and len(w) > 2][:n])
+
+
+def same_release(h1: str, t1: set, h2: str, t2: set) -> bool:
+    """The rule the 2026-09-28 check used: headline similarity >= 0.85, or opening-text overlap >= 0.5."""
+    hs = _nw_difflib.SequenceMatcher(None, _nw_norm(h1)[:200], _nw_norm(h2)[:200]).ratio() if h2 else 0.0
+    js = len(t1 & t2) / len(t1 | t2) if t1 and t2 else 0.0
+    return hs >= 0.85 or js >= 0.5
+
+
+def _ro():
+    global _ro_con
+    if _ro_con is None:
+        _ro_con = _nw_sqlite3.connect(f"file:{PORTAL_DB}?mode=ro", uri=True, timeout=60)
+    return _ro_con
+
+
+def visible_twin(con, ticker, headline, body, published, exclude_id=None):
+    """event_id of a VISIBLE release on MNT from another source that is this same release, else None."""
+    b = (ticker or "").split(".")[0].upper().strip()
+    try:
+        d = datetime.fromisoformat((published or "")[:10])
+    except ValueError:
+        return None
+    if not b:
+        return None
+    lo = (d - _nw_td(days=TWIN_DAYS)).strftime("%Y-%m-%d")
+    hi = (d + _nw_td(days=TWIN_DAYS + 1)).strftime("%Y-%m-%d")
+    t1 = _nw_toks((body or "")[:2500])
+    for eid, h2, b2 in con.execute(
+            "SELECT event_id, raw_headline, substr(COALESCE(raw_body,''),1,2500) FROM events "
+            "WHERE review_status = 'auto_approved' AND (ticker = ? OR ticker LIKE ?) "
+            "AND COALESCE(source_name,'') <> 'newswire_ca' AND published_at >= ? AND published_at < ?",
+            (b, b + ".%", lo, hi)):
+        if eid != exclude_id and same_release(headline, t1, h2 or "", _nw_toks(b2)):
+            return eid
+    return None
+
+
+def sweep_duplicates(apply: bool = True, days: int = SWEEP_DAYS) -> int:
+    """Hide this collector's visible releases that another wire has since also delivered (the other copy wins)."""
+    since = (datetime.now(timezone.utc) - _nw_td(days=days)).strftime("%Y-%m-%d %H:%M:%S")
+    ro = _nw_sqlite3.connect(f"file:{PORTAL_DB}?mode=ro", uri=True, timeout=60)
+    rows = ro.execute("SELECT event_id, ticker, raw_headline, substr(COALESCE(raw_body,''),1,2500), "
+                      "COALESCE(published_at, classified_at, ingested_at) FROM events "
+                      "WHERE source_name = 'newswire_ca' AND review_status = 'auto_approved' AND ingested_at >= ?",
+                      (since,)).fetchall()
+    hits = []
+    for eid, tk, h, b, pub in rows:
+        tw = visible_twin(ro, tk, h, b, pub, exclude_id=eid)
+        if tw:
+            hits.append((eid, tk, h, tw))
+    ro.close()
+    for eid, tk, h, tw in hits:
+        print(f"  {'HIDE' if apply else 'WOULD HIDE'} {tk:10s} {eid[:12]} (also on MNT as {tw[:12]}) {(h or '')[:60]}",
+              flush=True)
+    print(f"[sync_newswire_ca] sweep: {len(rows)} visible newswire.ca releases from the last {days} days, "
+          f"{len(hits)} also on MNT from another wire", flush=True)
+    if not apply or not hits:
+        return len(hits) if not apply else 0
+    if len(hits) > SWEEP_MAX:
+        print(f"[sync_newswire_ca] sweep: REFUSED - {len(hits)} is more than {SWEEP_MAX}; nothing hidden", flush=True)
+        return -1
+    con = _nw_sqlite3.connect(PORTAL_DB, timeout=60)
+    with con:
+        n = sum(con.execute("UPDATE events SET review_status = 'duplicate_of_wire' "
+                            "WHERE event_id = ? AND review_status = 'auto_approved'", (e[0],)).rowcount for e in hits)
+    con.close()
+    return n
+
+
+def _test_urls(urls) -> int:
+    for u in urls:
+        det = parse_article(u)
+        if not det:
+            print(f"TEST {u[-70:]} | fetch/parse failed", flush=True)
+            continue
+        pub = det["published_at"] or _now_utc()
+        tw = visible_twin(_ro(), det["ticker"], det["headline"], det["body_text"], pub) if det.get("ticker") else None
+        st = "no ticker (skipped)" if not det.get("ticker") else ("duplicate_of_wire" if tw else "auto_approved")
+        print(f"TEST {u[-60:]} | {det.get('ticker')} | {det['published_at']} | {st} | twin {tw or '-'} | "
+              f"{det['headline'][:60]}", flush=True)
+    return 0
+
+
+def _self_test() -> int:
+    from bs4 import BeautifulSoup as _BS
+    cases = [
+        ('<html><head><meta name="date" content="2026-09-23T17:00:00-04:00"/></head><body></body></html>', "",
+         "2026-09-23T21:00:00Z"),
+        ('<html><head><meta name="date" content="2026-01-15T08:00:00-05:00"/></head></html>', "", "2026-01-15T13:00:00Z"),
+        ('<html><head><meta name="date" content="2026-06-02T12:30:00Z"/></head></html>', "", "2026-06-02T12:30:00Z"),
+        ('<html><body><p class="mb-no">Sep 23, 2026, 17:00 ET</p></body></html>', "", "2026-09-23T21:00:00Z"),
+        ('<html><body><p class="mb-no">Jan 15, 2026, 08:00 ET</p></body></html>', "", "2026-01-15T13:00:00Z"),
+        ("<html></html>", "VANCOUVER, BC, Sept. 23, 2026 /CNW/ - Acme", "2026-09-23T12:00:00+00:00"),
+        ("<html></html>", "TORONTO, May 1, 2026 /CNW/ - Acme Gold", "2026-05-01T12:00:00+00:00"),
+        ("<html></html>", "Acme sets a deadline of Jan 1, 2099 for its project", None),   # MNT_FIX_20261003
+        ("<html></html>", "No date here at all.", None),
+    ]
+    bad = 0
+    for html, body, want in cases:
+        got = release_time(_BS(html, "html5lib"), body)
+        if got != want:
+            bad += 1
+            print(f"SELF-TEST FAIL date: want {want} got {got} for {html[:50]!r} {body[:30]!r}")
+    pairs = [("Acme Gold Intersects 12 m of 5 g/t Au at Ridge", "Acme Gold Intersects 12 m of 5 g/t Au at Ridge - Newswire", True),
+             ("Acme Gold Announces Private Placement", "Acme Gold Reports Q2 Results", False)]
+    for h1, h2, want in pairs:
+        if same_release(h1, set(), h2, set()) != want:
+            bad += 1
+            print(f"SELF-TEST FAIL match: {h1!r} vs {h2!r} want {want}")
+    print(f"self-test: {len(cases) + len(pairs) - bad}/{len(cases) + len(pairs)} ok")
+    return 1 if bad else 0
+# ---------------------------------------------------------------- end NWFIX_V1
+
+
 def fetch(url: str) -> str:
     r = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=TIMEOUT)
     r.raise_for_status()
@@ -111,17 +316,20 @@ def parse_article(url: str) -> Optional[Dict]:
     body_text = body_el.get_text(" ", strip=True) if body_el else ""
     body_html = str(body_el) if body_el else ""
 
-    # Published time
-    published_at = None
-    time_el = soup.select_one("time[datetime], [datetime]")
-    if time_el:
-        published_at = time_el.get("datetime") or None
+    # Published time. NWFIX_V1 (2026-09-28): newswire.ca states it in <meta name="date">, which the old
+    # selectors never read, so every date came from the body text - 344 releases got none, some got a date the
+    # text merely mentions. release_time() reads the page's own date first; the old dateline rule below stays
+    # as the last resort.
+    published_at = release_time(soup, body_text)
     if not published_at:
         # Pattern: "/CNW/ - VANCOUVER, BC, May 1, 2026 /CNW/" — best-effort
         m = re.search(r"([A-Z][a-z]+\s+\d{1,2},\s+20\d{2})", body_text[:600])
         if m:
             try:
-                published_at = datetime.strptime(m.group(1), "%B %d, %Y").replace(tzinfo=timezone.utc).isoformat()
+                _d = datetime.strptime(m.group(1), "%B %d, %Y")
+                # MNT_FIX_20261003: a date only (MNT's date-only form), never one ahead that the text merely mentions
+                published_at = (_d.strftime("%Y-%m-%dT12:00:00+00:00")
+                                if _d.date() <= (datetime.now(timezone.utc) + _nw_td(days=1)).date() else None)
             except Exception:
                 published_at = None
 
@@ -198,12 +406,20 @@ def save_seen(seen: set) -> None:
 
 
 def main() -> int:
+    if len(sys.argv) > 1 and sys.argv[1] == "--self-test":
+        return _self_test()
+    if len(sys.argv) > 1 and sys.argv[1] == "--test-urls":
+        return _test_urls(sys.argv[2:])
+    if len(sys.argv) > 1 and sys.argv[1] == "--sweep-dry-run":
+        sweep_duplicates(apply=False, days=int(sys.argv[2]) if len(sys.argv) > 2 else SWEEP_DAYS)
+        return 0
     seen = load_seen()
     discovered = 0
     skipped_no_ticker = 0
     skipped_non_mining = 0
     ingested_ok = 0
     ingested_err = 0
+    n_twin = 0
 
     for cat in CATEGORIES:
         articles = list_articles(cat)
@@ -233,6 +449,21 @@ def main() -> int:
                 skipped_no_ticker += 1
                 continue
 
+            # NWFIX_V1: publish, unless MNT already shows this release from another wire. The portal's universe
+            # gate still parks companies that are not on the coverage list. If the check itself fails, park the
+            # release for review as before rather than risk a duplicate.
+            status = "auto_approved"
+            try:
+                twin = visible_twin(_ro(), detail["ticker"], detail["headline"], detail["body_text"],
+                                    detail["published_at"] or _now_utc())
+            except Exception as e:  # noqa: BLE001
+                print(f"  ! twin check failed ({e}); parked for review", flush=True)
+                twin, status = None, "pending_review"
+            if twin:
+                status = "duplicate_of_wire"
+                n_twin += 1
+                print(f"  = {detail['ticker']:10s} already on MNT as {twin[:12]}: {detail['headline'][:60]}", flush=True)
+
             envelope = {
                 "event_id": event_id_for(url),
                 "event_type": "news_release",
@@ -243,12 +474,12 @@ def main() -> int:
                 "raw_excerpt": detail["body_text"][:1500],
                 "raw_body": detail["body_text"][:50000],
                 "raw_html": detail["body_html"][:200000],
-                "published_at": detail["published_at"],
+                "published_at": detail["published_at"] or _now_utc(),
                 "categories": ["news"],
                 "_exchange": detail.get("exchange"),
                 "_cfg_website": cat,
                 "_source_name": "newswire_ca",
-                "review_status": "pending_review",
+                "review_status": status,
                 "classifier_model": "newswire_ca_v1",
                 "classifier_confidence": 0.85,
             }
@@ -261,6 +492,12 @@ def main() -> int:
                 ingested_err += 1
                 print(f"  X HTTP {code} {detail['headline'][:80]}", flush=True)
 
+    try:
+        n_swept = sweep_duplicates(apply=True)
+    except Exception as e:  # noqa: BLE001
+        print(f"[sync_newswire_ca] sweep failed: {e}", flush=True)
+        n_swept = -1
+    print(f"[sync_newswire_ca] NWFIX already_on_mnt={n_twin} hidden_later={n_swept}", flush=True)
     save_seen(seen)
     print(
         f"[sync_newswire_ca] DONE  discovered={discovered}  ingested={ingested_ok}  "

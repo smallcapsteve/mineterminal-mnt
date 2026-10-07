@@ -410,6 +410,22 @@ def fetch_body(summary: dict) -> dict:
 
     soup = BeautifulSoup(html, "lxml")
 
+    # MNT_FIX_20261003: the page states when the release went out in <meta property="og:article:published_time">
+    # ("10/02/2026 06:45:00", Eastern time). Nothing read it, so every release collected since 2026-09-09 was stored
+    # at midnight and shown the evening before. Stored in UTC with a 'Z'.
+    if not summary.get("published_at"):
+        _m = soup.find("meta", attrs={"property": "og:article:published_time"})
+        _v = (_m.get("content") or "").strip() if _m else ""
+        _mm = re.match(r"^(\d{1,2})/(\d{1,2})/(\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?$", _v)
+        if _mm:
+            try:
+                from zoneinfo import ZoneInfo as _ZI
+                _d = dt.datetime(int(_mm.group(3)), int(_mm.group(1)), int(_mm.group(2)), int(_mm.group(4)),
+                                 int(_mm.group(5)), int(_mm.group(6) or 0), tzinfo=_ZI("America/Toronto"))
+                summary["published_at"] = _d.astimezone(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            except Exception:
+                pass
+
     # Canonicalize published_at from meta tags / <time> if missing
     if not summary.get("published_at"):
         meta_date = (
@@ -455,7 +471,7 @@ def fetch_body(summary: dict) -> dict:
         if m:
             for _fmt in ("%B %d, %Y", "%d %B %Y"):
                 try:
-                    summary["published_at"] = _dt.strptime(m.group(1), _fmt).strftime("%Y-%m-%dT%H:%M:%S")
+                    summary["published_at"] = _dt.strptime(m.group(1), _fmt).strftime("%Y-%m-%dT12:00:00+00:00")  # date only
                     break
                 except ValueError:
                     pass

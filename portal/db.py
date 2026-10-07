@@ -78,6 +78,23 @@ def init_schema() -> None:
         c.execute("SELECT categories FROM events LIMIT 1")
     except sqlite3.OperationalError:
         c.execute("ALTER TABLE events ADD COLUMN categories TEXT")
+    # MNT_SPEED_V1 (2026-09-25): the listing index. Every category and company filter reads only these
+    # columns, so with it no list page touches the release text (1.3 s -> tens of ms per query at 139k
+    # releases). Here rather than in SCHEMA because it names columns added by later migrations; on a
+    # database that already has it this is a no-op. Undo: DROP INDEX ix_events_list.
+    try:
+        c.execute("CREATE INDEX IF NOT EXISTS ix_events_list ON events("
+                  "review_status, COALESCE(published_at, classified_at), categories, ticker, "
+                  "additional_tickers, published_at, classified_at, event_id, slug)")
+    except sqlite3.OperationalError:
+        pass
+    # MNT_SPEED_V2 (2026-09-25): the company news feed's ticker lookups (news_api by-ticker).
+    try:
+        c.execute("CREATE INDEX IF NOT EXISTS ix_events_uticker ON events(upper(ticker))")
+        c.execute("CREATE INDEX IF NOT EXISTS ix_events_addl ON events(additional_tickers) "
+                  "WHERE additional_tickers IS NOT NULL AND additional_tickers <> ''")
+    except sqlite3.OperationalError:
+        pass
     c.commit()
 
 
@@ -133,7 +150,24 @@ def upsert_event(row: dict) -> None:
     c.commit()
 
 
+# MNT_SPEED_V1 (2026-09-25): the homepage company dropdown scanned every release on every request
+# (~0.8 s at 139k releases). It only changes when news arrives, so it is cached for 5 minutes,
+# the same rule as the category chip counts below.
+_TICKERS_TTL = 300.0
+_tickers_cache: tuple = ()
+
+
 def list_tickers() -> list[tuple[str, int]]:
+    global _tickers_cache
+    now = time.monotonic()
+    if _tickers_cache and (now - _tickers_cache[0]) < _TICKERS_TTL:
+        return _tickers_cache[1]
+    result = _list_tickers_uncached()
+    _tickers_cache = (now, result)
+    return result
+
+
+def _list_tickers_uncached() -> list[tuple[str, int]]:
     c = get_conn()
     rows = c.execute(
         "SELECT ticker, COUNT(*) AS n FROM events "
@@ -162,16 +196,32 @@ def list_tickers() -> list[tuple[str, int]]:
 # NOT cached; only the category chip counts can lag, by at most _CATEGORY_TTL.
 _CATEGORY_TTL = 300.0
 _category_cache: tuple = ()
+import threading as _down3_threading
+_category_lock = _down3_threading.Lock()  # DOWN3: one recount at a time, see list_categories
 
 
 def list_categories() -> list[tuple[str, int]]:
+    # DOWN3 (2026-10-07): when the 5-minute copy expired, every waiting request recounted all releases at
+    # once (67% of MNT's CPU during the 10-07 outage). Now one request recounts and the others keep using
+    # the previous counts; only the very first fill after a start waits.
     global _category_cache
-    now = time.monotonic()
-    if _category_cache and (now - _category_cache[0]) < _CATEGORY_TTL:
-        return _category_cache[1]
-    result = _list_categories_uncached()
-    _category_cache = (now, result)
-    return result
+    cache = _category_cache
+    if cache and (time.monotonic() - cache[0]) < _CATEGORY_TTL:
+        return cache[1]
+    if cache:
+        if not _category_lock.acquire(blocking=False):
+            return cache[1]
+    else:
+        _category_lock.acquire()
+    try:
+        cache = _category_cache
+        if cache and (time.monotonic() - cache[0]) < _CATEGORY_TTL:
+            return cache[1]
+        result = _list_categories_uncached()
+        _category_cache = (time.monotonic(), result)
+        return result
+    finally:
+        _category_lock.release()
 
 
 def _list_categories_uncached() -> list[tuple[str, int]]:
@@ -193,15 +243,16 @@ def _list_categories_uncached() -> list[tuple[str, int]]:
         )
     c = get_conn()
     counts = {cat: 0 for cat in CATEGORIES}
+    # DOWN3: SQLite groups identical category strings, so Python loops over a few thousand groups, not every release.
     for r in c.execute(
-        "SELECT categories FROM events "
+        "SELECT categories, COUNT(*) AS n FROM events "
         "WHERE review_status='auto_approved' AND categories IS NOT NULL "
-        "AND categories <> ''"
+        "AND categories <> '' GROUP BY categories"
     ):
         for cat in (r["categories"] or "").split("|"):
             cat = cat.strip()
             if cat in counts:
-                counts[cat] += 1
+                counts[cat] += r["n"]
     return [(cat, counts[cat]) for cat in CATEGORIES]
 
 
@@ -332,6 +383,35 @@ def _find_fuzzy_dupe(conn, ticker, headline, published_at, window_hours=48):
 _orig_upsert_event = upsert_event
 
 def upsert_event(row):  # noqa: F811
+    # WIRETITLE_V1 (2026-09-28): drop a trailing wire-service name (" - PR Newswire Canada", " - newswire.ca")
+    # from the headline before it is stored. Rollback: /var/backups/mnt/wiretitle-*/db.py
+    try:
+        from portal.wiretitle import strip_wire as _strip_wire
+        if row.get("raw_headline"):
+            row["raw_headline"] = _strip_wire(row["raw_headline"])
+    except Exception:
+        pass
+    # MNT_FIX_20261003 (CFEMAIL_V1 + HLFIX_V1): wire pages served through Cloudflare hide every contact address as
+    # "[email protected]"; the address is in the markup, so it is decoded here, before the release is stored. The
+    # headline is cleaned the same way for every source ("p.1 ", "News Release dated ... - ", "( TREO )", a leading
+    # "13:30 ET "), and a wire headline that runs on into the release's opening sentence is cut back to the title.
+    # Exchange headlines are repaired against the converted PDF later, by pdfhtml_job. Rollback: /var/backups/mnt/mntfix-*/
+    try:
+        from portal.cfemail import decode_row as _cf_decode_row
+        _h, _b, _x, _n = _cf_decode_row(row.get("raw_html"), row.get("raw_body"), row.get("raw_excerpt"))
+        if _n:
+            row["raw_html"], row["raw_body"], row["raw_excerpt"] = _h, _b, _x
+    except Exception:
+        pass
+    try:
+        from portal.headline_fix import repair as _hl_repair, clean_headline as _hl_clean
+        if row.get("raw_headline"):
+            if (row.get("source_name") or "").lower() in ("tmx", "cse"):
+                row["raw_headline"] = _hl_clean(row["raw_headline"])
+            else:
+                row["raw_headline"] = _hl_repair(row.get("source_name"), row["raw_headline"])[0]
+    except Exception:
+        pass
     # If this is a brand-new insert and a fuzzy dupe exists, skip
     eid = row.get('event_id')
     conn = get_conn()
@@ -351,3 +431,36 @@ def upsert_event(row):  # noqa: F811
         return None
     return _orig_upsert_event(row)
 # ====== end _FUZZY_DUPE_GUARD ======
+
+# ====== MNT_AUD3_GUARD_V1 (2026-09-30, MTP site audit 2): copies and non-releases kept out at ingest ======
+# Rollback: copy db.py back from /var/backups/mnt/aud3-mnt-code-*/db.py
+_AUD3_LANDING_URL = _re_dupe.compile(r'businesswire\.com/newsroom/industry/', _re_dupe.I)
+_AUD3_LANDING_HL = _re_dupe.compile(r'^mining and minerals breaking news and press releases$', _re_dupe.I)
+_aud3_prev_upsert = upsert_event
+
+def _aud3_skip(row):
+    hl = (row.get('raw_headline') or '').strip()
+    url = row.get('source_url') or ''
+    if _AUD3_LANDING_URL.search(url) or _AUD3_LANDING_HL.match(hl):
+        return 'landing page'
+    if hl and not _re_dupe.search(r'[A-Za-z]{3}', hl):
+        return 'no words in the headline'
+    tk, eid = row.get('ticker'), row.get('event_id')
+    if url and tk and hl:
+        conn = get_conn()
+        if eid and conn.execute('SELECT 1 FROM events WHERE event_id = ?', (eid,)).fetchone():
+            return None                      # an update of a stored release
+        norm = _normalize_dupe_hl(hl)
+        for (rhl,) in conn.execute('SELECT raw_headline FROM events WHERE ticker = ? AND source_url = ? LIMIT 50', (tk, url)).fetchall():
+            if norm and _normalize_dupe_hl(rhl) == norm:
+                return 'same address and headline already stored'
+    return None
+
+def upsert_event(row):  # noqa: F811
+    try:
+        if _aud3_skip(row):
+            return None
+    except Exception:
+        pass
+    return _aud3_prev_upsert(row)
+# ====== end MNT_AUD3_GUARD_V1 ======

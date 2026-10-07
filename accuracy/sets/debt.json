@@ -1,0 +1,2375 @@
+{
+ "schema": 1,
+ "name": "debt",
+ "tag": "Debt & Credit Facilities",
+ "status": "confirmed",
+ "created": "2026-09-24",
+ "reviewer": "Justin",
+ "reviewed_at": "2026-09-24",
+ "row_shape": "one row per debt instrument an item reports (convertible debenture or note, loan, credit facility, notes or bonds, gold loan, prepayment), at its stage: proposed, signed, closed, drawn, amended, converted, repaid, terminated or interest_paid; side borrower, or lender where the company lends or holds it",
+ "items": [
+  {
+   "n": 1,
+   "event_id": "522a05026d299c92c96f128e29a5df9b10c53357",
+   "ticker": "GOH.CN",
+   "stratum": "tagged",
+   "body_sha1": "ab0914eb49ac57fa30bc327f06ed3b048e81a6e5",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_debenture",
+      "stage": "proposed",
+      "side": "borrower",
+      "principal": 60000,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": 10,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": 12,
+      "lender": null,
+      "borrower": null,
+      "related_party": false,
+      "secured": false,
+      "conversion_price": 0.06,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": 0.09,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 2,
+   "event_id": "f14971e653aa964635625566a129f89e230abf3dcf67d4b42158c7deb6a459b3",
+   "ticker": "MUX.TO",
+   "stratum": "tagged",
+   "body_sha1": "f96515be5cbebbef842720845b1c4e78639e7eb4",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 3,
+   "event_id": "69be9b7031fbe87b8d3f3df529289590e3d5dbef",
+   "ticker": "IAU.TO",
+   "stratum": "tagged",
+   "body_sha1": "8b4bc2ccda5a66cb3ef6e7164438cd40f2a90c80",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 4,
+   "event_id": "8a4d71ecfa9f9da9a3c294313dc3ebe951a7c638",
+   "ticker": "NGC.V",
+   "stratum": "untagged look-alike",
+   "body_sha1": "22f7d4397b3f29a724f7592eb3aa63f3ecb96107",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "loan",
+      "stage": "repaid",
+      "side": "borrower",
+      "principal": 16000000,
+      "currency": "USD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": null,
+      "lender": "Sprott Resource Streaming and Royalty Corp.",
+      "borrower": null,
+      "related_party": false,
+      "secured": true,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 5,
+   "event_id": "b73b0af619de3d13ba2f9831b76662fa4add935714812fa3b1075481540efb24",
+   "ticker": "GPG.V",
+   "stratum": "tagged",
+   "body_sha1": "f14ec2520e5425b6f31e487346e1effb05db5bed",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "loan",
+      "stage": "signed",
+      "side": "borrower",
+      "principal": 25000000,
+      "currency": "USD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": null,
+      "lender": null,
+      "borrower": null,
+      "related_party": false,
+      "secured": null,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": "New Amalga Gold Project"
+     }
+    ]
+   }
+  },
+  {
+   "n": 6,
+   "event_id": "bd4df5b160779246e3d2921171e2697b33ff5b07",
+   "ticker": "EOX.V",
+   "stratum": "tagged",
+   "body_sha1": "8ecd4964b2a97eceadd18f7091fd9be018108325",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_note",
+      "stage": "repaid",
+      "side": "borrower",
+      "principal": 1149270,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": null,
+      "lender": "EBRD (European Bank for Reconstruction and Development)",
+      "borrower": null,
+      "related_party": true,
+      "secured": null,
+      "conversion_price": 0.15,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 7,
+   "event_id": "d27ccfec1d4b6d9a7b2ad4aee5896c65c2d364fe83f94accb2bffef956654958",
+   "ticker": "CACR.CN",
+   "stratum": "tagged",
+   "body_sha1": "2fc1a60f4fcd49f862c0bed608cb61270f13c4d8",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_debenture",
+      "stage": "proposed",
+      "side": "borrower",
+      "principal": 2000000,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": 5,
+      "rate_text": null,
+      "maturity": "2028-03-31",
+      "term_months": null,
+      "lender": null,
+      "borrower": null,
+      "related_party": false,
+      "secured": null,
+      "conversion_price": 1.2,
+      "conversion_text": "convertible into Units (one CACR.A multiple-voting share + one warrant) at a deemed $1.20 per Unit, at holder option any time or Company option after first anniversary",
+      "warrants": null,
+      "warrant_strike": 1.2,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 8,
+   "event_id": "c1733849f975df0647704ae2adfbbb9f2affc3f298a22e62785a552c1c621b5f",
+   "ticker": "GTCH.CN",
+   "stratum": "tagged",
+   "body_sha1": "38079c667ba9ef5cd71fe1a6dfa2f9b4ba6809b2",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "notes",
+      "stage": "closed",
+      "side": "borrower",
+      "principal": 1441900,
+      "currency": "CAD",
+      "principal_total": 4363318,
+      "rate_pct": null,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": null,
+      "lender": null,
+      "borrower": null,
+      "related_party": true,
+      "secured": null,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": 14419000,
+      "warrant_strike": 0.1,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 9,
+   "event_id": "8917248a1b08383aaf4ea659776e26f70225f54c",
+   "ticker": "BAC.CN",
+   "stratum": "tagged",
+   "body_sha1": "753638e156055eb4ab57b1039e1573ea99c3cae1",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "notes",
+      "stage": "amended",
+      "side": "borrower",
+      "principal": 195000,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": 12,
+      "rate_text": null,
+      "maturity": "2020-04-19",
+      "term_months": null,
+      "lender": null,
+      "borrower": null,
+      "related_party": false,
+      "secured": null,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": 0.05,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 10,
+   "event_id": "5ade97a858156de320f2e4b01208089ccd76340b",
+   "ticker": "CUPA.CN",
+   "stratum": "tagged",
+   "body_sha1": "1584ff5f4afa677ae416c3fa73981fcab9788cb9",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "notes",
+      "stage": "proposed",
+      "side": "lender",
+      "principal": 156000,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": 7.5,
+      "rate_text": null,
+      "maturity": "2021-12-28",
+      "term_months": null,
+      "lender": null,
+      "borrower": "Stone Investment Group Limited",
+      "related_party": true,
+      "secured": null,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 11,
+   "event_id": "1336f92bba1d71b8c6313641ed6e84f10efc2b00246dd1d64acc24856736add3",
+   "ticker": "CACR.CN",
+   "stratum": "tagged",
+   "body_sha1": "4433f6e46ae7f035e5f9473b3e39cc3f191dcd1d",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_debenture",
+      "stage": "converted",
+      "side": "borrower",
+      "principal": 5862053.51,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": null,
+      "lender": null,
+      "borrower": null,
+      "related_party": false,
+      "secured": null,
+      "conversion_price": null,
+      "conversion_text": "Company-elected conversion at $15.00 per Unit (6 Multiple Voting Shares + 1 Warrant for 3 shares at $3.20 to Dec 15, 2023); principal $5,862,053.51 plus $747,366.35 accrued interest ($6,609,419.86) into 2,643,767 Multiple Voting Shares and 440,628 Warrants",
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 12,
+   "event_id": "2913215a51ec21061ef22e53abe69d67a69ac86a7d497507736ed1d69543a5a7",
+   "ticker": "OWLI.CN",
+   "stratum": "tagged",
+   "body_sha1": "dc739aa7e5f0a7709b9068f1dc5a153d1deef429",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "loan",
+      "stage": "closed",
+      "side": "borrower",
+      "principal": null,
+      "currency": null,
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": null,
+      "lender": null,
+      "borrower": null,
+      "related_party": false,
+      "secured": null,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 13,
+   "event_id": "c2d4684fa4cd5b9f6a1cdd12927e2ec8885db124",
+   "ticker": "ALS.TO",
+   "stratum": "tagged",
+   "body_sha1": "0be8c6b8a38414892d7b7a2674fb160f8ce8cdc6",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "credit_facility",
+      "stage": "amended",
+      "side": "borrower",
+      "principal": 350000000,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": "variable rates, pricing based on total net debt ratio",
+      "maturity": "2030-07",
+      "term_months": null,
+      "lender": "Bank of Nova Scotia and Toronto-Dominion Bank (joint leads; with National Bank of Canada, ATB Financial, Desjardins Financial Security Life Assurance Company, Export Development Canada)",
+      "borrower": null,
+      "related_party": false,
+      "secured": null,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 14,
+   "event_id": "6ff361cf269be15dd1b9d421c42c6cc522ecd4d3",
+   "ticker": "III.TO",
+   "stratum": "tagged",
+   "body_sha1": "78c5cf936ae91487dfc696b5c1a6ddf95514002d",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_debenture",
+      "stage": "converted",
+      "side": "borrower",
+      "principal": 47000000,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": null,
+      "maturity": "2027-08-30",
+      "term_months": null,
+      "lender": null,
+      "borrower": null,
+      "related_party": false,
+      "secured": false,
+      "conversion_price": null,
+      "conversion_text": "100% of holders converted ahead of the Aug 18, 2025 redemption; 14,687,500 Debenture Shares issued (implies $3.20/share)",
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 15,
+   "event_id": "9d9f06df0012c02f6294e337b2a94ab11720e6445d418c57d4705919e9081d2c",
+   "ticker": "MLM.CN",
+   "stratum": "tagged",
+   "body_sha1": "6e4c8b176c064cb07c3629dde97baf148c44bf4e",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "notes",
+      "stage": "repaid",
+      "side": "borrower",
+      "principal": 10960534,
+      "currency": "USD",
+      "principal_total": null,
+      "rate_pct": 15,
+      "rate_text": null,
+      "maturity": "2026-10-26",
+      "term_months": null,
+      "lender": null,
+      "borrower": null,
+      "related_party": false,
+      "secured": true,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 16,
+   "event_id": "d665955b1fac38d30981d088fcfe5c67ed1d63bd",
+   "ticker": "CUPA.CN",
+   "stratum": "untagged look-alike",
+   "body_sha1": "16e06018b79e1475099dc14ad68c2e8fb59ab185",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "credit_facility",
+      "stage": "repaid",
+      "side": "borrower",
+      "principal": 760705.61,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": null,
+      "lender": "FMMC Private Yield Fund LP II",
+      "borrower": null,
+      "related_party": false,
+      "secured": true,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 17,
+   "event_id": "9473698bf4baec2b1e48f34e762e1ed3636db1d4",
+   "ticker": "LMG.V",
+   "stratum": "tagged",
+   "body_sha1": "eda9523845099be2db18410f2500f79bde52b81b",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_note",
+      "stage": "proposed",
+      "side": "borrower",
+      "principal": 650000,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": 18,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": 36,
+      "lender": "Ian Rogers",
+      "borrower": null,
+      "related_party": true,
+      "secured": false,
+      "conversion_price": 0.2,
+      "conversion_text": null,
+      "warrants": 3250000,
+      "warrant_strike": 0.3,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 18,
+   "event_id": "453070a773a08eeec0c04921ee1ec513322e0024",
+   "ticker": "IVN.TO",
+   "stratum": "tagged",
+   "body_sha1": "05ab4e2bf8996d96bb250fdfc4924f6a9a284430",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "notes",
+      "stage": "proposed",
+      "side": "borrower",
+      "principal": 600000000,
+      "currency": "USD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": null,
+      "maturity": "2030",
+      "term_months": null,
+      "lender": null,
+      "borrower": null,
+      "related_party": false,
+      "secured": false,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     },
+     {
+      "instrument": "credit_facility",
+      "stage": "signed",
+      "side": "borrower",
+      "principal": 120000000,
+      "currency": "USD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": null,
+      "lender": null,
+      "borrower": null,
+      "related_party": false,
+      "secured": null,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 19,
+   "event_id": "a220a41693b8cb9a5553bb6650b86d90dfe3a367",
+   "ticker": "CACR.CN",
+   "stratum": "tagged",
+   "body_sha1": "a90f82f258befa838ea94e7beb59bb975502dd98",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_debenture",
+      "stage": "closed",
+      "side": "borrower",
+      "principal": 100000,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": 12,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": null,
+      "lender": "Frank Smeenk",
+      "borrower": null,
+      "related_party": true,
+      "secured": null,
+      "conversion_price": null,
+      "conversion_text": "Convertible into Units at deemed $21 per Unit (4 KWG.A multiple voting shares + 4 warrants at $7.50 to Dec 15, 2019); 20% principal bonus paid in Units; interest payable in shares at 10-day VWAP",
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 20,
+   "event_id": "0d164d8b4f7f1550da35db90805e4c9036e872dfba32bab895b5f9baedcab5d8",
+   "ticker": "TTX.CN",
+   "stratum": "tagged",
+   "body_sha1": "c6f7056bbbbe7d03e4b0cff9973aa604d9605e58",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "loan",
+      "stage": "signed",
+      "side": "borrower",
+      "principal": 7213006.56,
+      "currency": "USD",
+      "principal_total": null,
+      "rate_pct": 10,
+      "rate_text": null,
+      "maturity": "2024-12-31",
+      "term_months": null,
+      "lender": "AfriMet Resources AG",
+      "borrower": null,
+      "related_party": false,
+      "secured": null,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": "Lubule Tin & Tantalum Alluvial Project"
+     },
+     {
+      "instrument": "loan",
+      "stage": "signed",
+      "side": "borrower",
+      "principal": 3000000,
+      "currency": "USD",
+      "principal_total": null,
+      "rate_pct": 10,
+      "rate_text": "10% for first 12 months; 15% on any days of repayment delay",
+      "maturity": null,
+      "term_months": 12,
+      "lender": "Trade Cloud Services PTE LTD.",
+      "borrower": null,
+      "related_party": false,
+      "secured": null,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": "Lubule Tin & Tantalum Alluvial Project"
+     },
+     {
+      "instrument": "convertible_debenture",
+      "stage": "closed",
+      "side": "borrower",
+      "principal": 1231784.08,
+      "currency": "USD",
+      "principal_total": null,
+      "rate_pct": 10,
+      "rate_text": null,
+      "maturity": "2023-07-10",
+      "term_months": 12,
+      "lender": "AfriMet Resources AG",
+      "borrower": null,
+      "related_party": false,
+      "secured": false,
+      "conversion_price": 0.1,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 21,
+   "event_id": "ec93f547e19d62b5097551b5fb4a9a8928eb44a3",
+   "ticker": "LFLR.CN",
+   "stratum": "tagged",
+   "body_sha1": "36a7581e093fe0dd3794324a29bb910322083032",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "prepayment",
+      "stage": "proposed",
+      "side": "borrower",
+      "principal": 30000000,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": null,
+      "lender": "Trafigura Canada Limited",
+      "borrower": null,
+      "related_party": false,
+      "secured": null,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": "Swanson Gold Deposit / Beacon Gold Mill"
+     }
+    ]
+   }
+  },
+  {
+   "n": 22,
+   "event_id": "093105721a8c38e5a9a0f5ccb46f47230cee0744da88246e5f061c67b49437d3",
+   "ticker": "LAF.V",
+   "stratum": "tagged",
+   "body_sha1": "a4d73a2d683220a23342b0dcdeb8e795e98e5fc1",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_note",
+      "stage": "closed",
+      "side": "lender",
+      "principal": 250000,
+      "currency": "USD",
+      "principal_total": null,
+      "rate_pct": 0,
+      "rate_text": null,
+      "maturity": "2027-12-03",
+      "term_months": null,
+      "lender": null,
+      "borrower": null,
+      "related_party": null,
+      "secured": false,
+      "conversion_price": null,
+      "conversion_text": "into shares of the Target worth 135% of the outstanding principal",
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 23,
+   "event_id": "d251b048bab9c44b8790c48b4a8d2639aa9ce27d",
+   "ticker": "PGLD.V",
+   "stratum": "tagged",
+   "body_sha1": "26f92c98f49d2b9991807fc89037a24354b60de9",
+   "review": "corrected",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_debenture",
+      "stage": "interest_paid",
+      "side": "borrower",
+      "principal": 51967.42,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": null,
+      "lender": null,
+      "borrower": null,
+      "related_party": false,
+      "secured": null,
+      "conversion_price": null,
+      "conversion_text": "interest paid in 822,467 common shares",
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 24,
+   "event_id": "8d4b0f9c40d728ea7bef7beba80d7f7cb6ddaf5c",
+   "ticker": "EVR.CN",
+   "stratum": "tagged",
+   "body_sha1": "e002cac4e70ab649971a178e4ee0609bad108024",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "credit_facility",
+      "stage": "signed",
+      "side": "borrower",
+      "principal": 50000000,
+      "currency": "USD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": "SOFR + 0.10% + 2.50%-3.50% margin (term benchmark); base rate + 1.50%-2.50% margin",
+      "maturity": null,
+      "term_months": 36,
+      "lender": "Bank of Montreal",
+      "borrower": null,
+      "related_party": false,
+      "secured": true,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 25,
+   "event_id": "5aba6e682509364790f8a31a9645326fcba93a8bd6708700c2cc673947255a89",
+   "ticker": "NAU.V",
+   "stratum": "tagged",
+   "body_sha1": "7c131243ce9f23880ed55bc5fab707b08487c7d6",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 26,
+   "event_id": "e9060ac6155d9e7d93375e3800a510845b656646776304f509b63f898e6ea6ed",
+   "ticker": "IMI.V",
+   "stratum": "tagged",
+   "body_sha1": "8412812e1aa4ac5709822e6bed6484064447597a",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "loan",
+      "stage": "amended",
+      "side": "borrower",
+      "principal": 1401632.29,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": null,
+      "lender": "599837 B.C. Ltd.",
+      "borrower": null,
+      "related_party": true,
+      "secured": true,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 27,
+   "event_id": "3709a60245fd250e483cf174de0f331d3e552dfde17bed5856dbdccbdc41315e",
+   "ticker": "MOLT.CN",
+   "stratum": "tagged",
+   "body_sha1": "785cf64e39434abdf56e166d9ac5a24d0123fdd9",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "loan",
+      "stage": "signed",
+      "side": "borrower",
+      "principal": 100000,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": 15,
+      "rate_text": null,
+      "maturity": "2025-03-07",
+      "term_months": null,
+      "lender": null,
+      "borrower": null,
+      "related_party": true,
+      "secured": null,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 28,
+   "event_id": "0385a177f38bd2e0e74a0cd02e527e148d4f885f",
+   "ticker": "CXC.CN",
+   "stratum": "tagged",
+   "body_sha1": "9e921bb1c3705c8381073129d7f7332eb4778ab4",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_debenture",
+      "stage": "amended",
+      "side": "borrower",
+      "principal": 295641,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": 6,
+      "rate_text": null,
+      "maturity": "2020-01-31",
+      "term_months": null,
+      "lender": null,
+      "borrower": null,
+      "related_party": false,
+      "secured": true,
+      "conversion_price": 0.125,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 29,
+   "event_id": "8696436a5504e1c2e5f222d3b974be1a3963deed",
+   "ticker": "APM.TO",
+   "stratum": "tagged",
+   "body_sha1": "f50ca6b6ea7c2124eb0b7f4bae38181d0b59ca5c",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "credit_facility",
+      "stage": "closed",
+      "side": "borrower",
+      "principal": 40000000,
+      "currency": "USD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": "SOFR + 4.25%",
+      "maturity": null,
+      "term_months": 24,
+      "lender": "National Bank of Canada",
+      "borrower": null,
+      "related_party": false,
+      "secured": null,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     },
+     {
+      "instrument": "loan",
+      "stage": "repaid",
+      "side": "borrower",
+      "principal": 36100000,
+      "currency": "USD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": null,
+      "lender": "CommerceWest (Main Street Lending Program)",
+      "borrower": null,
+      "related_party": false,
+      "secured": null,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     },
+     {
+      "instrument": "credit_facility",
+      "stage": "terminated",
+      "side": "borrower",
+      "principal": 25000000,
+      "currency": "USD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": null,
+      "lender": "Banco Santander International",
+      "borrower": null,
+      "related_party": false,
+      "secured": null,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 30,
+   "event_id": "a401c18954d3a2f3ff784ea5e445d40a48baf8d6",
+   "ticker": "AGMR.TO",
+   "stratum": "tagged",
+   "body_sha1": "9e31e0a6a18c808e20f1122fe06382e192241d1b",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "prepayment",
+      "stage": "proposed",
+      "side": "borrower",
+      "principal": 10000000,
+      "currency": "USD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": 60,
+      "lender": "Trafigura PTE Ltd.",
+      "borrower": null,
+      "related_party": false,
+      "secured": true,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": "Reliquias"
+     }
+    ]
+   }
+  },
+  {
+   "n": 31,
+   "event_id": "8138ecc6733bca62aa9314754457d950a1360fe3",
+   "ticker": "CACR.CN",
+   "stratum": "untagged look-alike",
+   "body_sha1": "a0f4ce9c257e9d5ba4ec78206b5590451e7dc767",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_debenture",
+      "stage": "amended",
+      "side": "borrower",
+      "principal": 3379956,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": null,
+      "maturity": "2021-03-31",
+      "term_months": null,
+      "lender": null,
+      "borrower": null,
+      "related_party": true,
+      "secured": null,
+      "conversion_price": null,
+      "conversion_text": "convertible at the Company's election into treasury units; price not stated",
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 32,
+   "event_id": "db4d8c048cfbf07f00dbeacf21d4e94527e23836",
+   "ticker": "LUN.TO",
+   "stratum": "tagged",
+   "body_sha1": "887693f96eb382bf5c1d0d26f173ce8b9735bfdb",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "credit_facility",
+      "stage": "amended",
+      "side": "borrower",
+      "principal": 4500000000,
+      "currency": "USD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": "adjusted SOFR + 1.45% to 2.50% (leverage-based sliding scale, unchanged)",
+      "maturity": "2031",
+      "term_months": null,
+      "lender": null,
+      "borrower": null,
+      "related_party": false,
+      "secured": null,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": "Vicuña Project"
+     }
+    ]
+   }
+  },
+  {
+   "n": 33,
+   "event_id": "7624c2079478eedf7777fa73483b96161aae4b64381ded643b39ee91193e4108",
+   "ticker": "GGO.V",
+   "stratum": "tagged",
+   "body_sha1": "75a8774a4ce41fc96b68e9347b3749cb149195c0",
+   "review": "corrected",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_debenture",
+      "stage": "interest_paid",
+      "side": "borrower",
+      "principal": 114398,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": null,
+      "lender": null,
+      "borrower": null,
+      "related_party": true,
+      "secured": null,
+      "conversion_price": null,
+      "conversion_text": "interest paid in 110,866 common shares (83,551 + 27,315)",
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 34,
+   "event_id": "d840b19d76042628711f9cd05ab2370abb51981a",
+   "ticker": "ABI.V",
+   "stratum": "tagged",
+   "body_sha1": "21b9e14cbdbcd35538a52e11b40813440d9bad2b",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "loan",
+      "stage": "amended",
+      "side": "borrower",
+      "principal": 12000000,
+      "currency": "USD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": null,
+      "lender": "Nebari Natural Resources Credit Fund II, LP",
+      "borrower": null,
+      "related_party": false,
+      "secured": null,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": 14395259,
+      "warrant_strike": 0.096,
+      "project": "Sleeping Giant"
+     }
+    ]
+   }
+  },
+  {
+   "n": 35,
+   "event_id": "b4b74f63f97882a532115412204c0121c905e71a",
+   "ticker": "GSVR.V",
+   "stratum": "tagged",
+   "body_sha1": "43068cd9cbeb937603767d5285121b0b023ee4fb",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "gold_loan",
+      "stage": "repaid",
+      "side": "borrower",
+      "principal": null,
+      "currency": "USD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": null,
+      "maturity": "2028-04",
+      "term_months": null,
+      "lender": "Ocean Partners UK Ltd.",
+      "borrower": null,
+      "related_party": false,
+      "secured": null,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 36,
+   "event_id": "c85fa1612ca6a68b56e8d30c6acb967a4e67a64b",
+   "ticker": "LVG.V",
+   "stratum": "tagged",
+   "body_sha1": "b2f0e0cb63d0c2d4ab245ce4ac9bdc362ad33a1f",
+   "review": "corrected",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_debenture",
+      "stage": "interest_paid",
+      "side": "borrower",
+      "principal": 44665.64,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": null,
+      "lender": null,
+      "borrower": null,
+      "related_party": false,
+      "secured": null,
+      "conversion_price": null,
+      "conversion_text": "interest paid in 148,886 common shares at $0.30",
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 37,
+   "event_id": "3e6b121529bfcaed6b57aee2180b9512dfc199dc44b0041466eb31ae2472a697",
+   "ticker": "CACR.CN",
+   "stratum": "untagged look-alike",
+   "body_sha1": "202a3e2963b5492dabd0a66b5fcc805d768dda39",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 38,
+   "event_id": "453bcc2b57220dbfae0ab2ca17eee24d6ad6ea62",
+   "ticker": "GRHK.CN",
+   "stratum": "tagged",
+   "body_sha1": "5dfeb0cd610039c4f1c049a2d7ececf1168f50ca",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "loan",
+      "stage": "closed",
+      "side": "borrower",
+      "principal": 5000000,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": null,
+      "lender": "Cryptologic Corp.",
+      "borrower": null,
+      "related_party": false,
+      "secured": true,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 39,
+   "event_id": "b0ecdb82aff59b5e8646d5f471890d24ad808a488412687ae508feeb5771cdf0",
+   "ticker": "CACR.CN",
+   "stratum": "tagged",
+   "body_sha1": "e0fbf84e1297864613339af3afeddfb91d87b681",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_debenture",
+      "stage": "proposed",
+      "side": "borrower",
+      "principal": 5000000,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": 12,
+      "rate_text": null,
+      "maturity": "2023-06-30",
+      "term_months": null,
+      "lender": null,
+      "borrower": null,
+      "related_party": false,
+      "secured": null,
+      "conversion_price": null,
+      "conversion_text": "convertible at holder's option anytime (or Company's after 1st anniversary) into units at $15 per Unit; each Unit = 2 KWG.A shares + 1 warrant exercisable at $9.60 to Dec 15, 2023",
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 40,
+   "event_id": "564d2bd5a2142e29341d99b23b82623616a4aec4",
+   "ticker": "FT.TO",
+   "stratum": "tagged",
+   "body_sha1": "46f632bf025008846fe97a3e10ee7c2c8d8148f2",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "loan",
+      "stage": "signed",
+      "side": "borrower",
+      "principal": 3800000,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": 8.45,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": 60,
+      "lender": "Prosper NWT",
+      "borrower": null,
+      "related_party": false,
+      "secured": true,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": "NICO Project"
+     }
+    ]
+   }
+  },
+  {
+   "n": 41,
+   "event_id": "c7bedb5a89eaf3e851ea081ff9be034e4916a926",
+   "ticker": "EOX.V",
+   "stratum": "tagged",
+   "body_sha1": "c105e8ad15bbdb027484db310aac8fcddea213df",
+   "review": "corrected",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_debenture",
+      "stage": "interest_paid",
+      "side": "borrower",
+      "principal": 355484.65,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": null,
+      "lender": "European Bank for Reconstruction and Development (EBRD)",
+      "borrower": null,
+      "related_party": true,
+      "secured": null,
+      "conversion_price": null,
+      "conversion_text": "interest settled with 23,698,977 common shares at C$0.015",
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 42,
+   "event_id": "547fd8db25d8b915dd717031f39b3d7fb092edea",
+   "ticker": "SRS.CN",
+   "stratum": "tagged",
+   "body_sha1": "bdf229c7d0da872046e051bc8cdd2cd275f7660c",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "loan",
+      "stage": "closed",
+      "side": "borrower",
+      "principal": 175000,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": 0,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": null,
+      "lender": "Canal Front Investments Inc. and other lenders",
+      "borrower": null,
+      "related_party": true,
+      "secured": false,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 43,
+   "event_id": "7b07b3620c8665cecd02fa21ddf2485c6b781aea",
+   "ticker": "FM.TO",
+   "stratum": "untagged look-alike",
+   "body_sha1": "fc7e349e73897dfe847e3b9829f5f9d3f3188cb9",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "notes",
+      "stage": "repaid",
+      "side": "borrower",
+      "principal": 250000000,
+      "currency": "USD",
+      "principal_total": null,
+      "rate_pct": 9.375,
+      "rate_text": null,
+      "maturity": "2029",
+      "term_months": null,
+      "lender": null,
+      "borrower": null,
+      "related_party": false,
+      "secured": true,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 44,
+   "event_id": "8fbe822feb07c793c98a770e3f703b47af0b57ef62716d7e3db83a38447088d7",
+   "ticker": "LVG.V",
+   "stratum": "tagged",
+   "body_sha1": "b11433953a7bd08f39859caf5b7c5863e395a318",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_debenture",
+      "stage": "closed",
+      "side": "borrower",
+      "principal": 300000,
+      "currency": "CAD",
+      "principal_total": 3834200,
+      "rate_pct": 5,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": 36,
+      "lender": null,
+      "borrower": null,
+      "related_party": false,
+      "secured": false,
+      "conversion_price": 0.3,
+      "conversion_text": null,
+      "warrants": 499997,
+      "warrant_strike": 0.4,
+      "project": "Imwelo"
+     }
+    ]
+   }
+  },
+  {
+   "n": 45,
+   "event_id": "165df814bd32bdeff2e989a74bfaf985ba069fe18cc220c00c6eeab9a9c365c8",
+   "ticker": "LVG.V",
+   "stratum": "tagged",
+   "body_sha1": "26a8ac1d338ca353f2da6eceaf865e905a0f030a",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "gold_loan",
+      "stage": "proposed",
+      "side": "borrower",
+      "principal": 25000000,
+      "currency": "USD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": null,
+      "lender": "Monetary Metals & Co.",
+      "borrower": null,
+      "related_party": false,
+      "secured": null,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": "Imwelo"
+     }
+    ]
+   }
+  },
+  {
+   "n": 46,
+   "event_id": "f2a987c6dfce41dab1a29dd2a00f4ebf584b33ac25882c55baf11c4d9f3e974d",
+   "ticker": "RMES.CN",
+   "stratum": "tagged",
+   "body_sha1": "b17125c3969a07be97fc1d647e841c5be27a54c8",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "loan",
+      "stage": "amended",
+      "side": "borrower",
+      "principal": 1911451.33,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": 8,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": 60,
+      "lender": "Caitlin Jeffs, Joao (John) Da Costa, Richard Jeffs and arm's length creditors",
+      "borrower": null,
+      "related_party": true,
+      "secured": null,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 47,
+   "event_id": "490ce930341b15c1a07563ad5529864887bb0076",
+   "ticker": "ABI.V",
+   "stratum": "tagged",
+   "body_sha1": "495751ffb330a75ec6c4342418d192e6d4a208b7",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "credit_facility",
+      "stage": "proposed",
+      "side": "borrower",
+      "principal": 30000000,
+      "currency": "USD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": "1-Month SOFR + 2.5%",
+      "maturity": null,
+      "term_months": 60,
+      "lender": "Glencore AG",
+      "borrower": null,
+      "related_party": false,
+      "secured": null,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": 68905000,
+      "warrant_strike": 0.15,
+      "project": "Flordin"
+     }
+    ]
+   }
+  },
+  {
+   "n": 48,
+   "event_id": "ca3d7e40d3fa18865edd791b248f13aebc809526",
+   "ticker": "NGC.V",
+   "stratum": "untagged look-alike",
+   "body_sha1": "d6e59cfb46dc4aec1b056e079907313f98c30ee7",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "loan",
+      "stage": "repaid",
+      "side": "borrower",
+      "principal": 16000000,
+      "currency": "USD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": null,
+      "lender": "Sprott Resource Streaming and Royalty Corp.",
+      "borrower": null,
+      "related_party": false,
+      "secured": true,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 49,
+   "event_id": "87da2a0f706d51056b3b40c1c248ca511d2a09acc5aa515a3410924ed1ed15c1",
+   "ticker": "NXU.CN",
+   "stratum": "tagged",
+   "body_sha1": "cc5c505601b8c4daa35f4cec0cf73dd6ddf39ea7",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_debenture",
+      "stage": "proposed",
+      "side": "borrower",
+      "principal": 2000000,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": 10,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": 12,
+      "lender": null,
+      "borrower": null,
+      "related_party": false,
+      "secured": false,
+      "conversion_price": 0.225,
+      "conversion_text": "Converts automatically into units at maturity at $0.225 per unit if the Soter acquisition has not closed; otherwise at the greater of $0.225 and 75% of the concurrent financing price. Each unit is one share plus half a warrant.",
+      "warrants": null,
+      "warrant_strike": 0.75,
+      "project": null
+     },
+     {
+      "instrument": "loan",
+      "stage": "proposed",
+      "side": "lender",
+      "principal": null,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": null,
+      "lender": null,
+      "borrower": "Soter Technologies, LLC",
+      "related_party": null,
+      "secured": null,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 50,
+   "event_id": "40dd3e29cde75a5b679c7f8d5c3f671b57b984ee",
+   "ticker": "ITR.V",
+   "stratum": "tagged",
+   "body_sha1": "e102ef559baf2989dfe812eb27925ea3388f5f6e",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_debenture",
+      "stage": "converted",
+      "side": "borrower",
+      "principal": 15000000,
+      "currency": "USD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": null,
+      "lender": "Beedie Investment Ltd. (Beedie Capital)",
+      "borrower": null,
+      "related_party": false,
+      "secured": true,
+      "conversion_price": 1.22,
+      "conversion_text": "12,295,081 shares at deemed C$1.6875 (US$1.22) per share",
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 51,
+   "event_id": "091595d2edb16aa6b9a0f8ac8f5eb03af4767ddd",
+   "ticker": "GGO.V",
+   "stratum": "round2 convertible",
+   "body_sha1": "66fcf457d5a7bb563cff20514b9e414f995c8c22",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_debenture",
+      "stage": "closed",
+      "side": "borrower",
+      "principal": 1000000,
+      "currency": "CAD",
+      "principal_total": 7500000,
+      "rate_pct": 8,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": 36,
+      "lender": null,
+      "borrower": null,
+      "related_party": false,
+      "secured": null,
+      "conversion_price": 0.3,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": "West Cache Gold Project"
+     }
+    ]
+   }
+  },
+  {
+   "n": 52,
+   "event_id": "2ced410e7c46c7242583e82be0950de82d902f70b38361b3e5a2851a3c1fc5ac",
+   "ticker": "EMPS.CN",
+   "stratum": "round2 convertible",
+   "body_sha1": "9780a9e13b796e27d8657591b61bce86b1887430",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_note",
+      "stage": "amended",
+      "side": "borrower",
+      "principal": 3000000,
+      "currency": "USD",
+      "principal_total": null,
+      "rate_pct": 13.5,
+      "rate_text": null,
+      "maturity": "2027-06-30",
+      "term_months": null,
+      "lender": "Tembo Capital Holdings Guernsey Limited",
+      "borrower": null,
+      "related_party": false,
+      "secured": null,
+      "conversion_price": 0.425,
+      "conversion_text": null,
+      "warrants": 485294,
+      "warrant_strike": 0.425,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 53,
+   "event_id": "42f079209ef2f66b68c2a1f3b216401954cf0ccbbd21dca58e50d8c5e4464c2a",
+   "ticker": "WDGY.CN",
+   "stratum": "round2 convertible",
+   "body_sha1": "e84ff732829dc3e025e49b4bd2ea5af83df6bc3a",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_debenture",
+      "stage": "closed",
+      "side": "borrower",
+      "principal": 745000,
+      "currency": "CAD",
+      "principal_total": 2450000,
+      "rate_pct": 10,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": 36,
+      "lender": null,
+      "borrower": null,
+      "related_party": true,
+      "secured": false,
+      "conversion_price": 0.17,
+      "conversion_text": null,
+      "warrants": 2941,
+      "warrant_strike": 0.3,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 54,
+   "event_id": "44b8eb55271ae3209a009b43ff29268e96e18c7773e43611424c63b7402d0e73",
+   "ticker": "LEO.CN",
+   "stratum": "round2 convertible",
+   "body_sha1": "375963552d44e8a4657eca1652f6a23f5f2f7b7c",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_debenture",
+      "stage": "proposed",
+      "side": "borrower",
+      "principal": 2500000,
+      "currency": "USD",
+      "principal_total": null,
+      "rate_pct": 12,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": 12,
+      "lender": null,
+      "borrower": null,
+      "related_party": true,
+      "secured": true,
+      "conversion_price": 0.0965,
+      "conversion_text": null,
+      "warrants": 25906735,
+      "warrant_strike": 0.0965,
+      "project": "Yerington"
+     }
+    ]
+   }
+  },
+  {
+   "n": 55,
+   "event_id": "72a7a4f44581560552955ba8cbee70fe16aa3f7a",
+   "ticker": "AUEN.V",
+   "stratum": "round2 convertible",
+   "body_sha1": "b6080d84c8018eb8e89b713578334689d973351d",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_debenture",
+      "stage": "signed",
+      "side": "borrower",
+      "principal": 220000,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": 9,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": 6,
+      "lender": "Rob McEwen",
+      "borrower": null,
+      "related_party": false,
+      "secured": null,
+      "conversion_price": 0.11,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": "Rayfield Project"
+     }
+    ]
+   }
+  },
+  {
+   "n": 56,
+   "event_id": "76910683460df77e39b35df79cd1e2b77dfe1b11",
+   "ticker": "EU.V",
+   "stratum": "round2 convertible",
+   "body_sha1": "10100d811d04b031855451f39d6c56d65df8ae37",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_note",
+      "stage": "signed",
+      "side": "borrower",
+      "principal": 100000000,
+      "currency": "USD",
+      "principal_total": null,
+      "rate_pct": 5.5,
+      "rate_text": null,
+      "maturity": "2030-08-15",
+      "term_months": null,
+      "lender": null,
+      "borrower": null,
+      "related_party": false,
+      "secured": false,
+      "conversion_price": 3.29,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 57,
+   "event_id": "965a0937725737f8d2f48abb7c3aeeb93b1f7c78",
+   "ticker": "BTO.TO",
+   "stratum": "round2 convertible",
+   "body_sha1": "0e0a2515bf84cdda66ef6b7134eda3bc47212530",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_note",
+      "stage": "signed",
+      "side": "borrower",
+      "principal": 400000000,
+      "currency": "USD",
+      "principal_total": null,
+      "rate_pct": 2.75,
+      "rate_text": null,
+      "maturity": "2030",
+      "term_months": null,
+      "lender": null,
+      "borrower": null,
+      "related_party": false,
+      "secured": false,
+      "conversion_price": 3.17,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 58,
+   "event_id": "a2677ea6a8ffc5be1e689e2982717fe1ae333e11",
+   "ticker": "IAU.TO",
+   "stratum": "round2 convertible",
+   "body_sha1": "5179e7be21d556501742836eb04d1c06bf325698",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_debenture",
+      "stage": "amended",
+      "side": "borrower",
+      "principal": 65000000,
+      "currency": "USD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": null,
+      "lender": null,
+      "borrower": null,
+      "related_party": false,
+      "secured": true,
+      "conversion_price": null,
+      "conversion_text": "interest conversion price changed to the 5-day VWAP less 15%; new 104% cash redemption right",
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 59,
+   "event_id": "abbc28959bb58d15edd11ddea3b785da13db8eb0",
+   "ticker": "BRS.CN",
+   "stratum": "round2 convertible",
+   "body_sha1": "978c8b0b8e7fd5b11a306d295253504edf5fadc0",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_debenture",
+      "stage": "converted",
+      "side": "borrower",
+      "principal": 242000,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": null,
+      "maturity": "2025-08-31",
+      "term_months": null,
+      "lender": null,
+      "borrower": null,
+      "related_party": false,
+      "secured": null,
+      "conversion_price": 0.1,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 60,
+   "event_id": "b9b3071c86e8479db625421837955e1f6eae9c7cfc61dcc0dd06c5b10fc48980",
+   "ticker": "NOM.CN",
+   "stratum": "round2 convertible",
+   "body_sha1": "c1b9772f7abedba6ea56330322f46a156d6d89ab",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_debenture",
+      "stage": "closed",
+      "side": "borrower",
+      "principal": 3000000,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": 8,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": 24,
+      "lender": null,
+      "borrower": null,
+      "related_party": false,
+      "secured": true,
+      "conversion_price": 0.11,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": "Choquelimpie"
+     }
+    ]
+   }
+  },
+  {
+   "n": 61,
+   "event_id": "cdcbde5960c7d0a91447217b21f77e13f344d11c",
+   "ticker": "PGLD.V",
+   "stratum": "round2 convertible",
+   "body_sha1": "cbeef3f31aec4ce23d7df788c4ef296371f2307f",
+   "review": "corrected",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_debenture",
+      "stage": "interest_paid",
+      "side": "borrower",
+      "principal": 42270,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": null,
+      "lender": null,
+      "borrower": null,
+      "related_party": false,
+      "secured": null,
+      "conversion_price": null,
+      "conversion_text": "interest paid in 63,079 common shares",
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 62,
+   "event_id": "cee98c49dd8309c2b0c42220c79dd4712a241aea",
+   "ticker": "SLA.CN",
+   "stratum": "round2 convertible",
+   "body_sha1": "13fdd2062c0d96cd1d5ab5ea65f58bce42cdb735",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_debenture",
+      "stage": "amended",
+      "side": "borrower",
+      "principal": 1675000,
+      "currency": "CAD",
+      "principal_total": null,
+      "rate_pct": 3,
+      "rate_text": null,
+      "maturity": "2025-03-31",
+      "term_months": null,
+      "lender": null,
+      "borrower": null,
+      "related_party": true,
+      "secured": false,
+      "conversion_price": 0.4,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 63,
+   "event_id": "e3775f7daf08d6937a1a42086739829273f2f94523bdffc6cb0adcb7afda8a0b",
+   "ticker": "JG.V",
+   "stratum": "round2 convertible",
+   "body_sha1": "94aa1d290196d7cf125bf97521e1e56b07e90de3",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_debenture",
+      "stage": "closed",
+      "side": "borrower",
+      "principal": 1000000,
+      "currency": "USD",
+      "principal_total": null,
+      "rate_pct": 10,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": 36,
+      "lender": "Equinox Partners Investment Management, LLC",
+      "borrower": null,
+      "related_party": true,
+      "secured": false,
+      "conversion_price": null,
+      "conversion_text": "the Company may pay in shares at the greater of market price, $0.11 and a future financing price",
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 64,
+   "event_id": "ebccd46cb6ecfb5b2c1d34f8aa9d5127246acbc2",
+   "ticker": "EU.V",
+   "stratum": "round2 convertible",
+   "body_sha1": "53873ed37841b67b2a5f60cfb11969155a304b13",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEBT_SET_LABELS_CONFIRMED_2026-09-24.json",
+   "expect": {
+    "is_debt": true,
+    "complete": true,
+    "rows": [
+     {
+      "instrument": "convertible_note",
+      "stage": "closed",
+      "side": "borrower",
+      "principal": 115000000,
+      "currency": "USD",
+      "principal_total": null,
+      "rate_pct": 5.5,
+      "rate_text": null,
+      "maturity": "2030",
+      "term_months": null,
+      "lender": null,
+      "borrower": null,
+      "related_party": false,
+      "secured": null,
+      "conversion_price": 3.2895,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     },
+     {
+      "instrument": "loan",
+      "stage": "repaid",
+      "side": "borrower",
+      "principal": 10600000,
+      "currency": "USD",
+      "principal_total": null,
+      "rate_pct": null,
+      "rate_text": null,
+      "maturity": null,
+      "term_months": null,
+      "lender": null,
+      "borrower": null,
+      "related_party": false,
+      "secured": null,
+      "conversion_price": null,
+      "conversion_text": null,
+      "warrants": null,
+      "warrant_strike": null,
+      "project": null
+     }
+    ]
+   }
+  }
+ ]
+}

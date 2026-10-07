@@ -1,0 +1,1648 @@
+{
+ "schema": 1,
+ "tag": "Mine Development & Operations",
+ "row_shape": "one row per headline event a release reports for the issuer's own mine, plant or project: build milestones, operating status, incidents, offtakes, shipments and contracts; event type, mine, status (achieved / underway / planned), with the date, capex, % complete and figures reported",
+ "name": "mine_dev",
+ "status": "confirmed",
+ "created": "2026-09-28",
+ "reviewer": "Justin",
+ "reviewed_at": "2026-09-28",
+ "items": [
+  {
+   "n": 1,
+   "event_id": "9113656e23ed4a341f1697cbf01928ecdba058e3",
+   "ticker": "KNT.TO",
+   "stratum": "tagged_random",
+   "body_sha1": "5b40b60f45f3293a39e42d38739ec17fa8e5a3ea",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 2,
+   "event_id": "320705a3a287bfa623ab19de1393f0ed0ad575b2",
+   "ticker": "AGI.TO",
+   "stratum": "tagged_figures",
+   "body_sha1": "64aa2c5d366c67d4ba4392578076b4cbcedca0be",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "construction_decision",
+      "mine": "La Yaqui Grande",
+      "status": "achieved",
+      "capex": {
+       "value": 137000000,
+       "value_high": null,
+       "currency": null,
+       "basis": "budget"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "n": 3,
+   "event_id": "479289dcc57c5339de08a9edaf859b17d5bc859c",
+   "ticker": "MSA.TO",
+   "stratum": "tagged_random",
+   "body_sha1": "7ead7875a4f3ed783f834a2cbe83d7f2b24808d0",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "suspension",
+      "mine": "Hemco",
+      "status": "achieved"
+     }
+    ]
+   }
+  },
+  {
+   "n": 4,
+   "event_id": "d2b03533c23438f4eb5fda2daa0a640f9b03fb4e",
+   "ticker": "LGO.TO",
+   "stratum": "tagged_figures",
+   "body_sha1": "e708a6e046c95d8813f72ada6154f59e0b02badb",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "expansion",
+      "mine": "Maracás Menchen Mine",
+      "status": "achieved",
+      "capex": {
+       "value": 15500000,
+       "value_high": null,
+       "currency": "USD",
+       "basis": "budget"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "n": 5,
+   "event_id": "f9c7085ee5d3174ca30b0bd52c2e1935a848dfa0",
+   "ticker": "SGML.V",
+   "stratum": "tagged_random",
+   "body_sha1": "5eee9f8b8de0623498fce6c118c1a8d7956bb374",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "offtake",
+      "status": "achieved",
+      "counterparty": "LG Energy Solution"
+     }
+    ]
+   }
+  },
+  {
+   "n": 6,
+   "event_id": "26605124f5cfc6658c95e47c7c70ec091c095cac",
+   "ticker": "SSRM.TO",
+   "stratum": "tagged_random",
+   "body_sha1": "b5e1142786a24c68f036275471f48c73116cf19d",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "incident",
+      "mine": "Marigold",
+      "status": "achieved",
+      "event_date": "2017-10-31",
+      "incident_kind": "fatality"
+     },
+     {
+      "event_type": "suspension",
+      "mine": "Marigold",
+      "status": "achieved",
+      "event_date": "2017-10-31"
+     }
+    ]
+   }
+  },
+  {
+   "n": 7,
+   "event_id": "79ebe4c5525ef5c7875a9ba7762691861124220b",
+   "ticker": "PPTA.TO",
+   "stratum": "lookalike",
+   "body_sha1": "d897c41915080ee958ac4ea2791e6a142c4ffd24",
+   "review": "corrected",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "site_cleanup",
+      "mine": "Stibnite Gold Project",
+      "status": "achieved"
+     },
+     {
+      "event_type": "contract",
+      "mine": "Stibnite Gold Project",
+      "status": "achieved"
+     }
+    ]
+   }
+  },
+  {
+   "n": 8,
+   "event_id": "042df0aa761fc8f39b02cad0178994f8617a0a44214e2265cc401b2b16ab7e36",
+   "ticker": "SICO.V",
+   "stratum": "tagged_figures",
+   "body_sha1": "9598aa1ed5a2f13ea91db2b54fca45efd47998ba",
+   "review": "corrected",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "restart",
+      "mine": "Cusi",
+      "status": "underway",
+      "event_date": "2026-07-23",
+      "capex": {
+       "value": 19200000,
+       "value_high": null,
+       "currency": "USD",
+       "basis": "budget"
+      },
+      "pct_complete": 68
+     },
+     {
+      "event_type": "infrastructure",
+      "mine": "Cusi",
+      "status": "achieved"
+     }
+    ]
+   }
+  },
+  {
+   "n": 9,
+   "event_id": "90a563b9b646a8842efb7891f34080d3b3d4867abc945f5330f8e89378e8793d",
+   "ticker": "BLLG.CN",
+   "stratum": "tagged_random",
+   "body_sha1": "92bf72122dd59e1d980042d69a6b54e68c67cb05",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 10,
+   "event_id": "46ec7a6757331ab0d9bb4c1be1e5d4b824ed9d15",
+   "ticker": "LUCA.V",
+   "stratum": "tagged_random",
+   "body_sha1": "b3dfc2728949700921bc8b4b281f0f48b9d06299",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "shipment",
+      "mine": "Tahuehueto",
+      "status": "achieved",
+      "event_date": "2017-08-11",
+      "figures": [
+       {
+        "metric": "shipment",
+        "value": 129,
+        "unit": "dry tonnes concentrate",
+        "metal": "zinc"
+       },
+       {
+        "metric": "shipment",
+        "value": 62,
+        "unit": "dry tonnes concentrate",
+        "metal": "lead"
+       },
+       {
+        "metric": "shipment",
+        "value": 227.5,
+        "unit": "dry tonnes concentrate (cumulative pre-production)",
+        "metal": "zinc"
+       },
+       {
+        "metric": "shipment",
+        "value": 128.7,
+        "unit": "tonnes concentrate (cumulative pre-production)",
+        "metal": "lead"
+       },
+       {
+        "metric": "throughput",
+        "value": 4260,
+        "unit": "tonnes ore processed to date",
+        "metal": null
+       },
+       {
+        "metric": "recovery_pct",
+        "value": 83.5,
+        "unit": "%",
+        "metal": "gold"
+       },
+       {
+        "metric": "recovery_pct",
+        "value": 89.3,
+        "unit": "%",
+        "metal": "silver"
+       },
+       {
+        "metric": "recovery_pct",
+        "value": 86.1,
+        "unit": "%",
+        "metal": "lead"
+       },
+       {
+        "metric": "recovery_pct",
+        "value": 85.4,
+        "unit": "%",
+        "metal": "zinc"
+       }
+      ],
+      "counterparty": "Mercuria"
+     },
+     {
+      "event_type": "suspension",
+      "mine": "Atocha Mill",
+      "status": "planned"
+     }
+    ]
+   }
+  },
+  {
+   "n": 11,
+   "event_id": "a738aa4f6e4576c0459d36ca485ea4d818d3d2d4",
+   "ticker": "SGLD.V",
+   "stratum": "tagged_random",
+   "body_sha1": "bd3aafef50a966f67ed094260835ff303a1d5821",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 12,
+   "event_id": "9cc04dbe57182dd90c003d2d77dce90a93546722",
+   "ticker": "ARTG.V",
+   "stratum": "tagged_random",
+   "body_sha1": "834b4088f9f9e3d9d88d7fbc33b0a21b191743b5",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "construction_progress",
+      "mine": "Blackwater Mine",
+      "status": "underway",
+      "event_date": "2024-06-30",
+      "capex": {
+       "value": 730000000,
+       "value_high": 750000000,
+       "currency": "CAD",
+       "basis": "budget"
+      },
+      "pct_complete": 87,
+      "counterparty": "Sedgman"
+     },
+     {
+      "event_type": "incident",
+      "mine": "Blackwater Mine",
+      "status": "achieved",
+      "event_date": "2024-07-22",
+      "incident_kind": "weather"
+     }
+    ]
+   }
+  },
+  {
+   "n": 13,
+   "event_id": "7952d84a51f848653976eb43ed44fe3fef265073",
+   "ticker": "MMY.V",
+   "stratum": "tagged_figures",
+   "body_sha1": "09024f5f384828fd4ee684864a7237f97f42fb25",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "expansion",
+      "mine": "Selinsing Gold Mine",
+      "status": "underway",
+      "figures": [
+       {
+        "metric": "output",
+        "value": 93000,
+        "unit": "t",
+        "metal": null
+       }
+      ],
+      "counterparty": "Minetech Resources Berhad"
+     }
+    ]
+   }
+  },
+  {
+   "n": 14,
+   "event_id": "d10ef72f01b326bdf900f300eca3047f94c02626",
+   "ticker": "LUC.TO",
+   "stratum": "tagged_random",
+   "body_sha1": "e53f53d673e7f49e94a40f6d64fabe61a65f35e9",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "contract",
+      "mine": "Karowe",
+      "status": "achieved",
+      "counterparty": "Aveng Moolmans"
+     }
+    ]
+   }
+  },
+  {
+   "n": 15,
+   "event_id": "f6fcbdc5618f8fe38a3576409cd8c7e028b0453e",
+   "ticker": "MCI.V",
+   "stratum": "tagged_random",
+   "body_sha1": "afc68c0ed7c185688b9fd4ecea762bf99967dc65",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 16,
+   "event_id": "fb43f9a3b7912bcfe49d4eeee5917247e91f872a",
+   "ticker": "SLI.V",
+   "stratum": "lookalike",
+   "body_sha1": "264565edf0f7864f2cfa40857ed5949fc1ed6cc4",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 17,
+   "event_id": "80c88fd98599c51e29d2483463a7d3760eb3eaa2",
+   "ticker": "MNO.TO",
+   "stratum": "tagged_random",
+   "body_sha1": "55d4e7834ffa7cc82f6a2b712411cc20845ca1e4",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "care_maintenance",
+      "mine": "Espigão d'Oeste",
+      "status": "achieved"
+     }
+    ]
+   }
+  },
+  {
+   "n": 18,
+   "event_id": "382214bfcb27a27ffa3dea7ddcf191a97e4455f3",
+   "ticker": "TMQ.TO",
+   "stratum": "tagged_random",
+   "body_sha1": "dd94b323f4315c26ee94d03bdf5f37fda5938f22",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 19,
+   "event_id": "e0c3ed996fdb0c459663544f94c73c0531a43070",
+   "ticker": "SLI.V",
+   "stratum": "lookalike",
+   "body_sha1": "cb7e4a3550663baa0a3fd56345ab419576b8159b",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 20,
+   "event_id": "6dc9bda062c5805cb65f33752555767395fdd95b",
+   "ticker": "LIO.V",
+   "stratum": "tagged_random",
+   "body_sha1": "917cc2af3a753997405b247532ebc4cf2a03da1f",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "infrastructure",
+      "mine": "Tuvatu Gold Mine",
+      "status": "achieved"
+     }
+    ]
+   }
+  },
+  {
+   "n": 21,
+   "event_id": "3b01ace8ab4b27ca93620c01abb3cce234300de7",
+   "ticker": "SGML.V",
+   "stratum": "tagged_random",
+   "body_sha1": "9f4fe53122d2cc3270b0afca7d2e0aa228dc1f39",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "shipment",
+      "mine": "Grota do Cirilo",
+      "status": "planned",
+      "event_date": "2023-11-27",
+      "figures": [
+       {
+        "metric": "shipment",
+        "value": 22000,
+        "unit": "t",
+        "metal": "lithium concentrate"
+       }
+      ],
+      "counterparty": "Glencore"
+     }
+    ]
+   }
+  },
+  {
+   "n": 22,
+   "event_id": "c7f875036f3da94a93d6891da88e4745ed295df705165eb91e8702151120bd74",
+   "ticker": "KUYA.CN",
+   "stratum": "tagged_figures",
+   "body_sha1": "356b1f79a883bf333cd1060c4ca1f26c6cb30529",
+   "review": "corrected",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "contract",
+      "mine": "Bethania",
+      "status": "achieved",
+      "counterparty": "Compañía Minera San Valentin"
+     },
+     {
+      "event_type": "restart",
+      "mine": "Bethania",
+      "status": "planned"
+     }
+    ]
+   }
+  },
+  {
+   "n": 23,
+   "event_id": "9e2d25c31f2ac7d4b485151632af646c152df226",
+   "ticker": "TI.TO",
+   "stratum": "tagged_random",
+   "body_sha1": "6a89ff89a0ab0e7a6dfe96ec3609f808ff1000c3",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "suspension",
+      "mine": "Empire State Mine",
+      "status": "underway"
+     }
+    ]
+   }
+  },
+  {
+   "n": 24,
+   "event_id": "e7fd19a8175615049b9e5b7951d7bcf503e39508",
+   "ticker": "CACR.CN",
+   "stratum": "tagged_random",
+   "body_sha1": "83074fb8349b119a9cd44a192888c4e90997ce47",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 25,
+   "event_id": "e687c1efdb8d22d9d5f2be76d86d07c8f30e738e",
+   "ticker": "IVN.TO",
+   "stratum": "tagged_random",
+   "body_sha1": "274a6dfce24b4177181198f9d31c9e1b3bc8cb22",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "infrastructure",
+      "mine": "Platreef",
+      "status": "underway"
+     }
+    ]
+   }
+  },
+  {
+   "n": 26,
+   "event_id": "3879d18e343e976692de47c00a774a4b0fe8efd4",
+   "ticker": "LUCA.V",
+   "stratum": "tagged_random",
+   "body_sha1": "f48e007b84ced742c34125692b1cafa914650fa3",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 27,
+   "event_id": "54a94958ffa472eb88f350a5353d8284adfca9b0",
+   "ticker": "PPTA.TO",
+   "stratum": "tagged_figures",
+   "body_sha1": "6025a9f501357ae072c34c46b396caa0cce01051",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "construction_start",
+      "mine": "Stibnite Gold Project",
+      "status": "achieved",
+      "event_date": "2025-10-21"
+     }
+    ]
+   }
+  },
+  {
+   "n": 28,
+   "event_id": "2b1e5c9c9b1c7570bebdd3afd07c23ab06d30e89",
+   "ticker": "TVI.V",
+   "stratum": "tagged_random",
+   "body_sha1": "aac05970a0fd66c21b2df391f104a3fd5cc2e32b",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "construction_progress",
+      "mine": "Balabag",
+      "status": "underway"
+     }
+    ]
+   }
+  },
+  {
+   "n": 29,
+   "event_id": "bcb0d6765a459d6e56382806c307dcba9eb323dc",
+   "ticker": "RIO.TO",
+   "stratum": "tagged_figures",
+   "body_sha1": "53fd54e51309b979de4e0ecce81b7b9ee5f4950b",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "construction_progress",
+      "mine": "Fenix Gold",
+      "status": "underway",
+      "event_date": "2025-Q1",
+      "capex": {
+       "value": 30100000,
+       "value_high": null,
+       "currency": "USD",
+       "basis": "spent"
+      },
+      "pct_complete": 19
+     }
+    ]
+   }
+  },
+  {
+   "n": 30,
+   "event_id": "de2a84b0b77c8ef478c2eb88ac698e987d4bef09",
+   "ticker": "MAI.V",
+   "stratum": "tagged_random",
+   "body_sha1": "2edc68560ade5dc87ed42d89748d361d288970b7",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "status_update",
+      "mine": "Santana Project",
+      "status": "underway",
+      "event_date": "2023-Q1"
+     }
+    ]
+   }
+  },
+  {
+   "n": 31,
+   "event_id": "5dc41ec5ad15af2248c047dbe4b7ab706ebfa744",
+   "ticker": "RTG.TO",
+   "stratum": "tagged_random",
+   "body_sha1": "fc1ba29b639d76fd56eb40caa79510a158bd4a54",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "offtake",
+      "mine": "Mabilo Project",
+      "status": "achieved",
+      "counterparty": "Glencore International AG"
+     }
+    ]
+   }
+  },
+  {
+   "n": 32,
+   "event_id": "c5c2cb2670ff771f72302ed04274b269890e85b0",
+   "ticker": "GCU.TO",
+   "stratum": "lookalike",
+   "body_sha1": "e4c46d497d61c0a368ee7f665608984afaff6a12",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 33,
+   "event_id": "acdb2e8ee84f7925b7af7b7abac1c428e1f3748a",
+   "ticker": "SXTY.CN",
+   "stratum": "lookalike",
+   "body_sha1": "bde960ab0a01054950dc8b82d0ea9e77045eb494",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "restart",
+      "mine": "Mon Gold Mine",
+      "status": "planned"
+     }
+    ]
+   }
+  },
+  {
+   "n": 34,
+   "event_id": "96e341282be3204ca0dd503638b592330399543a",
+   "ticker": "BTO.TO",
+   "stratum": "tagged_figures",
+   "body_sha1": "28a80a287f69cffd94194d7adbcd573cc915a319",
+   "review": "corrected",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "construction_progress",
+      "mine": "Fekola Mine",
+      "status": "achieved",
+      "event_date": "2017-09"
+     },
+     {
+      "event_type": "commissioning",
+      "mine": "Fekola Mine",
+      "status": "achieved",
+      "event_date": "2017-09"
+     },
+     {
+      "event_type": "first_production",
+      "mine": "Fekola Mine",
+      "status": "achieved",
+      "event_date": "2017-10-07"
+     },
+     {
+      "event_type": "commercial_production",
+      "mine": "Fekola Mine",
+      "status": "achieved",
+      "event_date": "2017-11-30"
+     },
+     {
+      "event_type": "ramp_up",
+      "mine": "Fekola Mine",
+      "status": "achieved",
+      "event_date": "2017",
+      "figures": [
+       {
+        "metric": "output",
+        "value": 111450,
+        "unit": "oz",
+        "metal": "gold"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "n": 35,
+   "event_id": "21ee405386551ccfe6022074757745b0388a8f90",
+   "ticker": "ASE.V",
+   "stratum": "tagged_random",
+   "body_sha1": "99574677affa130fc34491bc1a54086e29cbb776",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "ramp_up",
+      "mine": "Bibiani",
+      "status": "underway",
+      "figures": [
+       {
+        "metric": "output",
+        "value": 7000,
+        "unit": "oz/month",
+        "metal": "gold"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "n": 36,
+   "event_id": "b84a1c61173791df00a256f11f341717e11c337f",
+   "ticker": "FNV.TO",
+   "stratum": "tagged_random",
+   "body_sha1": "69b041b73dd79ae0946dd6c2d9e6ca2094e0a7d3",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 37,
+   "event_id": "f5390c86c2c3c5671659f394f94239e627b28024",
+   "ticker": "SM.V",
+   "stratum": "tagged_random",
+   "body_sha1": "a6abc8972b202784c5fc66e90d322a13b82db6ad",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "ramp_up",
+      "mine": "Coloso Mine",
+      "status": "underway",
+      "figures": [
+       {
+        "metric": "output",
+        "value": 649,
+        "unit": "t",
+        "metal": null
+       },
+       {
+        "metric": "output",
+        "value": 576,
+        "unit": "t",
+        "metal": null
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "n": 38,
+   "event_id": "9937bd0ff5c89a4d62ad39d5ef43a27be787fcb2",
+   "ticker": "COR.V",
+   "stratum": "tagged_random",
+   "body_sha1": "531d9a52ace7421495e74b6ab270e5e65b8a53b5",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 39,
+   "event_id": "16f9cf97691c82e08021806b207157399eda6de7",
+   "ticker": "CCMI.V",
+   "stratum": "tagged_random",
+   "body_sha1": "96551cf79ce51aec1099b26cae73f49f7b4ef79c",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 40,
+   "event_id": "7789238a66ee8f63712d0945b05779a6f94fa809",
+   "ticker": "BSX.TO",
+   "stratum": "tagged_random",
+   "body_sha1": "dbfbc84104d33f494f8023d7341bdc7938cd9556",
+   "review": "corrected",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "suspension",
+      "mine": "Volta Grande Project",
+      "status": "achieved"
+     }
+    ]
+   }
+  },
+  {
+   "n": 41,
+   "event_id": "7e8a4ff4aaaae82eb4bb1619d24f22c47dea32fc",
+   "ticker": "EDV.TO",
+   "stratum": "tagged_figures",
+   "body_sha1": "868841ae17f43161fb856a6246b25bbd4c037196",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "commissioning",
+      "mine": "Lafigué",
+      "status": "underway",
+      "capex": {
+       "value": 448000000,
+       "value_high": null,
+       "currency": null,
+       "basis": "budget"
+      },
+      "pct_complete": 94
+     }
+    ]
+   }
+  },
+  {
+   "n": 42,
+   "event_id": "b8c34b7a01f9939408666c556b7172e7984855aa",
+   "ticker": "GAL.V",
+   "stratum": "tagged_random",
+   "body_sha1": "6933b8c88d1315e88ab33adbd41ff90b396d0a2b",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "restart",
+      "mine": "Omagh",
+      "status": "achieved"
+     }
+    ]
+   }
+  },
+  {
+   "n": 43,
+   "event_id": "ca505f293a638d4860ccbecd240dfbe49be30565",
+   "ticker": "KNT.TO",
+   "stratum": "tagged_random",
+   "body_sha1": "4f538b6ca904f79abe8493b21d90d7b67427110d",
+   "review": "corrected",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "status_update",
+      "mine": "Kainantu Gold Mine",
+      "status": "underway"
+     }
+    ]
+   }
+  },
+  {
+   "n": 44,
+   "event_id": "d4f8772cffdb4be2bca33d17cad21861e3b9347f",
+   "ticker": "DPM.TO",
+   "stratum": "tagged_random",
+   "body_sha1": "780b3b4050887f4c703f2bcaa03b9a7545a91e04",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "commercial_production",
+      "mine": "Krumovgrad",
+      "status": "achieved",
+      "event_date": "2019-06-08",
+      "figures": [
+       {
+        "metric": "pct_nameplate",
+        "value": 60,
+        "unit": "%",
+        "metal": null
+       }
+      ],
+      "capex": {
+       "value": 164000000,
+       "value_high": 166000000,
+       "currency": null,
+       "basis": "budget"
+      },
+      "pct_complete": 99.9
+     }
+    ]
+   }
+  },
+  {
+   "n": 45,
+   "event_id": "ff3989dccaa7ddc5e2f8c47eb6dc42063a186cbc",
+   "ticker": "FVI.TO",
+   "stratum": "tagged_random",
+   "body_sha1": "18cf0ed3a4049cc3e76f18a4336ddd67f5553fc0",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "commissioning",
+      "mine": "Lindero",
+      "status": "underway",
+      "pct_complete": 85
+     }
+    ]
+   }
+  },
+  {
+   "n": 46,
+   "event_id": "8fe96b5dd7e22c6f4b034c1fafcdb2935781c354",
+   "ticker": "ORE.TO",
+   "stratum": "tagged_figures",
+   "body_sha1": "82c477326249b90e6b32c7459ddb66e054c62780",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "construction_progress",
+      "mine": "Bomboré",
+      "status": "underway",
+      "pct_complete": 60
+     },
+     {
+      "event_type": "contract",
+      "mine": "Bomboré",
+      "status": "achieved"
+     }
+    ]
+   }
+  },
+  {
+   "n": 47,
+   "event_id": "3b30524508b17c199fd19e35b8d5f547f10b21a1",
+   "ticker": "CDB.V",
+   "stratum": "tagged_random",
+   "body_sha1": "c897bf93d9b350592f6cf2420d5637cadb09a245",
+   "review": "corrected",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "incident",
+      "mine": "El Alacran",
+      "status": "achieved",
+      "incident_kind": "community"
+     }
+    ]
+   }
+  },
+  {
+   "n": 48,
+   "event_id": "6d2c439fb669657b5329de46410817d637e6efa4",
+   "ticker": "ORV.TO",
+   "stratum": "lookalike",
+   "body_sha1": "31cddcab7d4a7ece584c9c6b2fe3c0615324a1e9",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "status_update",
+      "mine": "Orovalle",
+      "status": "underway",
+      "event_date": "2024-Q2"
+     },
+     {
+      "event_type": "construction_start",
+      "status": "planned"
+     }
+    ]
+   }
+  },
+  {
+   "n": 49,
+   "event_id": "b78eff6cb73adf6b2d8aca340f0759849a2462b4",
+   "ticker": "NTH.V",
+   "stratum": "tagged_random",
+   "body_sha1": "8e6a1627bc86018d3f76e602bdaaa8958452dfbb",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 50,
+   "event_id": "8ab88ac503edf2d9e754538c815dc71d9079ad6c",
+   "ticker": "CIA.TO",
+   "stratum": "tagged_random",
+   "body_sha1": "ec1e78fab9214ddd375350d0e822b26e46520ec3",
+   "review": "corrected",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "incident",
+      "mine": "Bloom Lake",
+      "status": "achieved",
+      "event_date": "2023-06-06",
+      "incident_kind": "weather"
+     },
+     {
+      "event_type": "restart",
+      "mine": "Bloom Lake",
+      "status": "achieved"
+     },
+     {
+      "event_type": "shipment",
+      "mine": "Bloom Lake",
+      "status": "achieved",
+      "event_date": "2023-06-10"
+     }
+    ]
+   }
+  },
+  {
+   "n": 51,
+   "event_id": "ba53709c2ac9d93af3135e93e05305c2b227ceac",
+   "ticker": "FVI.TO",
+   "stratum": "construction_figures",
+   "body_sha1": "a474f939b85348fcbf287ce7c63cc390bcee7ac4",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "construction_progress",
+      "mine": "Séguéla",
+      "status": "underway",
+      "event_date": "2022-01-31",
+      "capex": {
+       "value": 173500000,
+       "value_high": null,
+       "currency": "USD",
+       "basis": "budget"
+      },
+      "pct_complete": 32,
+      "counterparty": "Lycopodium"
+     },
+     {
+      "event_type": "contract",
+      "mine": "Séguéla",
+      "status": "achieved",
+      "counterparty": "Lycopodium"
+     },
+     {
+      "event_type": "contract",
+      "mine": "Séguéla",
+      "status": "achieved",
+      "counterparty": "De Simone"
+     }
+    ]
+   }
+  },
+  {
+   "n": 52,
+   "event_id": "763f0ddadc9d64789c091005596ea05dd537b56d",
+   "ticker": "NIM.V",
+   "stratum": "dated_milestone",
+   "body_sha1": "ee5fca42ceae410309879e7f1c050327a96ce184",
+   "review": "corrected",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "construction_start",
+      "status": "achieved",
+      "counterparty": "Lower Nicola Site Services"
+     }
+    ]
+   }
+  },
+  {
+   "n": 53,
+   "event_id": "92d25b71e51b71a07cc68af02b5ac74a5150bf84",
+   "ticker": "CG.TO",
+   "stratum": "construction_figures",
+   "body_sha1": "820fe64f6901e80fcb57b73a5afe063e7b0b5f87",
+   "review": "corrected",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "construction_decision",
+      "mine": "Goldfield",
+      "status": "achieved",
+      "capex": {
+       "value": 252000000,
+       "value_high": null,
+       "currency": "USD",
+       "basis": "budget"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "n": 54,
+   "event_id": "e817ab0afcbfbb38a86e325c712abb79e3cf330d",
+   "ticker": "LUG.TO",
+   "stratum": "construction_figures",
+   "body_sha1": "4ca566a06d3ab4ff0e9c5e068f2bbef9d2c1eea7",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "expansion",
+      "mine": "Fruta del Norte",
+      "status": "planned",
+      "event_date": "2021",
+      "capex": {
+       "value": 18600000,
+       "value_high": null,
+       "currency": "USD",
+       "basis": "budget"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "n": 55,
+   "event_id": "4c23052a97024ce74b1ea50c8586095ee27b1e54",
+   "ticker": "K.TO",
+   "stratum": "construction_figures",
+   "body_sha1": "dbfbda616a0bfd615755021d36df05717897de40",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "commissioning",
+      "mine": "Round Mountain Phase W",
+      "status": "achieved"
+     },
+     {
+      "event_type": "commissioning",
+      "mine": "Bald Mountain Vantage Complex",
+      "status": "achieved"
+     },
+     {
+      "event_type": "expansion",
+      "mine": "Tasiast 24k",
+      "status": "achieved",
+      "event_date": "2019-Q3"
+     },
+     {
+      "event_type": "expansion",
+      "mine": "Tasiast 24k",
+      "status": "underway",
+      "pct_complete": 65
+     },
+     {
+      "event_type": "construction_progress",
+      "mine": "Fort Knox Gilmore",
+      "status": "underway"
+     }
+    ]
+   }
+  },
+  {
+   "n": 56,
+   "event_id": "dab610f41b3b14e22568415504ec62b5083dc60b",
+   "ticker": "EDR.TO",
+   "stratum": "construction_figures",
+   "body_sha1": "673240fb67e494710874a6464c4c8465c945a156",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "construction_progress",
+      "mine": "Terronera",
+      "status": "underway",
+      "event_date": "2023-09-30",
+      "capex": {
+       "value": 230400000,
+       "value_high": null,
+       "currency": "USD",
+       "basis": "budget"
+      },
+      "pct_complete": 38
+     }
+    ]
+   }
+  },
+  {
+   "n": 57,
+   "event_id": "ebe6f9217eeb7643cbb60dba1ccf53cc13482c30",
+   "ticker": "TRX.TO",
+   "stratum": "dated_milestone",
+   "body_sha1": "0af238ed60d794a757e77aa5625b0b6896f5c162",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "commercial_production",
+      "mine": "Buckreef Gold Mine",
+      "status": "achieved",
+      "event_date": "2022-11",
+      "figures": [
+       {
+        "metric": "throughput",
+        "value": 1000,
+        "unit": "tpd",
+        "metal": null
+       },
+       {
+        "metric": "output",
+        "value": 2200,
+        "unit": "oz",
+        "metal": "gold"
+       },
+       {
+        "metric": "recovery_pct",
+        "value": 91.1,
+        "unit": "%",
+        "metal": "gold"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "n": 58,
+   "event_id": "85f34c5d6f030eb8a70b0628d53241ea9b71e279",
+   "ticker": "SF.V",
+   "stratum": "dated_milestone",
+   "body_sha1": "318d9bb2589c8f260c86d023d1c014a30c2a64b7",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "commercial_production",
+      "mine": "Kombat Mine",
+      "status": "achieved",
+      "event_date": "2024-04-30",
+      "figures": [
+       {
+        "metric": "throughput",
+        "value": 552,
+        "unit": "tpd",
+        "metal": null
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "n": 59,
+   "event_id": "912c3ea20766687e45cd9ef736f1c00bd1a5a5e7",
+   "ticker": "EQX.TO",
+   "stratum": "construction_figures",
+   "body_sha1": "615f087ce03321ca5ea11fe71623a469a00181f3",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "construction_progress",
+      "mine": "Aurizona",
+      "status": "underway",
+      "capex": {
+       "value": 146000000,
+       "value_high": null,
+       "currency": "USD",
+       "basis": "budget"
+      },
+      "pct_complete": 55
+     }
+    ]
+   }
+  },
+  {
+   "n": 60,
+   "event_id": "1dcb85ec9fb1f830505515e3cc71e10710a52ab4",
+   "ticker": "RNCH.V",
+   "stratum": "construction_figures",
+   "body_sha1": "d38b8f0098d7a72b75bd89fa46f1845771803804",
+   "review": "corrected",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "restart",
+      "mine": "Goondicum",
+      "status": "planned"
+     }
+    ]
+   }
+  },
+  {
+   "n": 61,
+   "event_id": "1cd1c50e5b3fd712125a85b704ab3177e662a15e237cfda3e6ab7c3ab476798e",
+   "ticker": "ARTG.V",
+   "stratum": "construction_figures",
+   "body_sha1": "37fa050f1bb1c50dd9a56d18c6863261d66c8782",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "expansion",
+      "mine": "Blackwater Mine",
+      "status": "underway",
+      "event_date": "2026-06-30",
+      "capex": {
+       "value": 120000000,
+       "value_high": null,
+       "currency": null,
+       "basis": "budget"
+      },
+      "pct_complete": 57
+     }
+    ]
+   }
+  },
+  {
+   "n": 62,
+   "event_id": "a5481e0c9ebf907f94b0cfc96d5d7d32ac446215",
+   "ticker": "ERD.TO",
+   "stratum": "dated_milestone",
+   "body_sha1": "b1cb0d785b8e7d5d0cbce117b5e896d9ca1be8df",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "construction_start",
+      "mine": "Bayan Khundii",
+      "status": "achieved",
+      "capex": {
+       "value": 90000000,
+       "value_high": null,
+       "currency": "USD",
+       "basis": "budget"
+      },
+      "pct_complete": 12,
+      "counterparty": "MCS Property LLC"
+     },
+     {
+      "event_type": "construction_decision",
+      "mine": "Bayan Khundii",
+      "status": "achieved",
+      "event_date": "2024-01-15",
+      "capex": {
+       "value": 90000000,
+       "value_high": null,
+       "currency": "USD",
+       "basis": "budget"
+      }
+     },
+     {
+      "event_type": "contract",
+      "mine": "Bayan Khundii",
+      "status": "achieved",
+      "counterparty": "MCS Property LLC"
+     },
+     {
+      "event_type": "contract",
+      "mine": "Bayan Khundii",
+      "status": "achieved",
+      "counterparty": "MCS International LLC"
+     }
+    ]
+   }
+  },
+  {
+   "n": 63,
+   "event_id": "293ea68e6c6f74b37f49cdef49a6255ecc840705",
+   "ticker": "BTO.TO",
+   "stratum": "dated_milestone",
+   "body_sha1": "7c44678090a6ae059de8d4b1eb6f7fdeeab517cf",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "first_production",
+      "mine": "Fekola",
+      "status": "achieved",
+      "event_date": "2017-10-07"
+     },
+     {
+      "event_type": "commissioning",
+      "mine": "Fekola",
+      "status": "underway"
+     }
+    ]
+   }
+  },
+  {
+   "n": 64,
+   "event_id": "a18c296dfcee45598e1242a479ba8df22382a59a",
+   "ticker": "ARTG.V",
+   "stratum": "construction_figures",
+   "body_sha1": "e2c16bd2f72f4518d26ab5a0471af34f558913ab",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "construction_progress",
+      "mine": "Blackwater Mine",
+      "status": "underway",
+      "event_date": "2023-09-30",
+      "capex": {
+       "value": 730000000,
+       "value_high": 750000000,
+       "currency": "CAD",
+       "basis": "budget"
+      },
+      "pct_complete": 45
+     }
+    ]
+   }
+  },
+  {
+   "n": 65,
+   "event_id": "9b618e78051d1168c95e8a4f32e05d3c23f3b8ee",
+   "ticker": "ERO.TO",
+   "stratum": "construction_figures",
+   "body_sha1": "719f55dbeb2f11736c9a88197c1494c0d63ea5ff",
+   "review": "confirmed",
+   "note": "see claude/MNT_DEV_SET_LABELS_CONFIRMED_2026-09-28.json",
+   "expect": {
+    "is_event": true,
+    "complete": true,
+    "rows": [
+     {
+      "event_type": "construction_progress",
+      "mine": "Tucumã",
+      "status": "underway",
+      "capex": {
+       "value": 305000000,
+       "value_high": null,
+       "currency": null,
+       "basis": "budget"
+      },
+      "pct_complete": 70
+     }
+    ]
+   }
+  }
+ ]
+}

@@ -16,6 +16,23 @@ import unicodedata
 from portal.accuracy import TagSpec, register_spec
 
 MGMT_KEY_FIELDS = ("row", "person", "role", "action", "scope")
+# ACC_COLS_V1 (2026-09-23): every column the page shows is scored (reported, not gated)
+MGMT_REPORT_FIELDS = ("effective_date", "interim")
+
+
+# MGMT_V1 1.1 (2026-09-21): the reader says resigned / retired / departed / promoted / changed. A key written in
+# the 1.0 vocabulary (appointed / departed / changed) is scored at that coarser grain, so a release that says
+# "resigned" is right against a key that says "departed" -- and wrong against one that says "retired".
+_MGMT_COARSE = {"resigned": "departed", "retired": "departed", "promoted": "changed"}
+_MGMT_OLD = ("appointed", "departed", "changed")
+
+
+def _mgmt_same_action(pred, gold):
+    if pred == gold:
+        return True
+    if gold in _MGMT_OLD:
+        return _MGMT_COARSE.get(pred, pred) == gold
+    return False
 
 
 def _mgmt_name(s):
@@ -57,7 +74,7 @@ def judge_management(pred, expect):
     role    the paired change's role names the same position
     action  joined / left / changed matches
     scope   board / management / advisory matches"""
-    out = {f: [] for f in MGMT_KEY_FIELDS}
+    out = {f: [] for f in MGMT_KEY_FIELDS + MGMT_REPORT_FIELDS}
     want = bool(expect.get("is_management_change")) and bool(expect.get("changes"))
     shown = bool(pred and pred.get("changes"))
     if not shown:
@@ -91,8 +108,20 @@ def judge_management(pred, expect):
         g = gold[j]
         out["person"].append("tp")
         out["role"].append("tp" if _mgmt_same_role(p.get("role"), g.get("role")) else "fp")
-        out["action"].append("tp" if p.get("action") == g.get("action") else "fp")
+        out["action"].append("tp" if _mgmt_same_action(p.get("action"), g.get("action")) else "fp")
         out["scope"].append("tp" if p.get("scope") == g.get("scope") else "fp")
+        # ACC_COLS_V1 (2026-09-23): the page's other columns, reported
+        if g.get("effective_date"):
+            pe = p.get("effective_date")
+            if not pe:
+                out["effective_date"].append("fn")
+            elif str(pe)[:10] == str(g["effective_date"])[:10]:
+                out["effective_date"].append("tp")
+            else:
+                out["effective_date"].extend(["fp", "fn"])
+        gi, pi_ = bool(g.get("interim")), bool(p.get("interim"))
+        if gi or pi_:  # scored only where either side says interim, so "not interim" cannot inflate it
+            out["interim"].append("tp" if gi and pi_ else "fn" if gi else "fp")
     for i, _g in enumerate(gold):
         if i not in used:
             out["person"].append("fn")
@@ -157,7 +186,8 @@ def _mgmt_candidate_predictor(conn, extractor, version):
 
 
 register_spec(TagSpec(
-    name="management", tag="Management Changes", key_fields=MGMT_KEY_FIELDS, judge=judge_management,
+    name="management", tag="Management Changes", key_fields=MGMT_KEY_FIELDS, report_fields=MGMT_REPORT_FIELDS,
+    judge=judge_management,
     stored=stored_management, from_records=_mgmt_from_records, candidate_predictor=_mgmt_candidate_predictor,
     replaces={"page": "management", "min_row_recall": 0.950, "candidate": _mgmt_candidate,
               "current": _mgmt_current, "describe": _mgmt_describe},

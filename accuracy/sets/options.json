@@ -1,0 +1,1350 @@
+{
+ "schema": 1,
+ "name": "options",
+ "tag": "Property Options & Staking",
+ "status": "confirmed",
+ "created": "2026-09-23",
+ "reviewer": "Justin",
+ "reviewed_at": "2026-09-23",
+ "row_shape": "one row per land deal an item reports (option in or out, earn-in, staking, claim or property purchase, property sale), at its stage: proposed, signed, payment, completed, amended or terminated",
+ "items": [
+  {
+   "n": 1,
+   "event_id": "dba2d6a9d7616ddfe6c937646bdbb98cffe7faed",
+   "ticker": "ARMY.CN",
+   "stratum": "option / earn-in signed",
+   "body_sha1": "d99a51b97ca41fe3e6506589b94abf756490a00e",
+   "review": "confirmed",
+   "note": "Unnamed property next to the West Gore mine, Nova Scotia; the optionor is arm's length and unnamed; 8-month option",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_in",
+      "stage": "signed",
+      "property": null,
+      "counterparty": null,
+      "interest_pct": 100,
+      "cash": 50000,
+      "currency": "CAD",
+      "shares": 750000,
+      "nsr": 2.0,
+      "term": 0.67,
+      "area": 3092
+     }
+    ]
+   }
+  },
+  {
+   "n": 2,
+   "event_id": "0c29dcc637186a0a009fbd5f4ab066000d47d0b4",
+   "ticker": "GRG.V",
+   "stratum": "option / earn-in signed",
+   "body_sha1": "f703a832820f0f99d32a2121b83cf42daef63787",
+   "review": "confirmed",
+   "note": "75% for US$1M cash + US$1M work over 4 years; top-up to 100% for a further US$2M. Mogote and Caballos options are background",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_out",
+      "stage": "signed",
+      "property": "Huachi",
+      "counterparty": "Latin Metals",
+      "interest_pct": 100,
+      "cash": 1000000,
+      "currency": "USD",
+      "work": 1000000,
+      "term": 4,
+      "area": 3500
+     }
+    ]
+   }
+  },
+  {
+   "n": 3,
+   "event_id": "fa402bce92346bd996430adb3baae27de36e2812",
+   "ticker": "CANU.CN",
+   "stratum": "option / earn-in signed",
+   "body_sha1": "740cd3181e5584b3e86a3a47442d841244678cf8",
+   "review": "confirmed",
+   "note": "Assignment of 80% of Citizen's option over Cable Lake (underlying optionor Doctors Investment Group). Cash = the assignment fee; the underlying option payments are $1.15M plus $2M of work",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_in",
+      "stage": "signed",
+      "property": "Cable Lake",
+      "counterparty": "Citizen Mining",
+      "interest_pct": 80,
+      "cash": 250000,
+      "currency": "CAD",
+      "nsr": 2.0,
+      "area": 20600,
+      "date": "2025-10-01"
+     }
+    ]
+   }
+  },
+  {
+   "n": 4,
+   "event_id": "da002df60771e8d9966090a75f5fec19fa55db1c",
+   "ticker": "IPT.V",
+   "stratum": "option / earn-in signed",
+   "body_sha1": "1c17d3cf8e571ac95b1e69b5e938034f3265c5d2",
+   "review": "confirmed",
+   "note": "LOI; the definitive agreement is expected within 60 days. Shares are J2 shares paid to IMPACT",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_out",
+      "stage": "proposed",
+      "property": "Zacualpan S.E. (Sierra Plata)",
+      "counterparty": "J2 Metals",
+      "interest_pct": 100,
+      "cash": 375000,
+      "currency": "CAD",
+      "shares": 6500000,
+      "work": 1353600,
+      "nsr": 1.5,
+      "term": 3,
+      "area": 2200
+     }
+    ]
+   }
+  },
+  {
+   "n": 5,
+   "event_id": "4d6c60de25ad5b5cb1d350944a895c0ce04d5873f0b46920ba458bb6cb05e5b1",
+   "ticker": "MAX.V",
+   "stratum": "option / earn-in signed",
+   "body_sha1": "a56e0511611033e71d2262648e58a88144725559",
+   "review": "confirmed",
+   "note": "The option agreement closed; Bolt issues 26.8M Bolt shares over 30 months. The debt settlement (4M Bolt shares + 2M warrants) is not the option consideration",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_out",
+      "stage": "signed",
+      "property": "Florália",
+      "counterparty": "Bolt Metals",
+      "interest_pct": 100,
+      "shares": 26800000,
+      "term": 2.5,
+      "date": "2026-05-12"
+     }
+    ]
+   }
+  },
+  {
+   "n": 6,
+   "event_id": "6b45b7dd905f752898ad384fccead6e624732359",
+   "ticker": "TGC.V",
+   "stratum": "option / earn-in signed",
+   "body_sha1": "f45a63fb17510cc63e9d2f3929968aecd85c7563",
+   "review": "confirmed",
+   "note": "TSX-V final approval of an option announced Aug 5. Shares = $200k in shares, max 4,000,000; milestone payments of $1M/$1.5M are conditional",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_in",
+      "stage": "signed",
+      "property": "Stockley Kennedy",
+      "counterparty": "United Gold",
+      "interest_pct": 100,
+      "cash": 130000,
+      "currency": "CAD",
+      "shares": 4000000,
+      "nsr": 2.0,
+      "term": 2,
+      "date": "2025-07-30"
+     }
+    ]
+   }
+  },
+  {
+   "n": 7,
+   "event_id": "ab116205e719318b52999b0f75f3288b76aac874",
+   "ticker": "BOL.V",
+   "stratum": "option / earn-in signed",
+   "body_sha1": "9916e0af6cf502305e20c76a89c4a6e2729f5cf6",
+   "review": "confirmed",
+   "note": "Headline 'Grants Options' = stock options, not a row",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "staking",
+      "stage": "signed",
+      "property": "Springpole East",
+      "counterparty": null,
+      "interest_pct": 100,
+      "area": 4180
+     }
+    ]
+   }
+  },
+  {
+   "n": 8,
+   "event_id": "a391c93ab708fab91bee62d669daf031cdbe31892d917ee01c4624ae06d68d07",
+   "ticker": "PGA.CN",
+   "stratum": "option / earn-in signed",
+   "body_sha1": "dcfbf750a2f58de428e6827aa318a7a0f02ce25f",
+   "review": "confirmed",
+   "note": "The release says 10M shares in one sentence and 20M in the schedule; the schedule wins. Also 7M warrants. The optionor is arm's length and unnamed",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_in",
+      "stage": "signed",
+      "property": "Frazer Lake - Mound",
+      "counterparty": null,
+      "interest_pct": 100,
+      "cash": 250001,
+      "currency": "CAD",
+      "shares": 20000000,
+      "nsr": 2.0,
+      "term": 1,
+      "date": "2023-06-28"
+     }
+    ]
+   }
+  },
+  {
+   "n": 9,
+   "event_id": "f2dd4be141ba16f738175638b94e8a4d534afbe9955d41f9926147dc028333f4",
+   "ticker": "EPG.CN",
+   "stratum": "option / earn-in signed",
+   "body_sha1": "6705cb78c271f98ffcd78f23965b4dfcaef49cb9",
+   "review": "confirmed",
+   "note": "One agreement, three properties = one row. The totals are from a garbled table (approximate); non-key. Hawkins is background",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_in",
+      "stage": "signed",
+      "property": "Wilson / Fenton / Benoist",
+      "counterparty": "Cartier Resources",
+      "interest_pct": 100,
+      "cash": 1325000,
+      "currency": "CAD",
+      "shares": 7500000,
+      "work": 12250000,
+      "nsr": 2.0,
+      "term": 4,
+      "area": 5506
+     }
+    ]
+   }
+  },
+  {
+   "n": 10,
+   "event_id": "9bf0407f967a7103944c8370eba004efb5e9529c",
+   "ticker": "FRDM.CN",
+   "stratum": "option / earn-in signed",
+   "body_sha1": "4f2fb4ee622a63fb8d605348a863c2a4707c9ab4",
+   "review": "confirmed",
+   "note": "see claude/MNT_OPT_SET_LABELS_CONFIRMED_2026-09-23.json",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_in",
+      "stage": "signed",
+      "property": "Byron Pegmatite",
+      "counterparty": "Gravel Ridge Resources",
+      "interest_pct": 100,
+      "cash": 74000,
+      "currency": "CAD",
+      "shares": 300000,
+      "nsr": 1.5,
+      "term": 3,
+      "date": "2022-06-07"
+     }
+    ]
+   }
+  },
+  {
+   "n": 11,
+   "event_id": "3136ae3a212270987a837e1c12933effb27b686633ab6efd9e51561718a0fe0b",
+   "ticker": "FNI.CN",
+   "stratum": "option / earn-in signed",
+   "body_sha1": "fce3e3d4cf8dc422033e00f4276334d1b7668ecc",
+   "review": "confirmed",
+   "note": "937 ha added to the optioned ground under the area-of-interest clause (staked by the optionor, paid by Fathom). Borderline: amended vs staking. The stock option cancellation is not a row",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_in",
+      "stage": "amended",
+      "property": "Gochager Lake",
+      "counterparty": null,
+      "interest_pct": null,
+      "area": 937
+     }
+    ]
+   }
+  },
+  {
+   "n": 12,
+   "event_id": "4239b2ee33b2f81486ee12ef3f3574ce23d2cc70",
+   "ticker": "PURR.CN",
+   "stratum": "option out / sale",
+   "body_sha1": "c8f4840d1f808387201299c4da9c5010fd76108b",
+   "review": "confirmed",
+   "note": "Gold Lion acquired the option rights by buying 139 BC (share exchange); framed as acquiring the option. The underlying optionor is not named. The terms appear after the QP paragraph",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_in",
+      "stage": "signed",
+      "property": "Mia Li-3",
+      "counterparty": "1391740 B.C. Ltd.",
+      "interest_pct": 100,
+      "cash": 100000,
+      "currency": "CAD",
+      "shares": 10000000,
+      "area": 2950,
+      "date": "2023-02-01"
+     }
+    ]
+   }
+  },
+  {
+   "n": 13,
+   "event_id": "6ba4f8e3133cee6016d29cb0441e3b5ca66bc0a1d4dcf95050657dc03847d070",
+   "ticker": "ARGL.CN",
+   "stratum": "option out / sale",
+   "body_sha1": "b54f447e9d19a13a84a9bb2f037c0c7bcaa8cd47",
+   "review": "confirmed",
+   "note": "The terms table did not survive in the stored text. NSR 3.5% aggregate (3% existing third-party + 0.5% new). Subject to CSE approval. Clay Howells is background",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_in",
+      "stage": "signed",
+      "property": "McKay Hill",
+      "counterparty": "Metallic Minerals",
+      "interest_pct": 100,
+      "nsr": 3.5,
+      "term": 3,
+      "area": 5500,
+      "date": "2026-04-14"
+     }
+    ]
+   }
+  },
+  {
+   "n": 14,
+   "event_id": "e57fe44d2888f8bdc29f86d8a227775f298d8d00",
+   "ticker": "VLTA.CN",
+   "stratum": "option out / sale",
+   "body_sha1": "eb92f0c844070e100b0d63d5eecd8294121f1582",
+   "review": "confirmed",
+   "note": "Closing of the option acquisition: initial 80%, up to 100%. Cash and shares are the closing payments (the totals are in the June 10 release). The debt settlement is not a row",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_in",
+      "stage": "signed",
+      "property": "Springer",
+      "counterparty": "RZJ Capital Management",
+      "interest_pct": 100,
+      "cash": 320400,
+      "currency": "CAD",
+      "shares": 10000000,
+      "date": "2025-06-09"
+     }
+    ]
+   }
+  },
+  {
+   "n": 15,
+   "event_id": "e3028475cc541eec408f99955b7819b571709a1d",
+   "ticker": "LTHM.CN",
+   "stratum": "option out / sale",
+   "body_sha1": "27b840ac28de3f2aab2914a5ae155c906ed300d6",
+   "review": "confirmed",
+   "note": "Binding LOI; the definitive agreement is due by July 12, 2024. Shares are Prestwick shares; plus 600k warrants",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_out",
+      "stage": "proposed",
+      "property": "Baner",
+      "counterparty": "Prestwick Capital",
+      "interest_pct": 100,
+      "cash": 950000,
+      "currency": "CAD",
+      "shares": 1300000,
+      "nsr": 1.0,
+      "term": 2.5,
+      "area": 1829
+     }
+    ]
+   }
+  },
+  {
+   "n": 16,
+   "event_id": "b032ce912d89fd403457f81900acb465b7c3341ff8ec6e7ffb4a743417e718d2",
+   "ticker": "MEDA.CN",
+   "stratum": "option out / sale",
+   "body_sha1": "3fdfc4489bc549bb5a1e90033d7d0f8b2ddd14f1",
+   "review": "confirmed",
+   "note": "The optionor is Afzaal Pirzada and Geomap Exploration together. Superb Lake / Cyr South / Yurchison are background",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_in",
+      "stage": "signed",
+      "property": "Darlin Li-Be",
+      "counterparty": "Geomap Exploration",
+      "interest_pct": 100,
+      "cash": 160000,
+      "currency": "CAD",
+      "shares": 350000,
+      "work": 800000,
+      "nsr": 2.0,
+      "area": 2133
+     }
+    ]
+   }
+  },
+  {
+   "n": 17,
+   "event_id": "b0a951e15fb13707dd58b9a7709badeea96a1c79",
+   "ticker": "BOOM.CN",
+   "stratum": "option payment / shares issued",
+   "body_sha1": "ab9741af71b064d3e17a5c7a08895bd41cf21de6",
+   "review": "confirmed",
+   "note": "3 claims from a third-party vendor, subject to CSE acceptance. The private placement is not a row",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "claim_purchase",
+      "stage": "signed",
+      "property": "Glover Island",
+      "counterparty": null,
+      "interest_pct": 100,
+      "shares": 300000
+     }
+    ]
+   }
+  },
+  {
+   "n": 18,
+   "event_id": "b87d013d427f5a6a1f5bbe915e7eff0a2dedc095b4725c0441faf091dbfcf71e",
+   "ticker": "CAP.CN",
+   "stratum": "option payment / shares issued",
+   "body_sha1": "0a3414a28b6afd06c95ac1f0dab6244aad0fcd5d",
+   "review": "confirmed",
+   "note": "Proposed issuance of the first tranche (8M shares) under the Dec 4 option; shares = this tranche",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_in",
+      "stage": "payment",
+      "property": "Destiny",
+      "counterparty": "Big Ridge Gold",
+      "interest_pct": null,
+      "shares": 8000000
+     }
+    ]
+   }
+  },
+  {
+   "n": 19,
+   "event_id": "e63fdb3f2e60f865e669ae83691419d4dc9b3af698c7afabd3c0f3558b151145",
+   "ticker": "RFLX.CN",
+   "stratum": "option payment / shares issued",
+   "body_sha1": "bfbcb209cb501d74a4d44db41f028371afc19414",
+   "review": "confirmed",
+   "note": "100,000 shares issued under the Sept 1, 2021 option; the totals are the full option terms",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_in",
+      "stage": "payment",
+      "property": "Zigzag",
+      "counterparty": "Alex Pleson",
+      "interest_pct": 100,
+      "cash": 250000,
+      "currency": "CAD",
+      "shares": 500000,
+      "work": 310000,
+      "nsr": 3.0,
+      "area": 2710
+     }
+    ]
+   }
+  },
+  {
+   "n": 20,
+   "event_id": "ea7bbed725f39dac1bff8f4de28f37eb61bec8ae",
+   "ticker": "LFNT.CN",
+   "stratum": "option payment / shares issued",
+   "body_sha1": "d34c9906eb8c16790dee8100b48c1fce69ee623f",
+   "review": "confirmed",
+   "note": "Second share tranche to two unnamed optionors. The Sudbury Project option is background",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_in",
+      "stage": "payment",
+      "property": "Skyfire",
+      "counterparty": null,
+      "interest_pct": 100,
+      "shares": 100000,
+      "area": 1900
+     }
+    ]
+   }
+  },
+  {
+   "n": 21,
+   "event_id": "fba86caae0882bfb6fa99fbec8bb379ac904309f",
+   "ticker": "MTT.V",
+   "stratum": "option payment / shares issued",
+   "body_sha1": "17d518c0f7d58b5615ea1c4edcffe3f1da02f9ea",
+   "review": "confirmed",
+   "note": "Received the 1st-anniversary payment ($450k + 35.2M Gold Hunter shares). Totals: $1.5M cash + $8M in shares. The interest % is not stated",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_out",
+      "stage": "payment",
+      "property": "Great Northern",
+      "counterparty": "Gold Hunter Resources",
+      "interest_pct": null,
+      "cash": 1500000,
+      "currency": "CAD",
+      "term": 2
+     }
+    ]
+   }
+  },
+  {
+   "n": 22,
+   "event_id": "fa67a7000d844500c3a6ed55e115aa9c02e87ae9ce2bdc11f58b756fe47cc4aa",
+   "ticker": "RSH.CN",
+   "stratum": "earned / exercised / completed",
+   "body_sha1": "704d4d9895b10ea66972b001c85d420a80d96532",
+   "review": "confirmed",
+   "note": "The partner exercised its initial 50% option; the shares are this payment (Myriad shares). Boxi is background",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_out",
+      "stage": "completed",
+      "property": "Copper Mountain",
+      "counterparty": "Myriad Uranium",
+      "interest_pct": 50,
+      "shares": 1093702
+     }
+    ]
+   }
+  },
+  {
+   "n": 23,
+   "event_id": "cd4f059db3244c7be11d52bd9e4a1bf9a260a1bd",
+   "ticker": "BZ.V",
+   "stratum": "earned / exercised / completed",
+   "body_sha1": "9964a9fa20da6d600ef7001949d69aac79ff6fa7",
+   "review": "confirmed",
+   "note": "Exercised the option over 4 tenements; completion is due within 5 business days. The Spartan acquisition is background",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_in",
+      "stage": "completed",
+      "property": "Glenburgh / Mt Egerton tenements",
+      "counterparty": "Mining Equities",
+      "interest_pct": 100,
+      "shares": 500000,
+      "nsr": 0.75
+     }
+    ]
+   }
+  },
+  {
+   "n": 24,
+   "event_id": "647f45be3060ba0ccdd31f42579011a10913de84",
+   "ticker": "GEL.V",
+   "stratum": "earned / exercised / completed",
+   "body_sha1": "6e86a72bb98995f17ea092e7218d80eb0ae2ad26",
+   "review": "confirmed",
+   "note": "The 'earn-in transaction' is on a 3D-printing technology (3D Genesis), not a mineral property; no row. Tag false positive",
+   "expect": {
+    "is_deal": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 25,
+   "event_id": "6d2d98733f72e1445325126edef877b8c03a1715",
+   "ticker": "BFG.CN",
+   "stratum": "earned / exercised / completed",
+   "body_sha1": "832372eeb31363690defb7fc715c34e0d8c4c758",
+   "review": "confirmed",
+   "note": "Vendors: Homegold Resources, Johan Thom Shearer Ltd., Bessor Minerals. Majuba Hill is background",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_in",
+      "stage": "signed",
+      "property": "Redhill",
+      "counterparty": "Homegold Resources",
+      "interest_pct": 100,
+      "cash": 915000,
+      "currency": "CAD",
+      "work": 900000,
+      "term": 10,
+      "area": 4736,
+      "date": "2026-04-21"
+     }
+    ]
+   }
+  },
+  {
+   "n": 26,
+   "event_id": "c3058dce0160b5fb27be3c58597bce3500f20a7fd284520800fd80ee2b654d71",
+   "ticker": "FNI.CN",
+   "stratum": "earned / exercised / completed",
+   "body_sha1": "8e904a7ca5d46c6dd93ba8dc94987e91e452110f",
+   "review": "confirmed",
+   "note": "All earn-in requirements met; 100% earned. The vendor is unnamed. The stock options are not a row",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_in",
+      "stage": "completed",
+      "property": "Gochager Lake",
+      "counterparty": null,
+      "interest_pct": 100,
+      "cash": 79500,
+      "currency": "CAD",
+      "shares": 1210000,
+      "work": 2000000,
+      "nsr": 2.0,
+      "term": 3,
+      "area": 4696
+     }
+    ]
+   }
+  },
+  {
+   "n": 27,
+   "event_id": "97b2d1d5d1d4f4129fe50fb6554503bd4987ebfabc50cbfecd8969165d2b5b0c",
+   "ticker": "EATH.CN",
+   "stratum": "earned / exercised / completed",
+   "body_sha1": "4caec120c4eea5312e5c872697ff2056b9419fd6",
+   "review": "confirmed",
+   "note": "Earned 100% by issuing the final 250k shares",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_in",
+      "stage": "completed",
+      "property": "Lucky Boy",
+      "counterparty": null,
+      "interest_pct": 100,
+      "shares": 250000
+     }
+    ]
+   }
+  },
+  {
+   "n": 28,
+   "event_id": "f210f2705dd0b20721c6a350faf83aa9fec4d82a",
+   "ticker": "CAMP.CN",
+   "stratum": "termination / amendment / extension",
+   "body_sha1": "b4e8ca95f19bf135526f7d897d47dc1b6d629553",
+   "review": "confirmed",
+   "note": "Earn-in: 50% initial + 20% bump-up. Cash = $100k LOI + $200k + $600k + $500k; shares = 9.9% of outstanding",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_in",
+      "stage": "amended",
+      "property": "Murphy Lake",
+      "counterparty": "F4 Uranium",
+      "interest_pct": 70,
+      "cash": 1400000,
+      "currency": "CAD",
+      "work": 18000000,
+      "term": 5,
+      "date": "2024-10-21"
+     }
+    ]
+   }
+  },
+  {
+   "n": 29,
+   "event_id": "42437747729512fe938ece15796fae4ad8cb9390",
+   "ticker": "CGM.V",
+   "stratum": "termination / amendment / extension",
+   "body_sha1": "b188a894569325a307f1bc300f793d199dd4f071",
+   "review": "confirmed",
+   "note": "Terminated the binding LOI to acquire exploration licences in Europe (the 'Target'). Borderline: could be company-level M&A, but the headline frames it as licences",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "claim_purchase",
+      "stage": "terminated",
+      "property": null,
+      "counterparty": "1340371 B.C. Ltd.",
+      "interest_pct": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 30,
+   "event_id": "1021807e4823e539da9f47263100cf748ae377ca",
+   "ticker": "TICO.CN",
+   "stratum": "termination / amendment / extension",
+   "body_sha1": "4ba682213d403a42f94e9ca132d07dd7a930fed6",
+   "review": "confirmed",
+   "note": "The property name is only in the About section. Shares = 5M for the immediate $300k payment",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_in",
+      "stage": "amended",
+      "property": "Wildcat",
+      "counterparty": null,
+      "interest_pct": null,
+      "cash": 12100000,
+      "currency": "CAD",
+      "shares": 5000000,
+      "work": 2250000,
+      "term": 10.4
+     }
+    ]
+   }
+  },
+  {
+   "n": 31,
+   "event_id": "e20e572c75c427d3c89b8d6f51b0b1f79b43985a",
+   "ticker": "TCEC.CN",
+   "stratum": "termination / amendment / extension",
+   "body_sha1": "448191d688ff9e5844dbe6126966218d16e927a2",
+   "review": "confirmed",
+   "note": "Amended timing of the cash and work commitments",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_in",
+      "stage": "amended",
+      "property": "South Falcon East",
+      "counterparty": "Skyharbour Resources",
+      "interest_pct": 75,
+      "cash": 1270000,
+      "currency": "CAD",
+      "shares": 2500000,
+      "work": 2500000
+     }
+    ]
+   }
+  },
+  {
+   "n": 32,
+   "event_id": "345e38dca9566bc275a476b99b212838e2ef503a",
+   "ticker": "EFF.V",
+   "stratum": "termination / amendment / extension",
+   "body_sha1": "f46e286c5a3dc246148e90c0dc151019cae82f55",
+   "review": "confirmed",
+   "note": "The outside date was extended to July 31, 2025. Direction checked against the earlier releases (task-20260923-002600): 1844 makes the option payments to Nickel North, so option_in; the property is Hawk Ridge (not named in this release). The option was terminated on Sept 4, 2025. The market-maker agreement is not a row",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_in",
+      "stage": "amended",
+      "property": null,
+      "counterparty": "Nickel North",
+      "interest_pct": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 33,
+   "event_id": "5003e657a87a974458a0d4d6ec9f9ea97fa89079",
+   "ticker": "ACM.CN",
+   "stratum": "termination / amendment / extension",
+   "body_sha1": "bc53d880d102071a68d7ad699e4f3160b1ad14be",
+   "review": "confirmed",
+   "note": "Two separate option agreements = two rows (together the Golden Gate Project); work commitments eliminated",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_in",
+      "stage": "amended",
+      "property": "Falls Grid",
+      "counterparty": null,
+      "interest_pct": 100,
+      "cash": 50000,
+      "currency": "CAD",
+      "shares": 500000,
+      "nsr": 2.0
+     },
+     {
+      "deal_type": "option_in",
+      "stage": "amended",
+      "property": "Lugar",
+      "counterparty": null,
+      "interest_pct": 100,
+      "cash": 105000,
+      "currency": "CAD",
+      "shares": 1000000,
+      "nsr": 1.25
+     }
+    ]
+   }
+  },
+  {
+   "n": 34,
+   "event_id": "cb62a01b070bc3d9df430b97fdf38edd6d618f949b34273cb3913a3d9631b5fa",
+   "ticker": "NBRK.CN",
+   "stratum": "staking / claims",
+   "body_sha1": "c9b8886528d48d0fd3d50a80e17dd8487e1d2ab3",
+   "review": "confirmed",
+   "note": "Headline says 'Acquires' but the claim was staked online. The Placer / CGH options are 2002-2005 history (background)",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "staking",
+      "stage": "signed",
+      "property": "Esker",
+      "counterparty": null,
+      "interest_pct": 100,
+      "cash": 3285,
+      "currency": "CAD",
+      "area": 1408
+     }
+    ]
+   }
+  },
+  {
+   "n": 35,
+   "event_id": "f375ce15197968442edc5c5a2e0ab2a5b366db842a0ca67c34080484c5651f24",
+   "ticker": "ESAU.CN",
+   "stratum": "staking / claims",
+   "body_sha1": "baa706621fbe0d1b8f8ec1f74e35e2727315ff10",
+   "review": "confirmed",
+   "note": "Two definitive purchase agreements for 44 claims from arm's-length parties (the MOU was May 5); no royalty",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "claim_purchase",
+      "stage": "signed",
+      "property": "Montauban",
+      "counterparty": null,
+      "interest_pct": 100,
+      "cash": 70000,
+      "currency": "CAD",
+      "shares": 600000,
+      "area": 2448
+     }
+    ]
+   }
+  },
+  {
+   "n": 36,
+   "event_id": "1012ca3bb516f6f42209c4530538f1b0e6a28a2bd179c473212c433cff8a7417",
+   "ticker": "GTCH.CN",
+   "stratum": "staking / claims",
+   "body_sha1": "bbd0e5c01257517a9ece5fc86b837774bce32820",
+   "review": "confirmed",
+   "note": "A third party staked claims overlapping Fondaway; a title dispute, not a deal by the issuer. No row (tag false positive)",
+   "expect": {
+    "is_deal": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 37,
+   "event_id": "f0bbe1782e9015b5c35ce309673ee095c2997fad",
+   "ticker": "DMX.V",
+   "stratum": "staking / claims",
+   "body_sha1": "e35293cc5513cc23c84e3acfadc976565b6a60b5",
+   "review": "confirmed",
+   "note": "Mineral licence application Sågtjärn nr 103 after the UAV survey; the release is mostly survey results",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "staking",
+      "stage": "signed",
+      "property": "Sågtjärn",
+      "counterparty": null,
+      "interest_pct": 100
+     }
+    ]
+   }
+  },
+  {
+   "n": 38,
+   "event_id": "714e29d31e5648c8a4368ca925f7a59e28ffcc03",
+   "ticker": "RUU.CN",
+   "stratum": "staking / claims",
+   "body_sha1": "48af028910ff66f481cd360102894680ef88d410",
+   "review": "confirmed",
+   "note": "Cannabis cultivation licences and farmland; not mining. No row (tag false positive)",
+   "expect": {
+    "is_deal": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 39,
+   "event_id": "6a8b43ef218e56898ba9fd4f7fa6dc8dd0d9e1d6",
+   "ticker": "PONY.CN",
+   "stratum": "staking / claims",
+   "body_sha1": "34eb031a73ff58219a9c626746c031ca880e0b4b",
+   "review": "confirmed",
+   "note": "Two properties enlarged (Porcher 3,122 to 3,525 ha; Star 3,647 to 4,618 ha); area = added. The word 'staking' isn't used, but the ground was added by the company itself. Sunset option is background",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "staking",
+      "stage": "signed",
+      "property": "Porcher",
+      "counterparty": null,
+      "interest_pct": 100,
+      "area": 403
+     },
+     {
+      "deal_type": "staking",
+      "stage": "signed",
+      "property": "Star",
+      "counterparty": null,
+      "interest_pct": 100,
+      "area": 972
+     }
+    ]
+   }
+  },
+  {
+   "n": 40,
+   "event_id": "1a3b3862565765e3ed9fc2665132a8e9b1c84169",
+   "ticker": "MINE.V",
+   "stratum": "staking / claims",
+   "body_sha1": "823749e9d362dc577b14b3d43c178bae06a92eb1",
+   "review": "confirmed",
+   "note": "see claude/MNT_OPT_SET_LABELS_CONFIRMED_2026-09-23.json",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "staking",
+      "stage": "signed",
+      "property": "Beaver-Lynx",
+      "counterparty": null,
+      "interest_pct": 100,
+      "area": 2962
+     }
+    ]
+   }
+  },
+  {
+   "n": 41,
+   "event_id": "8efe4262f1b3eef8ba9a6c5cf09624267b2a66d65e9ffb0001f11aa1c915f9f4",
+   "ticker": "MEO.CN",
+   "stratum": "property purchase",
+   "body_sha1": "c6f5f6e42eea406070962925d1ab23f4c7bdef28",
+   "review": "confirmed",
+   "note": "Katoro: securities exchange for Privco, which holds the option on the properties; framed as acquiring the property (headline says LOI; body: definitive SEA dated Apr 29). VMP: an update on negotiations for a deal announced Oct 15, 2024; borderline second row",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "property_purchase",
+      "stage": "signed",
+      "property": "Katoro",
+      "counterparty": "1154308 B.C. Ltd.",
+      "interest_pct": 100,
+      "cash": 500000,
+      "currency": "USD",
+      "shares": 13000000,
+      "area": 1252,
+      "date": "2025-04-29"
+     },
+     {
+      "deal_type": "property_purchase",
+      "stage": "proposed",
+      "property": "VMP",
+      "counterparty": null,
+      "interest_pct": null,
+      "area": 162
+     }
+    ]
+   }
+  },
+  {
+   "n": 42,
+   "event_id": "7ab32a6166636162f22b16c10149ae6df15e83a6",
+   "ticker": "METL.CN",
+   "stratum": "property purchase",
+   "body_sha1": "9579b5d05f02700dd43f9a51a3b3a20d69c4f6a4",
+   "review": "confirmed",
+   "note": "Non-binding LOI to buy Launay Gold Corp. (the subsidiary that owns the property); framed as acquiring the property",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "property_purchase",
+      "stage": "proposed",
+      "property": "Launay Gold",
+      "counterparty": "Cachee Gold Mines",
+      "interest_pct": 100,
+      "shares": 6000000,
+      "work": 2000000,
+      "area": 17000,
+      "date": "2026-03-23"
+     }
+    ]
+   }
+  },
+  {
+   "n": 43,
+   "event_id": "4031aa88e6e7197525e88c1a2231525a139e59c97b34f816c4e348c7a863a201",
+   "ticker": "SHOW.CN",
+   "stratum": "property purchase",
+   "body_sha1": "00257239f948a74d2296e8bee36df0d5a1b260dd",
+   "review": "confirmed",
+   "note": "Headline says 'Agreement to Acquire' but it is an option. Dixie Flats / Woodruff are background",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_in",
+      "stage": "signed",
+      "property": "Pontiac Uranium",
+      "counterparty": null,
+      "interest_pct": 100,
+      "cash": 25000,
+      "currency": "CAD",
+      "shares": 250000,
+      "work": 250000,
+      "nsr": 2.0,
+      "term": 2,
+      "area": 3461
+     }
+    ]
+   }
+  },
+  {
+   "n": 44,
+   "event_id": "560dd4dcd8dd04b53dd2f39654fb7b76daf48a22c5b8e833ad70393225000460",
+   "ticker": "VCG.V",
+   "stratum": "negative: results / drilling",
+   "body_sha1": "1d32de42610f7d52d1245bbd0a47b7fd3ad95f3f",
+   "review": "confirmed",
+   "note": "Market One promotional piece; 'expanded land package' is mentioned without any deal. No row",
+   "expect": {
+    "is_deal": false,
+    "complete": true,
+    "rows": []
+   }
+  },
+  {
+   "n": 45,
+   "event_id": "0daae97a1a45b96d26cc21811a48644c9505c5de",
+   "ticker": "TWO.V",
+   "stratum": "negative: results / drilling",
+   "body_sha1": "c6594b1af149b0a6b6f074c2cfaa97a863fe8a8d",
+   "review": "confirmed",
+   "note": "Drawn as a negative (drill headline), but it also earns 90% under the 2022 Halo option: a real row. NSR 1.5% only if Halo converts",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_in",
+      "stage": "completed",
+      "property": "Sherridon",
+      "counterparty": "Halo Resources",
+      "interest_pct": 90,
+      "nsr": 1.5
+     }
+    ]
+   }
+  },
+  {
+   "n": 46,
+   "event_id": "7d45e304387178741a845779223d785d39e2ec6e",
+   "ticker": "PGR.CN",
+   "stratum": "other",
+   "body_sha1": "f8dc2a06cccc559ff1c0b794e447e80aa63ae138",
+   "review": "confirmed",
+   "note": "Headline is just 'News Release'. Four separate option agreements from Gravel Ridge / 1544230 Ontario = four rows; a side letter allows exercising all four within 8 months for $93k + 650k shares. The stock options are not a row",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_in",
+      "stage": "signed",
+      "property": "Marion",
+      "counterparty": "Gravel Ridge Resources",
+      "interest_pct": 100,
+      "cash": 60000,
+      "currency": "CAD",
+      "shares": 300000,
+      "term": 3
+     },
+     {
+      "deal_type": "option_in",
+      "stage": "signed",
+      "property": "Sheraton",
+      "counterparty": "Gravel Ridge Resources",
+      "interest_pct": 100,
+      "cash": 58000,
+      "currency": "CAD",
+      "shares": 300000,
+      "term": 3
+     },
+     {
+      "deal_type": "option_in",
+      "stage": "signed",
+      "property": "Rich Lake",
+      "counterparty": "Gravel Ridge Resources",
+      "interest_pct": 100,
+      "cash": 50000,
+      "currency": "CAD",
+      "shares": 200000,
+      "term": 3
+     },
+     {
+      "deal_type": "option_in",
+      "stage": "signed",
+      "property": "Grenfell",
+      "counterparty": "Gravel Ridge Resources",
+      "interest_pct": 100,
+      "cash": 58000,
+      "currency": "CAD",
+      "shares": 300000,
+      "term": 3
+     }
+    ]
+   }
+  },
+  {
+   "n": 47,
+   "event_id": "bb1c028125aa33fed057f70ca18a46ba6e28d35e",
+   "ticker": "PGR.CN",
+   "stratum": "other",
+   "body_sha1": "dcb868a70edb11b49bf902efed130fd17470f80e",
+   "review": "confirmed",
+   "note": "Headline is just 'News Release'. Two option agreements (310 + 265 claims, 10,137 ha together) adjoining Sheraton = two rows. Shares are dollar values ($385k / $305k), so no count. The unit offering is not a row",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_in",
+      "stage": "signed",
+      "property": "Kraken Claims",
+      "counterparty": "Kraken Gold",
+      "interest_pct": 100,
+      "cash": 240000,
+      "currency": "CAD",
+      "work": 1350000,
+      "nsr": 1.5,
+      "term": 3
+     },
+     {
+      "deal_type": "option_in",
+      "stage": "signed",
+      "property": "Kraken Claims",
+      "counterparty": "2628860 Ontario Ltd.",
+      "interest_pct": 100,
+      "cash": 190000,
+      "currency": "CAD",
+      "work": 1100000,
+      "nsr": 1.5,
+      "term": 3
+     }
+    ]
+   }
+  },
+  {
+   "n": 48,
+   "event_id": "58fabb32e6a1c8427e76fdc925362fb5467e0b7a8a82e3124128f6ada22d1db8",
+   "ticker": "HZ.CN",
+   "stratum": "property purchase",
+   "body_sha1": "fba58d9cf431c56c0f73a2a17f60aa0ae20cfae6",
+   "review": "confirmed",
+   "note": "Related-party purchase (vendor owned by the CEO). The Snake / Patriota options are background",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "property_purchase",
+      "stage": "signed",
+      "property": "Cominco Uranium",
+      "counterparty": "BullRun Capital",
+      "interest_pct": 100,
+      "cash": 75000,
+      "currency": "CAD",
+      "nsr": 2.0,
+      "area": 5046,
+      "date": "2024-02-02"
+     }
+    ]
+   }
+  },
+  {
+   "n": 49,
+   "event_id": "6e3dc5d29905f979fbd8ce2112934b640756b38c",
+   "ticker": "ISP.CN",
+   "stratum": "property purchase",
+   "body_sha1": "cde9d8ae241c68f4fe8653e611ae06a5ab248e80",
+   "review": "confirmed",
+   "note": "Bentley: an outright purchase ($5k + 1M shares + 2% NSR) although the section is titled 'Option Agreement'; payment is due in 5 days and CSE acceptance is pending, so signed rather than completed. Plus 'decided not to proceed' with three lithium options = three terminated rows (late in the body). Maraschino option is background",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "property_purchase",
+      "stage": "signed",
+      "property": "Bentley Uranium",
+      "counterparty": null,
+      "interest_pct": 100,
+      "cash": 5000,
+      "currency": "CAD",
+      "shares": 1000000,
+      "nsr": 2.0,
+      "area": 5710
+     },
+     {
+      "deal_type": "option_in",
+      "stage": "terminated",
+      "property": "Pagwachaun",
+      "counterparty": null,
+      "interest_pct": null
+     },
+     {
+      "deal_type": "option_in",
+      "stage": "terminated",
+      "property": "Maun",
+      "counterparty": null,
+      "interest_pct": null
+     },
+     {
+      "deal_type": "option_in",
+      "stage": "terminated",
+      "property": "Terrier",
+      "counterparty": null,
+      "interest_pct": null
+     }
+    ]
+   }
+  },
+  {
+   "n": 50,
+   "event_id": "b425c590b408e299f17aeb2191277a4a6198058b",
+   "ticker": "CAMP.CN",
+   "stratum": "property purchase",
+   "body_sha1": "894b386333e27f5adc703274f19df775ffba6a82",
+   "review": "confirmed",
+   "note": "Definitive earn-in agreement: 50% initial + 20% bump-up. Cash includes the $100k LOI payment. A 'fundamental change' for CAMP",
+   "expect": {
+    "is_deal": true,
+    "complete": true,
+    "rows": [
+     {
+      "deal_type": "option_in",
+      "stage": "signed",
+      "property": "Murphy Lake",
+      "counterparty": "F4 Uranium",
+      "interest_pct": 70,
+      "cash": 1400000,
+      "currency": "CAD",
+      "work": 18000000,
+      "term": 3,
+      "area": 610,
+      "date": "2024-05-29"
+     }
+    ]
+   }
+  }
+ ]
+}

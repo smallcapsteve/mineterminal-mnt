@@ -215,12 +215,13 @@ register_spec(TagSpec(
     judge=judge_royalties, stored=stored_royalties, from_records=_roy_from_records,
     candidate_predictor=_roy_candidate_predictor,
     describe={"row": "every row on the page is a royalty or stream deal the release reports -- bought, sold, granted, "
-                     "bought back or amended -- and every one it reports is on the page",
+                     "bought back or amended -- a royalty a vendor keeps or is granted in a property deal, or a royalty "
+                     "the company holds in a release about it (1.1); and every one it reports is on the page",
               "type": "NSR, GRR, NPI, stream or other",
               "property": "the mine or project the interest sits on",
               "buyer": "the holder of the interest after the deal",
               "seller": "the party that gave the interest up or granted it",
-              "action": "new, transfer, buyback or amendment",
+              "action": "new, transfer, buyback, amendment or held",
               "rate": "the royalty rate or stream percentage (reported)",
               "price": "the cash price (reported)",
               "currency": "USD or CAD (reported)",

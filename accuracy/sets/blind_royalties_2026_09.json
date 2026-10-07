@@ -1,0 +1,717 @@
+{
+  "schema": 1,
+  "name": "blind_royalties_2026_09",
+  "spec": "royalties",
+  "tag": "Royalties & Streams",
+  "status": "confirmed",
+  "created": "2026-09-23",
+  "drawn": "payloads/blind/draw_blind.py seed 20260923: 20 random tagged + 10 random untagged headline-net releases, none from any existing set",
+  "labelled": "blind, from headline and body only, by six labelling agents following the confirmed label guides; reviewer Justin",
+  "items": [
+    {
+      "n": 1,
+      "event_id": "10dcac30fb18312600a95ec1a0e14ff41a98c1d9",
+      "ticker": "EVR.CN",
+      "published_at": "2025-09-16T12:00:00Z",
+      "stratum": "tagged",
+      "body_sha1": "9b30eb2dd348baec7cf643d59fe55d9fb8267f6e",
+      "review": "confirmed",
+      "confidence": "high",
+      "note": "Upsized subscription-receipt financing by Evolve tied to the Voyageur business combination; royalties appear only in the About sections. Equity financings by royalty companies are out.",
+      "question": "",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 2,
+      "event_id": "2ee56fe9c48bd06fce3d93e16499b95def6b752d",
+      "ticker": "OGN.V",
+      "published_at": "2025-09-24T12:00:00Z",
+      "stratum": "tagged",
+      "body_sha1": "a01d725240eebe956ccd711d92917ad64ce0765d",
+      "review": "confirmed",
+      "confidence": "high",
+      "note": "Portfolio/exploration update restating existing royalties and buydowns (like key #35/#46); the Arthur royalty sale is only recapped.",
+      "question": "",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 3,
+      "event_id": "2360499a0dbb17742a2100135e3d88411c463e48",
+      "ticker": "SASK.V",
+      "published_at": "2026-07-16T12:00:00Z",
+      "stratum": "tagged",
+      "body_sha1": "0910f8c8cf0b0608fea869def76da1b5f27807d0",
+      "review": "confirmed",
+      "confidence": "low",
+      "note": "Amendment to a royalty and participation agreement (in scope as an amendment); the royalty type, rate, metal and property names are not stated, so type 'other' and property is the generic 'NSS properties'. Paid only in shares/warrants, so price null.",
+      "question": "Is a waiver of a royalty holder's rights over relinquished claims (unnamed royalty type, no rate) an 'amendment' row, or too thin to publish?",
+      "expect": {
+        "is_royalty": true,
+        "complete": true,
+        "rows": [
+          {
+            "type": "other",
+            "property": "NSS properties",
+            "operator": "ATHA Energy",
+            "buyer": "New Saskatchewan Syndicate",
+            "seller": "ATHA Energy",
+            "price_note": "NSS waives its rights on relinquished properties for 1,000,000 shares + 1,000,000 warrants at $1.05; subject to TSXV approval",
+            "action": "amendment",
+            "status": "agreed"
+          }
+        ]
+      }
+    },
+    {
+      "n": 4,
+      "event_id": "eb862110f41ebfbfc3551b499f545bc6574ddb8c9686e8da0ea55431b0346b70",
+      "ticker": "ELEC.V",
+      "published_at": "2026-09-17T00:00:00",
+      "stratum": "tagged",
+      "body_sha1": "a5f3421f10f30e472996ccbb3f4ff025a1d38285",
+      "review": "confirmed",
+      "confidence": "high",
+      "note": "Royalty-portfolio operator update (like key #46); the Sprott/Okanjande stream amendment is described as 'previously announced' and belongs to Northern Graphite's own release.",
+      "question": "",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 5,
+      "event_id": "e411e1cb8a3c9e8e0d3cea3ce1e56121a0395a9f",
+      "ticker": "EMPS.CN",
+      "published_at": "2023-02-17T12:00:00Z",
+      "stratum": "tagged",
+      "body_sha1": "46c2d1bc18a91c93f435c890d0e4c6b1db35d743",
+      "review": "confirmed",
+      "confidence": "low",
+      "note": "The payor (EMP) buys out the holder of a 25% net profit interest over its lithium-brine subsidiary by acquiring the holding company: treated as an NPI buyback. Paid only in warrants, so price null; metal not stated for HCM so omitted.",
+      "question": "Is a 25% net-profits interest held over a subsidiary company (not a named property) a mining NPI for this page, and is buying the holder's company a 'buyback'?",
+      "expect": {
+        "is_royalty": true,
+        "complete": true,
+        "rows": [
+          {
+            "type": "NPI",
+            "rate_pct": 25.0,
+            "property": "Hub City Minerals Corp. (HCM)",
+            "operator": "EMP Metals",
+            "buyer": "EMP Metals",
+            "seller": "Hub City Royalty Corp.",
+            "price_note": "all shares of Hub City Royalty acquired for 6,930,000 warrants at $1.25 for 3 years; removes the 25% net profit interest over HCM",
+            "action": "buyback",
+            "status": "agreed"
+          }
+        ]
+      }
+    },
+    {
+      "n": 6,
+      "event_id": "faf286943a999ef42bb393d5b35dd789557200cc",
+      "ticker": "VMET.TO",
+      "published_at": "2026-03-13T12:00:00Z",
+      "stratum": "tagged",
+      "body_sha1": "613002f0c3fd1016908e47ec04ec2ad51172f42d",
+      "review": "confirmed",
+      "confidence": "high",
+      "note": "Board appointment; royalties only in the About section.",
+      "question": "",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 7,
+      "event_id": "a902843321894359cc73f39b8a65fcc2e17bb797",
+      "ticker": "PURR.CN",
+      "published_at": "2020-04-07T12:00:00Z",
+      "stratum": "tagged",
+      "body_sha1": "e69e988991776dae5efdb48b0c0ba83bd12bcef3",
+      "review": "confirmed",
+      "confidence": "high",
+      "note": "Option agreement in which the vendor (EMX) retains a 3.5% NSR with buy-down rights: a vendor NSR on a property option, excluded per Q1 (key #38). | 2026-09-28 ROY11 re-label approved by Justin (b7)",
+      "question": "",
+      "expect": {
+        "complete": true,
+        "is_royalty": true,
+        "rows": [
+          {
+            "action": "new",
+            "buyer": "EMX Royalty",
+            "operator": "Gold Lion",
+            "price_note": "retained by EMX in the option; buy-down rights",
+            "property": "Portfolio: South Orogrande, Robber Gulch, Erikson Ridge",
+            "rate_pct": 3.5,
+            "seller": "Gold Lion",
+            "status": "agreed",
+            "type": "NSR"
+          }
+        ]
+      }
+    },
+    {
+      "n": 8,
+      "event_id": "da167e022f2c5ef42f84fa2506e09e69f8f09bae",
+      "ticker": "LIF.TO",
+      "published_at": "2025-08-06T12:00:00Z",
+      "stratum": "tagged",
+      "body_sha1": "c0da6d9c7e19bff69249882f2589a17bbd8cb736",
+      "review": "confirmed",
+      "confidence": "high",
+      "note": "LIORC quarterly results: royalty income on the IOC 7% royalty only (like key #41). Body is truncated inside the financial statements, so complete=false, though a deal row there is unlikely.",
+      "question": "",
+      "expect": {
+        "is_royalty": false,
+        "complete": false,
+        "rows": []
+      }
+    },
+    {
+      "n": 9,
+      "event_id": "cd246fd53c31d5ce3e55550d892775ac1d702bf5",
+      "ticker": "BAC.CN",
+      "published_at": "2024-10-25T12:00:00Z",
+      "stratum": "tagged",
+      "body_sha1": "d28cd6e45637aeeb59ca69cadac26f48eb57bb67",
+      "review": "confirmed",
+      "confidence": "low",
+      "note": "Agreement finalized and first share tranche received (closing of the June 3, 2024 deal, own row per Q3). The interest is never named as a stream or royalty, so type 'other'; price is the stated C$4M share value, following key #44 (shares at a stated value) rather than the guide's shares-only-null rule.",
+      "question": "For a fixed-ounce silver obligation that the release never names (Silver Crown calls its interests royalties), should type be 'stream' or 'other', and does a share-only payment with a stated C$ value get price 4000000 (as key #44) or null (as the guide)?",
+      "expect": {
+        "is_royalty": true,
+        "complete": true,
+        "rows": [
+          {
+            "type": "other",
+            "metal": "silver",
+            "property": "Tenguel bioleach facility",
+            "operator": "BacTech Environmental",
+            "buyer": "Silver Crown Royalties",
+            "seller": "BacTech Environmental",
+            "price": 4000000,
+            "currency": "CAD",
+            "price_note": "paid in Silver Crown common shares in three tranches; minimum 35,000 oz silver/yr for ten years",
+            "action": "new",
+            "status": "closed"
+          }
+        ]
+      }
+    },
+    {
+      "n": 10,
+      "event_id": "dbb5e3c2ab06cdb66cc0b5280745615c5db09ceeb35b9b033ad7d1be17a7b1a9",
+      "ticker": "SPA.V",
+      "published_at": "2026-05-01T22:12:00",
+      "stratum": "tagged",
+      "body_sha1": "2f7ec34e37360736fad38a85d6e006290b1bbf54",
+      "review": "confirmed",
+      "confidence": "low",
+      "note": "Closing of the first tranche of the Wheaton royalty financing gets its own row (Q3). This body never states the royalty type, rate or metal, so type is 'other' (unnamed royalty) and rate/metal are omitted; price is the total of the stated pieces (22.5 + 32.5).",
+      "question": "Key #8 fills a closing release's missing type/rate from the earlier announcement; for a blind label should this closing be NSR 1.5% (from key #4) or stay literal as type 'other' with no rate?",
+      "expect": {
+        "is_royalty": true,
+        "complete": true,
+        "rows": [
+          {
+            "type": "other",
+            "property": "Spanish Mountain Gold Project",
+            "operator": "Spanish Mountain Gold",
+            "buyer": "Wheaton Precious Metals",
+            "seller": "Spanish Mountain Gold",
+            "price": 55000000,
+            "currency": "USD",
+            "price_note": "first tranche US$22.5M received at closing; further US$32.5M available on conditions precedent",
+            "action": "new",
+            "status": "closed"
+          }
+        ]
+      }
+    },
+    {
+      "n": 11,
+      "event_id": "f7c3b9a9e0391f238840cdc62a8b1513cffaf4d7",
+      "ticker": "ALS.TO",
+      "published_at": "2025-04-22T12:00:00Z",
+      "stratum": "tagged",
+      "body_sha1": "d78eda18a15724cad47d2af98eb6f34373e7ebca",
+      "review": "confirmed",
+      "confidence": "low",
+      "note": "Corporate takeover of a royalty company (Triple Flag for Orogen) reported by a shareholder; no single royalty interest is bought or sold, and the Silicon NSRs are context (treated like key #36 business combination).",
+      "question": "Should a whole-company acquisition of a royalty company produce rows for the royalties it names (e.g., Orogen's 1% NSR on Silicon passing to Triple Flag), or stay excluded as corporate M&A?",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 12,
+      "event_id": "b819d1e75459a8706d7421951a0c147ab9d3aa71",
+      "ticker": "GR.V",
+      "published_at": "2025-09-29T12:00:00Z",
+      "stratum": "tagged",
+      "body_sha1": "28b88b2e717771cad3cff3a8b24dd32170e2f335",
+      "review": "confirmed",
+      "confidence": "high",
+      "note": "Option agreement in which the optionor (Great Atlantic) retains a 1% NSR: a vendor NSR, excluded per Q1 (key #38), even though it is in the headline. | 2026-09-28 ROY11 re-label approved by Justin (b12)",
+      "question": "",
+      "expect": {
+        "complete": true,
+        "is_royalty": true,
+        "rows": [
+          {
+            "action": "new",
+            "buyer": "Great Atlantic Resources",
+            "operator": "HM Exploration",
+            "price_note": "retained by the optionor",
+            "property": "Pilley's Island",
+            "rate_pct": 1,
+            "seller": "HM Exploration",
+            "status": "agreed",
+            "type": "NSR"
+          }
+        ]
+      }
+    },
+    {
+      "n": 13,
+      "event_id": "eac0a5255f18c0ff46e39b977103f1091c0c01a2714951bf2c9649bbdaa4973f",
+      "ticker": "CCI.CN",
+      "published_at": "2026-04-14T10:00:00+00:00",
+      "stratum": "tagged",
+      "body_sha1": "c219b9cf1067ee98e27c18a6e1a8c461571b28ad",
+      "review": "confirmed",
+      "confidence": "high",
+      "note": "New 20% life-of-mine silver and gold stream to OR Royalties for C$38.35M (a stream financing). The Ocean Partners debt/offtake and the equity subscriptions are not royalty rows.",
+      "question": "",
+      "expect": {
+        "is_royalty": true,
+        "complete": true,
+        "rows": [
+          {
+            "type": "stream",
+            "rate_pct": 20.0,
+            "metal": "silver, gold",
+            "property": "Bathurst Complex (Murray Brook Project and Caribou Process Plant)",
+            "operator": "Canadian Copper",
+            "buyer": "OR Royalties",
+            "seller": "Canadian Copper",
+            "price": 38350000,
+            "currency": "CAD",
+            "price_note": "C$6.85M upfront deposit + C$31.5M construction funding; ongoing payment 20% of spot; separate C$5.48M equity subscription",
+            "action": "new",
+            "status": "agreed"
+          }
+        ]
+      }
+    },
+    {
+      "n": 14,
+      "event_id": "be64de55eb2e957962d8c2a382692a2e33dfb847",
+      "ticker": "CAPT.V",
+      "published_at": "2025-06-11T12:00:00Z",
+      "stratum": "tagged",
+      "body_sha1": "b7dfd44eb00cc584d978531be0048f797c02ca2d",
+      "review": "confirmed",
+      "confidence": "high",
+      "note": "Payor completes purchase of the Altiplano NSR: buyback, closed. Rate stated only as 'ranged up to 2%', so null (variable rate). The Peñoles and Riverside 1% royalties are existing retirement rights, not new events, so no rows.",
+      "question": "",
+      "expect": {
+        "is_royalty": true,
+        "complete": true,
+        "rows": [
+          {
+            "type": "NSR",
+            "property": "Cruz de Plata",
+            "operator": "Capitan Silver",
+            "buyer": "Capitan Silver",
+            "seller": "Exploraciones del Altiplano",
+            "price": 1000000,
+            "currency": "USD",
+            "price_note": "NSR ranged up to 2%; eliminated through cash and share payments totalling US$1M",
+            "action": "buyback",
+            "status": "closed"
+          }
+        ]
+      }
+    },
+    {
+      "n": 15,
+      "event_id": "f487f3beff97cbb75f80d504365a5ed902bf3644",
+      "ticker": "LTH.V",
+      "published_at": "2026-08-12T12:00:00Z",
+      "stratum": "tagged",
+      "body_sha1": "802e86610e28204ae15e1354666246aa245e9057",
+      "review": "confirmed",
+      "confidence": "low",
+      "note": "Property sale in which the seller (Lithium Ionic) retains a 2.0% royalty on spodumene sales: a vendor royalty, excluded per Q1 (key #13/#43), though here it is in the headline. | 2026-09-28 ROY11 re-label approved by Justin (b15)",
+      "question": "Does the Q1 vendor-royalty exclusion still apply when the retained royalty is headline news of a large (US$37.5M) sale, as here?",
+      "expect": {
+        "complete": true,
+        "is_royalty": true,
+        "rows": [
+          {
+            "action": "new",
+            "buyer": "Lithium Ionic",
+            "metal": "lithium",
+            "operator": "PLS",
+            "price_note": "retained on future spodumene sales in the US$37.5M property sale",
+            "property": "Salinas",
+            "rate_pct": 2,
+            "seller": "PLS",
+            "status": "agreed",
+            "type": "other"
+          }
+        ]
+      }
+    },
+    {
+      "n": 16,
+      "event_id": "a678089e557f861a797514de5eace8ada2715699",
+      "ticker": "MRZ.V",
+      "published_at": "2025-12-09T12:00:00Z",
+      "stratum": "tagged",
+      "body_sha1": "83d2d3bf9a0569c2ddcd8b90ea39d609e10c662e",
+      "review": "confirmed",
+      "confidence": "low",
+      "note": "Mirasol sells Sascha-Marcelina to Pursuit and retains a 1.5% NSR with buy-back rights: a vendor NSR on a property sale, excluded under Q1 as confirmed in the key (#13, #26, #38, #43). Judgement call: this is the vendor's own release and the royalty is in the headline. | 2026-09-28 ROY11 re-label approved by Justin (b16)",
+      "question": "Q1 excluded vendor NSRs in buyer-side releases (#13, #26, #38, #43). Does it also exclude them when the VENDOR's own release puts the retained royalty in the headline ('Sale ... for US$1.5 Million Plus Royalty'), or should this get a row (NSR 1.5%, Sascha-Marcelina, buyer Mirasol, seller Pursuit/Andara, new, closed)?",
+      "expect": {
+        "complete": true,
+        "is_royalty": true,
+        "rows": [
+          {
+            "action": "new",
+            "buyer": "Mirasol Resources",
+            "operator": "Pursuit",
+            "price_note": "retained in the sale, with buy-back rights",
+            "property": "Sascha-Marcelina",
+            "rate_pct": 1.5,
+            "seller": "Pursuit",
+            "status": "closed",
+            "type": "NSR"
+          }
+        ]
+      }
+    },
+    {
+      "n": 17,
+      "event_id": "1ad449aa0f2265b8726b354e45fb95ec",
+      "ticker": "WG.CN",
+      "published_at": "2023-02-15",
+      "stratum": "tagged",
+      "body_sha1": "56f6dc3877d018c5faadaebd8695f2d5e965391e",
+      "review": "confirmed",
+      "confidence": "low",
+      "note": "Binding letter agreement: Westward assigns EMX its NSR buy-back rights and will grant EMX new NSRs (1.0% Toiyabe, 1.25% Turquoise Canyon) if EMX exercises them; one row per new NSR, with the buy-back terms kept in price_note per the 'terms inside a deal' rule. Judgement call: grants are conditional and no cash price is stated for the royalties.",
+      "question": "Westward/EMX: EMX is assigned the right to buy down third-party NSRs (Minquest 3.0% on Toiyabe by 1.5%; Elemental Altus 2.0% on Turquoise Canyon by 1.0%) and gets new NSRs only if it exercises them. Should the rows be the two conditional new NSR grants (as labelled), the two assigned buy-down rights (action buyback, sellers Minquest / Elemental Altus), both (4 rows), or none because nothing is granted yet?",
+      "expect": {
+        "is_royalty": true,
+        "complete": true,
+        "rows": [
+          {
+            "type": "NSR",
+            "rate_pct": 1.0,
+            "property": "Toiyabe",
+            "operator": "Westward Gold",
+            "buyer": "EMX Royalty",
+            "seller": "Westward Gold",
+            "price_note": "conditional grant if EMX exercises the assigned buyback of half (1.5%) of Minquest's 3.0% NSR at US$2,000,000 per 1.0%; given for EMX's C$300,000 equity investment and subsidized drilling; plus ROFR",
+            "action": "new",
+            "status": "agreed"
+          },
+          {
+            "type": "NSR",
+            "rate_pct": 1.25,
+            "property": "Turquoise Canyon",
+            "operator": "Westward Gold",
+            "buyer": "EMX Royalty",
+            "seller": "Westward Gold",
+            "price_note": "conditional grant if EMX exercises the assigned buyback of 1.0% of the 2.0% NSR (now held by Elemental Altus) for US$1,000,000",
+            "action": "new",
+            "status": "agreed"
+          }
+        ]
+      }
+    },
+    {
+      "n": 18,
+      "event_id": "7c0ed0e9fb5c72b01de7510ec3db91adbc0c7a71",
+      "ticker": "NGEX.TO",
+      "published_at": "2025-08-11T12:00:00Z",
+      "stratum": "tagged",
+      "body_sha1": "ee73efb37d181cfaf616e4326a89f5380bba7ff0",
+      "review": "confirmed",
+      "confidence": "high",
+      "note": "Q2 2025 results recapping the spin-out announced July 22, 2025; under Q3 recaps inside results do not get rows (key #14). Body truncated only inside the forward-looking statements, so complete stays true.",
+      "question": "",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 19,
+      "event_id": "932bbce59f775bd9a3bc7fbcf704506f78db56e2",
+      "ticker": "GOT.V",
+      "published_at": "2026-03-10T12:00:00Z",
+      "stratum": "tagged",
+      "body_sha1": "8aded10491b04f574d3abb2993d615cff1f21570",
+      "review": "confirmed",
+      "confidence": "high",
+      "note": "Goliath has bought down 1% of the Optionors' 3% NSR under an amending agreement; a buy-down is in scope. Paid in shares only, so price null with terms in price_note; metal not stated for the NSR.",
+      "question": "",
+      "expect": {
+        "is_royalty": true,
+        "complete": true,
+        "rows": [
+          {
+            "type": "NSR",
+            "rate_pct": 1.0,
+            "property": "Golddigger Property",
+            "operator": "Goliath Resources",
+            "buyer": "Goliath Resources",
+            "seller": "The J2 Syndicate; J2 Syndicate Holdings",
+            "price_note": "1% of the 3% NSR bought down, leaving 2% with the Optionors; paid with 3,000,000 shares that also earned the remaining 51% interest",
+            "action": "buyback",
+            "status": "closed"
+          }
+        ]
+      }
+    },
+    {
+      "n": 20,
+      "event_id": "af2ebf2dcb00d778fbcaa6b8cedadbba0938147b",
+      "ticker": "ELE.TO",
+      "published_at": "2025-05-28T12:00:00Z",
+      "stratum": "tagged",
+      "body_sha1": "b66246e61ba6e22a94ca10ee6aaad40acc1f29d2",
+      "review": "confirmed",
+      "confidence": "high",
+      "note": "Royalty holder noting the operator's sale of Laverton (A$250m is the property price, not a royalty deal) and a maiden reserve at Hercules; the existing 2% GRR and A$10/oz royalty are not bought, sold or amended (like key #11). Consolidating two royalty areas is internal naming. | 2026-09-28 ROY11 re-label approved by Justin (b20)",
+      "question": "",
+      "expect": {
+        "complete": true,
+        "is_royalty": true,
+        "rows": [
+          {
+            "action": "held",
+            "buyer": "Elemental Altus Royalties",
+            "operator": "Focus Minerals",
+            "price_note": "uncapped 2% GRR Elemental Altus holds; Focus is selling Laverton to Genesis",
+            "property": "Laverton",
+            "rate_pct": 2,
+            "type": "GRR"
+          },
+          {
+            "action": "held",
+            "buyer": "Elemental Altus Royalties",
+            "metal": "gold",
+            "operator": "Northern Star Resources",
+            "price_note": "A$10/oz production royalty plus A$1M discovery bonus Elemental Altus holds",
+            "property": "Hercules (South Kalgoorlie Operations)",
+            "type": "other"
+          }
+        ]
+      }
+    },
+    {
+      "n": 21,
+      "event_id": "8628b1e2be0c9f75f96b2efc82571598b8efcb65",
+      "ticker": "OGN.V",
+      "published_at": "2026-08-05T12:00:00Z",
+      "stratum": "untagged_net",
+      "body_sha1": "2a0bedde5e4da7423ef29cde07100d34f512cf67",
+      "review": "confirmed",
+      "confidence": "high",
+      "note": "Prospect generator staking a new project with no encumbrances; the only royalty is the Ermitano NSR in the About section.",
+      "question": "",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 22,
+      "event_id": "aca6396845a5289d7b6c36a3609768df648f8350",
+      "ticker": "VROY.V",
+      "published_at": "2025-12-10T12:00:00Z",
+      "stratum": "untagged_net",
+      "body_sha1": "c3f2c3d45595912f99765f015508178ae6f6b268",
+      "review": "confirmed",
+      "confidence": "high",
+      "note": "OTCQX listing graduation (like key #37); the Panuco NSR is only in the About section.",
+      "question": "",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 23,
+      "event_id": "1fbfc866c6250ba1242a6a0dc51e4800987015ed",
+      "ticker": "OGN.V",
+      "published_at": "2026-02-13T12:00:00Z",
+      "stratum": "untagged_net",
+      "body_sha1": "367e44130c8ff262c1df6c32bc52300bdf7519d1",
+      "review": "confirmed",
+      "confidence": "high",
+      "note": "Annual equity compensation grant; royalty only in About.",
+      "question": "",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 24,
+      "event_id": "dacc6b35a73c137368397e69135279b178f6597b",
+      "ticker": "RI.CN",
+      "published_at": "2025-03-31T12:00:00Z",
+      "stratum": "untagged_net",
+      "body_sha1": "0cdfadf396f7d831365d258b922751f8d755868f",
+      "review": "confirmed",
+      "confidence": "high",
+      "note": "Quarterly results plus the Capstone/Cozamin 2% NSR lawsuit: a dispute, ruled out (key #3); income is music/TV royalties. | 2026-09-28 ROY11 re-label approved by Justin (b24)",
+      "question": "",
+      "expect": {
+        "complete": true,
+        "is_royalty": true,
+        "rows": [
+          {
+            "action": "held",
+            "buyer": "Royalties Inc. (Minera Portree de Zacatecas)",
+            "operator": "Capstone Copper",
+            "price_note": "2% NSR Royalties Inc. claims in its lawsuit against Capstone",
+            "property": "Cozamin Mine (Portree claims)",
+            "rate_pct": 2,
+            "type": "NSR"
+          }
+        ]
+      }
+    },
+    {
+      "n": 25,
+      "event_id": "eda7699dbf18c3f10509bdaed7f6549ddbfdda4a",
+      "ticker": "RI.CN",
+      "published_at": "2025-01-13T12:00:00Z",
+      "stratum": "untagged_net",
+      "body_sha1": "9c3e9f323d74702b4c19ed045a997015d52e7552",
+      "review": "confirmed",
+      "confidence": "high",
+      "note": "Private placement closing; the Portree NSR lawsuit and Bilbao NSR are background/About.",
+      "question": "",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 26,
+      "event_id": "6c2380c50b7e95a86597b566fc3f97ecf42d3ca4",
+      "ticker": "EVR.CN",
+      "published_at": "2026-06-22T12:00:00Z",
+      "stratum": "untagged_net",
+      "body_sha1": "9e516ce6f35f615a8081adfaef98d378a6f7cd1a",
+      "review": "confirmed",
+      "confidence": "high",
+      "note": "DTC eligibility notice by a royalty company; no royalty deal.",
+      "question": "",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 27,
+      "event_id": "9b86faee3fa86a81697e82a9e35382006a4b065f",
+      "ticker": "NRC.V",
+      "published_at": "2026-08-31T12:00:00Z",
+      "stratum": "untagged_net",
+      "body_sha1": "83eb47ef65dca7dd12583c4bcbb9c98b8ba2115b",
+      "review": "confirmed",
+      "confidence": "high",
+      "note": "Quarterly results and royalty income (Brucejack payment): royalty income is out.",
+      "question": "",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 28,
+      "event_id": "12622c91b3e664b862d2099b76b136981e7df143",
+      "ticker": "NRC.V",
+      "published_at": "2025-02-13T12:00:00Z",
+      "stratum": "untagged_net",
+      "body_sha1": "4adad925d41f17071de5b3509aad7bd09cd1eb24",
+      "review": "confirmed",
+      "confidence": "high",
+      "note": "Corporate update, advisory services and an appointment; no royalty bought, sold or granted.",
+      "question": "",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 29,
+      "event_id": "e9f955e106200d90070d7dd38923d99a62de98ea",
+      "ticker": "BRVO.V",
+      "published_at": "2025-03-24T12:00:00Z",
+      "stratum": "untagged_net",
+      "body_sha1": "476e102c8be76cdf69d3d96e901e83863b39d7e2",
+      "review": "confirmed",
+      "confidence": "high",
+      "note": "Exploration work program; 'Work Streams' is not a stream deal and no royalty is mentioned.",
+      "question": "",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    },
+    {
+      "n": 30,
+      "event_id": "52cb6416d6bc39936a5ee38f06055d2e79f79f31",
+      "ticker": "RGLD.CN",
+      "published_at": "2020-07-27T12:00:00Z",
+      "stratum": "untagged_net",
+      "body_sha1": "fb67d5870d207c24a43417c361202ff1ffe30d0d",
+      "review": "confirmed",
+      "confidence": "high",
+      "note": "Property acquisition by Crown grant; 'Clarence Stream' is a place name, no royalty.",
+      "question": "",
+      "expect": {
+        "is_royalty": false,
+        "complete": true,
+        "rows": []
+      }
+    }
+  ],
+  "reviewer": "Justin",
+  "reviewed_at": "2026-09-23",
+  "review_page": "https://claude.ai/artifact/1KwSgsqKaMSMNJAyDECniw (db collection reviews)",
+  "edited_2026_09_28": "2026-09-28: Royalties 1.1 rules (Justin, ROY11 review page): every vendor royalty is a row; a held row when the headline is about a named royalty the company holds (Q12 A); items #7, #12, #15, #16, #20, #24 edited with his per-item OK."
+}
