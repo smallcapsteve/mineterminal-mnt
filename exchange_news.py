@@ -563,6 +563,7 @@ def find_match(pcon: sqlite3.Connection, rel: dict,
     rel["title"] is the string "News release" for every TMX row in the store."""
     # EXCOV_V1 (2026-09-28): only a release visitors can see, or a hidden duplicate of one, counts as found. A
     # copy parked in a review queue does not: the release is not on the site.
+    # EXCOV_V1b (2026-10-07): '+review_status' so SQLite keeps using the date index (1.17 s -> ms per release).
     d = rel["published_date"]
     n1 = norm(title if title is not None else rel["title"])
     if not n1 or n1 in ("newsrelease", "newsreleases"):
@@ -584,13 +585,13 @@ def find_match(pcon: sqlite3.Connection, rel: dict,
     if _w:
         own = pcon.execute(
             "SELECT event_id, raw_headline, ticker FROM events "
-            "WHERE review_status IN ('auto_approved', 'duplicate_of_wire') AND (ticker = ? OR ticker LIKE ?) AND published_at >= ? AND published_at < ?",
+            "WHERE +review_status IN ('auto_approved', 'duplicate_of_wire') AND (ticker = ? OR ticker LIKE ?) AND published_at >= ? AND published_at < ?",
             (rel["bare"], rel["bare"] + ".%", _w[0], _w[1]),
         ).fetchall()
     else:
         own = pcon.execute(
             "SELECT event_id, raw_headline, ticker FROM events "
-            "WHERE review_status IN ('auto_approved', 'duplicate_of_wire') AND (ticker = ? OR ticker LIKE ?) AND date(published_at) BETWEEN date(?,'-3 day') AND date(?,'+3 day')",
+            "WHERE +review_status IN ('auto_approved', 'duplicate_of_wire') AND (ticker = ? OR ticker LIKE ?) AND date(published_at) BETWEEN date(?,'-3 day') AND date(?,'+3 day')",
             (rel["bare"], rel["bare"] + ".%", d, d),
         ).fetchall()
     eid, tk = scan(own)
@@ -601,13 +602,13 @@ def find_match(pcon: sqlite3.Connection, rel: dict,
     if _w:
         other = pcon.execute(
             "SELECT event_id, raw_headline, ticker FROM events "
-            "WHERE review_status IN ('auto_approved', 'duplicate_of_wire') AND published_at >= ? AND published_at < ?",
+            "WHERE +review_status IN ('auto_approved', 'duplicate_of_wire') AND published_at >= ? AND published_at < ?",
             (_w[0], _w[1]),
         ).fetchall()
     else:
         other = pcon.execute(
             "SELECT event_id, raw_headline, ticker FROM events "
-            "WHERE review_status IN ('auto_approved', 'duplicate_of_wire') AND date(published_at) BETWEEN date(?,'-2 day') AND date(?,'+2 day')",
+            "WHERE +review_status IN ('auto_approved', 'duplicate_of_wire') AND date(published_at) BETWEEN date(?,'-2 day') AND date(?,'+2 day')",
             (d, d),
         ).fetchall()
     eid, tk = scan(other)
@@ -642,19 +643,20 @@ def covered_by_count(pcon: sqlite3.Connection, rels: list[dict]) -> set:
     # being releases (NRHIDE_V1) do not count either.
     # EXCOV_V1 (2026-09-28): only events visitors can see count. A copy parked for review (the newswire.ca queue)
     # counted as coverage, so the exchange copy was skipped and ~500 releases stayed off the site.
+    # EXCOV_V1b (2026-10-07): '+review_status' keeps the date index in use (no planner statistics on this DB).
     for (b, d), group in by_day.items():
         _w = _win(d, 1, 1)
         if _w:
             have = pcon.execute(
                 "SELECT COUNT(*) FROM events WHERE (ticker = ? OR ticker LIKE ?) "
-                "AND review_status = 'auto_approved' "
+                "AND +review_status = 'auto_approved' "
                 "AND published_at >= ? AND published_at < ?",
                 (b, b + ".%", _w[0], _w[1]),
             ).fetchone()[0]
         else:
             have = pcon.execute(
                 "SELECT COUNT(*) FROM events WHERE (ticker = ? OR ticker LIKE ?) "
-                "AND review_status = 'auto_approved' "
+                "AND +review_status = 'auto_approved' "
                 "AND date(published_at) BETWEEN date(?,'-1 day') AND date(?,'+1 day')",
                 (b, b + ".%", d, d),
             ).fetchone()[0]
@@ -1000,6 +1002,19 @@ def fetch_release(rel: dict) -> tuple[str, str, str]:
     return body, headline_from(_lh_body(rel, body), rel["title"]), ""   # LETTERHEAD_V1
 
 
+def _datedup_published(rel: dict, body: str) -> str:
+    """DATEDUP_V1 (2026-10-10, Justin): the date the company issued the release, read from its dateline,
+    not the date the exchange received it. Bounded by the upload date (backfill_dates.release_date);
+    falls back to the upload date when the document gives none. Rollback: /var/backups/mnt/datedup-live-*/"""
+    try:
+        import datetime as _dt
+        import backfill_dates as _D
+        d, _prov = _D.release_date(body or "", _dt.date.fromisoformat(rel["published_date"][:10]))
+        return min(d, _dt.date.fromisoformat(rel["published_date"][:10])).isoformat() + "T12:00:00Z"   # DATEDUP_V1.1: never later than the exchange date
+    except Exception:                            # noqa: BLE001
+        return rel["published_date"] + "T12:00:00Z"
+
+
 def publish(rel: dict, body: str, headline: str) -> tuple[bool, str]:
     """Classify an already-fetched release and post it to MNT's ingest."""
     from pipeline.run import build_envelope, sign_and_post, archive_envelope
@@ -1013,7 +1028,7 @@ def publish(rel: dict, body: str, headline: str) -> tuple[bool, str]:
     cand = {
         "source_url": rel["url"],
         "source_name": "cse" if rel["source"] == "cse" else "tmx",
-        "published_at": rel["published_date"] + "T12:00:00Z",
+        "published_at": _datedup_published(rel, body),   # DATEDUP_V1
         "raw_headline": headline,
         "raw_excerpt": body[:1500],
         "raw_body": body,

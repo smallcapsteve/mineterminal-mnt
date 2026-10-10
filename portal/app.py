@@ -132,6 +132,22 @@ request: Request, event_id: str):
     """Legacy URL: 301-redirect to slug-based /news/{ticker}/{slug} for SEO."""
     row = db.get_event(event_id)
     if not row:
+        # DATEDUP_V1.4 (2026-10-10): a release removed as a copy forwards to the copy that was kept
+        try:
+            _c, _eid = db.get_conn(), event_id
+            for _ in range(3):
+                _k = _c.execute("SELECT kept_id FROM dup_guard_log WHERE event_id = ? AND kept_id IS NOT NULL "
+                                "AND action IN ('replaced_exchange','deleted_history','skipped_new') "
+                                "ORDER BY id DESC LIMIT 1", (_eid,)).fetchone()
+                if not _k:
+                    break
+                _eid = _k[0]
+                row = db.get_event(_eid)
+                if row:
+                    break
+        except Exception:  # noqa: BLE001
+            row = None
+    if not row:
         raise HTTPException(404)
     ticker = (row["ticker"] or "unknown").lower()
     slug = row["slug"] or "release"
@@ -3647,6 +3663,14 @@ def management_changes_page(
 _CATEGORY_PAGES = [
     ("/mergers-acquisitions", "Mergers & Acquisitions", "mna"),
     ("/share-capital", "Share Capital & Compensation", "sharecap"),
+    # MNT_SOON_V1 (2026-10-10): the seven greyed "coming" tabs, as tag lists for now.
+    ("/financials", "Financials", "fns"),
+    ("/shareholder-meetings", "Shareholder Meetings", "meetings"),
+    ("/corporate-actions", "Corporate Actions", "corpactions"),
+    ("/listings-exchange", "Listings & Exchange", "listings"),
+    ("/metallurgy-processing", "Metallurgy & Processing", "metallurgy"),
+    ("/regulatory-compliance", "Regulatory & Compliance", "regulatory"),
+    ("/partnerships-jv", "Partnerships & JV", "jv"),
 ]
 _CAT_PAGE_SIZE = 100
 

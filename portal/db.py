@@ -464,3 +464,65 @@ def upsert_event(row):  # noqa: F811
         pass
     return _aud3_prev_upsert(row)
 # ====== end MNT_AUD3_GUARD_V1 ======
+
+
+# ====== DATEDUP_V1 (2026-10-10, Justin): one duplicate rule for every collector ======
+# A release already stored (visible) under the same ticker within 3 days, with the same headline once ticker
+# codes are removed (and the same body when the dates are more than a day apart, or the headline is generic),
+# is not stored again. Exception: a wire copy replaces a stored exchange (TMX/CSE) copy -- Justin: keep the
+# wire copy. Everything is logged in dup_guard_log with the removed row in full. Rule: portal/dupguard.py.
+# Fails open: any error stores the release as before. Rollback: /var/backups/mnt/datedup-live-*/db.py
+_datedup_prev_upsert = upsert_event
+_datedup_log_ready = False
+
+
+def _datedup_alias(conn, old, kept_id):
+    """DATEDUP_V1.4: the removed copy's /news/<ticker>/<slug> address forwards to the kept copy."""
+    try:
+        if old and old.get("slug") and old.get("ticker"):
+            conn.execute("INSERT OR IGNORE INTO event_slug_aliases (ticker, old_slug, event_id, source) VALUES (?,?,?,?)",
+                         (old["ticker"].lower(), old["slug"].lower(), kept_id, "DATEDUP_V1"))
+            conn.commit()
+    except Exception:                                        # noqa: BLE001
+        pass
+
+
+def upsert_event(row):  # noqa: F811
+    global _datedup_log_ready
+    try:
+        from portal import dupguard as _G
+        conn = get_conn()
+        eid = row.get("event_id")
+        if eid and conn.execute("SELECT 1 FROM events WHERE event_id = ?", (eid,)).fetchone():
+            return _datedup_prev_upsert(row)                 # an update of a stored release
+        if not _datedup_log_ready:
+            _G.ensure_log(conn)
+            _datedup_log_ready = True
+        if eid and _G.was_removed(conn, eid):
+            return None                                      # already removed as a copy; do not bring it back
+        twin = _G.find_visible_twin(conn, row)
+        if not twin:
+            return _datedup_prev_upsert(row)
+        if _G.new_copy_replaces(row, twin):          # DATEDUP_V1.1: wire over exchange, unless dated >1 day later
+            old = _G.load_row(conn, twin["event_id"])
+            _G.log(conn, "replaced_exchange", old, row, True)
+            conn.execute("DELETE FROM events WHERE event_id = ?", (twin["event_id"],))
+            conn.commit()
+            res = _datedup_prev_upsert(row)
+            if not conn.execute("SELECT 1 FROM events WHERE event_id = ?", (eid,)).fetchone():
+                _G.restore_row(conn, old)                    # the wire copy was refused further down: keep the old one
+                _G.log(conn, "restored", old, row, False)
+                conn.commit()
+            else:
+                _datedup_alias(conn, old, eid)
+            return res
+        _G.log(conn, "skipped_new", row, twin, True)   # DATEDUP_V1.3: full row kept so a wrong block can be undone
+        conn.commit()
+        return None
+    except Exception:                                        # noqa: BLE001
+        try:
+            get_conn().rollback()
+        except Exception:                                    # noqa: BLE001
+            pass
+        return _datedup_prev_upsert(row)
+# ====== end DATEDUP_V1 ======
