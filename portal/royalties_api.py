@@ -24,6 +24,8 @@ List parameters
              deal = royalty and stream deals; vendor = a royalty kept by or granted to a property's seller or
              optionor in a property deal; held = a release about a royalty the company already holds.
              Every item carries `kind` and `kind_label` (Deal / Vendor royalty / Held royalty).
+  With ticker, every item also carries side (held | owed | unclear), side_label and side_note ("sold",
+  "bought back", "named as <former name>"), and the answer carries sides {held, owed, unclear}  (ROY_SIDE_V1)
 
 Registered from portal.serve via royalties_api.register(app).
 Self-tests: python3 -m portal.royalties_api --selftest   (in-memory; touches nothing live)
@@ -333,6 +335,91 @@ def roles_for(deal: dict, ticker: str, company: str) -> list:
     return roles
 
 
+# --------------------------------------------------------------------------- ROY_SIDE_V1
+# Which side of a royalty or stream the asked-for company is on (C8, Justin 2026-10-10: "Section off
+# royalties as a owner vs as a liability"). held = it holds it (note "sold" if it has since sold it);
+# owed = it sits on the company's property or the company granted it (note "bought back"); unclear = the
+# release does not say. Checked 2026-10-10 on a random 50 of the held/owed calls: 47 right.
+SIDE_LABELS = {"held": "Royalties held", "owed": "Royalties on its properties", "unclear": "Role not clear"}
+
+
+def _first_word(ra, s):
+    k = ra.name_key(s)
+    w = k.split()[0] if k else ""
+    return w if len(w) >= 4 and w not in ra._GENERIC_ONE else ""
+
+
+def _leads(ra, headline, party):
+    """Does the headline open with this party's name? (two leading words, or one distinctive word)"""
+    hk, pk = ra.name_key(headline), ra.name_key(party)
+    if not hk or not pk:
+        return False
+    w = pk.split()
+    two = " ".join(w[:2])
+    if len(w) >= 2 and len(two) >= 5 and (hk == two or hk.startswith(two + " ")):
+        return True
+    one = w[0]
+    return len(one) >= 5 and one not in ra._GENERIC_ONE and hk.startswith(one + " ")
+
+
+def side_for(ra, d, roles, company):
+    """-> (side, note). d is one API item (dict with kind, action, type, buyer, seller, operator, headline)."""
+    r = set(roles or ())
+    note_as = ""
+    kind, act, typ = d.get("kind") or "deal", d.get("action") or "", d.get("type") or ""
+    # the issuer under a shorter or older spelling of its own name ("Aben" for Aben Gold Corp)
+    if r == {"issuer"}:
+        fw = _first_word(ra, company)
+        if fw:
+            for f in ("buyer", "seller", "operator"):
+                if d.get(f) and _first_word(ra, d.get(f)) == fw:
+                    r.add(f)
+    # the issuer under a former name: its own release opens with that name ("Canarc Options ..." for Canagold).
+    # Not when the headline also names the company itself: then it is a counterparty in someone else's release
+    # ("Silver Crown Royalties ... Titiminas Royalty Acquisition" filed under Titiminas).
+    fw_co = _first_word(ra, company)
+    if r == {"issuer"} and not (fw_co and (" " + fw_co + " ") in (" " + ra.name_key(d.get("headline")) + " ")):
+        for f in ("buyer", "seller", "operator"):
+            if d.get(f) and _leads(ra, d.get("headline"), d.get(f)):
+                r.add(f)
+                note_as = d.get(f)
+                for g in ("buyer", "seller", "operator"):        # the same party under several fields
+                    if g != f and ra.name_key(d.get(g)) == ra.name_key(d.get(f)):
+                        r.add(g)
+                break
+    sd, note = _side(ra, d, r, kind, act, typ)
+    if note_as and sd != "unclear":
+        note = (note + "; " if note else "") + "named as " + note_as
+    return sd, note
+
+
+def _side(ra, d, r, kind, act, typ):
+    keys = {ra.name_key(d.get(f)) for f in ("buyer", "seller", "operator")}
+    if {"buyer", "seller", "operator"} <= r and len(keys) == 1:
+        return "unclear", ""                               # one name in every party field: the reader could not tell
+    if kind == "held":                                      # a release about a royalty someone already holds
+        if "operator" in r and "buyer" not in r:
+            return "owed", ""
+        if "buyer" in r or "issuer" in r:
+            return "held", ""
+        return "unclear", ""
+    if "buyer" in r:
+        if act == "buyback" and ("operator" in r or not d.get("operator")):
+            return "owed", "bought back"                    # the company bought back a royalty on its own property
+        if "operator" in r and "seller" in r:
+            return "unclear", ""
+        return "held", ""
+    if "operator" in r:
+        return "owed", ""
+    if "seller" in r:
+        if kind == "vendor" or act == "new" or typ == "stream":
+            return "owed", ""                               # the grantor: a new grant, a stream, a vendor royalty
+        if act in ("transfer", "buyback"):
+            return "held", "sold"                           # gave up a royalty it held
+        return "unclear", ""
+    return "unclear", ""
+
+
 def query_deals(conn, p: dict, names: dict, universe: Optional[frozenset]) -> dict:
     kinds = tuple(p.get("kinds") or ("deal",))   # ROY11: deals only by default; MNT_ROY_API_KINDS_V1: include=
     rows = conn.execute("SELECT " + _COLS + " FROM royalty_deals WHERE type IS NOT NULL AND COALESCE(kind, 'deal') IN ("
@@ -351,6 +438,8 @@ def query_deals(conn, p: dict, names: dict, universe: Optional[frozenset]) -> di
             rl = roles_for(d, t, company)
             if rl:
                 d["roles"] = rl
+                d["side"], d["side_note"] = side_for(sys.modules[__name__], d, rl, company)   # ROY_SIDE_V1
+                d["side_label"] = SIDE_LABELS[d["side"]]
                 keep.append(d)
         deals = keep
     elif universe:
@@ -369,6 +458,8 @@ def query_deals(conn, p: dict, names: dict, universe: Optional[frozenset]) -> di
         "pages": max(1, math.ceil(total / limit)) if total else 0, "limit": limit,
         "filters": {k: p[k] for k in ("ticker", "type", "action", "since") if p.get(k)},
         "include": list(p.get("kinds") or ("deal",)),   # MNT_ROY_API_KINDS_V1
+        "sides": ({k: sum(1 for d in deals if d.get("side") == k) for k in ("held", "owed", "unclear")}
+                  if t else {}),   # ROY_SIDE_V1
         "universe": p["universe"], "universe_applied": bool(universe) and not t,
         "items": deals[(page - 1) * limit: page * limit],
     }
@@ -496,6 +587,34 @@ def _selftest() -> int:
     ok("include=deals alias", query_deals(conn, P(include="deals"), names, None)["total"] == 3)
     ok("include ticker", query_deals(conn, P(ticker="SPA", include="all"), names, None)["total"] == 2)
     ok("bad include", bad(include="x") and bad(include="deal,x"))
+    # ROY_SIDE_V1
+    r = query_deals(conn, P(ticker="WPM.TO"), names, None)
+    ok("side: a buyer holds it", r["items"][0]["side"] == "held" and r["sides"] == {"held": 1, "owed": 0, "unclear": 0})
+    r = query_deals(conn, P(ticker="SPA"), names, None)
+    ok("side: the operator who sold it owes it", r["items"][0]["side"] == "owed"
+       and r["items"][0]["side_label"] == "Royalties on its properties")
+    r = query_deals(conn, P(ticker="EVR.CN", include="held"), names, None)
+    ok("side: a held-royalty release by the holder", r["items"][0]["side"] == "held")
+    ok("side: no sides without a ticker", query_deals(conn, P(), names, None)["sides"] == {})
+    D = lambda **kw: dict({"kind": "deal", "action": "new", "type": "NSR", "buyer": "", "seller": "",
+                           "operator": "", "headline": ""}, **kw)
+    M = sys.modules[__name__]
+    ok("side: seller of a held royalty sold it", side_for(M, D(action="transfer", buyer="Metalla", seller="Alamos Gold"),
+       ["seller"], "Alamos Gold Inc.") == ("held", "sold"))
+    ok("side: a stream seller owes it", side_for(M, D(action="transfer", type="stream", buyer="Triple Flag",
+       seller="Allied Gold"), ["issuer", "seller"], "Allied Gold Corp")[0] == "owed")
+    ok("side: buyback by the owner", side_for(M, D(action="buyback", buyer="Capitan Silver", seller="X"),
+       ["issuer", "buyer"], "Capitan Silver Corp") == ("owed", "bought back"))
+    ok("side: operator named in a held-royalty release owes it", side_for(M, D(kind="held", action="held",
+       buyer="Silver Wheaton", operator="Barrick"), ["operator"], "Barrick Mining")[0] == "owed")
+    ok("side: former name from the headline", side_for(M, D(kind="vendor", buyer="Tasca", seller="Canarc Resource",
+       operator="Canarc Resource", headline="Canarc Options Princeton Gold Property"), ["issuer"],
+       "Canagold Resources Ltd") == ("owed", "named as Canarc Resource"))
+    ok("side: one name in every field is unclear", side_for(M, D(buyer="Antler Gold", seller="Antler Gold",
+       operator="Antler Gold"), ["issuer", "buyer", "seller", "operator"], "Antler Gold Inc.")[0] == "unclear")
+    ok("side: a counterparty's release is not a former name", side_for(M, D(action="transfer", buyer="Silver Crown Royalties",
+       headline="Silver Crown Royalties Expands Portfolio Through Third 1% NSR Titiminas Royalty Acquisition"),
+       ["issuer"], "Titiminas Silver Inc")[0] == "unclear")
     print("royalties_api selftest: %d failed" % len(fails))
     return 1 if fails else 0
 

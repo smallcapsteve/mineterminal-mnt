@@ -76,6 +76,65 @@
     </form>
   </section>
 
+  {% if selected_ticker %}
+  {# ROY_SIDE_V1 (2026-10-10): with a company chosen, its royalties split into held and owed, from /api/v1/royalties #}
+  <style>
+    .rd-sides { margin: .4em 0 1.2em; }
+    .rd-sides h3 { margin: .9em 0 .2em; font-size: 1em; }
+    .rd-sides .rd-side-n { display: inline-block; min-width: 1.4em; padding: 0 .45em; border-radius: 1em; font-size: .75em;
+                           text-align: center; border: 1px solid rgba(127,127,127,.45); margin-left: .3em; vertical-align: 1px; }
+    .rd-sides .rd-side-sub { font-size: .82em; opacity: .7; margin: 0 0 .35em; }
+    .rd-sides table td { vertical-align: top; }
+    .rd-sides .rd-note { display: block; font-size: .78em; color: #b7791f; }
+  </style>
+  <section class="rd-sides" id="rdSides" data-ticker="{{ selected_ticker }}">
+    <p class="muted">Loading {{ selected_ticker }}'s royalties held and owed&hellip;</p>
+  </section>
+  <script>
+  (function () {
+    var box = document.getElementById('rdSides'); if (!box) return;
+    var t = box.getAttribute('data-ticker');
+    function esc(s) { return (s == null ? '' : String(s)).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    function rate(x) { return x.rate_pct != null ? (Math.round(x.rate_pct * 1000) / 1000) + '% ' : ''; }
+    function badge(x) { var s = String(x.type || '').toLowerCase() === 'stream';
+      return '<span class="rd-rs ' + (s ? 'rd-rs-str' : 'rd-rs-roy') + '">' + (s ? 'Stream' : 'Royalty') + '</span>'; }
+    function row(x, side) {
+      var other = side === 'held' ? (x.seller ? 'from ' + x.seller : '') : (x.buyer ? 'to ' + x.buyer : '');
+      return '<tr><td class="fin-date">' + esc(x.date) + '</td>' +
+        '<td>' + badge(x) + esc(rate(x) + (x.type_label || '')) + (x.metal ? '<span class="rd-sub">' + esc(x.metal) + '</span>' : '') + '</td>' +
+        '<td>' + esc(x.property || '—') + (x.operator ? '<span class="rd-sub">' + esc(x.operator) + '</span>' : '') + '</td>' +
+        '<td>' + esc(other || '—') + '</td>' +
+        '<td><span class="rd-kind">' + esc(x.action_label || '') + '</span>' + (x.kind && x.kind !== 'deal' ? '<span class="rd-sub">' + esc((x.kind_label || '').toLowerCase()) + '</span>' : '') +
+          (x.side_note ? '<span class="rd-note">' + esc(x.side_note) + '</span>' : '') + '</td>' +
+        '<td>' + (x.release_url ? '<a href="' + esc(x.release_url.replace('https://miningnewsterminal.com', '')) + '">View &#8599;</a>' : '') + '</td></tr>';
+    }
+    var SIDES = [['held', 'Royalties held', 'Royalties and streams ' + t + ' holds: bought, kept when it sold or optioned a property, or reported as held.', 'Bought from'],
+                 ['owed', 'Royalties on its properties', 'Royalties and streams on ' + t + "'s own properties: granted or sold by it, or kept by the seller when it bought or optioned the property.", 'Sold or granted to']];
+    fetch('/api/v1/royalties?ticker=' + encodeURIComponent(t) + '&include=all&limit=200', { headers: { Accept: 'application/json' } })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (d) {
+        var items = (d && d.items) || [];
+        if (!items.length) { box.innerHTML = '<p class="muted">No royalties or streams on record where ' + esc(t) + ' is named as a party.</p>'; return; }
+        var h = '';
+        SIDES.forEach(function (sd) {
+          var list = items.filter(function (x) { return x.side === sd[0]; });
+          h += '<h3>' + esc(sd[1]) + '<span class="rd-side-n">' + list.length + '</span></h3><p class="rd-side-sub">' + esc(sd[2]) + '</p>';
+          if (!list.length) { h += '<p class="rd-none">None on record.</p>'; return; }
+          h += '<div class="table-scroll"><table class="fin-table rd-table"><thead><tr><th>Date</th><th>Interest</th><th>Property</th><th>' +
+               esc(sd[3]) + '</th><th>Deal</th><th>View</th></tr></thead><tbody>' + list.map(function (x) { return row(x, sd[0]); }).join('') +
+               '</tbody></table></div>';
+        });
+        var u = items.filter(function (x) { return x.side === 'unclear'; }).length;
+        if (u) h += '<p class="rd-side-sub">' + u + ' more royalty item' + (u === 1 ? '' : 's') + ' in ' + esc(t) + "'s releases do not say which side it is on; they are in the list below.</p>";
+        h += '<p class="rd-side-sub">Includes vendor royalties and held royalties as well as deals, and deals where ' + esc(t) + ' is named but did not issue the release. The list below shows the releases ' + esc(t) + ' issued.</p>';
+        box.innerHTML = h;
+      })
+      .catch(function (e) { box.innerHTML = '<p class="muted">The held / owed split is not loading right now (' + esc(e && e.message ? e.message : 'network') + ').</p>'; });
+  })();
+  </script>
+  {% endif %}
+
   {% if not rows %}
     <p class="empty">{% if kind == 'vendor' %}No vendor royalties in this window.{% elif kind == 'held' %}No held royalties in this window.{% else %}No royalty or stream deals in this window.{% endif %}</p>
   {% else %}
