@@ -100,7 +100,8 @@
     function badge(x) { var s = String(x.type || '').toLowerCase() === 'stream';
       return '<span class="rd-rs ' + (s ? 'rd-rs-str' : 'rd-rs-roy') + '">' + (s ? 'Stream' : 'Royalty') + '</span>'; }
     function row(x, side) {
-      var other = side === 'held' ? (x.seller ? 'from ' + x.seller : '') : (x.buyer ? 'to ' + x.buyer : '');
+      var v = x.kind === 'vendor';   /* ROY_SIDE_V1.1 */
+      var other = side === 'held' ? (x.seller ? (v ? 'granted by ' : 'from ') + x.seller : '') : (x.buyer ? (v ? 'held by ' : 'to ') + x.buyer : '');
       return '<tr><td class="fin-date">' + esc(x.date) + '</td>' +
         '<td>' + badge(x) + esc(rate(x) + (x.type_label || '')) + (x.metal ? '<span class="rd-sub">' + esc(x.metal) + '</span>' : '') + '</td>' +
         '<td>' + esc(x.property || '—') + (x.operator ? '<span class="rd-sub">' + esc(x.operator) + '</span>' : '') + '</td>' +
@@ -109,8 +110,8 @@
           (x.side_note ? '<span class="rd-note">' + esc(x.side_note) + '</span>' : '') + '</td>' +
         '<td>' + (x.release_url ? '<a href="' + esc(x.release_url.replace('https://miningnewsterminal.com', '')) + '">View &#8599;</a>' : '') + '</td></tr>';
     }
-    var SIDES = [['held', 'Royalties held', 'Royalties and streams ' + t + ' holds: bought, kept when it sold or optioned a property, or reported as held.', 'Bought from'],
-                 ['owed', 'Royalties on its properties', 'Royalties and streams on ' + t + "'s own properties: granted or sold by it, or kept by the seller when it bought or optioned the property.", 'Sold or granted to']];
+    var SIDES = [['held', 'Royalties held', 'Royalties and streams ' + t + ' holds: bought, kept when it sold or optioned a property, or reported as held.', 'Other party'],
+                 ['owed', 'Royalties on its properties', 'Royalties and streams on ' + t + "'s own properties: granted or sold by it, or kept by the seller when it bought or optioned the property.", 'Other party']];
     fetch('/api/v1/royalties?ticker=' + encodeURIComponent(t) + '&include=all&limit=200', { headers: { Accept: 'application/json' } })
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then(function (d) {
