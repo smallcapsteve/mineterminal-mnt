@@ -11,9 +11,18 @@
     .rd-table tr.rd-cont td.rd-quiet { opacity: .35; }
     .rd-none { opacity: .55; font-style: italic; }
     .rd-arrow { opacity: .55; }
+    /* ROY_RS_BADGE_V1 */
+    .rd-rs { display: inline-block; padding: 0 .45em; margin-right: .35em; border-radius: 3px; font-size: .72em;
+             font-weight: 600; letter-spacing: .03em; text-transform: uppercase; border: 1px solid; vertical-align: 1px; }
+    .rd-rs-roy { color: #b7791f; border-color: rgba(183,121,31,.55); background: rgba(183,121,31,.10); }
+    .rd-rs-str { color: #2c7a7b; border-color: rgba(44,122,123,.55); background: rgba(44,122,123,.10); }
+    .rd-explain { margin: .2em 0 1em; padding: .6em .8em; border-left: 3px solid rgba(127,127,127,.4);
+                  font-size: .88em; line-height: 1.45; max-width: 62em; opacity: .9; }
+    .rd-explain .rd-rs { font-size: .78em; }
   </style>
 
   <h2 class="page-title">Royalties &amp; Streams</h2>
+  <p class="rd-explain"><span class="rd-rs rd-rs-roy">Royalty</span><span class="rd-rs rd-rs-str">Stream</span> <b>What is the difference?</b> A <b>royalty</b> (NSR, gross revenue royalty, net profits interest) is a share of a property's production or revenue. It is usually registered against the claim and stays with the property when it changes hands. A <b>stream</b> is a contract with the operating company: the streamer pays up front, then buys a set share of one mine's metal at a fixed, lower price. It is the company's obligation, usually secured on the mine.</p>
 
   <section class="filters fin-filters">
     <form method="get" action="/royalties-streams">
@@ -110,6 +119,7 @@
             <td class="fin-date {% if not r['first_of_release'] %}rd-quiet{% endif %}">{% if r['first_of_release'] %}{{ (r["published_at"] or "")[:10] }}{% endif %}</td>
             {% if r["type"] %}
               <td>
+                {%- if (r["type"] | lower) == "stream" %}<span class="rd-rs rd-rs-str" title="Stream: a contract with the operating company to buy a share of one mine's metal at a fixed price; the company's obligation">Stream</span>{% else %}<span class="rd-rs rd-rs-roy" title="Royalty: a share of the property's production or revenue, registered against the claim; it stays with the property when it is sold">Royalty</span>{% endif %}
                 {{ r["rate_pct"] | rd_rate }} {{ r["type"] | rd_type }}
                 {%- if r["metal"] %}<span class="rd-sub">{{ r["metal"] }}</span>{% endif -%}
               </td>
