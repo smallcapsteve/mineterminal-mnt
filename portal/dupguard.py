@@ -64,6 +64,7 @@ def is_correction(headline: str | None) -> bool:
 def norm_headline(h: str | None) -> list[str]:
     h = html.unescape(h or "")
     h = _WIRE_PREFIX.sub("", h)
+    h = re.sub(r"[\(\[]\s*(amended|corrected|correction|revised|updated|restated)\s*[\)\]]", r" \1 ", h, flags=re.I)  # V1.5: not a code group
     h = _CODE_GROUP.sub(" ", h)
     h = _EXCH_CODE.sub(" ", h)
     h = h.lower().replace("’", "'")
@@ -78,6 +79,28 @@ def _markers(tokens: list[str]) -> list[str]:
 _GENERIC = re.compile(r"\b(form\s*7|form\s*5|monthly progress|quarterly listing|news release|"
                       r"corporate update|press release|bi weekly|weekly update|update)\b")
 
+# DATEDUP_V1.5 (2026-10-11): the night run removed ~45 releases whose headline differed from another's by one
+# word that changes the news ("Announces" vs "Closes" a placement, "Upsize", "Amends", "Pricing" vs "Offering",
+# "Correction", "(AMENDED)", a video interview). A difference in any of these words means two releases.
+_STAGE = {
+    "announce", "announces", "announced", "announcing", "close", "closes", "closed", "closing", "complete", "completes",
+    "completed", "completion", "amend", "amends", "amended", "amending", "amendment", "amendments", "upsize", "upsizes",
+    "upsized", "upsizing", "increase", "increases", "increased", "pricing", "prices", "priced", "price", "offering",
+    "offer", "proposed", "proposes", "clarifies", "clarification", "launch", "launches", "launched", "revision",
+    "revised", "revises", "extend", "extends", "extended", "extension", "reprices", "repricing", "subsequent",
+    "initial", "final", "pre", "definitive", "correction", "corrected", "corrects", "confirms", "confirming", "dial",
+    "host", "hosts", "call", "development", "update", "updated", "restated", "video", "interview", "signs", "signed",
+    "agreement", "terminates", "terminated", "termination", "withdraws", "withdrawn", "commences", "results",
+    "arranges", "plans", "files", "filing", "tranche", "intends", "intention", "expected", "receives", "approval",
+    "approves", "approved", "conditional", "acceptance", "resumes", "halt", "halted", "postpones", "postponement",
+    "cancels", "cancelled", "reschedules",
+}
+
+
+def _stage_differs(ta: list[str], tb: list[str]) -> bool:
+    return bool((set(ta) ^ set(tb)) & _STAGE)
+
+
 def headline_match(a: str | None, b: str | None) -> int:
     """2 = same headline; 1 = same but generic, needs the bodies to agree; 0 = different."""
     if is_correction(a) or is_correction(b):
@@ -85,6 +108,8 @@ def headline_match(a: str | None, b: str | None) -> int:
     ta, tb = norm_headline(a), norm_headline(b)
     sa, sb = " ".join(ta), " ".join(tb)
     if not sa or not sb:
+        return 0
+    if _stage_differs(ta, tb):
         return 0
     k = min(len(ta), len(tb))
     if _markers(ta[:k]) != _markers(tb[:k]):
@@ -253,3 +278,49 @@ def new_copy_replaces(row: dict, twin: dict) -> bool:
     if not d_new or not d_old:
         return False
     return (d_new - d_old).days <= BODY_CHECK_DAYS
+
+
+# ---------------------------------------------------------------- DATEDUP_V1.5: strict dateline (2026-10-11)
+# The general date reader took the first plausible date in the text, which is often a date the release only
+# mentions ("further to its June 12 news release", "see news August 31", a warrant expiry, "since August 23,
+# 2025"). A date counts here only when it sits in a dateline: right after "News Release" / "(Newsfile Corp. -"
+# style wording, or directly followed by the dash, bracket or colon that ends a dateline, and never after words
+# like "further to", "dated", "since", "until", "announced on". Otherwise the exchange date stays.
+_MONTHS = {m: i + 1 for i, m in enumerate(["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"])}
+_D = r"(\d\s?\d|\d)"
+_Y = r"(2\s?0\s?\d\s?\d)"
+_MON = r"(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sept|Sep|Oct|Nov|Dec)\.?"
+_PAT_MDY = re.compile(_MON + r"\s+" + _D + r"(?:st|nd|rd|th)?,?\s+" + _Y)
+_PAT_DMY = re.compile(_D + r"(?:st|nd|rd|th)?\s+" + _MON + r",?\s+" + _Y)
+_BAD_BEFORE = re.compile(r"\b(see|further|dated|since|until|announced|on|of|from|to|before|after|effective|expir\w*|"
+                         r"by|between|and|until|through|ended|ending|as at|as of|filed|released|prior|previous\w*)\W*$", re.I)
+_BAD_NEAR = re.compile(r"\b(see|further to|dated|since|until|announced|news of|reported|refer)\b", re.I)
+_GOOD_BEFORE = re.compile(r"(news release|press release|for immediate release|newsfile corp\.?\s*-|/cnw/|"
+                          r"globe newswire\)?|accesswire|thenewswire|\bnr\b)\W*$", re.I)
+_GOOD_AFTER = re.compile(r"^\s*[–—─\-\)\:/|]")
+
+
+def strict_release_date(body: str | None, upload: dt.date, max_back_days: int = 400):
+    """(date, 'dateline') when the release states its own date in a dateline, else (upload, 'upload')."""
+    t = re.sub(r"<[^>]+>", " ", body or "")
+    t = re.sub(r"\s+", " ", html.unescape(t))[:2500]
+    found = []
+    for pat, order in ((_PAT_MDY, "mdy"), (_PAT_DMY, "dmy")):
+        for m in pat.finditer(t):
+            g = m.groups()
+            mon, day, yr = (g[0], g[1], g[2]) if order == "mdy" else (g[1], g[0], g[2])
+            try:
+                d = dt.date(int(yr.replace(" ", "")), _MONTHS[mon[:3].lower()], int(day.replace(" ", "")))
+            except (ValueError, KeyError):
+                continue
+            found.append((m.start(), m.end(), d))
+    for start, end, d in sorted(found):
+        if not (upload - dt.timedelta(days=max_back_days) <= d <= upload):
+            continue
+        before = t[max(0, start - 40):start]
+        after = t[end:end + 4]
+        if _BAD_BEFORE.search(before) or _BAD_NEAR.search(before[-28:]):
+            continue
+        if _GOOD_BEFORE.search(before) or _GOOD_AFTER.search(after):
+            return d, "dateline"
+    return upload, "upload"

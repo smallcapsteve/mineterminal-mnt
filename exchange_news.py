@@ -1009,7 +1009,8 @@ def _datedup_published(rel: dict, body: str) -> str:
     try:
         import datetime as _dt
         import backfill_dates as _D
-        d, _prov = _D.release_date(body or "", _dt.date.fromisoformat(rel["published_date"][:10]))
+        from portal import dupguard as _G   # DATEDUP_V1.5: only a real dateline counts
+        d, _prov = _G.strict_release_date(body or "", _dt.date.fromisoformat(rel["published_date"][:10]))
         return min(d, _dt.date.fromisoformat(rel["published_date"][:10])).isoformat() + "T12:00:00Z"   # DATEDUP_V1.1: never later than the exchange date
     except Exception:                            # noqa: BLE001
         return rel["published_date"] + "T12:00:00Z"
