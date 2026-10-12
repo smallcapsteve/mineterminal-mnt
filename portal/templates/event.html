@@ -50,7 +50,7 @@
     <p class="event-meta">
       <strong>{{ event["ticker"] or "—" }}</strong>
       {% if is_admin %}&middot; {{ event["source_name"] | pretty_source or "" }}{% endif %}
-      &middot; <time datetime="{{ (event['published_at'] or '') }}">{{ (event["published_at"] or event["classified_at"] or "")[:19].replace("T", " ") }}</time>
+      &middot; <time datetime="{{ (event['published_at'] or '') }}">{# DATEDUP_V1.6: TSX/CSE releases carry a date only #}{% if (event["source_name"] or "") in ("tmx", "cse") and (event["published_at"] or "")[10:19] == "T12:00:00" %}{{ event["published_at"][:10] }}{% else %}{{ (event["published_at"] or event["classified_at"] or "")[:19].replace("T", " ") }}{% endif %}</time>
       {% if is_admin %}
         &middot; <span class="status status-{{ event['review_status'] }}">{{ event["review_status"] }}</span>
       {% endif %}

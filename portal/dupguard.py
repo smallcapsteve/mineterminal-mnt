@@ -300,6 +300,18 @@ _GOOD_BEFORE = re.compile(r"(news release|press release|for immediate release|ne
 _GOOD_AFTER = re.compile(r"^\s*[–—─\-\)\:/|]")
 
 
+def _year_typo(d: dt.date, upload: dt.date) -> bool:
+    """DATEDUP_V1.6 (2026-10-12): a dateline one year before the exchange date, within 3 days of the same
+    month and day, is the company typing last year (SYG.V and SAE.V in two weeks), not a year-old release."""
+    if d.year != upload.year - 1:
+        return False
+    try:
+        same = d.replace(year=upload.year)
+    except ValueError:                    # February 29
+        return False
+    return abs((same - upload).days) <= 3
+
+
 def strict_release_date(body: str | None, upload: dt.date, max_back_days: int = 400):
     """(date, 'dateline') when the release states its own date in a dateline, else (upload, 'upload')."""
     t = re.sub(r"<[^>]+>", " ", body or "")
@@ -317,6 +329,8 @@ def strict_release_date(body: str | None, upload: dt.date, max_back_days: int = 
     for start, end, d in sorted(found):
         if not (upload - dt.timedelta(days=max_back_days) <= d <= upload):
             continue
+        if _year_typo(d, upload):
+            continue                      # V1.6: "October 7, 2025" on a release the exchange got on Oct 7, 2026
         before = t[max(0, start - 40):start]
         after = t[end:end + 4]
         if _BAD_BEFORE.search(before) or _BAD_NEAR.search(before[-28:]):

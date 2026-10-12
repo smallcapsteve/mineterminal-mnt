@@ -553,6 +553,16 @@ def _win(d: str, back: int, fwd: int):
 
 
 
+def _dv16_same(a, b) -> bool:
+    """DATEDUP_V1.6: same headline by the shared duplicate rule (portal/dupguard.py), ticker codes and wire
+    prefixes set aside. Only a full match counts; a generic headline ("News release re ...") needs more."""
+    try:
+        from portal import dupguard as _G
+        return _G.headline_match(a, b) == 2
+    except Exception:                                # noqa: BLE001
+        return False
+
+
 def find_match(pcon: sqlite3.Connection, rel: dict,
                title: str | None = None) -> tuple[str | None, str | None]:
     """(event_id, ticker_it_was_filed_under). Looks for this release among the
@@ -564,8 +574,11 @@ def find_match(pcon: sqlite3.Connection, rel: dict,
     # EXCOV_V1 (2026-09-28): only a release visitors can see, or a hidden duplicate of one, counts as found. A
     # copy parked in a review queue does not: the release is not on the site.
     # EXCOV_V1b (2026-10-07): '+review_status' so SQLite keeps using the date index (1.17 s -> ms per release).
+    # DATEDUP_V1.6c (2026-10-12): a hidden 'duplicate_of_wire' copy still counts - sync_newswire_ca hides it because the
+    # wire copy is on the site, sometimes weeks apart; approved (hand-reviewed) releases count too.
     d = rel["published_date"]
     n1 = norm(title if title is not None else rel["title"])
+    t_raw = title if title is not None else rel["title"]   # DATEDUP_V1.6
     if not n1 or n1 in ("newsrelease", "newsreleases"):
         # Nothing to match on. Say so rather than reporting "not found", which
         # is what V1 did and why it called 587 covered releases missing.
@@ -577,7 +590,8 @@ def find_match(pcon: sqlite3.Connection, rel: dict,
             if not n2:
                 continue
             if n1[:40] == n2[:40] or (len(n1) >= 30 and n1[:30] in n2) or \
-               (len(n2) >= 30 and n2[:30] in n1):
+               (len(n2) >= 30 and n2[:30] in n1) or \
+               _dv16_same(t_raw, hl):   # DATEDUP_V1.6: the shared duplicate rule's headline test too
                 return eid, tk
         return None, None
 
@@ -585,13 +599,13 @@ def find_match(pcon: sqlite3.Connection, rel: dict,
     if _w:
         own = pcon.execute(
             "SELECT event_id, raw_headline, ticker FROM events "
-            "WHERE +review_status IN ('auto_approved', 'duplicate_of_wire') AND (ticker = ? OR ticker LIKE ?) AND published_at >= ? AND published_at < ?",
+            "WHERE +review_status IN ('auto_approved', 'approved', 'duplicate_of_wire') AND (ticker = ? OR ticker LIKE ?) AND published_at >= ? AND published_at < ?",
             (rel["bare"], rel["bare"] + ".%", _w[0], _w[1]),
         ).fetchall()
     else:
         own = pcon.execute(
             "SELECT event_id, raw_headline, ticker FROM events "
-            "WHERE +review_status IN ('auto_approved', 'duplicate_of_wire') AND (ticker = ? OR ticker LIKE ?) AND date(published_at) BETWEEN date(?,'-3 day') AND date(?,'+3 day')",
+            "WHERE +review_status IN ('auto_approved', 'approved', 'duplicate_of_wire') AND (ticker = ? OR ticker LIKE ?) AND date(published_at) BETWEEN date(?,'-3 day') AND date(?,'+3 day')",
             (rel["bare"], rel["bare"] + ".%", d, d),
         ).fetchall()
     eid, tk = scan(own)
@@ -602,13 +616,13 @@ def find_match(pcon: sqlite3.Connection, rel: dict,
     if _w:
         other = pcon.execute(
             "SELECT event_id, raw_headline, ticker FROM events "
-            "WHERE +review_status IN ('auto_approved', 'duplicate_of_wire') AND published_at >= ? AND published_at < ?",
+            "WHERE +review_status IN ('auto_approved', 'approved', 'duplicate_of_wire') AND published_at >= ? AND published_at < ?",
             (_w[0], _w[1]),
         ).fetchall()
     else:
         other = pcon.execute(
             "SELECT event_id, raw_headline, ticker FROM events "
-            "WHERE +review_status IN ('auto_approved', 'duplicate_of_wire') AND date(published_at) BETWEEN date(?,'-2 day') AND date(?,'+2 day')",
+            "WHERE +review_status IN ('auto_approved', 'approved', 'duplicate_of_wire') AND date(published_at) BETWEEN date(?,'-2 day') AND date(?,'+2 day')",
             (d, d),
         ).fetchall()
     eid, tk = scan(other)
