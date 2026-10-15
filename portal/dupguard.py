@@ -14,6 +14,9 @@ DATEDUP_V1.7 (2026-10-15): copies from different kinds of source (exchange listi
 dated within a day are also the same release when their texts match, whatever their headlines say
 (pair_is_copy / cross_source_copy below).
 
+DATEDUP_V1.8 (2026-10-15): the same release published again 2-30 days later (a wire re-send, a wire copy weeks
+after the CSE listing) is a copy when it repeats the original's dateline (late_copy below).
+
 Which copy stays (Justin, 2026-10-10): the wire copy (real time of day, images,
 formatting) over the exchange copy (TMX/CSE); then the visible one; then the one
 stored first.
@@ -26,6 +29,7 @@ from __future__ import annotations
 
 import datetime as dt
 import difflib
+import functools
 import html
 import json
 import re
@@ -175,6 +179,11 @@ HEADLINE_WORDS = 0.80
 _SHINGLE = 8
 _OVERLAP_WORDS = 1200
 _OVERLAP_MIN_WORDS = 60
+# DATEDUP_V1.8 (2026-10-15): the same release published again 2-30 days later (see late_copy).
+LATE_MAX_DAYS = 30
+LATE_OVERLAP = 0.90
+LATE_OVERLAP_NO_DATELINE = 0.93
+_RESEND = re.compile(r"^\s*(retransmission|repeat|replacement)\b", re.I)
 _HL_STOP = {"the", "a", "an", "of", "and", "to", "in", "on", "at", "for", "with", "its", "is", "as", "by", "from",
             "inc", "corp", "ltd", "limited", "company", "news", "release", "press"}
 
@@ -198,12 +207,29 @@ def _shingles(words: list[str]) -> set:
     return {" ".join(words[i:i + _SHINGLE]) for i in range(len(words) - _SHINGLE + 1)}
 
 
+@functools.lru_cache(maxsize=256)
+def _shingle_set(text: str) -> frozenset:
+    """8-word phrases of the first 1,200 words (empty when the text is under 60 words). Cached: the same body is
+    compared with many neighbours (V1.8)."""
+    w = _body_words(text, _OVERLAP_WORDS)
+    return frozenset(_shingles(w)) if len(w) >= _OVERLAP_MIN_WORDS else frozenset()
+
+
+@functools.lru_cache(maxsize=512)
+def _dateline_of(text: str, day: str):
+    """The date the release prints in its own dateline (strict reader), or None (V1.8)."""
+    try:
+        got, how = strict_release_date(text, dt.date.fromisoformat(day))
+    except ValueError:
+        return None
+    return got if how == "dateline" else None
+
+
 def body_overlap(a: str | None, b: str | None) -> float:
     """Share of the shorter body's 8-word phrases found anywhere in the longer one (0..1)."""
-    wa, wb = _body_words(a, _OVERLAP_WORDS), _body_words(b, _OVERLAP_WORDS)
-    if len(wa) < _OVERLAP_MIN_WORDS or len(wb) < _OVERLAP_MIN_WORDS:
+    sa, sb = _shingle_set(a or ""), _shingle_set(b or "")
+    if not sa or not sb:
         return 0.0
-    sa, sb = _shingles(wa), _shingles(wb)
     small, large = (sa, sb) if len(sa) <= len(sb) else (sb, sa)
     return len(small & large) / max(1, len(small))
 
@@ -233,18 +259,49 @@ def cross_source_copy(a: dict, b: dict, gap: int, body) -> bool:
         headline_words_agree(a.get("raw_headline"), b.get("raw_headline")) >= HEADLINE_WORDS
 
 
+def late_copy(a: dict, b: dict, gap: int, body) -> bool:
+    """DATEDUP_V1.8: the same release published again 2-30 days later (a wire re-send, or a wire copy weeks after
+    the CSE listing, or the reverse). A company's NEXT release on the same subject (a status update, an upsize, a
+    closing, next month's dividend) carries a new date in its dateline; a re-send repeats the original one. So:
+      * both datelines read and equal: no stage-word difference in the headlines and texts >= 90% the same;
+      * datelines differ: only a release marked RETRANSMISSION / REPEAT / REPLACEMENT, same headline, >= 90%;
+      * a dateline not read on either side: the same headline and texts >= 93% the same.
+    Corrections and 'Updated' releases are never copies."""
+    if gap < 2 or gap > LATE_MAX_DAYS:
+        return False
+    ha, hb = a.get("raw_headline"), b.get("raw_headline")
+    if is_correction(ha) or is_correction(hb):
+        return False
+    ta, tb = body(a) or "", body(b) or ""
+    da = _dateline_of(ta, (a.get("published_at") or "")[:10])
+    db_ = _dateline_of(tb, (b.get("published_at") or "")[:10])
+    if da and db_:
+        if da == db_:
+            if _stage_differs(norm_headline(ha), norm_headline(hb)):
+                return False
+            return body_overlap(ta, tb) >= LATE_OVERLAP
+        if not (_RESEND.match(html.unescape(ha or "")) or _RESEND.match(html.unescape(hb or ""))):
+            return False
+        return headline_match(ha, hb) > 0 and body_overlap(ta, tb) >= LATE_OVERLAP
+    return headline_match(ha, hb) == 2 and body_overlap(ta, tb) >= LATE_OVERLAP_NO_DATELINE
+
+
 def pair_is_copy(a: dict, b: dict, gap: int, body) -> bool:
     """Same company's release twice? gap = days apart (>= 0); body(e) returns e's raw body and is only called
-    when a body is needed. The V1-V1.6 headline rule first, then the V1.7 body-first test."""
-    if gap > MAX_GAP_DAYS:
+    when a body is needed. Within 3 days: the V1-V1.6 headline rule, then the V1.7 body-first test (different
+    kinds of source, within a day). Then, 2-30 days apart, the V1.8 late-copy test."""
+    if gap > LATE_MAX_DAYS:
         return False
-    m = headline_match(a.get("raw_headline"), b.get("raw_headline"))
-    if m:
-        if not (m == 1 or gap > BODY_CHECK_DAYS):
+    if gap <= MAX_GAP_DAYS:
+        m = headline_match(a.get("raw_headline"), b.get("raw_headline"))
+        if m:
+            if not (m == 1 or gap > BODY_CHECK_DAYS):
+                return True
+            if same_body(body(a), body(b)):
+                return True
+        if cross_source_copy(a, b, gap, body):
             return True
-        if same_body(body(a), body(b)):
-            return True
-    return cross_source_copy(a, b, gap, body)
+    return late_copy(a, b, gap, body)
 
 
 def is_copy(a: dict, b: dict) -> bool:
@@ -342,8 +399,8 @@ def find_visible_twin(conn, row: dict) -> dict | None:
     d = _date(row.get("published_at"))
     if not row.get("ticker") or not d or not row.get("raw_headline"):
         return None
-    lo = (d - dt.timedelta(days=MAX_GAP_DAYS)).isoformat()
-    hi = (d + dt.timedelta(days=MAX_GAP_DAYS + 1)).isoformat()
+    lo = (d - dt.timedelta(days=LATE_MAX_DAYS)).isoformat()      # V1.8: late copies, up to 30 days
+    hi = (d + dt.timedelta(days=LATE_MAX_DAYS + 1)).isoformat()
     cands = conn.execute(
         "SELECT event_id, ticker, published_at, raw_headline, raw_body, source_name, review_status, ingested_at"
         " FROM events WHERE ticker = ? AND published_at >= ? AND published_at < ?"
