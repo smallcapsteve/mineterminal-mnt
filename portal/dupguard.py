@@ -10,6 +10,10 @@ Two copies of the same news release are the same company's release when:
 
 Corrections and amended releases are never treated as copies of the original.
 
+DATEDUP_V1.7 (2026-10-15): copies from different kinds of source (exchange listing, company site, wire)
+dated within a day are also the same release when their texts match, whatever their headlines say
+(pair_is_copy / cross_source_copy below).
+
 Which copy stays (Justin, 2026-10-10): the wire copy (real time of day, images,
 formatting) over the exchange copy (TMX/CSE); then the visible one; then the one
 stored first.
@@ -152,28 +156,111 @@ def _date(s: str | None) -> dt.date | None:
         return None
 
 
+# ---------------------------------------------------------------- DATEDUP_V1.7 (2026-10-15): body-first test
+# The headline-first rule cannot see a release whose exchange listing and wire copy carry different titles: the
+# CSE often shortens or genericises them ("NLR News Release (Oct 6, 2026)", "News Release re Duquesne Property
+# Update") and TMX titles are often the PDF's first line ("1200 Waterfront Centre"). About 56 such copies stood
+# in 90 days (NRED.CN alone 9), and 7 got past the live guard on Oct 12-14. V1.7 adds a body-first test for two
+# copies from different KINDS of source (exchange, company site, wire) dated within a day of each other: the
+# shorter text's 8-word phrases are found in the longer one at >= 80% (order-free, first 1,200 words), or at
+# >= 60% when the headlines' content words also agree (>= 80% of the shorter headline's words).
+# Checked on 127 real exchange/site-vs-wire pairs (claude/DUPCHECK_FINDINGS_2026-10-15.md): the seven different
+# releases that share boilerplate (a financing and its upsize, a partner's release, paid commentary) scored
+# 0.50-0.75 with headline agreement <= 0.60, so none matches. Two copies from the same kind of source (two wires,
+# two TMX filings) are never matched by this test: that is where a financing and its upsize live.
+SITE_PREFIXES = ("companysite", "company_ir")
+BODY_OVERLAP = 0.80
+BODY_OVERLAP_WITH_HEADLINE = 0.60
+HEADLINE_WORDS = 0.80
+_SHINGLE = 8
+_OVERLAP_WORDS = 1200
+_OVERLAP_MIN_WORDS = 60
+_HL_STOP = {"the", "a", "an", "of", "and", "to", "in", "on", "at", "for", "with", "its", "is", "as", "by", "from",
+            "inc", "corp", "ltd", "limited", "company", "news", "release", "press"}
+
+
+def source_kind(source: str | None) -> str:
+    """'exchange' (TMX/CSE listing), 'site' (the company's own website) or 'wire' (everything else)."""
+    s = (source or "").lower()
+    if s in EXCHANGE_SOURCES:
+        return "exchange"
+    if s.startswith(SITE_PREFIXES) or s.endswith("_own_site"):
+        return "site"
+    return "wire"
+
+
+def source_rank(source: str | None) -> int:
+    """Which copy to keep, lower first (Justin, 2026-10-10: the wire copy): wire, then company site, then exchange."""
+    return {"wire": 0, "site": 1, "exchange": 2}[source_kind(source)]
+
+
+def _shingles(words: list[str]) -> set:
+    return {" ".join(words[i:i + _SHINGLE]) for i in range(len(words) - _SHINGLE + 1)}
+
+
+def body_overlap(a: str | None, b: str | None) -> float:
+    """Share of the shorter body's 8-word phrases found anywhere in the longer one (0..1)."""
+    wa, wb = _body_words(a, _OVERLAP_WORDS), _body_words(b, _OVERLAP_WORDS)
+    if len(wa) < _OVERLAP_MIN_WORDS or len(wb) < _OVERLAP_MIN_WORDS:
+        return 0.0
+    sa, sb = _shingles(wa), _shingles(wb)
+    small, large = (sa, sb) if len(sa) <= len(sb) else (sb, sa)
+    return len(small & large) / max(1, len(small))
+
+
+def headline_words_agree(a: str | None, b: str | None) -> float:
+    """Share of the shorter headline's content words that the other headline also has (0..1)."""
+    ta = {w for w in norm_headline(a) if len(w) > 2 and w not in _HL_STOP}
+    tb = {w for w in norm_headline(b) if len(w) > 2 and w not in _HL_STOP}
+    if not ta or not tb:
+        return 0.0
+    small, large = (ta, tb) if len(ta) <= len(tb) else (tb, ta)
+    return len(small & large) / len(small)
+
+
+def cross_source_copy(a: dict, b: dict, gap: int, body) -> bool:
+    """DATEDUP_V1.7: the body-first test (see above). body(e) returns e's raw body."""
+    if gap > BODY_CHECK_DAYS:
+        return False
+    if source_kind(a.get("source_name")) == source_kind(b.get("source_name")):
+        return False
+    if is_correction(a.get("raw_headline")) or is_correction(b.get("raw_headline")):
+        return False
+    ov = body_overlap(body(a), body(b))
+    if ov >= BODY_OVERLAP:
+        return True
+    return ov >= BODY_OVERLAP_WITH_HEADLINE and \
+        headline_words_agree(a.get("raw_headline"), b.get("raw_headline")) >= HEADLINE_WORDS
+
+
+def pair_is_copy(a: dict, b: dict, gap: int, body) -> bool:
+    """Same company's release twice? gap = days apart (>= 0); body(e) returns e's raw body and is only called
+    when a body is needed. The V1-V1.6 headline rule first, then the V1.7 body-first test."""
+    if gap > MAX_GAP_DAYS:
+        return False
+    m = headline_match(a.get("raw_headline"), b.get("raw_headline"))
+    if m:
+        if not (m == 1 or gap > BODY_CHECK_DAYS):
+            return True
+        if same_body(body(a), body(b)):
+            return True
+    return cross_source_copy(a, b, gap, body)
+
+
 def is_copy(a: dict, b: dict) -> bool:
-    """a and b: dicts with ticker, published_at, raw_headline, raw_body."""
+    """a and b: dicts with ticker, published_at, raw_headline, raw_body, source_name."""
     if not a.get("ticker") or a.get("ticker") != b.get("ticker"):
         return False
     da, db_ = _date(a.get("published_at")), _date(b.get("published_at"))
     if not da or not db_:
         return False
-    gap = abs((da - db_).days)
-    if gap > MAX_GAP_DAYS:
-        return False
-    m = headline_match(a.get("raw_headline"), b.get("raw_headline"))
-    if m == 0:
-        return False
-    if m == 1 or gap > BODY_CHECK_DAYS:
-        return same_body(a.get("raw_body"), b.get("raw_body"))
-    return True
+    return pair_is_copy(a, b, abs((da - db_).days), lambda e: e.get("raw_body"))
 
 
 def keep_rank(e: dict) -> tuple:
     """Lower sorts first = the copy to keep, among copies dated within a day of each other."""
     return (
-        1 if is_exchange(e.get("source_name")) else 0,
+        source_rank(e.get("source_name")),     # V1.7: wire, then company site, then exchange
         0 if (e.get("review_status") in VISIBLE) else 1,
         e.get("ingested_at") or "9999",
         e.get("event_id") or "",
@@ -270,9 +357,10 @@ def find_visible_twin(conn, row: dict) -> dict | None:
 
 
 def new_copy_replaces(row: dict, twin: dict) -> bool:
-    """At ingest: does the arriving copy replace the stored twin? Only a wire copy replacing an
-    exchange copy, and only when it is not dated more than a day later (choose_keeper's rule)."""
-    if is_exchange(row.get("source_name")) or not is_exchange(twin.get("source_name")):
+    """At ingest: does the arriving copy replace the stored twin? Only a copy from a better kind of source
+    (V1.7: wire over company site over exchange; before, a wire or site copy over an exchange copy), and only
+    when it is not dated more than a day later (choose_keeper's rule)."""
+    if source_rank(row.get("source_name")) >= source_rank(twin.get("source_name")):
         return False
     d_new, d_old = _date(row.get("published_at")), _date(twin.get("published_at"))
     if not d_new or not d_old:
