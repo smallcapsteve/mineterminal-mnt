@@ -17,6 +17,8 @@ dated within a day are also the same release when their texts match, whatever th
 DATEDUP_V1.8 (2026-10-15): the same release published again 2-30 days later (a wire re-send, a wire copy weeks
 after the CSE listing) is a copy when it repeats the original's dateline (late_copy below).
 
+DATEDUP_V1.9 (2026-10-15): when either dateline cannot be read, a late copy must be at most 7 days apart.
+
 Which copy stays (Justin, 2026-10-10): the wire copy (real time of day, images,
 formatting) over the exchange copy (TMX/CSE); then the visible one; then the one
 stored first.
@@ -183,6 +185,9 @@ _OVERLAP_MIN_WORDS = 60
 LATE_MAX_DAYS = 30
 LATE_OVERLAP = 0.90
 LATE_OVERLAP_NO_DATELINE = 0.93
+# DATEDUP_V1.9 (2026-10-15, Justin: "7 day limit"): with no dateline to compare, a late copy must be at most
+# 7 days apart; recurring notices (monthly marketing extensions, MCTO updates, shares-for-debt) were 9-30.
+LATE_NO_DATELINE_MAX_DAYS = 7
 _RESEND = re.compile(r"^\s*(retransmission|repeat|replacement)\b", re.I)
 _HL_STOP = {"the", "a", "an", "of", "and", "to", "in", "on", "at", "for", "with", "its", "is", "as", "by", "from",
             "inc", "corp", "ltd", "limited", "company", "news", "release", "press"}
@@ -265,7 +270,8 @@ def late_copy(a: dict, b: dict, gap: int, body) -> bool:
     closing, next month's dividend) carries a new date in its dateline; a re-send repeats the original one. So:
       * both datelines read and equal: no stage-word difference in the headlines and texts >= 90% the same;
       * datelines differ: only a release marked RETRANSMISSION / REPEAT / REPLACEMENT, same headline, >= 90%;
-      * a dateline not read on either side: the same headline and texts >= 93% the same.
+      * a dateline not read on either side: the same headline and texts >= 93% the same, and at most
+        7 days apart (DATEDUP_V1.9).
     Corrections and 'Updated' releases are never copies."""
     if gap < 2 or gap > LATE_MAX_DAYS:
         return False
@@ -283,6 +289,8 @@ def late_copy(a: dict, b: dict, gap: int, body) -> bool:
         if not (_RESEND.match(html.unescape(ha or "")) or _RESEND.match(html.unescape(hb or ""))):
             return False
         return headline_match(ha, hb) > 0 and body_overlap(ta, tb) >= LATE_OVERLAP
+    if gap > LATE_NO_DATELINE_MAX_DAYS:          # DATEDUP_V1.9
+        return False
     return headline_match(ha, hb) == 2 and body_overlap(ta, tb) >= LATE_OVERLAP_NO_DATELINE
 
 
