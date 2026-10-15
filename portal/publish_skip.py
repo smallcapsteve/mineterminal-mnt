@@ -17,6 +17,28 @@ If the fingerprint matches the one taken before the last successful run AND that
 FULL_EVERY_H (8) hours ago, the publisher is skipped. Otherwise it runs as before and after() stores the new
 fingerprint. Any error here means "run it" - this can make the sync do less, never publish something wrong.
 
+MEMSWAP narrow check (2026-10-15, Justin: "Reader: publish only what changed"). The check above treats ANY new
+release as a change for all 14 publishers, because every reader stores a record for every release it reads (a
+marker when it finds nothing) and the events digest covers every release. So in the daytime every publisher ran
+every time. The narrow check asks instead: since this publisher's last successful run, did anything arrive that it
+can actually use? It passes (= nothing relevant) only when ALL of these hold:
+  - versions, code, date, lookup files and the publisher's own output tables are unchanged (as above);
+  - no reader run turned into an error (fx_runs errors count unchanged);
+  - every fx_records row added since the last run is NEW (record count grew by exactly the number of new rows,
+    so nothing was deleted or re-read), and none of them carries a fact (fx_facts), and none of their releases
+    carries this reader's tag (fx_extractor_versions.tag) - i.e. the reader found nothing in them and they would
+    not even become a marker row;
+  - the events digest, with those new releases left out, equals the digest taken before the last run - so no
+    existing release was edited (categories, review status, ticker, slug, dates).
+Publishers read only the releases their reader found something in plus those carrying their tag (traced in
+permits_publish.load_items and its siblings), so a release failing all three tests cannot change their output.
+SHADOW first: with narrow_shadow on, the publisher still runs exactly as before; after it runs we record whether its
+output tables changed. A run where the narrow check said "nothing relevant" but the table changed is a MISS (the
+narrow check would have been wrong) and is logged as such. Only with narrow_ON present does the narrow check skip.
+  /opt/mnt/app/portal/publish_skip_narrow_ON   exists -> narrow check decides (skips for real)
+  shadow log: /var/lib/mnt-publish-skip/narrow_shadow.log (one JSON line per publisher per run)
+The 8-hour full rebuild and every switch above still apply on top.
+
 Switches (no restart needed, read every run):
   /opt/mnt/app/portal/publish_skip_OFF   exists -> never skip (everything runs as before)
   /opt/mnt/app/portal/publish_skip_ONLY  exists -> only the labels listed in it (one per line) may be skipped
@@ -38,6 +60,8 @@ CODE_ROOT = os.environ.get("MNT_PUBLISH_SKIP_APP", APP)
 STATE = os.environ.get("MNT_PUBLISH_SKIP_STATE", "/var/lib/mnt-publish-skip/state.json")
 OFF_FILE = os.path.join(CODE_ROOT, "portal", "publish_skip_OFF")
 ONLY_FILE = os.path.join(CODE_ROOT, "portal", "publish_skip_ONLY")
+NARROW_ON_FILE = os.path.join(CODE_ROOT, "portal", "publish_skip_narrow_ON")
+SHADOW_LOG = os.environ.get("MNT_PUBLISH_SKIP_SHADOW", os.path.join(os.path.dirname(STATE), "narrow_shadow.log"))
 FULL_EVERY_H = float(os.environ.get("MNT_PUBLISH_FULL_EVERY_H", "8"))
 
 # label (as printed by sync_structured) -> reader name in fx_*, output tables
@@ -76,6 +100,8 @@ CODE_EXT = (".py", ".json", ".txt", ".tsv", ".csv", ".yaml", ".yml")
 # keeps a page edit from forcing all 14 publishers to rebuild.
 CODE_SKIP = ("app.py",)
 CODE_SKIP_SUFFIX = ("_api.py",)
+# inputs the narrow check compares exactly (the broad ones - events, runs:, records: - it replaces)
+_NARROW_EXACT = ("code", "date", "versions")
 
 
 def _log(msg):
@@ -219,15 +245,92 @@ def _save_state(st):
 _CODE = {}
 
 
-def _events_fp(c):
+def _events_fp(c, exclude=None):
     """One digest of the event columns publishers read, from one index-only scan per sync run (cached). It covers
     all events, not only those a reader has read: every reader reads every release, so in practice a new release
-    changes every reader's fx_runs anyway, and the skip pays off in the quiet hours when nothing changes at all."""
-    if "events" not in _CODE:
+    changes every reader's fx_runs anyway, and the skip pays off in the quiet hours when nothing changes at all.
+    With exclude (a set of event_ids): the same digest with those releases left out (narrow check), cached per set."""
+    key = "events" if not exclude else ("events-x", frozenset(exclude))
+    if key not in _CODE:
         h = _h()
-        n = _feed(h, c.execute("SELECT %s FROM events INDEXED BY %s" % (EVENT_COLS, EVENT_INDEX)))
-        _CODE["events"] = "%d:%s" % (n, h.hexdigest())
-    return _CODE["events"]
+        n = 0
+        for r in c.execute("SELECT %s FROM events INDEXED BY %s" % (EVENT_COLS, EVENT_INDEX)):
+            if exclude and r[0] in exclude:
+                continue
+            h.update(repr(tuple(r)).encode("utf-8", "surrogatepass"))
+            h.update(b"\x1e")
+            n += 1
+        _CODE[key] = "%d:%s" % (n, h.hexdigest())
+    return _CODE[key]
+
+
+# ------------------------------------------------------------------ MEMSWAP narrow check
+def _tag_of(c, ex):
+    r = c.execute("SELECT tag FROM fx_extractor_versions WHERE extractor=? AND status='active'", (ex,)).fetchone()
+    return (r[0] if r else None) or None
+
+
+def _narrow_snapshot(c, label):
+    """What the narrow check needs next time: the newest record_id, record counts and run errors per live version."""
+    ex, _t = MAP[label]
+    vers = [v for v, s in c.execute("SELECT version, status FROM fx_extractor_versions WHERE extractor=?", (ex,))
+            if s in ("active", "candidate")]
+    snap = {"max_rid": c.execute("SELECT max(record_id) FROM fx_records").fetchone()[0] or 0, "cnt": {}, "err": {}}
+    for v in vers:
+        snap["cnt"][v] = c.execute("SELECT count(*) FROM fx_records WHERE extractor=? AND version=?", (ex, v)).fetchone()[0]
+        snap["err"][v] = c.execute("SELECT count(*) FROM fx_runs WHERE extractor=? AND version=? AND status != 'ok'",
+                                   (ex, v)).fetchone()[0]
+    return snap
+
+
+def _narrow(c, label, ins, outs, prev):
+    """(nothing_relevant: bool, why: str, snapshot). nothing_relevant=True only when every test in the module
+    docstring passes. Any doubt -> False."""
+    snap = _narrow_snapshot(c, label)
+    pn = prev.get("narrow") if prev else None
+    if not pn or "events_fp" not in pn:
+        return False, "no narrow baseline yet", snap
+    for k in _NARROW_EXACT:
+        if ins.get(k) != prev["in"].get(k):
+            return False, k + " changed", snap
+    for k in set(ins) | set(prev["in"]):
+        if k.startswith(("read:", "file:", "names:")) and ins.get(k) != prev["in"].get(k):
+            return False, k + " changed", snap
+    if outs != prev["out"]:
+        return False, "output table changed by someone else", snap
+    if set(snap["cnt"]) != set(pn["cnt"]):
+        return False, "live versions changed", snap
+    if snap["err"] != pn["err"]:
+        return False, "reader errors changed", snap
+    ex, _t = MAP[label]
+    tag = _tag_of(c, ex)
+    new_events = set()
+    for v in snap["cnt"]:
+        rows = c.execute("SELECT record_id, event_id FROM fx_records WHERE record_id > ? AND extractor=? AND version=?",
+                         (pn["max_rid"], ex, v)).fetchall()
+        if snap["cnt"][v] - pn["cnt"][v] != len(rows):
+            return False, "records removed or re-read (%s: %+d count, %d new)" % (v, snap["cnt"][v] - pn["cnt"][v], len(rows)), snap
+        for rid, eid in rows:
+            if c.execute("SELECT 1 FROM fx_facts WHERE record_id=? LIMIT 1", (rid,)).fetchone():
+                return False, "new release %s has %s facts" % (eid[:12], ex), snap
+            new_events.add(eid)
+    if tag:
+        for eid in new_events:
+            r = c.execute("SELECT categories FROM events WHERE event_id=?", (eid,)).fetchone()
+            if r and ("|" + (r[0] or "") + "|").find("|" + tag + "|") >= 0:
+                return False, "new release %s carries the %s tag" % (eid[:12], tag), snap
+    if _events_fp(c, new_events) != pn["events_fp"]:
+        return False, "an existing release changed (or one arrived unread)", snap
+    return True, "%d new release(s), none relevant" % len(new_events), snap
+
+
+def _shadow(rec):
+    try:
+        os.makedirs(os.path.dirname(SHADOW_LOG), exist_ok=True)
+        with open(SHADOW_LOG, "a") as fh:
+            fh.write(json.dumps(rec, sort_keys=True) + "\n")
+    except OSError:
+        pass
 
 
 def before(label):
@@ -242,10 +345,15 @@ def before(label):
         try:
             ins = _inputs(c, label, _CODE["code"])
             outs = _outputs(c, label)
+            prev = _load_state().get(label)
+            try:
+                n_ok, n_why, n_snap = _narrow(c, label, ins, outs, prev)
+            except Exception as exc:  # noqa: BLE001 - narrow check failing means "relevant"
+                n_ok, n_why, n_snap = False, "narrow check failed (%s)" % type(exc).__name__, None
         finally:
             c.close()
-        info = {"skip": False, "in": ins, "secs": round(time.time() - t0, 1)}
-        prev = _load_state().get(label)
+        info = {"skip": False, "in": ins, "out_before": outs, "secs": round(time.time() - t0, 1),
+                "narrow": {"ok": n_ok, "why": n_why, "snap": n_snap}}
         if os.path.exists(OFF_FILE):
             info["why"] = "publish_skip_OFF"
         elif os.path.exists(ONLY_FILE) and label not in open(ONLY_FILE).read().split():
@@ -258,12 +366,16 @@ def before(label):
             out_changed = sorted(k for k in set(outs) | set(prev["out"]) if outs.get(k) != prev["out"].get(k))
             if age_h >= FULL_EVERY_H:
                 info["why"] = "full rebuild due (last %.1f h ago)" % age_h
-            elif changed or out_changed:
-                info["why"] = "changed: " + ", ".join(changed + ["table " + x for x in out_changed])[:300]
-            else:
+            elif not changed and not out_changed:
                 info["skip"] = True
                 info["why"] = ("nothing it reads has changed since the run at %s UTC (%.1f h ago; full rebuild every %g h)"
                                % (time.strftime("%H:%M", time.gmtime(prev["full_at"])), age_h, FULL_EVERY_H))
+            elif n_ok and os.path.exists(NARROW_ON_FILE):
+                info["skip"] = True
+                info["why"] = "narrow: %s (last full run %.1f h ago)" % (n_why, age_h)
+            else:
+                info["why"] = "changed: " + ", ".join(changed + ["table " + x for x in out_changed])[:300]
+                info["why"] += " | narrow: %s" % (("would skip - " if n_ok else "") + n_why)
         info["why"] += " [checked in %.1fs]" % (time.time() - t0)
         return info
     except Exception as exc:  # noqa: BLE001 - any doubt means run it
@@ -273,7 +385,24 @@ def before(label):
 
 def after(label, info, rc):
     """Record a successful run (rc == 0); forget the label after a failure so the next run publishes."""
-    if not info or info.get("skip"):
+    if not info:
+        return
+    if info.get("skip"):
+        # a narrow skip moves the narrow baseline forward (the new releases are now known to be irrelevant); the
+        # broad fingerprint is left as it was, so the 8-hour full rebuild still comes due on time
+        n = info.get("narrow") or {}
+        if n.get("ok") and n.get("snap"):
+            try:
+                st = _load_state()
+                if label in st:
+                    st[label]["narrow"] = dict(n["snap"], events_fp=_CODE.get("events"))
+                    _save_state(st)
+            except Exception as exc:  # noqa: BLE001
+                _log("%s: could not move the narrow baseline (%s) - it will run next time" % (label, exc))
+                try:
+                    st = _load_state(); st.pop(label, None); _save_state(st)
+                except Exception:  # noqa: BLE001
+                    pass
         return
     try:
         st = _load_state()
@@ -283,8 +412,20 @@ def after(label, info, rc):
                 outs = _outputs(c, label)
             finally:
                 c.close()
-            st[label] = {"in": info["in"], "out": outs, "full_at": time.time(),
-                         "full_at_utc": time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())}
+            n = info.get("narrow") or {}
+            if n.get("why") is not None:
+                out_changed = outs != info.get("out_before")
+                rec = {"at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "label": label,
+                       "narrow_says_skip": bool(n.get("ok")), "output_changed": out_changed, "why": n.get("why")}
+                if n.get("ok") and out_changed:
+                    rec["MISS"] = True
+                    _log("%s: NARROW MISS - the narrow check said nothing relevant, but the table changed" % label)
+                _shadow(rec)
+            ent = {"in": info["in"], "out": outs, "full_at": time.time(),
+                   "full_at_utc": time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())}
+            if n.get("snap"):
+                ent["narrow"] = dict(n["snap"], events_fp=info["in"].get("events"))
+            st[label] = ent
         else:
             st.pop(label, None)
         _save_state(st)
