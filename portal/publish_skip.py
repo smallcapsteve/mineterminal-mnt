@@ -25,7 +25,8 @@ can actually use? It passes (= nothing relevant) only when ALL of these hold:
   - versions, code, date, lookup files and the publisher's own output tables are unchanged (as above);
   - no reader run turned into an error (fx_runs errors count unchanged);
   - every fx_records row added since the last run is NEW (record count grew by exactly the number of new rows,
-    so nothing was deleted or re-read), and none of them carries a fact (fx_facts), and none of their releases
+    so nothing was deleted or re-read), and each of them carries its reader's found-flag set to 0 (NOTHING_FLAG,
+    v2 2026-10-16; v1 required "no facts at all", which never held), and none of their releases
     carries this reader's tag (fx_extractor_versions.tag) - i.e. the reader found nothing in them and they would
     not even become a marker row;
   - the events digest, with those new releases left out, equals the digest taken before the last run - so no
@@ -100,6 +101,18 @@ CODE_EXT = (".py", ".json", ".txt", ".tsv", ".csv", ".yaml", ".yml")
 # keeps a page edit from forcing all 14 publishers to rebuild.
 CODE_SKIP = ("app.py",)
 CODE_SKIP_SUFFIX = ("_api.py",)
+# MEMSWAP narrow v2 (2026-10-16): every reader stores a record for every release it reads, and the record for a
+# release where it found nothing still carries facts: its found-flag set to 0 and a "reason" (probe 6 on the newest
+# ~220 records per reader: e.g. permits is_permit=0 on 203 of 206 unpublished, 0 of 18 published). So "a new record
+# has facts" (v1) was true for every release and the shadow never said skip. v2: a new record is nothing-found only
+# when its reader's flag below is present and exactly 0. Readers with no such flag (drill_results: its unpublished
+# records still carry interval facts) always count new records as relevant.
+NOTHING_FLAG = {
+    "debt": "is_debt", "economics": "is_economic_study", "exploration": "is_program", "financings": "is_financing",
+    "management": "is_management_change", "mine_dev": "is_event", "options": "is_deal", "permits": "is_permit",
+    "production": "is_production", "resources": "is_resource_estimate", "royalties": "is_royalty",
+    "sampling": "is_result", "technical": "is_report",
+}
 # inputs the narrow check compares exactly (the broad ones - events, runs:, records: - it replaces)
 _NARROW_EXACT = ("code", "date", "versions")
 
@@ -310,9 +323,13 @@ def _narrow(c, label, ins, outs, prev):
                          (pn["max_rid"], ex, v)).fetchall()
         if snap["cnt"][v] - pn["cnt"][v] != len(rows):
             return False, "records removed or re-read (%s: %+d count, %d new)" % (v, snap["cnt"][v] - pn["cnt"][v], len(rows)), snap
+        flag = NOTHING_FLAG.get(ex)
+        if rows and not flag:
+            return False, "%s has no found-nothing flag; any new record counts" % ex, snap
         for rid, eid in rows:
-            if c.execute("SELECT 1 FROM fx_facts WHERE record_id=? LIMIT 1", (rid,)).fetchone():
-                return False, "new release %s has %s facts" % (eid[:12], ex), snap
+            fl = [x for (x,) in c.execute("SELECT value_num FROM fx_facts WHERE record_id=? AND field=?", (rid, flag))]
+            if fl != [0]:
+                return False, "new release %s: %s found something (%s=%s)" % (eid[:12], ex, flag, fl or "missing"), snap
             new_events.add(eid)
     if tag:
         for eid in new_events:
