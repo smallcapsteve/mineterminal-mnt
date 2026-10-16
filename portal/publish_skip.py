@@ -33,6 +33,12 @@ can actually use? It passes (= nothing relevant) only when ALL of these hold:
     existing release was edited (categories, review status, ticker, slug, dates).
 Publishers read only the releases their reader found something in plus those carrying their tag (traced in
 permits_publish.load_items and its siblings), so a release failing all three tests cannot change their output.
+v3 (2026-10-16, Justin: "fixing this for all the readers"): five publishers load ONLY releases carrying their tag
+(TAG_ONLY below - drill_publish, financing_publish, management_publish, resources_publish and mine_dev_publish
+load_items filter on the tag in SQL). For them a new release without the tag is irrelevant whatever its reader
+found, so their found-flag is not consulted. This lets Drill Results (which has no found-flag) skip at all, and lets
+the other four skip when their reader finds something in an untagged release. Sampling stays flag-based (with
+look-alikes on it also loads untagged releases its reader found a result in).
 SHADOW first: with narrow_shadow on, the publisher still runs exactly as before; after it runs we record whether its
 output tables changed. A run where the narrow check said "nothing relevant" but the table changed is a MISS (the
 narrow check would have been wrong) and is logged as such. Only with narrow_ON present does the narrow check skip.
@@ -113,6 +119,13 @@ NOTHING_FLAG = {
     "production": "is_production", "resources": "is_resource_estimate", "royalties": "is_royalty",
     "sampling": "is_result", "technical": "is_report",
 }
+# MEMSWAP narrow v3 (2026-10-16): readers whose publisher's load_items reads ONLY releases carrying the reader's tag
+# (probe 7: drill_publish, financing_publish, management_publish and resources_publish filter
+# "('|' || categories || '|') LIKE '%|<tag>|%'"; mine_dev_publish "categories LIKE '%<tag>%'" then an exact |tag|
+# check - "untagged releases are not loaded"). For these a new release is relevant only when it carries the tag;
+# the found-flag is not consulted. Probe 7 also confirmed every record of the other readers carries its flag, and
+# every flag-0 release that is on a page carries the tag (marker rows), which the tag test already catches.
+TAG_ONLY = {"drill_results", "financings", "management", "resources", "mine_dev"}
 # inputs the narrow check compares exactly (the broad ones - events, runs:, records: - it replaces)
 _NARROW_EXACT = ("code", "date", "versions")
 
@@ -317,19 +330,23 @@ def _narrow(c, label, ins, outs, prev):
         return False, "reader errors changed", snap
     ex, _t = MAP[label]
     tag = _tag_of(c, ex)
+    tag_only = ex in TAG_ONLY
+    if tag_only and not tag:
+        return False, "%s reads tagged releases only but has no tag" % ex, snap
+    flag = NOTHING_FLAG.get(ex)
     new_events = set()
     for v in snap["cnt"]:
         rows = c.execute("SELECT record_id, event_id FROM fx_records WHERE record_id > ? AND extractor=? AND version=?",
                          (pn["max_rid"], ex, v)).fetchall()
         if snap["cnt"][v] - pn["cnt"][v] != len(rows):
             return False, "records removed or re-read (%s: %+d count, %d new)" % (v, snap["cnt"][v] - pn["cnt"][v], len(rows)), snap
-        flag = NOTHING_FLAG.get(ex)
-        if rows and not flag:
+        if rows and not tag_only and not flag:
             return False, "%s has no found-nothing flag; any new record counts" % ex, snap
         for rid, eid in rows:
-            fl = [x for (x,) in c.execute("SELECT value_num FROM fx_facts WHERE record_id=? AND field=?", (rid, flag))]
-            if fl != [0]:
-                return False, "new release %s: %s found something (%s=%s)" % (eid[:12], ex, flag, fl or "missing"), snap
+            if not tag_only:
+                fl = [x for (x,) in c.execute("SELECT value_num FROM fx_facts WHERE record_id=? AND field=?", (rid, flag))]
+                if fl != [0]:
+                    return False, "new release %s: %s found something (%s=%s)" % (eid[:12], ex, flag, fl or "missing"), snap
             new_events.add(eid)
     if tag:
         for eid in new_events:
@@ -338,7 +355,7 @@ def _narrow(c, label, ins, outs, prev):
                 return False, "new release %s carries the %s tag" % (eid[:12], tag), snap
     if _events_fp(c, new_events) != pn["events_fp"]:
         return False, "an existing release changed (or one arrived unread)", snap
-    return True, "%d new release(s), none relevant" % len(new_events), snap
+    return True, "%d new release(s), none relevant%s" % (len(new_events), " (untagged)" if tag_only else ""), snap
 
 
 def _shadow(rec):
