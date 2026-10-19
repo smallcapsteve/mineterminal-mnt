@@ -19,6 +19,10 @@ after the CSE listing) is a copy when it repeats the original's dateline (late_c
 
 DATEDUP_V1.9 (2026-10-15): when either dateline cannot be read, a late copy must be at most 7 days apart.
 
+DATEDUP_V1.10 (2026-10-19): the body-first test also needs the titles to state the same transaction stage
+(upsize, closing, ...) and tranche; a late copy with no readable dateline is not a copy when the openings
+print different dates, unless the texts are otherwise the same.
+
 Which copy stays (Justin, 2026-10-10): the wire copy (real time of day, images,
 formatting) over the exchange copy (TMX/CSE); then the visible one; then the one
 stored first.
@@ -257,6 +261,8 @@ def cross_source_copy(a: dict, b: dict, gap: int, body) -> bool:
         return False
     if is_correction(a.get("raw_headline")) or is_correction(b.get("raw_headline")):
         return False
+    if title_stage_conflict(a, b, body):        # DATEDUP_V1.10 A
+        return False
     ov = body_overlap(body(a), body(b))
     if ov >= BODY_OVERLAP:
         return True
@@ -290,6 +296,8 @@ def late_copy(a: dict, b: dict, gap: int, body) -> bool:
             return False
         return headline_match(ha, hb) > 0 and body_overlap(ta, tb) >= LATE_OVERLAP
     if gap > LATE_NO_DATELINE_MAX_DAYS:          # DATEDUP_V1.9
+        return False
+    if opening_dates_differ(a, b, body):         # DATEDUP_V1.10 B
         return False
     return headline_match(ha, hb) == 2 and body_overlap(ta, tb) >= LATE_OVERLAP_NO_DATELINE
 
@@ -491,3 +499,165 @@ def strict_release_date(body: str | None, upload: dt.date, max_back_days: int = 
         if _GOOD_BEFORE.search(before) or _GOOD_AFTER.search(after):
             return d, "dateline"
     return upload, "upload"
+
+
+# ---------------------------------------------------------------- DATEDUP_V1.10 (2026-10-19)
+# Weekly review 1 found three different releases kept off the site as copies (EM.V upsize to $30M Jul 15, EDCU.V
+# closing Jun 9, LEGY.V placement increase Mar 16). Justin approved both fixes ("The two proposed rule changes i
+# okay").
+# A. cross_source_copy matched a next-day follow-up (upsize, closing) on text overlap alone: such a release repeats
+#    most of the first one's terms. Now the two titles must state the same transaction stage (closing, upsize,
+#    amendment, pricing, termination, postponement, extension, correction, halt, resumption; inflections and
+#    synonyms count as one: "closes" = "closing" = "completes") and, when both name a tranche, the same one.
+#    When the stored headlines do not resemble each other (TMX headlines are often a PDF fragment: "$20,002,500,
+#    and (ii) up to ..."), the exchange/site copy's title is read from the opening of its own text.
+# B. late_copy's no-dateline branch (V1.8/V1.9) matched LEGY's Mar 16 and Mar 20 placement increases (same title,
+#    texts 94% the same) because the strict reader could not read "Calgary, Canada March 16, 2026". Now, when the
+#    openings print different dates near the copies' own dates, they are two releases unless the texts are
+#    otherwise word for word the same (>= 97%: a re-send that only changes the date).
+_CONCEPT = {
+    "done": ("close", "closes", "closed", "closing", "complete", "completes", "completed", "completion"),
+    "upsize": ("upsize", "upsizes", "upsized", "upsizing", "increase", "increases", "increased"),
+    "amend": ("amend", "amends", "amended", "amending", "amendment"),
+    "price": ("pricing", "prices", "priced", "reprice", "reprices", "repriced", "repricing", "reprising"),
+    "end": ("terminate", "terminates", "terminated", "termination", "withdraw", "withdraws", "withdrawn",
+            "cancel", "cancels", "cancelled", "canceled", "cancellation"),
+    "delay": ("postpone", "postpones", "postponed", "postponement", "reschedule", "reschedules", "rescheduled"),
+    "extend": ("extend", "extends", "extended", "extension"),
+    "fix": ("correction", "corrected", "corrects", "clarifies", "clarification", "clarify"),
+    "halt": ("halt", "halted", "halts"),
+    "resume": ("resume", "resumes", "resumed", "resumption"),
+}
+_CONCEPT_OF = {w: c for c, ws in _CONCEPT.items() for w in ws}
+_TRANCHE_ORD = {"first", "second", "third", "fourth", "fifth", "sixth", "final"}
+_ORD_WORD = {"1st": "first", "2nd": "second", "3rd": "third", "4th": "fourth", "5th": "fifth", "6th": "sixth"}
+# PR Newswire's correction notices are titled "C O R R E C T I O N -- Company Inc./" and carry the full corrected
+# release: that title says nothing about the release's stage.
+_PRN_CORRECTION = re.compile(r"^\s*correction\s*-+\s*[^/]{0,80}/?\s*$", re.I)
+TITLE_AGREE = 0.5           # headlines this alike are both titles of the release
+_OPENING_CHARS = 600
+OPENING_DATE_NEAR = 3       # V1.10 B: an opening date counts only within 3 days of the copy's own date
+OPENING_DATE_SAME_TEXT = 0.97
+
+
+def _clean_text(text: str | None, n: int) -> str:
+    t = re.sub(r"<[^>]+>", " ", text or "")
+    t = re.sub(r"\b(?:[A-Za-z] ){4,}[A-Za-z]\b", lambda m: m.group(0).replace(" ", ""), html.unescape(t))  # "C O R R E C T I O N"
+    return re.sub(r"\s+", " ", t)[:n]
+
+
+def _content(tokens) -> set:
+    return {w for w in tokens if len(w) > 2 and w not in _HL_STOP}
+
+
+def _window(e: dict, ref: list, body):
+    """The span of e's opening text that best matches the reference title tokens: (score, tokens) or (0, None)."""
+    rc = _content(ref)
+    if not rc:
+        return 0, None
+    words = [_ORD_WORD.get(t, t) for t in norm_headline(_clean_text(body(e), _OPENING_CHARS))]
+    L = len(ref)
+    best, score = None, 0
+    for i in range(0, max(1, len(words) - L + 1)):
+        win = words[i:i + L]
+        s = len(rc & set(win))
+        if s > score:
+            last = max(j for j, w in enumerate(win) if w in rc)
+            best, score = win[:last + 1], s
+    if best is None or score < TITLE_AGREE * len(rc):
+        return 0, None
+    return score / len(rc), best
+
+
+def _titles(a: dict, b: dict, body):
+    """V1.10 A: the two copies' titles as tokens, or (None, None) when no title can be read for one of them."""
+    ha, hb = _clean_text(a.get("raw_headline"), 400), _clean_text(b.get("raw_headline"), 400)
+    if _PRN_CORRECTION.match(ha) or _PRN_CORRECTION.match(hb):
+        return None, None
+    ta = [_ORD_WORD.get(t, t) for t in norm_headline(ha)]
+    tb = [_ORD_WORD.get(t, t) for t in norm_headline(hb)]
+    if min(len(_content(ta)), len(_content(tb))) > 2 and headline_words_agree(ha, hb) >= TITLE_AGREE:
+        k = min(len(ta), len(tb))
+        p = 0
+        while p < k and ta[p] == tb[p]:
+            p += 1
+        if p >= 0.8 * k:                 # one headline is the other plus a subtitle (TMX: "... INTERCEPTS Drilling of ...")
+            return ta[:k], tb[:k]
+        return ta, tb
+    # The headlines are not two titles of one release: read the title out of the exchange/site copy's own text.
+    best = (0, None, None)
+    for x, ref, ref_is_b in ((a, tb, True), (b, ta, False)):
+        if source_kind(x.get("source_name")) == "wire":
+            continue
+        sc, win = _window(x, ref, body)
+        if win and sc > best[0]:
+            best = (sc, win, ref_is_b)
+    if not best[1]:
+        return None, None
+    return (best[1], tb) if best[2] else (ta, best[1])
+
+
+def _concept_set(tokens) -> set:
+    return {_CONCEPT_OF[t] for t in tokens if t in _CONCEPT_OF}
+
+
+def title_stage_conflict(a: dict, b: dict, body) -> bool:
+    """V1.10 A: True when the titles state different transaction stages, or name different tranches. A stage only
+    one title states is not a conflict when the other copy is an exchange/site copy whose own text opens with a
+    title stating it (a CSE listing titled "Private Placement - Flow Through Shares" whose PDF opens "Canadian
+    Copper Announces Closing of Flow-Through Private Placement")."""
+    ta, tb = _titles(a, b, body)
+    if not ta or not tb:
+        return False
+    oa, ob = set(ta) & _TRANCHE_ORD, set(tb) & _TRANCHE_ORD
+    if oa and ob and oa != ob:
+        return True
+    ca, cb = _concept_set(ta), _concept_set(tb)
+    for x, missing, ref in ((a, cb - ca, tb), (b, ca - cb, ta)):
+        if not missing:
+            continue
+        if source_kind(x.get("source_name")) == "wire":
+            return True
+        _, win = _window(x, ref, body)
+        if not win or not missing <= _concept_set(win):
+            return True
+    return False
+
+
+@functools.lru_cache(maxsize=512)
+def opening_date(text: str):
+    """V1.10 B: the first full date printed in the release's opening (600 characters), skipping dates the text
+    only mentions ("further to its June 12 news release"). Lenient: no dateline wording needed."""
+    t = _clean_text(text, _OPENING_CHARS)
+    found = []
+    for pat, order in ((_PAT_MDY, "mdy"), (_PAT_DMY, "dmy")):
+        for m in pat.finditer(t):
+            g = m.groups()
+            mon, day, yr = (g[0], g[1], g[2]) if order == "mdy" else (g[1], g[0], g[2])
+            try:
+                d = dt.date(int(yr.replace(" ", "")), _MONTHS[mon[:3].lower()], int(day.replace(" ", "")))
+            except (ValueError, KeyError):
+                continue
+            found.append((m.start(), d))
+    for start, d in sorted(found):
+        before = t[max(0, start - 40):start]
+        if _BAD_BEFORE.search(before) or _BAD_NEAR.search(before[-28:]):
+            continue
+        return d
+    return None
+
+
+def opening_dates_differ(a: dict, b: dict, body) -> bool:
+    """V1.10 B: the two openings print different dates, each within 3 days of the copy's own date (a date further
+    away is a mention: an investor day, a report's effective date) and not the same day a year apart (a typo), and
+    the texts are not otherwise word for word the same (>= 97%: a re-send that only changes the date)."""
+    ta, tb = body(a) or "", body(b) or ""
+    da, db_ = opening_date(ta), opening_date(tb)
+    pa, pb = _date(a.get("published_at")), _date(b.get("published_at"))
+    if not (da and db_ and pa and pb) or da == db_:
+        return False
+    if abs((da - pa).days) > OPENING_DATE_NEAR or abs((db_ - pb).days) > OPENING_DATE_NEAR:
+        return False
+    if (da.month, da.day) == (db_.month, db_.day) and abs(da.year - db_.year) == 1:
+        return False
+    return body_overlap(ta, tb) < OPENING_DATE_SAME_TEXT
