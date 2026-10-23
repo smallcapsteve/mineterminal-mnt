@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}AI reader review — MiningNewsTerminal{% endblock %}
+{% block content %}
+  <style>
+    .rv-note { border: 1px dashed currentColor; padding: .5em .8em; margin: .4em 0 .8em; font-size: .9em; }
+    .rv-counts { display: flex; flex-wrap: wrap; gap: .4em; margin: .4em 0 .8em; }
+    .rv-counts a { border: 1px solid currentColor; border-radius: 3px; padding: .15em .5em; font-size: .85em; text-decoration: none; opacity: .8; }
+    .rv-counts a.on { opacity: 1; font-weight: 600; }
+    .rv-card { border: 1px solid rgba(127,127,127,.35); border-radius: 4px; padding: .6em .8em; margin: 0 0 .7em; }
+    .rv-head { display: flex; flex-wrap: wrap; gap: .3em .8em; align-items: baseline; }
+    .rv-sec { display: inline-block; padding: 0 .4em; border-radius: 3px; font-size: .75em; background: #7a3fb0; color: #fff; }
+    .rv-hl { font-size: .9em; margin: .25em 0 .4em; }
+    .rv-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: .6em 1.2em; }
+    @media (max-width: 700px) { .rv-grid { grid-template-columns: minmax(0, 1fr); } }
+    .rv-grid h4 { margin: 0 0 .2em; font-size: .8em; text-transform: uppercase; letter-spacing: .04em; opacity: .7; }
+    .rv-kv { font-size: .85em; margin: 0; }
+    .rv-kv div { display: flex; gap: .5em; }
+    .rv-kv dt { min-width: 7.5em; opacity: .7; }
+    .rv-kv dd { margin: 0; overflow-wrap: anywhere; }
+    table.rv-dis { font-size: .85em; border-collapse: collapse; width: 100%; }
+    table.rv-dis th, table.rv-dis td { text-align: left; padding: .15em .4em; border-bottom: 1px solid rgba(127,127,127,.25); vertical-align: top; overflow-wrap: anywhere; }
+    .rv-actions { margin-top: .5em; display: flex; flex-wrap: wrap; gap: .4em; align-items: center; }
+    .rv-actions button { font-size: .85em; padding: .3em .7em; cursor: pointer; }
+    .rv-actions input[type=text] { font-size: .85em; padding: .3em .5em; min-width: 12em; flex: 1 1 12em; }
+    .rv-done { font-size: .85em; font-weight: 600; }
+    .rv-saved { background: rgba(46,160,67,.15); padding: .3em .6em; border-radius: 3px; font-size: .9em; }
+  </style>
+
+  <h2 class="page-title">AI reader review</h2>
+  <div class="rv-note">
+    <strong>What this is.</strong> Rows the AI reader and the rules reader disagree on. Until they are settled they are
+    held back from the preview pages (for example <a href="/mine-development-preview">Mine Development preview</a>).
+    Each card shows what the AI read, where the two readers differ, and a link to the release so you can check it.
+    {% if is_admin %}Pick the answer that matches the release; you can change it later.
+    {% else %}<strong>You are not logged in,</strong> so you can look but not decide. <a href="/admin/login">Log in as admin</a> to record decisions.{% endif %}
+    {% if built_at %}<span class="muted">List built {{ built_at[:16].replace('T', ' ') }} UTC.</span>{% endif %}
+  </div>
+  {% if saved %}<p class="rv-saved">Saved.</p>{% endif %}
+
+  <div class="rv-counts">
+    <a href="/aireader-review?show={{ show }}" class="{% if not section %}on{% endif %}">All readers</a>
+    {% for s, label in sections.items() %}{% set c = counts.get(s) %}{% if c %}
+      <a href="/aireader-review?section={{ s }}&show={{ show }}" class="{% if s == section %}on{% endif %}">{{ label }} · {{ c.decided }} of {{ "{:,}".format(c.total) }} decided</a>
+    {% endif %}{% endfor %}
+  </div>
+
+  <section class="filters fin-filters">
+    <form method="get" action="/aireader-review">
+      <label for="section">Reader:</label>
+      <select name="section" id="section" onchange="this.form.submit()">
+        <option value="">All readers</option>
+        {% for s, label in sections.items() %}<option value="{{ s }}" {% if s == section %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+      <label for="show">Show:</label>
+      <select name="show" id="show" onchange="this.form.submit()">
+        {% for v, l in [('open', 'Not decided yet'), ('decided', 'Decided'), ('all', 'All')] %}<option value="{{ v }}" {% if v == show %}selected{% endif %}>{{ l }}</option>{% endfor %}
+      </select>
+      <label for="ticker">Ticker:</label>
+      <input type="text" name="ticker" id="ticker" value="{{ ticker }}" placeholder="e.g. HBM.TO" size="10">
+      <button type="submit">Go</button>
+      {% if section or ticker or show != 'open' %}<a class="cat-clear" href="/aireader-review">Reset</a>{% endif %}
+      <span class="muted">{{ "{:,}".format(total) }} matching · page {{ page_no }} of {{ pages }}</span>
+    </form>
+  </section>
+
+  {% if not rows %}
+    <p class="empty">{% if total == 0 and not counts %}The review list has not been built yet.{% else %}Nothing to review here.{% endif %}</p>
+  {% endif %}
+
+  {% for r in rows %}
+    <div class="rv-card" id="r-{{ r.row_key }}">
+      <div class="rv-head">
+        <span class="rv-sec">{{ r.section_label }}</span>
+        <strong>{{ r.ticker }}</strong> <span>{{ r.company }}</span>
+        <span class="muted">{{ (r.published_at or '')[:10] }}</span>
+        <a href="{{ r.url }}" target="_blank" rel="noopener">Open the release ↗</a>
+      </div>
+      <div class="rv-hl">{{ r.headline }}</div>
+      <div class="rv-grid">
+        <div>
+          <h4>What the AI read</h4>
+          <dl class="rv-kv">{% for k, v in r.fields %}<div><dt>{{ k }}</dt><dd>{{ v }}</dd></div>{% endfor %}</dl>
+        </div>
+        <div>
+          <h4>Where the readers differ</h4>
+          {% if r.disagree %}
+          <table class="rv-dis"><thead><tr><th></th><th>AI reader</th><th>Rules reader</th></tr></thead><tbody>
+            {% for f, a, b in r.disagree %}<tr><td>{{ f }}</td><td>{{ a }}</td><td>{{ b }}</td></tr>{% endfor %}
+          </tbody></table>
+          {% else %}<p class="rv-kv">Only the AI reader found this row.</p>{% endif %}
+        </div>
+      </div>
+      <div class="rv-actions">
+        {% if r.decision %}<span class="rv-done">Decided: {{ decision_labels.get(r.decision.decision, r.decision.decision) }}{% if r.decision.note %} — {{ r.decision.note }}{% endif %}</span>{% endif %}
+        {% if is_admin %}
+          <form method="post" action="/aireader-review/decide" class="rv-actions" style="margin:0">
+            <input type="hidden" name="row_key" value="{{ r.row_key }}">
+            <input type="hidden" name="back" value="/aireader-review?page={{ page_no }}{{ qs }}">
+            <input type="text" name="note" placeholder="Note (optional)" value="{{ (r.decision.note if r.decision else '') or '' }}">
+            {% for v, l in decision_labels.items() %}<button type="submit" name="decision" value="{{ v }}">{{ l }}</button>{% endfor %}
+            {% if r.decision %}<button type="submit" name="decision" value="clear">Undo</button>{% endif %}
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+
+  {% if pages > 1 %}
+    <p class="pager">
+      {% if page_no > 1 %}<a href="/aireader-review?page={{ page_no - 1 }}{{ qs }}">‹ Previous</a>{% endif %}
+      <span class="muted">Page {{ page_no }} of {{ pages }}</span>
+      {% if page_no < pages %}<a href="/aireader-review?page={{ page_no + 1 }}{{ qs }}">Next ›</a>{% endif %}
+    </p>
+  {% endif %}
+{% endblock %}

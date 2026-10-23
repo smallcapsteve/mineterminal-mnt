@@ -222,3 +222,13 @@ try:
 except Exception:  # pragma: no cover
     import logging
     logging.getLogger(__name__).exception("mine_dev_preview register failed")
+
+
+# MNT_AI_REVIEW_V1 (2026-10-23): /aireader-review - the review list for the AI-reader hybrid (rows the two readers
+# disagree on); viewing is open but unlinked and not indexed, deciding needs the admin login. Guarded like the others.
+try:
+    from portal import aireader_review
+    aireader_review.register(app, templates)
+except Exception:  # pragma: no cover
+    import logging
+    logging.getLogger(__name__).exception("aireader_review register failed")

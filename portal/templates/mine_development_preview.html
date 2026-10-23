@@ -22,7 +22,7 @@
   <div class="md-preview"><strong>Preview, not live.</strong> This is what <a href="/mine-development">Mine Development</a>
     would show with the AI reader working alongside the rules reader. Rows both readers found carry no badge; rows only
     the AI found are marked <span class="md-ai">AI-read</span>; releases the AI did not read keep the rules' row.
-    Where the two readers disagree on what happened, the event is held back for review instead of shown.
+    Where the two readers disagree on what happened, the event is held back for review instead of shown (<a href="/aireader-review?section=dev">see them on the review page</a>).
     {% if built_at %}Built {{ built_at[:16].replace('T', ' ') }} UTC.{% endif %}
     {% if counts %}<span class="muted">{{ counts.get('agreed', 0) }} agreed · {{ counts.get('AI-read', 0) }} AI-read · {{ counts.get('rules', 0) }} rules only.</span>{% endif %}</div>
 
