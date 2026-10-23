@@ -212,3 +212,13 @@ except Exception:  # pragma: no cover
     logging.getLogger(__name__).exception("feedver_api register failed")
 
 __all__ = ["app"]
+
+
+# MNT_DEV_AI_PREVIEW_V1 (2026-10-23): /mine-development-preview - the AI-reader hybrid for Mine Development, read from
+# the AI harness's preview database (not the live table). Not linked, not indexed. Guarded like the other hooks.
+try:
+    from portal import mine_dev_preview
+    mine_dev_preview.register(app, templates)
+except Exception:  # pragma: no cover
+    import logging
+    logging.getLogger(__name__).exception("mine_dev_preview register failed")
