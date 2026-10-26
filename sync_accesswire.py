@@ -169,6 +169,20 @@ def run_gnews_fallback(days: int, dry_run: bool) -> int:
         if find_fuzzy_dupe(conn, ev["ticker"], ev["raw_headline"], ev["published_at"]):
             dup_skip += 1
             continue
+        # INGEST_FIX3_V1 (2026-10-12): this path stores a placeholder body when the plain fetch is refused
+        # (Cloudflare); 115 of 236 AccessNewswire releases since June had no text. Try the rendered fetch the main
+        # path uses first. A placeholder still stored is re-fetched by body_repair.py at the end of a later run.
+        if (ev.get("raw_body") or "").startswith("This release is published on Accesswire.") \
+                and "accessnewswire.com" in (ev.get("source_url") or ""):
+            try:
+                got = aw.fetch_body({"source_url": ev["source_url"], "raw_headline": ev.get("raw_headline"),
+                                     "published_at": ev.get("published_at")})
+                if not got.get("fetch_error") and len(got.get("raw_body") or "") > 400:
+                    ev["raw_body"] = got["raw_body"]
+                    ev["raw_html"] = got.get("raw_html") or ev.get("raw_html")
+                    ev["raw_excerpt"] = got.get("raw_excerpt") or ev.get("raw_excerpt")
+            except Exception as e:
+                print(f"  ! rendered fetch {ev['source_url'][:80]}: {e}")
         if dry_run:
             ingested += 1
             continue
@@ -188,6 +202,16 @@ def main(days: int = 14, dry_run: bool = False,
         n = run_rendered(days, dry_run, limit, pages)
         if n < 0:
             run_gnews_fallback(days, dry_run)
+        # INGEST_FIX3_V1 (2026-10-12): placeholders stored by the fallback (in this run or earlier) are re-fetched with
+        # the rendered fetch, a few per run. Old text kept in data/body_repair.db; undo: body_repair.py --restore TAG.
+        if not dry_run:
+            try:
+                import body_repair
+                body_repair.main(["--accesswire", "--since", (datetime.utcnow() - timedelta(days=30)).strftime("%Y-%m-%d"),
+                                  "--tag", "fix3-aw-auto-" + datetime.utcnow().strftime("%Y%m%d"),
+                                  "--limit", "15", "--show", "5", "--sleep", "1"])
+            except Exception as e:  # noqa: BLE001
+                print(f"[accesswire] placeholder repair skipped: {type(e).__name__}: {e}")
     finally:
         aw.close_browser()
     return 0

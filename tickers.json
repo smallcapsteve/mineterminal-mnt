@@ -24,6 +24,15 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "AAN.V",
+    "company_id": "AAN",
+    "name": "Aton Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "AAUC.TO",
     "company_id": "AAUC",
     "name": "Allied Gold",
@@ -45,7 +54,7 @@
     "ticker": "ABA.V",
     "company_id": "ABA",
     "name": "Abasca Resources Inc.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -87,6 +96,15 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "ABR.V",
+    "company_id": "ABR",
+    "name": "Arbor Metals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "ABRA.TO",
     "company_id": "ABRA",
     "name": "AbraSilver Resource Corp",
@@ -103,6 +121,15 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSX"
+  },
+  {
+    "ticker": "ABZ.V",
+    "company_id": "ABZ",
+    "name": "AsiaBaseMetals Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "ACDC.V",
@@ -137,7 +164,7 @@
     "ticker": "ACRE.CN",
     "company_id": "ACRE",
     "name": "American Critical Elements Inc",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
@@ -166,7 +193,7 @@
     "ticker": "ADON.CN",
     "company_id": "ADON",
     "name": "Adonis Minerals Corp.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
@@ -192,10 +219,28 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "ADZ.V",
+    "company_id": "ADZ",
+    "name": "Adamera Minerals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "AE.V",
     "company_id": "AE",
     "name": "American Eagle Gold Corp",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "AEC.V",
+    "company_id": "AEC",
+    "name": "Anfield Energy Inc.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -219,10 +264,10 @@
     "exchange": "TSX"
   },
   {
-    "ticker": "AERO.V",
-    "company_id": "AERO",
-    "name": "Aero Energy Limited",
-    "source": "prnewswire_gnews",
+    "ticker": "AEMC.V",
+    "company_id": "AEMC",
+    "name": "Alaska Energy Metals Corporation",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -239,13 +284,13 @@
     "exchange": "CSE"
   },
   {
-    "ticker": "AFX.CN",
-    "company_id": "AFX",
-    "name": "Arctic Fox Lithium Corp.",
-    "source": "wire_discovery_only",
+    "ticker": "AFM.V",
+    "company_id": "AFM",
+    "name": "Alphamin Resources Corp.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
-    "exchange": "CSE"
+    "exchange": "TSXV"
   },
   {
     "ticker": "AG.TO",
@@ -295,6 +340,15 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "AGI.TO",
+    "company_id": "AGI",
+    "name": "Alamos Gold Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
     "ticker": "AGLD.V",
     "company_id": "AGLD",
     "name": "Austral Gold Limited",
@@ -316,7 +370,7 @@
     "ticker": "AGX.V",
     "company_id": "AGX",
     "name": "Silver X Mining Corp.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -334,7 +388,25 @@
     "ticker": "AHR.V",
     "company_id": "AHR",
     "name": "Amarc Resources Ltd.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "AIR.V",
+    "company_id": "AIR",
+    "name": "Clean Air Metals Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "AIS.V",
+    "company_id": "AIS",
+    "name": "A.I.S. Resources Limited",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -351,6 +423,15 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "ALDE.V",
+    "company_id": "ALDE",
+    "name": "Aldebaran Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "ALEX.V",
     "company_id": "ALEX",
     "name": "Alpha Exploration Ltd",
@@ -363,10 +444,36 @@
     "ticker": "ALGR.V",
     "company_id": "ALGR",
     "name": "Algo Grande Copper Corp.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
+  },
+  {
+    "ticker": "ALK.TO",
+    "company_id": "ALK",
+    "name": "Alkane Resources Limited",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
+    "ticker": "ALLG.CN",
+    "company_id": "ALLG",
+    "name": "Allegiance Resources Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 9391
+    },
+    "discovery_confidence": "universe",
+    "exchange": "CSE",
+    "previous_tickers": [
+      {
+        "ended_at": "2026-09-29",
+        "ticker": "PGA.CN"
+      }
+    ]
   },
   {
     "ticker": "ALM.V",
@@ -402,6 +509,15 @@
     "exchange": "TSX"
   },
   {
+    "ticker": "ALT.V",
+    "company_id": "ALT",
+    "name": "Alturas Minerals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "ALTA.V",
     "company_id": "ALTA",
     "name": "Altamira Gold Corp",
@@ -418,6 +534,24 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "ALTN.V",
+    "company_id": "ALTN",
+    "name": "Aeonian Resources Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "ALX.V",
+    "company_id": "ALX",
+    "name": "Alex Metals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "AMAP.TO",
@@ -447,10 +581,28 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "AME.V",
+    "company_id": "AME",
+    "name": "Abacus Mining & Exploration Corporation",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "AML.V",
     "company_id": "AML",
     "name": "Akwaaba Mining Ltd",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "AMM.V",
+    "company_id": "AMM",
+    "name": "Almaden Minerals Ltd.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -518,6 +670,33 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "ANTL.V",
+    "company_id": "ANTL",
+    "name": "Antler Gold Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "AORO.V",
+    "company_id": "AORO",
+    "name": "Aloro Mining Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "APGO.V",
+    "company_id": "APGO",
+    "name": "Apollo Silver Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "API.CN",
     "company_id": "API",
     "name": "Appia Rare Earths & Uranium Corp.",
@@ -542,6 +721,24 @@
     "company_id": "APMI",
     "name": "Apogee Minerals Ltd.",
     "source": "globenewswire_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "APN.V",
+    "company_id": "APN",
+    "name": "Altiplano Metals Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "APX.V",
+    "company_id": "APX",
+    "name": "Apex Resources Inc.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -574,6 +771,15 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "ARG.TO",
+    "company_id": "ARG",
+    "name": "Amerigo Resources Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
     "ticker": "ARGL.CN",
     "company_id": "ARGL",
     "name": "Argyle Resources Corp.",
@@ -592,6 +798,15 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
+  },
+  {
+    "ticker": "ARIS.TO",
+    "company_id": "ARIS",
+    "name": "Aris Mining Corporation",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
   },
   {
     "ticker": "ARK.V",
@@ -619,6 +834,30 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "ARN.TO",
+    "company_id": "ARN",
+    "name": "Asarian Energy Limited",
+    "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX",
+    "previous_tickers": [
+      {
+        "ended_at": "2026-09-29",
+        "ticker": "FSY.TO"
+      }
+    ]
+  },
+  {
+    "ticker": "ARO.V",
+    "company_id": "ARO",
+    "name": "Arc Mineral Royalties Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "ARQ.CN",
@@ -650,6 +889,24 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "ARU.V",
+    "company_id": "ARU",
+    "name": "Aurania Resources Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "ASE.V",
+    "company_id": "ASE",
+    "name": "Asante Gold Corporation",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "ASHL.CN",
     "company_id": "ASHL",
     "name": "Ashley Gold Corp.",
@@ -659,6 +916,24 @@
     },
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "ASL.V",
+    "company_id": "ASL",
+    "name": "Argentum Silver Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "ASM.TO",
+    "company_id": "ASM",
+    "name": "Avino Silver & Gold Mines Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
   },
   {
     "ticker": "ASTR.V",
@@ -718,6 +993,15 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "ATOM.V",
+    "company_id": "ATOM",
+    "name": "Atomic Minerals Corporation",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "ATX.TO",
     "company_id": "ATX",
     "name": "ATEX Resources Inc",
@@ -725,6 +1009,15 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSX"
+  },
+  {
+    "ticker": "ATY.V",
+    "company_id": "ATY",
+    "name": "Atico Mining Corporation",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "AUAU.V",
@@ -814,6 +1107,15 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "AUMN.TO",
+    "company_id": "AUMN",
+    "name": "Golden Minerals Company",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
     "ticker": "AUOZ.CN",
     "company_id": "AUOZ",
     "name": "Emperor Metals Inc.",
@@ -825,6 +1127,15 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "AUQ.V",
+    "company_id": "AUQ",
+    "name": "AuQ Gold Mining Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "AURA.V",
     "company_id": "AURA",
     "name": "Auranova Resources Inc",
@@ -832,6 +1143,15 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
+  },
+  {
+    "ticker": "AURM.CN",
+    "company_id": "AURM",
+    "name": "Aureum Exploration Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "CSE"
   },
   {
     "ticker": "AURO.V",
@@ -883,6 +1203,15 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "AVG.V",
+    "company_id": "AVG",
+    "name": "Avidian Gold Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "AVL.TO",
     "company_id": "AVL",
     "name": "Avalon Advanced Materials Inc",
@@ -892,10 +1221,28 @@
     "exchange": "TSX"
   },
   {
+    "ticker": "AVR.V",
+    "company_id": "AVR",
+    "name": "Avaron Mining Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "AVU.V",
     "company_id": "AVU",
     "name": "Avrupa Minerals Ltd.",
     "source": "thenewswire",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "AVX.V",
+    "company_id": "AVX",
+    "name": "Altair Resources Inc.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -921,6 +1268,15 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "AWM.V",
+    "company_id": "AWM",
+    "name": "Angel Wing Metals Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "AWR.CN",
     "company_id": "AWR",
     "name": "Aurwest Resources Corp.",
@@ -939,6 +1295,15 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "AXN.CN",
+    "company_id": "AXN",
+    "name": "Axion Minerals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "CSE"
+  },
+  {
     "ticker": "AXO.V",
     "company_id": "AXO",
     "name": "AXO Metals Corp.",
@@ -946,6 +1311,24 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
+  },
+  {
+    "ticker": "AYA.TO",
+    "company_id": "AYA",
+    "name": "Aya Gold & Silver Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
+    "ticker": "AZCU.CN",
+    "company_id": "AZCU",
+    "name": "Blade Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "CSE"
   },
   {
     "ticker": "AZEM.V",
@@ -961,6 +1344,15 @@
     "company_id": "AZM",
     "name": "Azimut Exploration Inc.",
     "source": "globenewswire_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "AZR.V",
+    "company_id": "AZR",
+    "name": "Azarga Metals Corp.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -991,15 +1383,6 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
-  },
-  {
-    "ticker": "BAC.CN",
-    "company_id": "BAC",
-    "name": "BacTech Environmental Corp.",
-    "source": "thenewswire",
-    "source_params": {},
-    "discovery_confidence": "universe",
-    "exchange": "CSE"
   },
   {
     "ticker": "BAD.CN",
@@ -1033,23 +1416,30 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "BARU.V",
+    "company_id": "BARU",
+    "name": "Baru Gold Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "BAT.V",
+    "company_id": "BAT",
+    "name": "Batero Gold Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "BATT.CN",
     "company_id": "BATT",
     "name": "Dark Star Minerals Inc.",
     "source": "newsfile",
     "source_params": {
       "company_id": 9815
-    },
-    "discovery_confidence": "universe",
-    "exchange": "CSE"
-  },
-  {
-    "ticker": "BATX.CN",
-    "company_id": "BATX",
-    "name": "Battery X Metals Inc.",
-    "source": "newsfile",
-    "source_params": {
-      "company_id": 7737
     },
     "discovery_confidence": "universe",
     "exchange": "CSE"
@@ -1067,7 +1457,16 @@
     "ticker": "BAY.V",
     "company_id": "BAY",
     "name": "Aston Bay Holdings Ltd.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "BBB.V",
+    "company_id": "BBB",
+    "name": "Brixton Metals Corporation",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -1103,7 +1502,7 @@
     "ticker": "BEAU.CN",
     "company_id": "BEAU",
     "name": "Beaumont Exploration Corp.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
@@ -1136,13 +1535,13 @@
     "exchange": "TSXV"
   },
   {
-    "ticker": "BFG.CN",
-    "company_id": "BFG",
-    "name": "Giant Mining Corp.",
-    "source": "wire_discovery_only",
+    "ticker": "BFM.V",
+    "company_id": "BFM",
+    "name": "Bedford Metals Corp.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
-    "exchange": "CSE"
+    "exchange": "TSXV"
   },
   {
     "ticker": "BG.CN",
@@ -1197,7 +1596,7 @@
     "ticker": "BGX.CN",
     "company_id": "BGX",
     "name": "Black Gold Exploration Corp.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
@@ -1221,10 +1620,46 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "BIGT.V",
+    "company_id": "BIGT",
+    "name": "Big Tree Carbon Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "BIRD.V",
+    "company_id": "BIRD",
+    "name": "Thunderbird Minerals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "BKI.TO",
+    "company_id": "BKI",
+    "name": "Black Iron Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
     "ticker": "BKM.V",
     "company_id": "BKM",
     "name": "Pacific Booker Minerals Inc",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "BLDS.V",
+    "company_id": "BLDS",
+    "name": "Badlands Resources Inc.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -1248,6 +1683,15 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "BM.V",
+    "company_id": "BM",
+    "name": "BC Moly Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "BMM.V",
@@ -1277,6 +1721,15 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "BMV.V",
+    "company_id": "BMV",
+    "name": "Bathurst Metals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "BNKR.TO",
     "company_id": "BNKR",
     "name": "Bunker Hill Mining Corp.",
@@ -1284,6 +1737,24 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSX"
+  },
+  {
+    "ticker": "BNZ.V",
+    "company_id": "BNZ",
+    "name": "Bonanza Mining Corporation",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "BOCA.V",
+    "company_id": "BOCA",
+    "name": "Bocana Resources Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "BOGO.V",
@@ -1304,13 +1775,13 @@
     "exchange": "TSXV"
   },
   {
-    "ticker": "BOLT.CN",
-    "company_id": "BOLT",
-    "name": "Bolt Metals Corp.",
-    "source": "accesswire",
+    "ticker": "BONE.V",
+    "company_id": "BONE",
+    "name": "Boron One Holdings Inc.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
-    "exchange": "CSE"
+    "exchange": "TSXV"
   },
   {
     "ticker": "BOOM.CN",
@@ -1333,6 +1804,15 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "BPR.V",
+    "company_id": "BPR",
+    "name": "Black Pine Resources Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "BRAU.V",
     "company_id": "BRAU",
     "name": "Big Ridge Gold Corp",
@@ -1345,7 +1825,7 @@
     "ticker": "BRAZ.CN",
     "company_id": "BRAZ",
     "name": "Canary Gold Corp.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
@@ -1407,10 +1887,28 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "BRW.V",
+    "company_id": "BRW",
+    "name": "Brunswick Exploration Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "BSK.V",
     "company_id": "BSK",
     "name": "Blue Sky Uranium Corp",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "BST.V",
+    "company_id": "BST",
+    "name": "Bessor Minerals Inc.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -1443,6 +1941,24 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "BTT.V",
+    "company_id": "BTT",
+    "name": "Bitterroot Resources Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "BTU.V",
+    "company_id": "BTU",
+    "name": "BTU Metals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "BUFF.V",
     "company_id": "BUFF",
     "name": "Buffalo Potash Corporation",
@@ -1455,7 +1971,7 @@
     "ticker": "BULL.CN",
     "company_id": "BULL",
     "name": "Quest Critical Metals Inc.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
@@ -1481,6 +1997,15 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "BWR.V",
+    "company_id": "BWR",
+    "name": "BWR Exploration Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "BY.CN",
     "company_id": "BY",
     "name": "Beyond Minerals Inc.",
@@ -1495,7 +2020,7 @@
     "ticker": "BYN.V",
     "company_id": "BYN",
     "name": "Banyan Gold Corp.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -1600,7 +2125,7 @@
     "ticker": "CANX.V",
     "company_id": "CANX",
     "name": "CANEX Metals Inc.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -1655,10 +2180,46 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "CATX.V",
+    "company_id": "CATX",
+    "name": "Catalyst One Exploration Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "CBA.V",
     "company_id": "CBA",
     "name": "Champion Bear Resources Ltd",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "CBG.V",
+    "company_id": "CBG",
+    "name": "Chibougamau Independent Mines Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "CBI.V",
+    "company_id": "CBI",
+    "name": "Colibri Resource Corporation",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "CBLT.V",
+    "company_id": "CBLT",
+    "name": "CBLT Inc.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -1673,10 +2234,28 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "CC.CN",
+    "company_id": "CC",
+    "name": "Core Silver Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "CSE"
+  },
+  {
     "ticker": "CCCM.V",
     "company_id": "CCCM",
     "name": "C3 Metals Inc",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "CCD.V",
+    "company_id": "CCD",
+    "name": "Cascadero Copper Corporation",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -1700,6 +2279,15 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSX"
+  },
+  {
+    "ticker": "CCMC.V",
+    "company_id": "CCMC",
+    "name": "Core Critical Metals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "CCMI.V",
@@ -1756,6 +2344,15 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "CDE.TO",
+    "company_id": "CDE",
+    "name": "Coeur Mining Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
     "ticker": "CDN.CN",
     "company_id": "CDN",
     "name": "CDN Maverick Capital Corp.",
@@ -1765,6 +2362,24 @@
     },
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "CDPR.V",
+    "company_id": "CDPR",
+    "name": "Cerro de Pasco Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "CELL.V",
+    "company_id": "CELL",
+    "name": "Grid Battery Metals Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "CENT.V",
@@ -1783,6 +2398,21 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
+  },
+  {
+    "ticker": "CEXY.CN",
+    "company_id": "CEXY",
+    "name": "Copper One Resources Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "CSE",
+    "previous_tickers": [
+      {
+        "ended_at": "2026-09-29",
+        "ticker": "BFG.CN"
+      }
+    ]
   },
   {
     "ticker": "CFE.CN",
@@ -1850,6 +2480,15 @@
     "exchange": "TSX"
   },
   {
+    "ticker": "CIO.V",
+    "company_id": "CIO",
+    "name": "Central Iron Ore Limited",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "CKG.V",
     "company_id": "CKG",
     "name": "Chesapeake Gold Corp",
@@ -1857,15 +2496,6 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
-  },
-  {
-    "ticker": "CLCH.TO",
-    "company_id": "CLCH",
-    "name": "Clinch Resources Ltd.",
-    "source": "newsfile_gnews",
-    "source_params": {},
-    "discovery_confidence": "universe",
-    "exchange": "TSX"
   },
   {
     "ticker": "CLCO.V",
@@ -1886,10 +2516,37 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "CLUS.V",
+    "company_id": "CLUS",
+    "name": "Colossus Resources Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "CLV.V",
     "company_id": "CLV",
     "name": "Canoe Mining Ventures Corp",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "CLZ.V",
+    "company_id": "CLZ",
+    "name": "Canasil Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "CMCG.V",
+    "company_id": "CMCG",
+    "name": "Chilean Metals Inc.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -1922,6 +2579,15 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "CN.V",
+    "company_id": "CN",
+    "name": "Condor Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "CNC.V",
     "company_id": "CNC",
     "name": "Canada Nickel Company Inc.",
@@ -1935,6 +2601,24 @@
     "company_id": "CNL",
     "name": "Collective Mining Ltd",
     "source": "cnw_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
+    "ticker": "CNRI.V",
+    "company_id": "CNRI",
+    "name": "Canadian North Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "CNT.TO",
+    "company_id": "CNT",
+    "name": "Century Global Commodities Corporation",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSX"
@@ -1969,6 +2653,24 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "COPR.TO",
+    "company_id": "COPR",
+    "name": "Coppernico Metals Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
+    "ticker": "COR.V",
+    "company_id": "COR",
+    "name": "Camino Minerals Corporation",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "COS.V",
     "company_id": "COS",
     "name": "Coniagas Battery Metals Inc.",
@@ -1996,10 +2698,37 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "CPER.V",
+    "company_id": "CPER",
+    "name": "CopperCorp Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "CPI.V",
+    "company_id": "CPI",
+    "name": "Carlton Precious Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "CPL.V",
     "company_id": "CPL",
     "name": "Copper Lake Resources Ltd",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "CPS.V",
+    "company_id": "CPS",
+    "name": "Canadian Premium Sand Inc.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -2035,7 +2764,7 @@
     "ticker": "CRC.CN",
     "company_id": "CRC",
     "name": "Canter Resources Corp.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
@@ -2061,10 +2790,28 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "CRE.V",
+    "company_id": "CRE",
+    "name": "Critical Elements Lithium Corporation",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "CRG.V",
     "company_id": "CRG",
     "name": "Crossroads Gold Corp",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "CRI.V",
+    "company_id": "CRI",
+    "name": "Churchill Resources Inc.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -2077,6 +2824,15 @@
     "source_params": {
       "company_id": 10185
     },
+    "discovery_confidence": "universe",
+    "exchange": "CSE"
+  },
+  {
+    "ticker": "CRPC.CN",
+    "company_id": "CRPC",
+    "name": "Critical Reagent Processing Corp.",
+    "source": "exchange",
+    "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
   },
@@ -2139,13 +2895,19 @@
     "exchange": "CSE"
   },
   {
-    "ticker": "CTG.V",
+    "ticker": "CTG.CN",
     "company_id": "CTG",
     "name": "Centenario Gold Corp.",
     "source": "thenewswire",
     "source_params": {},
     "discovery_confidence": "universe",
-    "exchange": "TSXV"
+    "exchange": "CSE",
+    "previous_tickers": [
+      {
+        "ended_at": "2026-10-06",
+        "ticker": "CTG.V"
+      }
+    ]
   },
   {
     "ticker": "CTGO.TO",
@@ -2191,6 +2953,24 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "CUCU.V",
+    "company_id": "CUCU",
+    "name": "Global Copper Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "CUEX.V",
+    "company_id": "CUEX",
+    "name": "CopperEx Resources Corporation",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "CUPA.CN",
@@ -2243,6 +3023,15 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "CVW.V",
+    "company_id": "CVW",
+    "name": "CVW Sustainable Royalties Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "CXC.CN",
     "company_id": "CXC",
     "name": "CMX Gold & Silver Corp.",
@@ -2254,10 +3043,28 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "CYG.V",
+    "company_id": "CYG",
+    "name": "Cygnus Metals Limited",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "CZZ.V",
     "company_id": "CZZ",
     "name": "Cleghorn Minerals Ltd",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "DAN.V",
+    "company_id": "DAN",
+    "name": "Arianne Phosphate Inc.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -2281,19 +3088,19 @@
     "exchange": "TSXV"
   },
   {
-    "ticker": "DC.A.TO",
-    "company_id": "DC",
-    "name": "Dundee Corporation",
-    "source": "globenewswire_gnews",
-    "source_params": {},
-    "discovery_confidence": "universe",
-    "exchange": "TSX"
-  },
-  {
     "ticker": "DCOP.V",
     "company_id": "DCOP",
     "name": "District Copper Corp",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "DCY.V",
+    "company_id": "DCY",
+    "name": "Discovery-Corp Enterprises Inc.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -2337,10 +3144,19 @@
     "exchange": "CSE"
   },
   {
-    "ticker": "DG.V",
-    "company_id": "DG",
-    "name": "Dixie Gold Inc",
-    "source": "newsfile_gnews",
+    "ticker": "DEX.V",
+    "company_id": "DEX",
+    "name": "Almadex Minerals Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "DFR.V",
+    "company_id": "DFR",
+    "name": "DFR Gold Inc.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -2368,6 +3184,15 @@
     "company_id": "DLTA",
     "name": "Delta Resources Limited",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "DMCU.V",
+    "company_id": "DMCU",
+    "name": "Domestic Metals Corp.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -2418,6 +3243,15 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "DPM.TO",
+    "company_id": "DPM",
+    "name": "DPM Metals Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
     "ticker": "DRC.CN",
     "company_id": "DRC",
     "name": "DRC Gold Corp.",
@@ -2433,6 +3267,24 @@
     "company_id": "DRY",
     "name": "Dryden Gold Corp",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "DSV.TO",
+    "company_id": "DSV",
+    "name": "Discovery Mining Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
+    "ticker": "DTWO.V",
+    "company_id": "DTWO",
+    "name": "D2 Lithium Corp.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -2458,6 +3310,15 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "EAM.V",
+    "company_id": "EAM",
+    "name": "East Africa Metals Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "EATH.CN",
     "company_id": "EATH",
     "name": "New Earth Resources Corp.",
@@ -2478,6 +3339,24 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "ECOR.TO",
+    "company_id": "ECOR",
+    "name": "Ecora Royalties PLC",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
+    "ticker": "ECR.V",
+    "company_id": "ECR",
+    "name": "Cartier Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "ECU.V",
     "company_id": "ECU",
     "name": "Element 29 Resources Inc",
@@ -2493,7 +3372,7 @@
     "source": "cnw_gnews",
     "source_params": {},
     "discovery_confidence": "universe",
-    "exchange": "TSXV"
+    "exchange": "TSX"
   },
   {
     "ticker": "EDDY.V",
@@ -2525,6 +3404,33 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "EDM.V",
+    "company_id": "EDM",
+    "name": "EDM Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "EDR.TO",
+    "company_id": "EDR",
+    "name": "Endeavour Silver Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
+    "ticker": "EDV.TO",
+    "company_id": "EDV",
+    "name": "Endeavour Mining plc",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
     "ticker": "EFF.V",
     "company_id": "EFF",
     "name": "1844 Resources Inc.",
@@ -2541,6 +3447,15 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSX"
+  },
+  {
+    "ticker": "EGM.V",
+    "company_id": "EGM",
+    "name": "Engold Mines Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "EGR.V",
@@ -2573,7 +3488,7 @@
     "ticker": "ELEC.V",
     "company_id": "ELEC",
     "name": "Electric Royalties Ltd.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -2615,6 +3530,15 @@
     "exchange": "TSX"
   },
   {
+    "ticker": "ELYX.CN",
+    "company_id": "ELYX",
+    "name": "Elysian Mineral Exploration Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "CSE"
+  },
+  {
     "ticker": "EM.V",
     "company_id": "EM",
     "name": "Errington Metals Corp",
@@ -2633,6 +3557,15 @@
     },
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "EML.V",
+    "company_id": "EML",
+    "name": "Electric Metals (USA) Limited",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "EMM.V",
@@ -2666,6 +3599,15 @@
     "company_id": "EMO",
     "name": "Emerita Resources Corp.",
     "source": "globenewswire_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "EMPR.V",
+    "company_id": "EMPR",
+    "name": "Empress Royalty Corp.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -2707,13 +3649,13 @@
     "exchange": "TSXV"
   },
   {
-    "ticker": "EOM.CN",
-    "company_id": "EOM",
-    "name": "Eco Oro Minerals Corp.",
-    "source": "wire_discovery_only",
+    "ticker": "ENRG.V",
+    "company_id": "ENRG",
+    "name": "New Energy Metals Corp.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
-    "exchange": "CSE"
+    "exchange": "TSXV"
   },
   {
     "ticker": "EONE.CN",
@@ -2785,6 +3727,24 @@
     "exchange": "TSX"
   },
   {
+    "ticker": "ERD.TO",
+    "company_id": "ERD",
+    "name": "Erdene Resource Development Corporation",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
+    "ticker": "ERDA.V",
+    "company_id": "ERDA",
+    "name": "Erda Resource Opportunities Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "ERKA.CN",
     "company_id": "ERKA",
     "name": "Eureka Lithium Corp.",
@@ -2794,6 +3754,15 @@
     },
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "ERO.TO",
+    "company_id": "ERO",
+    "name": "Ero Copper Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
   },
   {
     "ticker": "ESAU.CN",
@@ -2810,7 +3779,7 @@
     "ticker": "ESK.V",
     "company_id": "ESK",
     "name": "Eskay Mining Corp.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -2832,6 +3801,33 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
+  },
+  {
+    "ticker": "ESXR.V",
+    "company_id": "ESXR",
+    "name": "Essex Resources Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "ETF.V",
+    "company_id": "ETF",
+    "name": "Eastfield Resources Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "ETG.TO",
+    "company_id": "ETG",
+    "name": "Entree Resources Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
   },
   {
     "ticker": "ETL.V",
@@ -2863,10 +3859,28 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "EVER.V",
+    "company_id": "EVER",
+    "name": "Evergold Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "EVI.V",
     "company_id": "EVI",
     "name": "Eastport Critical Metals Corp",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "EVNI.V",
+    "company_id": "EVNI",
+    "name": "EV Nickel Inc.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -2881,19 +3895,19 @@
     "exchange": "CSE"
   },
   {
-    "ticker": "EWK.V",
-    "company_id": "EWK",
-    "name": "Earthworks Industries Inc",
-    "source": "cnw_gnews",
+    "ticker": "EXCL.V",
+    "company_id": "EXCL",
+    "name": "Excalibur Metals Corp",
+    "source": "newsfile_gnews",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
   },
   {
-    "ticker": "EXCL.V",
-    "company_id": "EXCL",
-    "name": "Excalibur Metals Corp",
-    "source": "newsfile_gnews",
+    "ticker": "EXG.V",
+    "company_id": "EXG",
+    "name": "ExGen Resources Inc.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -2944,6 +3958,15 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "FCI.V",
+    "company_id": "FCI",
+    "name": "First Canadian Graphite Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "FDR.V",
     "company_id": "FDR",
     "name": "Founders Metals Inc",
@@ -2956,7 +3979,7 @@
     "ticker": "FDY.TO",
     "company_id": "FDY",
     "name": "Faraday Copper Corp.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSX"
@@ -2966,6 +3989,15 @@
     "company_id": "FEO",
     "name": "Oceanic Iron Ore Corp.",
     "source": "thenewswire",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "FEX.V",
+    "company_id": "FEX",
+    "name": "Fjordland Exploration Inc.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -2983,10 +4015,28 @@
     "ticker": "FFF.CN",
     "company_id": "FFF",
     "name": "55 North Mining Inc.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "FFM.TO",
+    "company_id": "FFM",
+    "name": "FireFly Metals Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
+    "ticker": "FFOX.V",
+    "company_id": "FFOX",
+    "name": "Firefox Gold Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "FFU.V",
@@ -3020,6 +4070,15 @@
     "company_id": "FINX",
     "name": "Finex Metals Ltd.",
     "source": "thenewswire",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "FISH.V",
+    "company_id": "FISH",
+    "name": "Sailfish Royalty Corp.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -3067,6 +4126,24 @@
     "company_id": "FMAN",
     "name": "Freeman Gold Corp",
     "source": "cnw_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "FMM.V",
+    "company_id": "FMM",
+    "name": "Full Metal Minerals Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "FMN.V",
+    "company_id": "FMN",
+    "name": "Fidelity Minerals Corp.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -3130,10 +4207,19 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "FOG.CN",
+    "company_id": "FOG",
+    "name": "Fields of Gold Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "CSE"
+  },
+  {
     "ticker": "FOMO.CN",
     "company_id": "FOMO",
     "name": "Formation Metals Inc.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
@@ -3193,15 +4279,13 @@
     "exchange": "TSXV"
   },
   {
-    "ticker": "FRG.CN",
-    "company_id": "FRG",
-    "name": "Forge Resources Corp.",
-    "source": "newsfile",
-    "source_params": {
-      "company_id": 8680
-    },
+    "ticker": "FRI.V",
+    "company_id": "FRI",
+    "name": "Freeport Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
     "discovery_confidence": "universe",
-    "exchange": "CSE"
+    "exchange": "TSXV"
   },
   {
     "ticker": "FROG.V",
@@ -3211,15 +4295,6 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
-  },
-  {
-    "ticker": "FSY.TO",
-    "company_id": "FSY",
-    "name": "Forsys Metals Corp",
-    "source": "newsfile_gnews",
-    "source_params": {},
-    "discovery_confidence": "universe",
-    "exchange": "TSX"
   },
   {
     "ticker": "FT.TO",
@@ -3251,6 +4326,42 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "FTUR.V",
+    "company_id": "FTUR",
+    "name": "Future Fuels Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "FTZ.V",
+    "company_id": "FTZ",
+    "name": "Fitzroy Minerals Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "FURY.TO",
+    "company_id": "FURY",
+    "name": "Fury Gold Mines Limited",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
+    "ticker": "FUSE.V",
+    "company_id": "FUSE",
+    "name": "Fuse Battery Metals Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "FUTR.CN",
     "company_id": "FUTR",
     "name": "Gold'n Futures Mineral Corp.",
@@ -3269,6 +4380,15 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
+  },
+  {
+    "ticker": "FVI.TO",
+    "company_id": "FVI",
+    "name": "Fortuna Mining Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
   },
   {
     "ticker": "FVL.TO",
@@ -3312,7 +4432,16 @@
     "ticker": "GAL.V",
     "company_id": "GAL",
     "name": "Galantas Gold Corporation",
-    "source": "wire_discovery_only",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "GAMA.V",
+    "company_id": "GAMA",
+    "name": "Gamma Resources Ltd.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -3325,6 +4454,24 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSX"
+  },
+  {
+    "ticker": "GBML.V",
+    "company_id": "GBML",
+    "name": "Global Battery Metals Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "GBU.V",
+    "company_id": "GBU",
+    "name": "Gabriel Resources Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "GC.CN",
@@ -3347,6 +4494,24 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "GCN.V",
+    "company_id": "GCN",
+    "name": "Goldcliff Resource Corporation",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "GCOM.V",
+    "company_id": "GCOM",
+    "name": "Green Shift Commodities Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "GCP.CN",
     "company_id": "GCP",
     "name": "Golcap Resources Corp.",
@@ -3358,6 +4523,15 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "GCR.CN",
+    "company_id": "GCR",
+    "name": "GoldCoast Resource Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "CSE"
+  },
+  {
     "ticker": "GCU.TO",
     "company_id": "GCU",
     "name": "Gunnison Copper Corp",
@@ -3365,6 +4539,15 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSX"
+  },
+  {
+    "ticker": "GCUC.V",
+    "company_id": "GCUC",
+    "name": "Green Canada Uranium Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "GDN.CN",
@@ -3396,13 +4579,31 @@
     "exchange": "TSXV"
   },
   {
-    "ticker": "GEMG.V",
-    "company_id": "GEMG",
-    "name": "Gemdale Gold Inc.",
-    "source": "wire_discovery_only",
+    "ticker": "GEMC.V",
+    "company_id": "GEMC",
+    "name": "Global Energy Metals Corporation",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
+  },
+  {
+    "ticker": "GEMG.V",
+    "company_id": "GEMG",
+    "name": "Gemdale Gold Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "GEN.CN",
+    "company_id": "GEN",
+    "name": "Generation Uranium Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "CSE"
   },
   {
     "ticker": "GENM.TO",
@@ -3423,19 +4624,28 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "GFG.V",
+    "company_id": "GFG",
+    "name": "GFG Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "GFT.CN",
     "company_id": "GFT",
     "name": "Grafton Resources Inc.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
   },
   {
-    "ticker": "GGA.V",
-    "company_id": "GGA",
-    "name": "Goldgroup Mining Inc.",
-    "source": "newsfile_gnews",
+    "ticker": "GG.V",
+    "company_id": "GG",
+    "name": "Golconda Gold Ltd.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -3459,6 +4669,33 @@
     },
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "GGD.TO",
+    "company_id": "GGD",
+    "name": "GoGold Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
+    "ticker": "GGI.V",
+    "company_id": "GGI",
+    "name": "Garibaldi Resources Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "GGL.V",
+    "company_id": "GGL",
+    "name": "GGL Resources Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "GGLD.CN",
@@ -3497,6 +4734,24 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "GGX.V",
+    "company_id": "GGX",
+    "name": "GGX Gold Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "GHL.V",
+    "company_id": "GHL",
+    "name": "Goldhills Holding Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "GHRT.V",
     "company_id": "GHRT",
     "name": "Greenheart Gold Inc",
@@ -3515,10 +4770,28 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "GIGA.V",
+    "company_id": "GIGA",
+    "name": "Giga Metals Corporation",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "GLAD.V",
     "company_id": "GLAD",
     "name": "Gladiator Metals Corp",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "GLB.V",
+    "company_id": "GLB",
+    "name": "Goldbank Mining Corporation",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -3571,6 +4844,15 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "GLO.TO",
+    "company_id": "GLO",
+    "name": "Global Atomic Corporation",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
     "ticker": "GMC.CN",
     "company_id": "GMC",
     "name": "Germanium Mining Corp.",
@@ -3578,6 +4860,15 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "GMIN.TO",
+    "company_id": "GMIN",
+    "name": "G Mining Ventures Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
   },
   {
     "ticker": "GMR.CN",
@@ -3591,6 +4882,15 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "GMV.V",
+    "company_id": "GMV",
+    "name": "GMV Minerals Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "GMX.T",
     "company_id": "GMX",
     "name": "Globex Mining Enterprises Inc.",
@@ -3598,6 +4898,15 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSX"
+  },
+  {
+    "ticker": "GNG.V",
+    "company_id": "GNG",
+    "name": "Golden Goliath Resources Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "GOCO.CN",
@@ -3707,6 +5016,15 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "GPS.V",
+    "company_id": "GPS",
+    "name": "Great Plains Metals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "GQC.V",
     "company_id": "GQC",
     "name": "GoldQuest Mining Corp",
@@ -3739,7 +5057,7 @@
     "ticker": "GRBM.CN",
     "company_id": "GRBM",
     "name": "Green Bridge Metals Corporation",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
@@ -3763,6 +5081,15 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "GRDM.V",
+    "company_id": "GRDM",
+    "name": "Grid Metals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "GRG.V",
     "company_id": "GRG",
     "name": "Golden Arrow Resources Corporation",
@@ -3775,10 +5102,19 @@
     "ticker": "GRHK.CN",
     "company_id": "GRHK",
     "name": "Greenhawk Resources Inc.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "GRI.V",
+    "company_id": "GRI",
+    "name": "Galore Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "GRL.V",
@@ -3837,6 +5173,24 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "GSP.V",
+    "company_id": "GSP",
+    "name": "Gensource Potash Corporation",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "GSPR.V",
+    "company_id": "GSPR",
+    "name": "GSP Resource Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "GSR.V",
     "company_id": "GSR",
     "name": "Gold Strike Resources Corp",
@@ -3849,10 +5203,19 @@
     "ticker": "GSRI.CN",
     "company_id": "GSRI",
     "name": "Golden Shield Resources Inc.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "GSS.V",
+    "company_id": "GSS",
+    "name": "Gossan Resources Limited",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "GST.V",
@@ -3887,7 +5250,7 @@
     "ticker": "GSVR.V",
     "company_id": "GSVR",
     "name": "Guanajuato Silver Company Ltd.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -3923,6 +5286,15 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "GUN.V",
+    "company_id": "GUN",
+    "name": "Gunpoint Exploration Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "GURN.CN",
     "company_id": "GURN",
     "name": "Global Uranium Corp.",
@@ -3932,6 +5304,24 @@
     },
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "GVR.V",
+    "company_id": "GVR",
+    "name": "Grosvenor Resource Corporation",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "GWM.V",
+    "company_id": "GWM",
+    "name": "Galway Metals Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "GX.V",
@@ -4012,10 +5402,28 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "HARD.CN",
+    "company_id": "HARD",
+    "name": "Hardcore Discoveries Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "CSE"
+  },
+  {
     "ticker": "HART.V",
     "company_id": "HART",
     "name": "Gold Hart Copper Corp",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "HAWK.V",
+    "company_id": "HAWK",
+    "name": "Hawkeye Gold & Diamond Inc.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -4030,6 +5438,15 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "HBM.TO",
+    "company_id": "HBM",
+    "name": "Hudbay Minerals Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
     "ticker": "HCH.V",
     "company_id": "HCH",
     "name": "Hot Chili Limited",
@@ -4042,7 +5459,7 @@
     "ticker": "HERC.CN",
     "company_id": "HERC",
     "name": "Hercules Resources Corp.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
@@ -4123,6 +5540,15 @@
     "source": "cnw_gnews",
     "source_params": {},
     "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
+    "ticker": "HPM.V",
+    "company_id": "HPM",
+    "name": "Halcones Precious Metals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
     "exchange": "TSXV"
   },
   {
@@ -4146,6 +5572,15 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "HSLV.TO",
+    "company_id": "HSLV",
+    "name": "Highlander Silver Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
     "ticker": "HSTR.V",
     "company_id": "HSTR",
     "name": "Heliostar Metals Ltd",
@@ -4158,7 +5593,7 @@
     "ticker": "HTRC.CN",
     "company_id": "HTRC",
     "name": "High Tide Resources Corp.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
@@ -4193,6 +5628,15 @@
     },
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "HWY.V",
+    "company_id": "HWY",
+    "name": "Highway 50 Gold Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "HZ.CN",
@@ -4251,6 +5695,15 @@
     "exchange": "TSX"
   },
   {
+    "ticker": "IFOS.V",
+    "company_id": "IFOS",
+    "name": "Itafos Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "IGO.V",
     "company_id": "IGO",
     "name": "Independence Gold Corp",
@@ -4269,6 +5722,15 @@
     "exchange": "TSX"
   },
   {
+    "ticker": "ILC.V",
+    "company_id": "ILC",
+    "name": "ILC Critical Minerals Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "ILI.V",
     "company_id": "ILI",
     "name": "Imagine Lithium Inc.",
@@ -4285,6 +5747,51 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSX"
+  },
+  {
+    "ticker": "IMM.V",
+    "company_id": "IMM",
+    "name": "International Metals Mining Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "IMR.V",
+    "company_id": "IMR",
+    "name": "iMetal Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "IN.V",
+    "company_id": "IN",
+    "name": "Infield Minerals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "INFI.V",
+    "company_id": "INFI",
+    "name": "Infinitum Copper Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "INFM.V",
+    "company_id": "INFM",
+    "name": "Infinico Metals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "INTG.CN",
@@ -4325,6 +5832,30 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "IRI.V",
+    "company_id": "IRI",
+    "name": "IEMR Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "IRON.CN",
+    "company_id": "IRON",
+    "name": "26 Metals Inc.",
+    "source": "accesswire",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "CSE",
+    "previous_tickers": [
+      {
+        "ended_at": "2026-09-29",
+        "ticker": "BOLT.CN"
+      }
+    ]
+  },
+  {
     "ticker": "IRR.V",
     "company_id": "IRR",
     "name": "Irruptive Metals Corp",
@@ -4337,7 +5868,7 @@
     "ticker": "IRV.CN",
     "company_id": "IRV",
     "name": "Irving Resources Inc.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
@@ -4408,10 +5939,28 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "IZZ.V",
+    "company_id": "IZZ",
+    "name": "International Prospect Ventures Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "JADE.V",
+    "company_id": "JADE",
+    "name": "Jade Leader Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "JAG.TO",
     "company_id": "JAG",
     "name": "Jaguar Mining Inc.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSX"
@@ -4426,10 +5975,37 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "JDN.V",
+    "company_id": "JDN",
+    "name": "Jayden Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "JG.V",
     "company_id": "JG",
     "name": "Japan Gold Corp",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "JJJ.CN",
+    "company_id": "JJJ",
+    "name": "37 Capital Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "CSE"
+  },
+  {
+    "ticker": "JJJJ.V",
+    "company_id": "JJJJ",
+    "name": "J4 Ventures Resources Corp.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -4444,6 +6020,15 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "JUGR.V",
+    "company_id": "JUGR",
+    "name": "Juggernaut Exploration Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "JZR.V",
     "company_id": "JZR",
     "name": "JZR Gold Inc",
@@ -4453,10 +6038,19 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "K.TO",
+    "company_id": "K",
+    "name": "Kinross Gold Corporation",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
     "ticker": "KALO.V",
     "company_id": "KALO",
     "name": "Kalo Gold Corp.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -4478,6 +6072,15 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "KBRA.V",
+    "company_id": "KBRA",
+    "name": "Kubera Gold Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "KBX.CN",
@@ -4504,6 +6107,24 @@
     "company_id": "KCC",
     "name": "Kincora Copper Limited",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "KCLI.CN",
+    "company_id": "KCLI",
+    "name": "American Critical Minerals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "CSE"
+  },
+  {
+    "ticker": "KCP.V",
+    "company_id": "KCP",
+    "name": "King Copper Discovery Corp.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -4541,7 +6162,16 @@
     "ticker": "KG.V",
     "company_id": "KG",
     "name": "Klondike Gold Corp.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "KGC.V",
+    "company_id": "KGC",
+    "name": "Kestrel Gold Inc.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -4551,6 +6181,15 @@
     "company_id": "KGS",
     "name": "Kingman Minerals Ltd",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "KIB.V",
+    "company_id": "KIB",
+    "name": "Kiboko Gold Inc.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -4619,6 +6258,15 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "KNT.TO",
+    "company_id": "KNT",
+    "name": "K92 Mining Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
     "ticker": "KOG.CN",
     "company_id": "KOG",
     "name": "KO Gold Inc.",
@@ -4657,10 +6305,28 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "KRN.TO",
+    "company_id": "KRN",
+    "name": "Karnalyte Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
     "ticker": "KRY.V",
     "company_id": "KRY",
     "name": "Koryx Copper Inc.",
     "source": "globenewswire_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "KS.V",
+    "company_id": "KS",
+    "name": "Klondike Silver Corp.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -4679,6 +6345,15 @@
     "company_id": "KTO",
     "name": "K2 Gold Corporation",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "KTRI.V",
+    "company_id": "KTRI",
+    "name": "Kootenay Resources Inc.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -4745,7 +6420,7 @@
     "ticker": "LAI.CN",
     "company_id": "LAI",
     "name": "La Imperial Resources Inc.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
@@ -4807,6 +6482,23 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "LCU.CN",
+    "company_id": "LCU",
+    "name": "Lion Copper Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 1020
+    },
+    "discovery_confidence": "universe",
+    "exchange": "CSE",
+    "previous_tickers": [
+      {
+        "ended_at": "2026-09-29",
+        "ticker": "LEO.CN"
+      }
+    ]
+  },
+  {
     "ticker": "LEAP.V",
     "company_id": "LEAP",
     "name": "Quantum Critical Metals Corp",
@@ -4843,17 +6535,6 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
-  },
-  {
-    "ticker": "LEO.CN",
-    "company_id": "LEO",
-    "name": "Lion Copper and Gold Corp.",
-    "source": "newsfile",
-    "source_params": {
-      "company_id": 1020
-    },
-    "discovery_confidence": "universe",
-    "exchange": "CSE"
   },
   {
     "ticker": "LEXT.CN",
@@ -4932,6 +6613,15 @@
     "exchange": "TSX"
   },
   {
+    "ticker": "LI.V",
+    "company_id": "LI",
+    "name": "American Lithium Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "LIBR.CN",
     "company_id": "LIBR",
     "name": "Libra Energy Materials Inc.",
@@ -4961,6 +6651,15 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "LINE.CN",
+    "company_id": "LINE",
+    "name": "Linear Minerals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "CSE"
+  },
+  {
     "ticker": "LIO.V",
     "company_id": "LIO",
     "name": "Lion One Metals Limited",
@@ -4985,6 +6684,15 @@
     "company_id": "LIT",
     "name": "Argentina Lithium and Energy",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "LITH.V",
+    "company_id": "LITH",
+    "name": "Lithium Chile Inc.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -5055,6 +6763,51 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "LORD.V",
+    "company_id": "LORD",
+    "name": "St. James Gold Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "LOT.V",
+    "company_id": "LOT",
+    "name": "TomaGold Corporation",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "LP.CN",
+    "company_id": "LP",
+    "name": "Leopard Lake Gold Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "CSE"
+  },
+  {
+    "ticker": "LPK.V",
+    "company_id": "LPK",
+    "name": "Lupaka Gold Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "LRA.V",
+    "company_id": "LRA",
+    "name": "Lara Exploration Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "LSTR.V",
     "company_id": "LSTR",
     "name": "Lodestar Metals",
@@ -5082,6 +6835,15 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "LTNG.V",
+    "company_id": "LTNG",
+    "name": "Lightning Resource Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "LTX.V.V",
     "company_id": "LTX",
     "name": "Labrador Resources",
@@ -5089,15 +6851,6 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
-  },
-  {
-    "ticker": "LUC.TO",
-    "company_id": "LUC",
-    "name": "Lucara Diamond Corp",
-    "source": "cnw_gnews",
-    "source_params": {},
-    "discovery_confidence": "universe",
-    "exchange": "TSX"
   },
   {
     "ticker": "LUCA.V",
@@ -5133,6 +6886,15 @@
     "source": "cnw_gnews",
     "source_params": {},
     "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
+    "ticker": "LUXR.V",
+    "company_id": "LUXR",
+    "name": "Luxor Metals Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
     "exchange": "TSXV"
   },
   {
@@ -5140,6 +6902,15 @@
     "company_id": "LVG",
     "name": "Lake Victoria Gold Ltd",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "LVX.V",
+    "company_id": "LVX",
+    "name": "Leviathan Metals Corp.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -5203,11 +6974,11 @@
   {
     "ticker": "MAI.V",
     "company_id": "MAI",
-    "name": "Minera Alamos Inc",
+    "name": "Mining Americas Inc.",
     "source": "newsfile_gnews",
     "source_params": {},
     "discovery_confidence": "universe",
-    "exchange": "TSXV"
+    "exchange": "TSX"
   },
   {
     "ticker": "MANN.CN",
@@ -5233,7 +7004,7 @@
     "ticker": "MARI.TO",
     "company_id": "MARI",
     "name": "Marimaca Copper Corp.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSX"
@@ -5281,17 +7052,6 @@
     "source": "company_ir_wp",
     "source_params": {
       "website": "https://maxusmining.com"
-    },
-    "discovery_confidence": "universe",
-    "exchange": "CSE"
-  },
-  {
-    "ticker": "MAXX.CN",
-    "company_id": "MAXX",
-    "name": "Max Power Mining Corp.",
-    "source": "company_ir_wp",
-    "source_params": {
-      "website": "https://www.maxpowermining.com"
     },
     "discovery_confidence": "universe",
     "exchange": "CSE"
@@ -5346,19 +7106,19 @@
     "exchange": "TSXV"
   },
   {
-    "ticker": "MDI.TO",
-    "company_id": "MDI",
-    "name": "Major Drilling Group International Inc",
-    "source": "globenewswire_gnews",
+    "ticker": "MDM.V",
+    "company_id": "MDM",
+    "name": "Madoro Metals Corp.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
-    "exchange": "TSX"
+    "exchange": "TSXV"
   },
   {
     "ticker": "MEC.CN",
     "company_id": "MEC",
     "name": "Mustang Energy Corp.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
@@ -5435,15 +7195,6 @@
     "exchange": "CSE"
   },
   {
-    "ticker": "MEX.V",
-    "company_id": "MEX",
-    "name": "Mexican Gold Mining Corp.",
-    "source": "newsfile_gnews",
-    "source_params": {},
-    "discovery_confidence": "universe",
-    "exchange": "TSXV"
-  },
-  {
     "ticker": "MFG.V",
     "company_id": "MFG",
     "name": "Mayfair Gold Corp",
@@ -5451,6 +7202,15 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
+  },
+  {
+    "ticker": "MGA.TO",
+    "company_id": "MGA",
+    "name": "Mega Uranium Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
   },
   {
     "ticker": "MGG.V",
@@ -5518,6 +7278,23 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "MIRA.CN",
+    "company_id": "MIRA",
+    "name": "Miravalles Gold Corp.",
+    "source": "newsfile",
+    "source_params": {
+      "company_id": 6972
+    },
+    "discovery_confidence": "universe",
+    "exchange": "CSE",
+    "previous_tickers": [
+      {
+        "ended_at": "2026-09-29",
+        "ticker": "SAND.CN"
+      }
+    ]
+  },
+  {
     "ticker": "MJS.V",
     "company_id": "MJS",
     "name": "Majestic Gold Corp",
@@ -5527,10 +7304,19 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "MKA.V",
+    "company_id": "MKA",
+    "name": "Mkango Magnetic Materials Limited",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "MKO.V",
     "company_id": "MKO",
     "name": "Mako Mining Corp.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -5594,6 +7380,15 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "MMA.V",
+    "company_id": "MMA",
+    "name": "Midnight Sun Mining Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "MMET.CN",
     "company_id": "MMET",
     "name": "Miata Metals Corp.",
@@ -5603,6 +7398,33 @@
     },
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "MMG.V",
+    "company_id": "MMG",
+    "name": "Metallic Minerals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "MMX.V",
+    "company_id": "MMX",
+    "name": "Mustang Minerals Limited",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "MMY.V",
+    "company_id": "MMY",
+    "name": "Monument Mining Limited",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "MN.V",
@@ -5632,6 +7454,15 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSX"
+  },
+  {
+    "ticker": "MNRG.V",
+    "company_id": "MNRG",
+    "name": "Monumental Energy Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "MOC.CN",
@@ -5674,6 +7505,15 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "MOLY.TO",
+    "company_id": "MOLY",
+    "name": "Greenland Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
     "ticker": "MON.V",
     "company_id": "MON",
     "name": "Montero Mining and Exploration Ltd",
@@ -5692,6 +7532,15 @@
     },
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "MOO.V",
+    "company_id": "MOO",
+    "name": "Moon River Moly Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "MOON.V",
@@ -5786,6 +7635,15 @@
     "exchange": "TSX"
   },
   {
+    "ticker": "MT.V",
+    "company_id": "MT",
+    "name": "M3 Metals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "MTA.V",
     "company_id": "MTA",
     "name": "Metalla Royalty & Streaming Ltd.",
@@ -5831,10 +7689,28 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "MTX.V",
+    "company_id": "MTX",
+    "name": "Metalex Ventures Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "MUN.V",
     "company_id": "MUN",
     "name": "Mundoro Capital Inc",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "MUR.V",
+    "company_id": "MUR",
+    "name": "Murchison Minerals Ltd.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -5860,10 +7736,37 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "MYR.CN",
+    "company_id": "MYR",
+    "name": "Meryllion Resources Corporation",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "CSE"
+  },
+  {
     "ticker": "NAM.V",
     "company_id": "NAM",
     "name": "New Age Metals",
     "source": "thenewswire",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "NAME.CN",
+    "company_id": "NAME",
+    "name": "New Aurora Metals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "CSE"
+  },
+  {
+    "ticker": "NAP.V",
+    "company_id": "NAP",
+    "name": "Napoleon Resources Inc.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -5907,6 +7810,15 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "NBLC.V",
+    "company_id": "NBLC",
+    "name": "Nobel Resources Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "NBRK.CN",
     "company_id": "NBRK",
     "name": "New Break Resources Ltd.",
@@ -5916,6 +7828,24 @@
     },
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "NBY.V",
+    "company_id": "NBY",
+    "name": "Niobay Metals Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "NCAU.V",
+    "company_id": "NCAU",
+    "name": "Newcore Gold Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "NCF.TO",
@@ -5936,13 +7866,31 @@
     "exchange": "TSXV"
   },
   {
-    "ticker": "NEO.TO",
-    "company_id": "NEO",
-    "name": "Neo Performance Materials Inc",
-    "source": "prnewswire_gnews",
+    "ticker": "NCX.V",
+    "company_id": "NCX",
+    "name": "NorthIsle Copper and Gold Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "NDM.TO",
+    "company_id": "NDM",
+    "name": "Northern Dynasty Minerals Ltd.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSX"
+  },
+  {
+    "ticker": "NED.V",
+    "company_id": "NED",
+    "name": "New Destiny Mining Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "NEV.V",
@@ -5983,6 +7931,15 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "NEXT.TO",
+    "company_id": "NEXT",
+    "name": "NextSource Materials Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
     "ticker": "NEXU.CN",
     "company_id": "NEXU",
     "name": "Nexus Uranium Corp.",
@@ -6005,13 +7962,28 @@
     "exchange": "CSE"
   },
   {
-    "ticker": "NFG.V",
-    "company_id": "NFG",
+    "ticker": "NFGC.TO",
+    "company_id": "NFGC",
     "name": "New Found Gold Corp",
     "source": "newsfile_gnews",
     "source_params": {},
     "discovery_confidence": "universe",
-    "exchange": "TSXV"
+    "exchange": "TSX",
+    "previous_tickers": [
+      {
+        "ended_at": "2026-09-29",
+        "ticker": "NFG.V"
+      }
+    ]
+  },
+  {
+    "ticker": "NG.TO",
+    "company_id": "NG",
+    "name": "NovaGold Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
   },
   {
     "ticker": "NGC.V",
@@ -6041,6 +8013,15 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "NICN.V",
+    "company_id": "NICN",
+    "name": "NICAN Limited",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "NICO.CN",
     "company_id": "NICO",
     "name": "Class 1 Nickel and Technologies Limited",
@@ -6058,7 +8039,7 @@
     "source": "globenewswire_gnews",
     "source_params": {},
     "discovery_confidence": "universe",
-    "exchange": "TSXV"
+    "exchange": "TSX"
   },
   {
     "ticker": "NILI.V",
@@ -6090,6 +8071,15 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "NIO.V",
+    "company_id": "NIO",
+    "name": "Nio Strategic Metals Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "NIOB.CN",
     "company_id": "NIOB",
     "name": "North American Niobium and Critical Minerals Corp.",
@@ -6099,10 +8089,25 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "NIOX.CN",
+    "company_id": "NIOX",
+    "name": "NiobiumX Mining Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "CSE",
+    "previous_tickers": [
+      {
+        "ended_at": "2026-09-29",
+        "ticker": "AFX.CN"
+      }
+    ]
+  },
+  {
     "ticker": "NIX.CN",
     "company_id": "NIX",
     "name": "NorthX Nickel Corp.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
@@ -6121,6 +8126,15 @@
     "company_id": "NKL",
     "name": "Nickel 28 Capital Corp",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "NL.V",
+    "company_id": "NL",
+    "name": "Northern Lion Gold Corp.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -6157,6 +8171,15 @@
     "company_id": "NMI",
     "name": "Namibia Critical Metals Inc",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "NNX.V",
+    "company_id": "NNX",
+    "name": "Nickel North Exploration Corp.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -6220,6 +8243,15 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "NOU.TO",
+    "company_id": "NOU",
+    "name": "Nouveau Monde Graphite Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
     "ticker": "NOVA.V",
     "company_id": "NOVA",
     "name": "EraNova Metals Inc",
@@ -6233,6 +8265,15 @@
     "company_id": "NPR",
     "name": "North Peak Resources Ltd",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "NQC.V",
+    "company_id": "NQC",
+    "name": "Nordique Critical Metals Inc.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -6267,6 +8308,15 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "NRM.V",
+    "company_id": "NRM",
+    "name": "Noram Lithium Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "NRN.V",
     "company_id": "NRN",
     "name": "Northern Shield Resources Inc.",
@@ -6289,13 +8339,22 @@
   {
     "ticker": "NSJ.CN",
     "company_id": "NSJ",
-    "name": "NSJ Gold Corp.",
+    "name": "NSJ Antimony Corp.",
     "source": "newsfile",
     "source_params": {
       "company_id": 7703
     },
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "NSU.V",
+    "company_id": "NSU",
+    "name": "North Shore Uranium Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "NT.CN",
@@ -6307,6 +8366,15 @@
     },
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "NTB.V",
+    "company_id": "NTB",
+    "name": "New Tymbal Resources Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "NTH.V",
@@ -6352,6 +8420,15 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "NUG.V",
+    "company_id": "NUG",
+    "name": "NuLegacy Gold Corporation",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "NUKE.CN",
@@ -6403,19 +8480,19 @@
     "exchange": "CSE"
   },
   {
-    "ticker": "NVRO.V",
-    "company_id": "NVRO",
-    "name": "NVRO Metals Limited",
-    "source": "globenewswire_gnews",
+    "ticker": "NVT.V",
+    "company_id": "NVT",
+    "name": "Nortec Minerals Corp.",
+    "source": "newsfile_gnews",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
   },
   {
-    "ticker": "NVT.V",
-    "company_id": "NVT",
-    "name": "Nortec Minerals Corp.",
-    "source": "newsfile_gnews",
+    "ticker": "NVX.V",
+    "company_id": "NVX",
+    "name": "NV Gold Corporation",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -6448,6 +8525,24 @@
     "exchange": "TSX"
   },
   {
+    "ticker": "NXS.V",
+    "company_id": "NXS",
+    "name": "Nexus Gold Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "NXU.X.CN",
+    "company_id": "NXU.X",
+    "name": "Nexco Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "CSE"
+  },
+  {
     "ticker": "OBUL.V",
     "company_id": "OBUL",
     "name": "One Bullion",
@@ -6466,6 +8561,15 @@
     "exchange": "TSX"
   },
   {
+    "ticker": "OCO.V",
+    "company_id": "OCO",
+    "name": "Oroco Resource Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "OGC.TO",
     "company_id": "OGC",
     "name": "OceanaGold Corporation",
@@ -6473,6 +8577,15 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSX"
+  },
+  {
+    "ticker": "OGG.V",
+    "company_id": "OGG",
+    "name": "Osisko Gold Group Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "OGN.V",
@@ -6491,6 +8604,15 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
+  },
+  {
+    "ticker": "OM.TO",
+    "company_id": "OM",
+    "name": "Osisko Metals Incorporated",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
   },
   {
     "ticker": "OMG.V",
@@ -6576,6 +8698,33 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "OR.TO",
+    "company_id": "OR",
+    "name": "OR Royalties Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
+    "ticker": "ORCL.V",
+    "company_id": "ORCL",
+    "name": "Oracle Commodity Holding Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "ORE.TO",
+    "company_id": "ORE",
+    "name": "Orezone Gold Corporation",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
     "ticker": "ORGN.CN",
     "company_id": "ORGN",
     "name": "Origen Resources Inc",
@@ -6630,15 +8779,13 @@
     "exchange": "TSXV"
   },
   {
-    "ticker": "OWLI.CN",
-    "company_id": "OWLI",
-    "name": "One World Lithium Inc.",
-    "source": "company_ir_wp",
-    "source_params": {
-      "website": "https://oneworldlithium.com"
-    },
+    "ticker": "OWN.V",
+    "company_id": "OWN",
+    "name": "Rex Resources Corp.",
+    "source": "exchange",
+    "source_params": {},
     "discovery_confidence": "universe",
-    "exchange": "CSE"
+    "exchange": "TSXV"
   },
   {
     "ticker": "OZ.V",
@@ -6666,6 +8813,15 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSX"
+  },
+  {
+    "ticker": "PAT.V",
+    "company_id": "PAT",
+    "name": "Patterson Metals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "PATH.CN",
@@ -6708,6 +8864,33 @@
     "exchange": "TSX"
   },
   {
+    "ticker": "PCU.V",
+    "company_id": "PCU",
+    "name": "Pecoy Copper Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "PDI.TO",
+    "company_id": "PDI",
+    "name": "PDI Gold Limited",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
+    "ticker": "PDN.TO",
+    "company_id": "PDN",
+    "name": "Paladin Energy Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
     "ticker": "PDQ.V",
     "company_id": "PDQ",
     "name": "Paradigm Gold Corp.",
@@ -6717,10 +8900,19 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "PE.V",
+    "company_id": "PE",
+    "name": "Pure Energy Minerals Limited",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "PEAK.V",
     "company_id": "PEAK",
     "name": "Sun Peak Metals Corp.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -6730,6 +8922,15 @@
     "company_id": "PEMC",
     "name": "Pacific Empire Minerals Corp",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "PER.V",
+    "company_id": "PER",
+    "name": "Peruvian Metals Corp.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -6753,17 +8954,6 @@
     "exchange": "TSXV"
   },
   {
-    "ticker": "PGA.CN",
-    "company_id": "PGA",
-    "name": "Pegmatite One Lithium and Gold Corp.",
-    "source": "newsfile",
-    "source_params": {
-      "company_id": 9391
-    },
-    "discovery_confidence": "universe",
-    "exchange": "CSE"
-  },
-  {
     "ticker": "PGC.V",
     "company_id": "PGC",
     "name": "Plato Gold Corp",
@@ -6782,6 +8972,15 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "PGE.V",
+    "company_id": "PGE",
+    "name": "Stillwater Critical Minerals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "PGLD.V",
     "company_id": "PGLD",
     "name": "P2 Gold Inc",
@@ -6794,10 +8993,19 @@
     "ticker": "PGOL.CN",
     "company_id": "PGOL",
     "name": "Patriot Gold Corp.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "PGP.V",
+    "company_id": "PGP",
+    "name": "Power Group Projects Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "PGR.CN",
@@ -6824,6 +9032,15 @@
     "company_id": "PGZ",
     "name": "Pan Global Resources Inc.",
     "source": "prnewswire_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "PHD.V",
+    "company_id": "PHD",
+    "name": "Providence Gold Mines Inc.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -6858,6 +9075,15 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "PJX.V",
+    "company_id": "PJX",
+    "name": "PJX Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "PLLR.CN",
     "company_id": "PLLR",
     "name": "Forty Pillars Mining Corp.",
@@ -6876,6 +9102,15 @@
     },
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "PLY.V",
+    "company_id": "PLY",
+    "name": "Playfair Mining Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "PMAX.CN",
@@ -7012,6 +9247,15 @@
     "exchange": "TSX"
   },
   {
+    "ticker": "PPX.V",
+    "company_id": "PPX",
+    "name": "PPX Mining Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "PRCG.CN",
     "company_id": "PRCG",
     "name": "Precore Gold Corp.",
@@ -7072,6 +9316,15 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "PRU.TO",
+    "company_id": "PRU",
+    "name": "Perseus Mining Limited",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
     "ticker": "PSE.CN",
     "company_id": "PSE",
     "name": "Pasinex Resources Limited",
@@ -7101,6 +9354,15 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
+  },
+  {
+    "ticker": "PTM.TO",
+    "company_id": "PTM",
+    "name": "Platinum Group Metals Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
   },
   {
     "ticker": "PTU.V",
@@ -7209,7 +9471,7 @@
     "ticker": "QBAT.CN",
     "company_id": "QBAT",
     "name": "Quantum Battery Metals Corp.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
@@ -7235,15 +9497,13 @@
     "exchange": "CSE"
   },
   {
-    "ticker": "QIMC.CN",
-    "company_id": "QIMC",
-    "name": "Quebec Innovative Materials Corp.",
-    "source": "company_ir_wp",
-    "source_params": {
-      "website": "https://qimaterials.com"
-    },
+    "ticker": "QMC.V",
+    "company_id": "QMC",
+    "name": "QMC Quantum Minerals Corp.",
+    "source": "exchange",
+    "source_params": {},
     "discovery_confidence": "universe",
-    "exchange": "CSE"
+    "exchange": "TSXV"
   },
   {
     "ticker": "QQQ.CN",
@@ -7266,6 +9526,42 @@
     },
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "QRO.V",
+    "company_id": "QRO",
+    "name": "Quadro Resources Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "QTWO.V",
+    "company_id": "QTWO",
+    "name": "Q2 Metals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "QURI.V",
+    "company_id": "QURI",
+    "name": "Quri-Mayu Developments Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "QZM.V",
+    "company_id": "QZM",
+    "name": "Quartz Mountain Resources Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "RAGE.V",
@@ -7322,6 +9618,15 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "RCT.V",
+    "company_id": "RCT",
+    "name": "Rochester Resources Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "RDG.V",
     "company_id": "RDG",
     "name": "Ridgeline Minerals Corp",
@@ -7358,10 +9663,37 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "REE.V",
+    "company_id": "REE",
+    "name": "ReeXploration Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "REG.V",
+    "company_id": "REG",
+    "name": "Regulus Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "RES.V",
     "company_id": "RES",
     "name": "Auric Resources Corp",
     "source": "thenewswire",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "REVX.V",
+    "company_id": "REVX",
+    "name": "Rev Exploration Corp.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -7401,7 +9733,7 @@
     "ticker": "RGC.V",
     "company_id": "RGC",
     "name": "Relevant Gold Corp.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -7430,7 +9762,7 @@
     "ticker": "RGR.CN",
     "company_id": "RGR",
     "name": "Rio Grande Resources Ltd.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
@@ -7445,6 +9777,15 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "RIO.TO",
+    "company_id": "RIO",
+    "name": "Rio2 Limited",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
     "ticker": "RISE.CN",
     "company_id": "RISE",
     "name": "Rise Gold Corp.",
@@ -7454,6 +9795,15 @@
     },
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "RK.V",
+    "company_id": "RK",
+    "name": "Rockhaven Resources Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "RKL.CN",
@@ -7501,6 +9851,15 @@
     "exchange": "TSX"
   },
   {
+    "ticker": "RMD.V",
+    "company_id": "RMD",
+    "name": "Richmond Minerals Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "RME.V",
     "company_id": "RME",
     "name": "Roland Mineral Enterprises Corp",
@@ -7539,10 +9898,28 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "RMO.V",
+    "company_id": "RMO",
+    "name": "Rainy Mountain Royalty Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "RNCH.V",
+    "company_id": "RNCH",
+    "name": "Ranchero Gold Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "ROAD.CN",
     "company_id": "ROAD",
     "name": "Mineral Road Discovery Inc.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
@@ -7557,10 +9934,28 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "ROCB.CN",
+    "company_id": "ROCB",
+    "name": "RockBridge Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "CSE"
+  },
+  {
     "ticker": "ROCK.V",
     "company_id": "ROCK",
     "name": "Trident Resources Corp",
     "source": "globenewswire_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "ROS.V",
+    "company_id": "ROS",
+    "name": "Roscan Gold Corporation",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -7593,6 +9988,15 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "RRRL.V",
+    "company_id": "RRRL",
+    "name": "River Road Resources Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "RSG.CN",
     "company_id": "RSG",
     "name": "Rocky Shore Gold Ltd.",
@@ -7620,6 +10024,42 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "RTE.V",
+    "company_id": "RTE",
+    "name": "Route 109 Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "RTG.TO",
+    "company_id": "RTG",
+    "name": "RTG Mining Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
+    "ticker": "RTH.V",
+    "company_id": "RTH",
+    "name": "Rathdowney Resources Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "RTM.V",
+    "company_id": "RTM",
+    "name": "RT Minerals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "RUA.TO",
     "company_id": "RUA",
     "name": "Rua Gold Inc",
@@ -7627,6 +10067,15 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSX"
+  },
+  {
+    "ticker": "RUC.CN",
+    "company_id": "RUC",
+    "name": "Radiant Uranium Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "CSE"
   },
   {
     "ticker": "RUSH.V",
@@ -7661,7 +10110,7 @@
     "ticker": "RXM.CN",
     "company_id": "RXM",
     "name": "Rockex Mining Corporation",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
@@ -7692,6 +10141,15 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSX"
+  },
+  {
+    "ticker": "SAE.V",
+    "company_id": "SAE",
+    "name": "Sable Resources Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "SAF.H.V",
@@ -7730,15 +10188,22 @@
     "exchange": "TSXV"
   },
   {
-    "ticker": "SAND.CN",
-    "company_id": "SAND",
-    "name": "Silver Sands Resources Corp.",
-    "source": "newsfile",
-    "source_params": {
-      "company_id": 6972
-    },
+    "ticker": "SALT.V",
+    "company_id": "SALT",
+    "name": "Atlas Salt Inc.",
+    "source": "exchange",
+    "source_params": {},
     "discovery_confidence": "universe",
-    "exchange": "CSE"
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "SAM.TO",
+    "company_id": "SAM",
+    "name": "Starcore International Mines Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
   },
   {
     "ticker": "SANU.CN",
@@ -7783,6 +10248,15 @@
     "company_id": "SAU",
     "name": "St. Augustine Gold and Copper Limited",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
+    "ticker": "SBI.TO",
+    "company_id": "SBI",
+    "name": "Serabi Gold plc",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSX"
@@ -7897,7 +10371,7 @@
     "ticker": "SEAG.X.CN",
     "company_id": "SEAG.X",
     "name": "Seahawk Ventures Inc.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
@@ -7925,6 +10399,24 @@
     "company_id": "SEVA",
     "name": "Seva Mining Corp",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "SF.V",
+    "company_id": "SF",
+    "name": "Safi Silver Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "SFR.V",
+    "company_id": "SFR",
+    "name": "Sandfire Resources America Inc.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -7966,13 +10458,31 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "SGO.V",
+    "company_id": "SGO",
+    "name": "Sonoro Gold Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "SGRO.CN",
     "company_id": "SGRO",
     "name": "Sierra Grande Minerals Inc.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "SGU.V",
+    "company_id": "SGU",
+    "name": "Signature Resources Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "SGZ.V",
@@ -8042,6 +10552,15 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "SILV.V",
+    "company_id": "SILV",
+    "name": "Silver Valley Metals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "SK.CN",
     "company_id": "SK",
     "name": "Rottenstone Gold Inc.",
@@ -8049,6 +10568,15 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "SKE.TO",
+    "company_id": "SKE",
+    "name": "Skeena Resources Limited",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
   },
   {
     "ticker": "SKEL.V",
@@ -8085,6 +10613,15 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "SKYG.V",
+    "company_id": "SKYG",
+    "name": "Sky Gold Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "SL.CN",
@@ -8137,7 +10674,16 @@
     "ticker": "SLR.TO",
     "company_id": "SLR",
     "name": "Solitario Resources Corp.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
+    "ticker": "SLS.TO",
+    "company_id": "SLS",
+    "name": "Solaris Resources Inc.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSX"
@@ -8150,6 +10696,15 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "SLVR.TO",
+    "company_id": "SLVR",
+    "name": "Silver Tiger Metals Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
   },
   {
     "ticker": "SLZ.CN",
@@ -8167,6 +10722,15 @@
     "company_id": "SM",
     "name": "Sierra Madre Gold and Silver Ltd",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "SMD.V",
+    "company_id": "SMD",
+    "name": "Strategic Metals Ltd.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -8199,6 +10763,15 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "SMP.V",
+    "company_id": "SMP",
+    "name": "Southern Empire Resources Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "SMR.H.V",
     "company_id": "SMR",
     "name": "Shine Minerals Corp",
@@ -8217,10 +10790,19 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "SNAG.V",
+    "company_id": "SNAG",
+    "name": "Silver North Resources Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "SNG.V",
     "company_id": "SNG",
     "name": "Silver Range Resources Ltd.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -8253,10 +10835,34 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "SPAR.V",
+    "company_id": "SPAR",
+    "name": "Spartacus Metals Inc.",
+    "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV",
+    "previous_tickers": [
+      {
+        "ended_at": "2026-09-29",
+        "ticker": "DG.V"
+      }
+    ]
+  },
+  {
     "ticker": "SPC.V",
     "company_id": "SPC",
     "name": "SPC Nickel Corp",
     "source": "cnw_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "SPD.V",
+    "company_id": "SPD",
+    "name": "Silver Predator Corp.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -8321,7 +10927,7 @@
     "ticker": "SRI.V",
     "company_id": "SRI",
     "name": "Sparton Resources Inc.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -8336,6 +10942,15 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "SRQ.V",
+    "company_id": "SRQ",
+    "name": "SRQ Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "SRS.CN",
     "company_id": "SRS",
     "name": "Sorrento Resources Ltd.",
@@ -8345,6 +10960,24 @@
     },
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "SSE.V",
+    "company_id": "SSE",
+    "name": "Silver Spruce Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "SSRM.TO",
+    "company_id": "SSRM",
+    "name": "SSR Mining Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
   },
   {
     "ticker": "SSV.V",
@@ -8376,6 +11009,15 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "STE.V",
+    "company_id": "STE",
+    "name": "Starr Peak Mining Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "STGO.TO",
     "company_id": "STGO",
     "name": "Steppe Gold Ltd.",
@@ -8399,7 +11041,7 @@
     "ticker": "STK.CN",
     "company_id": "STK",
     "name": "Silverstock Metals Inc.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
@@ -8431,7 +11073,7 @@
     "source": "newsfile_gnews",
     "source_params": {},
     "discovery_confidence": "universe",
-    "exchange": "CSE"
+    "exchange": "TSXV"
   },
   {
     "ticker": "STNG.CN",
@@ -8445,6 +11087,15 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "STRM.V",
+    "company_id": "STRM",
+    "name": "Storm Exploration Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "STS.V",
     "company_id": "STS",
     "name": "South Star Battery Metals Corp.",
@@ -8454,10 +11105,37 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "STUD.V",
+    "company_id": "STUD",
+    "name": "Stallion Uranium Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "STUV.V",
     "company_id": "STUV",
     "name": "Stuve Gold Corp.",
     "source": "thenewswire",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "STW.V",
+    "company_id": "STW",
+    "name": "Stockworks Gold Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "SUI.V",
+    "company_id": "SUI",
+    "name": "Superior Mining International Corporation",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -8503,10 +11181,28 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "SVB.TO",
+    "company_id": "SVB",
+    "name": "Silver Bull Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
     "ticker": "SVE.V",
     "company_id": "SVE",
     "name": "Silver One Resources Inc",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "SVG.V",
+    "company_id": "SVG",
+    "name": "Silver Grail Resources Ltd.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -8524,7 +11220,25 @@
     "ticker": "SVRS.V",
     "company_id": "SVRS",
     "name": "Silver Storm Mining Ltd.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "SWA.V",
+    "company_id": "SWA",
+    "name": "Sarama Resources Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "SWLF.V",
+    "company_id": "SWLF",
+    "name": "Silver Wolf Exploration Ltd.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -8548,6 +11262,15 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSX"
+  },
+  {
+    "ticker": "SXL.V",
+    "company_id": "SXL",
+    "name": "SLAM Exploration Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "SXTY.CN",
@@ -8586,15 +11309,6 @@
     "exchange": "CSE"
   },
   {
-    "ticker": "TAI.CN",
-    "company_id": "TAI",
-    "name": "Talmora Diamond Inc.",
-    "source": "wire_discovery_only",
-    "source_params": {},
-    "discovery_confidence": "universe",
-    "exchange": "CSE"
-  },
-  {
     "ticker": "TAJ.V",
     "company_id": "TAJ",
     "name": "Tajiri Resources Corp",
@@ -8610,7 +11324,7 @@
     "source": "newsfile_gnews",
     "source_params": {},
     "discovery_confidence": "universe",
-    "exchange": "TSXV"
+    "exchange": "TSX"
   },
   {
     "ticker": "TANA.CN",
@@ -8620,6 +11334,15 @@
     "source_params": {
       "website": "https://tanaresources.ca"
     },
+    "discovery_confidence": "universe",
+    "exchange": "CSE"
+  },
+  {
+    "ticker": "TARG.CN",
+    "company_id": "TARG",
+    "name": "Target Metals Corp.",
+    "source": "exchange",
+    "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
   },
@@ -8644,6 +11367,15 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "TBK.V",
+    "company_id": "TBK",
+    "name": "Trailbreaker Resources Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "TBLL.V",
     "company_id": "TBLL",
     "name": "Tombill Mines Limited",
@@ -8653,10 +11385,19 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "TCCM.V",
+    "company_id": "TCCM",
+    "name": "Three Crowns Critical Metals Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "TCEC.CN",
     "company_id": "TCEC",
     "name": "Terra Clean Energy Corp.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
@@ -8671,6 +11412,15 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "TDG.V",
+    "company_id": "TDG",
+    "name": "TDG Gold Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "TECK.B.TO",
     "company_id": "TECK",
     "name": "Teck Resources Limited",
@@ -8678,6 +11428,15 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSX"
+  },
+  {
+    "ticker": "TECT.V",
+    "company_id": "TECT",
+    "name": "Tectonic Metals Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "TERA.CN",
@@ -8691,6 +11450,15 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "TES.V",
+    "company_id": "TES",
+    "name": "Tesoro Minerals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "TEX.CN",
     "company_id": "TEX",
     "name": "Targa Exploration Corp.",
@@ -8698,6 +11466,15 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "TFPM.TO",
+    "company_id": "TFPM",
+    "name": "Triple Flag Precious Metals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
   },
   {
     "ticker": "TG.V",
@@ -8750,6 +11527,15 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "TGX.V",
+    "company_id": "TGX",
+    "name": "TGX Energy & Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "THM.V",
     "company_id": "THM",
     "name": "Thunder Mountain Gold, Inc.",
@@ -8766,6 +11552,15 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
+  },
+  {
+    "ticker": "TI.TO",
+    "company_id": "TI",
+    "name": "Titan Mining Corporation",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
   },
   {
     "ticker": "TICO.CN",
@@ -8797,15 +11592,6 @@
     "exchange": "TSXV"
   },
   {
-    "ticker": "TIN.V",
-    "company_id": "TIN",
-    "name": "Tincorp Metals Inc.",
-    "source": "newsfile_gnews",
-    "source_params": {},
-    "discovery_confidence": "universe",
-    "exchange": "TSXV"
-  },
-  {
     "ticker": "TITI.V",
     "company_id": "TITI",
     "name": "Titiminas Silver Inc",
@@ -8822,6 +11608,24 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
+  },
+  {
+    "ticker": "TKO.TO",
+    "company_id": "TKO",
+    "name": "Trekor Metals Limited",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
+    "ticker": "TLG.TO",
+    "company_id": "TLG",
+    "name": "Troilus Mining Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
   },
   {
     "ticker": "TLO.TO",
@@ -8913,7 +11717,7 @@
   {
     "ticker": "TOM.V",
     "company_id": "TOM",
-    "name": "Trinity One Metals Ltd",
+    "name": "Trinity Silver Corp.",
     "source": "newsfile_gnews",
     "source_params": {},
     "discovery_confidence": "universe",
@@ -8927,6 +11731,42 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "TORC.V",
+    "company_id": "TORC",
+    "name": "TinOne Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "TORQ.V",
+    "company_id": "TORQ",
+    "name": "Torq Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "TOTC.V",
+    "company_id": "TOTC",
+    "name": "Totec Resources Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "TR.V",
+    "company_id": "TR",
+    "name": "Troubadour Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "TRAC.CN",
@@ -8965,16 +11805,13 @@
     "exchange": "TSXV"
   },
   {
-    "ticker": "TRG.CN",
-    "company_id": "TRG",
-    "name": "Tarachi Gold Corp.",
-    "source": "cnw",
-    "source_params": {
-      "company_slug": "tarachi-gold-corp.",
-      "organization_url": "https://www.newswire.ca/news/tarachi-gold-corp./"
-    },
+    "ticker": "TRO.V",
+    "company_id": "TRO",
+    "name": "Taranis Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
     "discovery_confidence": "universe",
-    "exchange": "CSE"
+    "exchange": "TSXV"
   },
   {
     "ticker": "TRR.V",
@@ -8998,7 +11835,7 @@
     "ticker": "TRU.V",
     "company_id": "TRU",
     "name": "TRU Precious Metals Corp.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -9011,6 +11848,15 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSX"
+  },
+  {
+    "ticker": "TSD.V",
+    "company_id": "TSD",
+    "name": "Tsodilo Resources Limited",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "TSG.V",
@@ -9052,7 +11898,7 @@
     "ticker": "TTG.V",
     "company_id": "TTG",
     "name": "Trans Canada Gold Corp.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -9061,7 +11907,7 @@
     "ticker": "TTS.V",
     "company_id": "TTS",
     "name": "Tintina Mines Limited",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -9094,6 +11940,24 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "TUO.V",
+    "company_id": "TUO",
+    "name": "Teuton Resources Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "TVI.V",
+    "company_id": "TVI",
+    "name": "Tvi Pacific Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "TWO.V",
     "company_id": "TWO",
     "name": "T2 Metals Corp",
@@ -9124,19 +11988,10 @@
     "ticker": "UCM.CN",
     "company_id": "UCM",
     "name": "United Critical Minerals Corp.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
-  },
-  {
-    "ticker": "UCU.V",
-    "company_id": "UCU",
-    "name": "Ucore Rare Metals Inc",
-    "source": "newsfile_gnews",
-    "source_params": {},
-    "discovery_confidence": "universe",
-    "exchange": "TSXV"
   },
   {
     "ticker": "UG.CN",
@@ -9168,13 +12023,22 @@
     "exchange": "CSE"
   },
   {
-    "ticker": "URC.TO",
-    "company_id": "URC",
-    "name": "Uranium Royalty Corp.",
-    "source": "prnewswire_gnews",
+    "ticker": "URE.TO",
+    "company_id": "URE",
+    "name": "Ur-Energy Inc.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSX"
+  },
+  {
+    "ticker": "URZ.V",
+    "company_id": "URZ",
+    "name": "URZ3 Energy Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "USA.TO",
@@ -9215,6 +12079,24 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "USHA.V",
+    "company_id": "USHA",
+    "name": "Usha Resources Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "USLI.CN",
+    "company_id": "USLI",
+    "name": "American Salars Lithium Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "CSE"
+  },
+  {
     "ticker": "UTWO.V",
     "company_id": "UTWO",
     "name": "U92 Energy Corp",
@@ -9224,10 +12106,19 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "UUU.CN",
+    "company_id": "UUU",
+    "name": "Uranium One Mining Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "CSE"
+  },
+  {
     "ticker": "UX.CN",
     "company_id": "UX",
     "name": "Puranium Energy Ltd.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
@@ -9251,18 +12142,18 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "VC.X.CN",
+    "company_id": "VC.X",
+    "name": "Volatus Capital Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "CSE"
+  },
+  {
     "ticker": "VCG.V",
     "company_id": "VCG",
     "name": "Visionary Copper and Gold Mines Inc",
-    "source": "newsfile_gnews",
-    "source_params": {},
-    "discovery_confidence": "universe",
-    "exchange": "TSXV"
-  },
-  {
-    "ticker": "VCT.V",
-    "company_id": "VCT",
-    "name": "Volt Carbon Technologies Inc.",
     "source": "newsfile_gnews",
     "source_params": {},
     "discovery_confidence": "universe",
@@ -9278,10 +12169,28 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "VCV.V",
+    "company_id": "VCV",
+    "name": "Vatic Ventures Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "VENT.V",
     "company_id": "VENT",
     "name": "Ventra Metals Corp.",
     "source": "thenewswire",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "VERT.V",
+    "company_id": "VERT",
+    "name": "Vertical Exploration Inc.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -9314,6 +12223,24 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "VGZ.TO",
+    "company_id": "VGZ",
+    "name": "Vista Gold Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
+    "ticker": "VIO.V",
+    "company_id": "VIO",
+    "name": "Vior Gold Corporation Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "VIPR.V",
     "company_id": "VIPR",
     "name": "Silver Viper Minerals Corp",
@@ -9332,10 +12259,37 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "VKG.V",
+    "company_id": "VKG",
+    "name": "Norse Gold Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "VLC.V",
+    "company_id": "VLC",
+    "name": "Velocity Minerals Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "VLD.V",
     "company_id": "VLD",
     "name": "Vinland Lithium Inc",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "VLI.V",
+    "company_id": "VLI",
+    "name": "Vision Lithium Inc.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -9359,6 +12313,15 @@
     },
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "VLX.V",
+    "company_id": "VLX",
+    "name": "Velox Energy Materials Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "VMET.TO",
@@ -9397,6 +12360,33 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "VO.V",
+    "company_id": "VO",
+    "name": "Valore Metals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "VOLT.CN",
+    "company_id": "VOLT",
+    "name": "Voltage Metals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "CSE"
+  },
+  {
+    "ticker": "VOXR.TO",
+    "company_id": "VOXR",
+    "name": "Vox Royalty Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
     "ticker": "VRB.V",
     "company_id": "VRB",
     "name": "Vanadiumcorp Resource Inc.",
@@ -9413,15 +12403,6 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
-  },
-  {
-    "ticker": "VROY.V",
-    "company_id": "VROY",
-    "name": "Vizsla Royalties Corp",
-    "source": "newsfile_gnews",
-    "source_params": {},
-    "discovery_confidence": "universe",
-    "exchange": "TSXV"
   },
   {
     "ticker": "VRR.V",
@@ -9442,6 +12423,33 @@
     },
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "VTEN.V",
+    "company_id": "VTEN",
+    "name": "V Ten Metals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "VTT.V",
+    "company_id": "VTT",
+    "name": "Vendetta Mining Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "VUL.V",
+    "company_id": "VUL",
+    "name": "Vulcan Minerals Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "VZLA.TO",
@@ -9529,6 +12537,15 @@
     "exchange": "TSX"
   },
   {
+    "ticker": "WEC.V",
+    "company_id": "WEC",
+    "name": "Winchester Equity Corporation",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "WEST.CN",
     "company_id": "WEST",
     "name": "West Mining Corp.",
@@ -9550,7 +12567,7 @@
     "ticker": "WG.CN",
     "company_id": "WG",
     "name": "Westward Gold Inc.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
@@ -9572,6 +12589,15 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
+  },
+  {
+    "ticker": "WGM.CN",
+    "company_id": "WGM",
+    "name": "WestGold Metals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "CSE"
   },
   {
     "ticker": "WGO.V",
@@ -9610,22 +12636,67 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "WINS.V",
+    "company_id": "WINS",
+    "name": "Winshear Metals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "WISE.CN",
     "company_id": "WISE",
     "name": "Earthwise Minerals Corp.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
   },
   {
+    "ticker": "WLF.V",
+    "company_id": "WLF",
+    "name": "Wolfden Resources Corporation",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "WM.TO",
+    "company_id": "WM",
+    "name": "Wallbridge Mining Company Limited",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
     "ticker": "WMC.CN",
     "company_id": "WMC",
     "name": "Westmount Minerals Corp.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
+  },
+  {
+    "ticker": "WMK.V",
+    "company_id": "WMK",
+    "name": "Whitemud Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "WML.V",
+    "company_id": "WML",
+    "name": "Wealth Minerals Ltd.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
   },
   {
     "ticker": "WMS.V",
@@ -9644,6 +12715,15 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
+  },
+  {
+    "ticker": "WPM.TO",
+    "company_id": "WPM",
+    "name": "Wheaton Precious Metals Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
   },
   {
     "ticker": "WRLG.V",
@@ -9673,6 +12753,15 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "WSK.V",
+    "company_id": "WSK",
+    "name": "Wildsky Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "WSR.CN",
     "company_id": "WSR",
     "name": "Western Star Resources Inc.",
@@ -9691,6 +12780,15 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "WVM.V",
+    "company_id": "WVM",
+    "name": "West Vault Mining Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "XGC.V",
     "company_id": "XGC",
     "name": "Xali Gold Corp",
@@ -9704,6 +12802,15 @@
     "company_id": "XIM",
     "name": "Ximen Mining Corp.",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "XPLR.V",
+    "company_id": "XPLR",
+    "name": "Xplore Resources Corp.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -9772,6 +12879,24 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "YRB.TO",
+    "company_id": "YRB",
+    "name": "Yorbeau Resources Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSX"
+  },
+  {
+    "ticker": "ZAC.V",
+    "company_id": "ZAC",
+    "name": "Zacatecas Silver Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "ZAU.V",
     "company_id": "ZAU",
     "name": "Zodiac Gold Inc",
@@ -9781,10 +12906,19 @@
     "exchange": "TSXV"
   },
   {
+    "ticker": "ZBNI.V",
+    "company_id": "ZBNI",
+    "name": "Zeb Nickel Corp.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "ZEUS.CN",
     "company_id": "ZEUS",
     "name": "Zeus North America Mining Corp.",
-    "source": "wire_discovery_only",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "CSE"
@@ -9810,10 +12944,28 @@
     "exchange": "CSE"
   },
   {
+    "ticker": "ZLTO.V",
+    "company_id": "ZLTO",
+    "name": "BULGOLD Inc.",
+    "source": "exchange",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
     "ticker": "ZNG.V",
     "company_id": "ZNG",
     "name": "Group Eleven Resources Corp",
     "source": "newsfile_gnews",
+    "source_params": {},
+    "discovery_confidence": "universe",
+    "exchange": "TSXV"
+  },
+  {
+    "ticker": "ZNX.V",
+    "company_id": "ZNX",
+    "name": "Zincx Resources Corp.",
+    "source": "exchange",
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
@@ -9826,41 +12978,5 @@
     "source_params": {},
     "discovery_confidence": "universe",
     "exchange": "TSXV"
-  },
-  {
-    "ticker": "ECM.V",
-    "name": "Ecm",
-    "source": "thenewswire",
-    "source_params": {},
-    "discovery_confidence": "wire_auto",
-    "discovered_at": "2026-09-16",
-    "exchange": "TSXV"
-  },
-  {
-    "ticker": "JES.P.V",
-    "name": "WestGold Metals Corp.",
-    "source": "thenewswire",
-    "source_params": {},
-    "discovery_confidence": "wire_auto",
-    "discovered_at": "2026-09-16",
-    "exchange": "TSXV"
-  },
-  {
-    "ticker": "CGII.CN",
-    "name": "Danayi Capital Corp.",
-    "source": "thenewswire",
-    "source_params": {},
-    "discovery_confidence": "wire_auto",
-    "discovered_at": "2026-09-16",
-    "exchange": "CSE"
-  },
-  {
-    "ticker": "PEY.TO",
-    "name": "Peyto Exploration & Development Corp",
-    "source": "globenewswire_gnews",
-    "source_params": {},
-    "discovery_confidence": "globenewswire_auto",
-    "discovered_at": "2026-09-16",
-    "exchange": "TSX"
   }
 ]

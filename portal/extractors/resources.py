@@ -171,7 +171,7 @@ from portal import project_names as PN   # 1.0.20: the shared project-name helpe
 from portal import fingerprint as FP     # 1.0.21: fingerprints follow exactly the helper code this reader runs
 
 NAME = "resources"
-VERSION = "1.0.25"  # 2026-10-07 R3: a precious metal is never graded in percent (Barrick's copper grades read as gold; b: a relabelled grade must fit the base metal); 2026-10-01: whose figures, read sentence by sentence; targets, subsets, combined categories; full-text losses fixed; 2026-10-04 FIX5: deposit names (column labels, owner captions, the figures' own or previous sentence, a block's lead name, wrapped headings, commodity tails) and second-metal grades (header past a deposit heading, one tonnage per metal, Cg, MoO3), split decimals; rev b: a pronoun or "Company's" is no deposit name
+VERSION = "1.0.30"  # 2026-10-19 FIX4: a 1.0.19 name the helper reads as the same project once its headline verb is off ("OPTIMIZE ZEUS" -> "Zeus") takes the helper's spelling; 2026-10-18 PNSRC: helper 1.0.7 (no change to this reader's own code); 2026-10-14 PNJUNK7c: a consultant's name ("SLR", "SRK", "AMC") is no deposit name; 2026-10-14 PNJUNK7: a name opening with the headline's verb ("PURCHASE MARIGOLD") is no project or deposit name; 2026-10-13 PNJUNK: helper 1.0.6 (no change of its own); 2026-10-07 R3: a precious metal is never graded in percent (Barrick's copper grades read as gold; b: a relabelled grade must fit the base metal); 2026-10-01: whose figures, read sentence by sentence; targets, subsets, combined categories; full-text losses fixed; 2026-10-04 FIX5: deposit names (column labels, owner captions, the figures' own or previous sentence, a block's lead name, wrapped headings, commodity tails) and second-metal grades (header past a deposit heading, one tonnage per metal, Cg, MoO3), split decimals; rev b: a pronoun or "Company's" is no deposit name
 KIND = "resource_estimate"
 TAG = "Resource Estimates"
 MAX_ROWS = 40
@@ -3296,6 +3296,11 @@ def _pn_pick(head, body, own):
         if own != new and (own.isupper() or re.search(r"\s[a-z]+$", own)) and not (new.isupper() and not own.isupper()):
             return new                                    # the same project, in the text's own spelling
         return own
+    # 1.0.30 (FIX4, 2026-10-19): the helper reads 1.0.19's name as the same project once its headline verb is off
+    # ("OPTIMIZE ZEUS" -> "Zeus"): the helper's spelling stands
+    _co = PN.clean(own)
+    if _co and PN.key(_co) and PN.key(_co) == PN.key(new) and level1:
+        return new
     placed = _place(own)
     if placed and placed != own and not _pn_no_name(placed, t):
         # the page already shows 1.0.19's name cleaned ('historic Belmont' reads 'Belmont'): only the same name
@@ -4046,6 +4051,12 @@ _RE_DEP_DATE = re.compile(r"(?i)[\s,-]*\b(?:january|february|march|april|may|jun
                           r"november|december)\s+\d{1,2},?\s+\d{4}\b[\s,-]*")
 
 
+_RE_PNJ7_VERB = re.compile(r"(?i)(?:purchas(?:e|es|ed|ing)|acquir(?:e|es|ed|ing))\b")   # PNJUNK7
+_RE_PNJ7_FIRM = re.compile(r"(?:SLR|SRK|AMC|RPA|WSP|AGP|CSA|Micon|MICON|Golder|Tetra\s+Tech|Ausenco|Snowden|Stantec|JDS|BBA|"
+                           r"GeoSim|Lycopodium|Sedgman|Optiro|P&E|Roscoe\s+Postle)(?:\s+(?:Consulting|International|Global|"
+                           r"Associates|Mining|Geoscience|Canada|Inc\.?|Ltd\.?|Limited|\(Canada\)))*")   # PNJUNK7c
+
+
 def _deposit_or_none(d):
     """The deposit name cleaned of what is not a name, or None when nothing of a name is left."""
     if not d:
@@ -4054,6 +4065,15 @@ def _deposit_or_none(d):
     # 1.0.23: "TDG Gold's AuWEST", "Celsius' advanced-stage Maalinao-...": the owner in front is no part of the name
     s = re.sub(r"^[A-Z][\w&\-]*(?:\s+[A-Z][\w&\-]*){0,3}(?:'s|(?<=s)')\s+(?:[a-z][\w\-]*\s+){0,2}(?=[A-Z])", "", s)
     s = _RE_DEP_DATE.sub(" ", s).strip(" ,.;:-")
+    if _RE_PNJ7_VERB.match(s):
+        # PNJUNK7: "PURCHASE MARIGOLD", "Purchase Four Additional": the headline's verb opens no deposit name; of
+        # "PURCHASE COBAL T AREA - Castle East Robinson" the deposit is what follows the dash
+        m_ = re.search(r"\s[-\N{EN DASH}\N{EM DASH}]\s+(\S.*)$", s)
+        if not m_ or _RE_PNJ7_VERB.match(m_.group(1)):
+            return None
+        s = m_.group(1).strip()
+    if _RE_PNJ7_FIRM.fullmatch(s):
+        return None       # PNJUNK7c: the consultant ("SLR" for StrikePoint's Northumberland) is no deposit
     s = re.sub(r"(?<=[a-z\u00e9])\d(?:\s*,\s*\d)*$", "", s)                  # "C\u00f4t\u00e9 Gold3,4": footnote markers
     s = re.sub(r"\s*\((?:\d{1,2}(?:\s*,\s*\d{1,2})*|[a-z])\)", "", s).strip()   # "(2)", "(a)"
     if "(" in s and (s.count("(") != s.count(")") or re.search(r"\$|/oz|/t\b|\d", s[s.index("("):])):
@@ -4368,6 +4388,8 @@ def analyse(headline: str, body: str) -> dict:
     project = _release_project_pn(head, text, release_project(head, text[:1500]), rows)   # 1.0.20
     if project and _RE_HEAD_VERB.match(project):
         project = None    # 1.0.23: "Intersect Broad" (Zones), "UPDATE KUBI GOLD" (Project): a headline's verb is no name
+    if project and _RE_PNJ7_VERB.match(project):
+        project = None    # PNJUNK7: "PURCHASE MARIGOLD", "Purchase Detour West": nor is "Purchase"
     res["announces"] = announces
     res["project"] = project
     res["mre_type"] = mre_type(head, text)

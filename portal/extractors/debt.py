@@ -116,7 +116,7 @@ from portal import project_names as PN
 from portal.extractors import technical as T
 
 NAME = "debt"
-VERSION = "1.0.5"  # 2026-09-30: ACC150 quick fix: stage, company as lender, instrument words, amounts, look-alikes;
+VERSION = "1.0.7"  # 2026-10-18 PNSRC: helper 1.0.7 (no change to this reader's own code); 2026-10-13 PNJUNK: helper 1.0.6 (no change of its own); 2026-09-30: ACC150 quick fix: stage, company as lender, instrument words, amounts, look-alikes;
 #                     2026-10-01: lender-letter, 'debt owing' and secured-facility headlines, repayment lists, borrow
 #                     cues, equity look-alike and interest-share guards; full-text losses fixed;
 #                     2026-10-04 FIX5: lender named by role or defined term and full legal names; maturity date

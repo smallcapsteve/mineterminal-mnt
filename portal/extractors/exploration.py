@@ -154,7 +154,7 @@ from portal import fingerprint as FP
 from portal import project_names as PN   # 1.2.2: the shared project-name helper
 
 NAME = "exploration"
-VERSION = "1.2.4"  # 2026-09-30: ACC150 fix-list item 2: property names, one row per program, sizes from the text, programs in results releases; 2026-10-01: names, sizes, status cues and text formats on the full release text; full-text losses fixed; 2026-10-02: long link lists masked before name patterns (speed); capture: drill-results releases, finished surveys and started programs named in passing, programs named by year or with a start timing, bullet lists, three-capital property names
+VERSION = "1.2.7"  # 2026-10-19 FIX4: the helper's project stands when it is one of this reader's own headline names as the helper cleans it ("Extending Jasperoide" -> "Jasperoide"); 2026-10-18 PNSRC: helper 1.0.7 (no change to this reader's own code); 2026-10-13 PNJUNK: helper 1.0.6 (no change of its own); 2026-09-30: ACC150 fix-list item 2: property names, one row per program, sizes from the text, programs in results releases; 2026-10-01: names, sizes, status cues and text formats on the full release text; full-text losses fixed; 2026-10-02: long link lists masked before name patterns (speed); capture: drill-results releases, finished surveys and started programs named in passing, programs named by year or with a start timing, bullet lists, three-capital property names
 KIND = "expl_program"
 TAG = "Exploration Programs"
 TEXT_CAP = 40000
@@ -1028,6 +1028,11 @@ def _primary_project(title, body, iw=None):
     q = PN.primary(title, body, _issuer(body))
     n = _page_name(q) if q else None
     if n and any(_proj_key(x) == _proj_key(n) for _p, x in _projects(title, iw) + _projects(body, iw)):
+        return n
+    # 1.2.7 (FIX4, 2026-10-19): helper 1.0.7 trims a headline verb off the front ("Extending Jasperoide" -> "Jasperoide");
+    # the helper's answer stands when it is one of this reader's own names as the helper cleans it
+    if n and any(_proj_key(_page_name(c) or "") == _proj_key(n)
+                 for c in (PN.clean(x) for _p, x in _projects(title, iw)) if c):
         return n
     return None
 

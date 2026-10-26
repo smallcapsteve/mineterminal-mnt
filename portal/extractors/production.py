@@ -116,7 +116,7 @@ from portal import fingerprint as FP
 from portal import project_names as PN   # 1.2.1: the shared project-name helper
 
 NAME = "production"
-VERSION = "1.3.2"  # 2026-09-29: year-first quarters, Au eq. oz., comparative periods, highlight headings, royalty GEOs (PROD131); 2026-10-03 FIX5 (round 2, marginal-precision rule): half-year / nine-month / year table columns, guidance tables, ended guidance folded onto actuals (guided), equivalent-ounce units, same-quarter and peak-rate comparatives
+VERSION = "1.3.4"  # 2026-10-18 PNSRC: helper 1.0.7 (no change to this reader's own code); 2026-10-13 PNJUNK: helper 1.0.6 (no change of its own); 2026-09-29: year-first quarters, Au eq. oz., comparative periods, highlight headings, royalty GEOs (PROD131); 2026-10-03 FIX5 (round 2, marginal-precision rule): half-year / nine-month / year table columns, guidance tables, ended guidance folded onto actuals (guided), equivalent-ounce units, same-quarter and peak-rate comparatives
 KIND = "production_row"
 TAG = "Production Results"
 TEXT_CAP = 40000

@@ -170,12 +170,47 @@ _CONTINUES = re.compile(
     r"(?i)\b(?:previously[\s\-]+announced|(?:final|amended)\s+(?:base\s+shelf\s+)?(?:short[\s\-]+form\s+)?prospectus"
     r"|prospectus\s+supplement|files?\s+(?:a\s+|the\s+|its\s+)?(?:final|amended)|amend(?:s|ed|ment)\s+(?:to\s+)?(?:the\s+)?"
     r"(?:terms|private|offering|financing)|pricing\s+of|prices\s+(?:its\s+)?(?:previously|offering|bought)|update\s+on|"
-    r"upsiz\w*|increas(?:es|ed|e)\s+(?:the\s+)?(?:size\s+of\s+)?(?:its\s+)?(?:previously|private|bought|offering|financing|non))")
+    r"upsiz\w*|increas(?:es|ed|e)\s+(?:the\s+)?(?:size\s+of\s+)?(?:its\s+)?(?:previously|private|bought|offering|financing|non)"
+    r"|amended\s+and\s+restated)")                       # FINLINK_CHAIN_V1: an amended and restated offering document
 
 
 def _role_family(role):
     """1.0.2: two same-day copies of one release can be read with different roles (announcement / upsize)."""
     return "close" if role in ("tranche_close", "final_close") else "terminated" if role == "terminated" else "open"
+
+
+# FINLINK_CHAIN_V1 (2026-10-12, Justin: "find the relation between announced/upsized"). Three ways one deal was
+# shown as two rows:
+#  a. same day: TMX files carry a date and no time, so an upsize (or close) read before its own announcement
+#     started a row of its own and the announcement then could not join it. The announcement is now read first.
+#  b. a referenced date without a year ("announced on October 9") was read into the wrong year, after the release.
+#  c. the terms changed: a release that says it continues a deal ("previously announced", "upsized", "amends",
+#     "repricing", "oversubscribed") joins the company's one open deal of a compatible type even at another price.
+_SAME_DAY_RANK = {"announcement": 0, "upsize": 1, "amendment": 1, "update": 1, "tranche_close": 2, "final_close": 2,
+                  "terminated": 3}
+_REFERS_BACK = re.compile(
+    r"(?i)\b(?:previously[\s\-]+announced|upsiz\w*|oversubscri\w*|over-subscri\w*|expands?|increas\w*|amend\w*|"
+    r"re-?pric\w*|adjusts?\s+terms|revised\s+terms|further\s+to)\b")
+
+
+def _same_day_rank(a):
+    if not a.get("is_financing"):
+        return 9
+    return _SAME_DAY_RANK.get(a.get("role") or "update", 1)
+
+
+def _fix_refs(refs, dt):
+    """FINLINK_CHAIN_V1 b: a referenced date after the release itself is last year's date."""
+    out = []
+    for ref in refs or []:
+        g = _days(dt, ref)
+        if g is not None and g > 3:
+            try:
+                ref = date.fromisoformat(ref[:10]).replace(year=int(ref[:4]) - 1).isoformat()
+            except ValueError:
+                pass
+        out.append(ref)
+    return out
 
 
 # ------------------------------------------------------------------ grouping
@@ -186,13 +221,19 @@ def compute(items):
     items = sorted(items, key=lambda x: (x[0].get("ticker") or "", (x[0].get("published_at") or "")[:10],
                                          # 1.0.2: a French copy is read after its English twin the same day
                                          1 if (x[1].get("lang") or "en") == "fr" else 0,
+                                         _same_day_rank(x[1]),             # FINLINK_CHAIN_V1 a
                                          x[0].get("published_at") or "", x[0]["event_id"]))
     deals, releases = [], []
     st = {"releases": 0, "not_financing": 0, "hidden_updates": 0, "duplicates": 0, "deals": 0, "joined": 0,
           "continued": 0, "orphans": 0, "split_closes": 0}
     by_ticker = {}
+    st["refs_year_fixed"] = st["price_change_joins"] = 0
     for ev, a in items:
         st["releases"] += 1
+        fixed = _fix_refs(a.get("refs"), (ev.get("published_at") or "")[:10])   # FINLINK_CHAIN_V1 b
+        if fixed != list(a.get("refs") or []):
+            a = dict(a, refs=fixed)
+            st["refs_year_fixed"] += 1
         rel = {"event": ev, "a": a, "deal": None, "duplicate": False}
         releases.append(rel)
         if not a.get("is_financing"):
@@ -212,7 +253,10 @@ def compute(items):
                 dd = _days(r["date"], dt)
                 if dd is None or abs(dd) > 7:
                     continue
-                if (len(head) >= 15 and (r["head"] == head or (abs(dd) <= 3 and _similar(r["head"], head)))) or (
+                # FINLINK_CHAIN_V1 d: "Announces Closing of Private Placement" two days after "Announces Private
+                # Placement" is near the same words but the next step, not a copy (Clean Air Metals, 2026-10-07/09)
+                if (len(head) >= 15 and (r["head"] == head or (abs(dd) <= 3 and _similar(r["head"], head)
+                                                              and _role_family(r["role"]) == _role_family(role)))) or (
                         abs(dd) <= 3 and _role_family(r["role"]) == _role_family(role) and (r["price"] == price or not r["price"] or not price)
                         and _same_amounts(r["amounts"], _amounts(a), 0.01 if dd == 0 else 0.002) and (r["amounts"] != (None, None, None) or price)) or (
                         # 1.0.2: the French copy of a release filed the same day in English
@@ -241,6 +285,22 @@ def compute(items):
 
         # 2./3. candidate deals
         best, best_score = None, None
+        # FINLINK_CHAIN_V1 c: the company's one open deal this release can continue at changed terms
+        hl0 = ev.get("raw_headline") or ""
+        sole = None
+        if role != "announcement" and _REFERS_BACK.search(hl0):
+            open_deals = [x for x in mine if not x["final"] and not x["terminated"]
+                          and _days(x["last_date"], dt) is not None and -3 <= _days(x["last_date"], dt) <= 100
+                          and types_compatible(x["types"], a.get("types") or [], hl0)]
+            sole = open_deals[0] if len(open_deals) == 1 else None
+            amt = a.get("offered") or a.get("closed_total") or a.get("this_close")
+            if sole is not None and (
+                    (amt and sole["offered"] and not (sole["offered"] / 3 <= amt <= sole["offered"] * 3))
+                    or (a.get("prices") and sole["prices"] and not any(
+                        0.4 * q <= p <= 2.5 * q for p in a["prices"] for q in sole["prices"]))):
+                sole = None                                   # a size or price that far off is another deal
+        changed_terms = None
+        reopen = set()
         for d in mine:
             gap = _days(d["last_date"], dt)
             if gap is None or gap < -3 or gap > 400:
@@ -261,6 +321,8 @@ def compute(items):
             if aprices and prices:
                 if any(same_price(p, q) for p in aprices for q in prices):
                     score += 4
+                elif d is sole:
+                    changed_terms = d                         # FINLINK_CHAIN_V1 c
                 elif not ((ref_hit and repricing) or (_REPRICE.search(hl) and gap is not None and gap <= 45 and not d["final"])):
                     continue                                  # another price is another deal
             concurrent = bool(re.search(r"(?i)\b(?:clos\w*|announc\w*|complet\w*)\s+(?:(?:the|its|a|an|of|of\s+the)\s+)*(?:(?:US|C|CA)?\$[\d.,]+\s*(?:million|m)?\s+)?concurrent\b", hl))
@@ -290,7 +352,12 @@ def compute(items):
                 if not d["final"]:
                     score += 2
             if role in ("update", "upsize", "amendment") and d["final"] and not ref_hit:
-                continue
+                # FINLINK_CHAIN_V1 e: an upsize of the "previously announced" deal at its price within two weeks of a
+                # close: the close was a first part (Apollo Silver 2025-12-22/29), so the upsize joins and reopens it
+                if not (role == "upsize" and gap is not None and gap <= 14 and _REFERS_BACK.search(hl) and aprices
+                        and prices and any(same_price(p, q) for p in aprices for q in prices)):
+                    continue
+                reopen.add(id(d))
             if role == "announcement":
                 if concurrent and not ref_hit:
                     continue
@@ -315,6 +382,11 @@ def compute(items):
                 best, best_score = d, score
         min_score = 0.5
         if best is not None and best_score >= min_score:
+            if best is changed_terms:
+                st["price_change_joins"] += 1
+            if id(best) in reopen:                            # FINLINK_CHAIN_V1 e
+                best["final"] = False
+                st["reopened"] = st.get("reopened", 0) + 1
             _attach(best, rel, a, dt, head)
             st["continued" if role == "announcement" else "joined"] += 1
             continue
@@ -593,11 +665,90 @@ def ensure_schema(conn):
                 conn.execute(f"ALTER TABLE {table} ADD COLUMN {c} {t}")
 
 
+# FINLINK_OTHERTAG_V1 (2026-10-12, Justin): a deal with no announcement whose release refers back to an earlier date
+# ("Further to the joint news release dated Aug. 1") gets the company's release of that date as its announcement when
+# that release talks about the raise, even though it is tagged something else (Clean Air Metals 2026-07-31, a business
+# combination with a concurrent financing). Runs only when publishing (it reads release text); compute() is unchanged.
+_RAISE_TEXT = re.compile(
+    r"(?i)\b(?:private\s+placements?|(?:concurrent|equity|brokered|non-brokered)\s+financing|bought\s+deal|"
+    r"subscription\s+receipts?|flow[\s\-]+through\s+(?:shares|units|financing|offering)|public\s+offering|"
+    r"(?:LIFE|marketed|prospectus)\s+offering|strategic\s+investment|gross\s+proceeds)\b")
+LINK_WINDOW_DAYS = 3
+LINK_MAX_AGE_DAYS = 150
+
+
+def link_announcements(conn, deals, releases):
+    """FINLINK_OTHERTAG_V1: attach a referenced release as the announcement of a deal that has none.
+    Returns the number of links made; changes deals/releases in place."""
+    by_eid = {r["event"]["event_id"]: r for r in releases}
+    taken = {r["event"]["event_id"] for r in releases if r["deal"] is not None or r.get("second_deal") is not None}
+    n = 0
+    for d in deals:
+        own = [x for x in d["releases"] if not x["duplicate"]]
+        if not own or any(x["role"] == "announcement" for x in own):
+            continue
+        first = d["first_date"]
+        refs = set()
+        for x in own:
+            for ref in (by_eid[x["event_id"]]["a"].get("refs") or []):
+                g = _days(ref, first)
+                if g is not None and 0 < g <= LINK_MAX_AGE_DAYS:
+                    refs.add(ref[:10])
+        if not refs:
+            continue
+        cands = {}
+        for ref in sorted(refs):
+            lo = date.fromordinal(date.fromisoformat(ref).toordinal() - LINK_WINDOW_DAYS).isoformat()
+            hi = date.fromordinal(date.fromisoformat(ref).toordinal() + LINK_WINDOW_DAYS).isoformat() + "T99"
+            for eid, pub, hl in conn.execute(
+                    "SELECT event_id, published_at, raw_headline FROM events "
+                    "WHERE ticker=? AND published_at>=? AND published_at<=? AND review_status='auto_approved'",
+                    (d["ticker"], lo, hi)):
+                if eid in taken or (pub or "")[:10] >= first:
+                    continue
+                key = (abs(_days(ref, pub) or 0), 0 if _RAISE_TEXT.search(hl or "") else 1, pub or "", eid)
+                if eid not in cands or key < cands[eid][0]:
+                    cands[eid] = (key, eid, pub, hl)
+        best = None
+        for key, eid, pub, hl in sorted(cands.values()):      # nearest first; the text is read only for candidates
+            if key[1] == 0 or _RAISE_TEXT.search(conn.execute(
+                    "SELECT substr(COALESCE(raw_body, raw_excerpt, ''), 1, 8000) FROM events WHERE event_id=?",
+                    (eid,)).fetchone()[0] or ""):
+                best = (key, eid, pub, hl)
+                break
+        if best is None:
+            continue
+        _key, eid, pub, hl = best
+        dt = (pub or "")[:10]
+        a_link = {"is_financing": True, "role": "announcement", "reason": "linked_by_reference", "types": [],
+                  "offering": None, "currency": None, "offered": None, "offered_alt": [], "this_close": None,
+                  "closed_total": None, "prices": [], "warrants": [], "refs": []}
+        rel = by_eid.get(eid)
+        if rel is None:
+            rel = {"event": {"event_id": eid, "ticker": d["ticker"], "published_at": pub, "raw_headline": hl},
+                   "a": a_link, "deal": None, "duplicate": False, "linked": True}
+            releases.append(rel)
+            by_eid[eid] = rel
+        else:                                                  # tagged Financings but read as not a raise
+            rel["a"] = dict(rel["a"], **{k: v for k, v in a_link.items() if k in ("is_financing", "role", "reason")})
+            rel["linked"] = True
+        rel["deal"] = d
+        d["releases"].insert(0, {"event_id": eid, "date": dt, "head": norm_head(hl), "role": "announcement", "price": None,
+                                 "prices": [], "lang": "en", "amounts": (None, None, None), "duplicate": False,
+                                 "secondary": False})
+        if dt < d["first_date"]:
+            d["first_date"] = dt
+        taken.add(eid)
+        n += 1
+    return n
+
+
 def publish(conn, version, log=print):
     if not re.match(r"^[0-9]+[.][0-9]+[.][0-9]+$", version or ""):
         raise ValueError(f"bad version {version!r}")
     t0 = time.time()
     deals, releases, st = compute(load_items(conn, version))
+    st["linked_announcements"] = link_announcements(conn, deals, releases)    # FINLINK_OTHERTAG_V1
     fin_rows, ev_rows = rows_for(deals, releases, version)
     ensure_schema(conn)
     fcols = list(fin_rows[0].keys()) if fin_rows else None
@@ -733,6 +884,92 @@ def _selftest():
     deals3, rels3, st3 = compute([(E("t1", "TTT", "2026-03-01", "TTT Announces Bought Deal and Concurrent Private Placement"), A("announcement", 5_000_000, types=("PP",))),
                                   (E("t2", "TTT", "2026-03-20", "TTT Closes Bought Deal and Concurrent Private Placement"), lone)])
     ok("parts without two matching deals do not split", st3["split_closes"] == 0 and len(deals3) == 1 and deals3[0]["closed"] == 5_000_000)
+
+    # FINLINK_CHAIN_V1
+    fl = [(E("F_A", "FFF", "2026-08-21T12:00:00Z", "FFF Closes $14.6 Million First Tranche"),
+           A("tranche_close", 21_000_000, 14_625_000, 14_625_000, prices=[0.5])),
+          (E("F_Z", "FFF", "2026-08-21T12:00:00Z", "FFF Announces $7.5 Million Private Placement"), A("announcement", 7_500_000, prices=[0.5])),
+          (E("G_A", "GGG", "2026-01-12T12:00:00Z", "GGG Announces Upsize of Previously Announced Bought Deal to $15M"),
+           A("upsize", 15_000_000, prices=[4.2], offering="BOUGHT_DEAL")),
+          (E("G_Z", "GGG", "2026-01-12T12:00:00Z", "GGG Announces $10.0 Million Bought Deal"), A("announcement", 10_000_000, prices=[4.2], offering="BOUGHT_DEAL")),
+          (E("h1", "HHH", "2025-10-09", "HHH to Raise $700,000"), A("announcement", 724_000, prices=[0.09, 0.11], types=("FT",))),
+          (E("h2", "HHH", "2025-12-16", "HHH Repricing Private Placement"), A("amendment", 724_000, prices=[0.055], types=("FT",), refs=["2026-10-09"])),
+          (E("w1", "WWW", "2025-10-20", "WWW Announces Private Placement"), A("announcement", 1_500_000, prices=[0.2])),
+          (E("w2", "WWW", "2026-01-15", "WWW Amends Previously Announced Private Placement"), A("amendment", 1_500_000, prices=[0.15])),
+          (E("v1", "VVV", "2026-01-05", "VVV Announces $1M Placement"), A("announcement", 1_000_000, prices=[0.10])),
+          (E("v2", "VVV", "2026-02-01", "VVV Announces $2M Flow-Through Placement"), A("announcement", 2_000_000, prices=[0.20], types=("FT",))),
+          (E("v3", "VVV", "2026-03-01", "VVV Closes Upsized Placement"), A("final_close", None, 1_500_000, 1_500_000, prices=[0.12])),
+          (E("k1", "KKK", "2026-01-05", "KKK Announces $1M Placement"), A("announcement", 1_000_000, prices=[0.10])),
+          (E("k2", "KKK", "2026-02-01", "KKK Closes $1M Placement"), A("final_close", None, 1_000_000, 1_000_000, prices=[0.15]))]
+    dfl, rfl, sfl = compute(fl)
+    dl = {r["event"]["event_id"]: (r["deal"]["seed"] if r["deal"] else None) for r in rfl}
+    ok("chain a: same-day announcement read before its first tranche", dl["F_A"] == dl["F_Z"] == "F_Z")
+    ok("chain a: same-day announcement read before its upsize", dl["G_A"] == dl["G_Z"] == "G_Z")
+    ok("chain b: a referenced date after the release is last year's", dl["h2"] == "h1" and sfl["refs_year_fixed"] == 1)
+    ok("chain c: 'amends previously announced' at a new price joins the one open deal", dl["w2"] == "w1")
+    ok("chain c: two open deals of the same type -> no guess at another price", dl["v3"] == "v3")
+    ok("chain c: a close at another price without wording stays its own row", dl["k2"] == "k2")
+    fl2 = [(E("p1", "PPP", "2024-04-04", "PPP Announces C$2 Million Private Placement"), A("announcement", 2_000_000, prices=[0.2])),
+           (E("p2", "PPP", "2024-06-24", "Over-subscribed $20 Million Flow-Through Offering closed"),
+            A("final_close", None, 20_000_000, 20_000_000, prices=[1.25, 0.66], types=("FT",)))]
+    dl2 = {r["event"]["event_id"]: (r["deal"]["seed"] if r["deal"] else None) for r in compute(fl2)[1]}
+    ok("chain c: ten times the size at six times the price is another deal", dl2["p2"] == "p2")
+    fl3 = [(E("q1", "QQQ", "2026-10-07", "Clean Air Metals Announces Non-Brokered Private Placement of Flow-Through Shares"),
+            A("announcement", 150_000, prices=[0.06], types=("FT",))),
+           (E("q2", "QQQ", "2026-10-09", "Clean Air Metals Announces Closing Non-Brokered Private Placement of Flow-Through Shares"),
+            A("final_close", None, 150_000, 150_000, prices=[0.06], types=("FT",)))]
+    d3, r3_, _s3 = compute(fl3)
+    q2 = [r for r in r3_ if r["event"]["event_id"] == "q2"][0]
+    ok("chain d: a close worded like its announcement is the next step, not a copy",
+       not q2["duplicate"] and q2["deal"]["seed"] == "q1" and q2["deal"]["status"] == "closed")
+    fl4 = [(E("r1", "RRR", "2025-12-22", "RRR Announces $25 Million Strategic Investment by Eric Sprott"),
+            A("final_close", None, 25_000_000, 25_000_000, prices=[5.0])),
+           (E("r2", "RRR", "2025-12-29", "RRR Announces $2.5 Million Upsize to Previously Announced Financing"),
+            A("upsize", 2_500_000, prices=[5.0])),
+           (E("r3", "RRR", "2026-01-21", "RRR Closes First Tranche of $27.5 Million Private Placement"),
+            A("tranche_close", 27_500_000, 15_000_000, 15_000_000, prices=[5.0])),
+           (E("s1", "SSX", "2026-01-05", "SSX Closes $1M Private Placement"), A("final_close", None, 1_000_000, 1_000_000, prices=[0.1])),
+           (E("s2", "SSX", "2026-02-20", "SSX Increases Its Previously Announced Placement"), A("upsize", 1_500_000, prices=[0.1]))]
+    d4, r4_, s4 = compute(fl4)
+    dl4 = {r["event"]["event_id"]: (r["deal"]["seed"] if r["deal"] else None) for r in r4_}
+    ok("chain e: an upsize a week after a close reopens the deal and its tranches follow",
+       dl4["r2"] == dl4["r3"] == "r1" and s4.get("reopened") == 1)
+    ok("chain e: an upsize six weeks after a close does not reopen it", dl4["s2"] == "s2")
+    fl5 = [(E("t1", "TAX", "2026-01-26", "TAX Launches LIFE Flow Through and Concurrent LIFE Hard Dollar Offering"),
+            A("announcement", 800_000, prices=[0.11, 0.08], types=("FT", "LIFE"))),
+           (E("t2", "TAX", "2026-02-04", "TAX Announces Filing of an Amended and Restated LIFE Offering Document"),
+            A("announcement", 2_000_000, prices=[0.11, 0.08], types=("FT", "LIFE"))),
+           (E("t3", "TAX", "2026-03-11", "TAX Announces Closing of LIFE Hard Dollar and Flow Through Offering"),
+            A("final_close", None, 807_565, 807_565, prices=[0.11, 0.08], types=("FT", "LIFE")))]
+    dl5 = {r["event"]["event_id"]: (r["deal"]["seed"] if r["deal"] else None) for r in compute(fl5)[1]}
+    ok("an amended and restated offering document continues the deal", dl5["t2"] == dl5["t3"] == "t1")
+
+    # FINLINK_OTHERTAG_V1
+    lc = sqlite3.connect(":memory:")
+    lc.execute("CREATE TABLE events (event_id TEXT PRIMARY KEY, ticker TEXT, published_at TEXT, raw_headline TEXT, raw_body TEXT, "
+               "raw_excerpt TEXT, review_status TEXT)")
+    lc.executemany("INSERT INTO events VALUES (?,?,?,?,?,'', 'auto_approved')", [
+        ("m1", "AAX", "2026-07-31T12:00:00Z", "AAX and Springbok Announce Strategic Business Combination",
+         "... minimum C$5 million concurrent financing of subscription receipts ..."),
+        ("m2", "AAX", "2026-07-30T12:00:00Z", "AAX Reports Drill Results", "assays"),
+        ("m3", "BBX", "2026-05-01T12:00:00Z", "BBX Announces Acquisition", "no money raised here"),
+        ("m4", "CCX", "2026-06-01T12:00:00Z", "CCX Announces Private Placement", "private placement of units")])
+    lk = [(E("u1", "AAX", "2026-08-10", "AAX Announces Upsize of Non-Brokered Private Placement"),
+           A("upsize", 6_000_000, prices=[0.06], refs=["2026-08-01"])),
+          (E("u2", "AAX", "2026-09-22", "AAX Announces Closing of Private Placement"), A("final_close", None, 6_200_000, 6_200_000, prices=[0.06])),
+          (E("b1", "BBX", "2026-05-20", "BBX Closes Previously Announced Placement"), A("final_close", None, 1_000_000, 1_000_000, refs=["2026-05-01"])),
+          (E("c1", "CCX", "2026-06-01", "CCX Announces Private Placement"), A("announcement", 500_000, prices=[0.1])),
+          (E("c2", "CCX", "2026-06-20", "CCX Closes Placement"), A("final_close", None, 500_000, 500_000, prices=[0.1], refs=["2026-06-01"]))]
+    dk, rk, _sk = compute(lk)
+    nl = link_announcements(lc, dk, rk)
+    dk_by = {d["seed"]: d for d in dk}
+    _fk, ek = rows_for(dk, rk, "9.9.9")
+    eko = {e["event_id"]: e for e in ek}
+    ok("other-tag: the referenced M&A release with a concurrent financing becomes the announcement",
+       nl == 1 and eko.get("m1", {}).get("role") == "announcement" and eko["m1"]["financing_id"] == eko["u1"]["financing_id"]
+       and dk_by["u1"]["first_date"] == "2026-07-31" and dk_by["u1"]["offered"] == 6_000_000)
+    ok("other-tag: a referenced release that does not mention a raise is not linked", "m3" not in eko)
+    ok("other-tag: a deal that has its announcement is left alone", "m4" not in eko)
 
     # database path on an in-memory store
     from portal import facts as F

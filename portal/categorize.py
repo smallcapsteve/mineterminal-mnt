@@ -5063,11 +5063,600 @@ def v18_fix(cats, headline, body, why=None):
     return [c for c in CATEGORIES if c in keep or c in added]
 
 
+# ---------------------------------------------------------------- TAGFIX_V9 (TAG7, 2026-10-11)
+# Precision fixes for four of the seven new-tab tags, blind-checked on a fresh sample (rules that failed are not here).
+# Same contract as TAGFIX_V8: each rule fn(headline, lede900, codes) -> (add, drop), run on the finished tag set.
+_V19_MET_TEST = re.compile(
+    r"\b(?:metallurg\w*|test[\s-]?work|tests?|testing|tested|recover(?:y|ies|ed)|flotation|leach\w*|bottle[\s-]roll|"
+    r"column|bench[\s-]?scale|pilot[\s-]?(?:scale|plant|program|test\w*)|demonstration plant|locked[\s-]cycle|"
+    r"flow[\s-]?sheet|beneficiation|concentrate grade|ore sorting|sorting|mineralog\w*|comminution|grind\w*|"
+    r"extraction technolog\w*|DLE|direct lithium extraction|process(?:ing)? (?:technolog\w*|test\w*|development|"
+    r"route|design)|refin\w+ technolog\w*|purif\w+|battery[\s-]grade|patent\w*|lithium (?:carbonate|hydroxide)|"
+    r"spodumene concentrate|heap leach|samples? (?:for|sent|shipped)|composite)\b", re.I)
+_V19_MET_OPS = re.compile(
+    r"\b(?:processing (?:plant|facility|mill)|(?:mill|plant)\b|concentrate (?:production|shipment|sales?|export)|"
+    r"(?:first|resum\w+|restart\w*|commence\w*|begins?) (?:\w+ ){0,3}(?:production|processing|concentrate)|"
+    r"commission\w*|sales? of|tonnes? of \w+ (?:material|concentrate)|toll (?:milling|processing)|surface rights|"
+    r"construction decision|placer|wash plant|gold recovery at)\b", re.I)
+
+
+def _v19_met_operations(h, l, codes):
+    """Plant operations, purchases, permits or sales with no test work or process development in the headline
+    or opening text are not Metallurgy & Processing."""
+    if "met" not in codes:
+        return set(), set()
+    if _V19_MET_TEST.search(h):
+        return set(), set()
+    # v19b: plant design or engineering, processing technology, demonstration/test plants are Metallurgy by the rubric
+    if re.search(r"\b(?:design\w*|engineering|technolog\w*|demo\w*|test (?:plant|mill)|bulk sample|high[\s-]purity|"
+                 r"patent\w*|proprietary)\b", h, re.I):
+        return set(), set()
+    if not _V19_MET_OPS.search(h):
+        return set(), set()
+    if re.search(r"\b(?:metallurg\w*|test[\s-]?work|recover(?:y|ies) of \d|\d+(?:\.\d+)?% (?:\w+ )?recover\w*|"
+                 r"flotation test|leach test|column (?:leach|test)|bottle[\s-]roll|locked[\s-]cycle|flow[\s-]?sheet)\b",
+                 l, re.I):
+        return set(), set()
+    return set(), {"met"}
+
+
+_V19_FNS_RESULTS = re.compile(
+    r"\b(?:financial (?:results|statements|highlights|position)|(?:financial|operat\w+) and (?:financial|operat\w+) "
+    r"results|(?:quarter(?:ly)?|annual|year[\s-]end|interim|fiscal|half[\s-]year|first|second|third|fourth|Q[1-4]|"
+    r"F?Y ?20\d\d|20\d\d)[\s-](?:[\w-]+ ){0,4}(?:results|earnings|financials|report)|results for the|"
+    r"(?:quarter|annual) report|net (?:income|loss|earnings)|revenues?|cash flows?|working capital|EBITDA|MD&A|"
+    r"earnings)(?:\b|(?<=flow)\d)", re.I)
+
+
+def _v19_fns_aif_or_delay(h, l, codes):
+    """Filing an Annual Information Form alone, or a notice that statements will be late, is not Financials.
+    A late-filing notice belongs under Regulatory & Compliance. (v19b: the late-filing check runs first; an AIF
+    release that also files a 40-F, audited statements or financials keeps Financials.)"""
+    if "fns" not in codes:
+        return set(), set()
+    if _V19_FNS_RESULTS.search(h):
+        return set(), set()
+    if re.search(r"\b(?:delay\w*|late|extension|postpone\w*|update on (?:the )?filing|filing (?:schedule|update|delay)|"
+                 r"default announcement|bi-?weekly (?:default )?status)\b", h, re.I) and \
+            re.search(r"\b(?:filing|file|financial statements?|financials|MD&A|annual (?:audited )?statements)\b", h, re.I):
+        return {"reg"}, {"fns"}
+    if re.search(r"\b(?:40-F|20-F|10-K|audited|financials|financial statements?|MD&A)\b", h, re.I):
+        return set(), set()
+    if re.search(r"\bfiles?\b.{0,40}\bfinancial statements\b|\bfiling of (?:its |the )?(?:annual |interim |audited )*"
+                 r"financial statements\b", h, re.I):
+        return set(), set()
+    if re.search(r"\bannual information form\b|\bAIF\b", h, re.I):
+        return set(), {"fns"}
+    return set(), set()
+
+
+def _v19_lst_cto_issued(h, l, codes):
+    """A cease trade order being issued, with no listing, halt or trading change, is Regulatory, not Listings."""
+    if "lst" not in codes:
+        return set(), set()
+    if not re.search(r"\b(?:receiv\w+|issu\w+|impos\w+|subject to)\b.{0,40}\b(?:cease[\s-]trade order|CTO|MCTO)\b", h, re.I):
+        return set(), set()
+    if re.search(r"\b(?:revo\w+|lift\w*|varied|resum\w+ trading|reinstat\w+|commenc\w+ trading|begins? trading|"
+                 r"delist\w*|uplist\w*|transfer\w* to|NEX|graduat\w+|halt\w*|OTC\w*|trading on)\b", h, re.I):
+        return set(), set()
+    return {"reg"}, {"lst"}
+
+
+def _v19_act_subsidiary_rebrand(h, l, codes):
+    """Rebranding a division or subsidiary is not a corporate action of the issuer."""
+    if "act" not in codes:
+        return set(), set()
+    if re.search(r"\brebrand\w*\b.{0,60}\b(?:division|subsidiary|unit|business|brand)\b|"
+                 r"\b(?:division|subsidiary)\b.{0,60}\brebrand\w*\b", h, re.I) and \
+            not re.search(r"\b(?:name change|changes? (?:its )?name|consolidat\w+|split|dividend|symbol)\b", h, re.I):
+        return set(), {"act"}
+    return set(), set()
+
+
+_V19_RULES = [
+    ("met_operations", _v19_met_operations),
+    ("fns_aif_or_delay", _v19_fns_aif_or_delay),
+    ("lst_cto_issued", _v19_lst_cto_issued),
+    ("act_subsidiary_rebrand", _v19_act_subsidiary_rebrand),
+]
+
+
+def _v19_apply(codes, h, l, why=None):
+    """codes: set of tag codes; returns the new set (never empty)."""
+    A, D = set(), set()
+    for name, fn in _V19_RULES:
+        try:
+            a, d = fn(h, l, set(codes))
+        except Exception:
+            continue
+        a = (set(a) & set(CODE_TO_CAT)) - codes
+        d = set(d) & codes
+        if (a or d) and why is not None:
+            why.append(name)
+        A |= a
+        D |= d
+    both = A & D
+    A -= both
+    D -= both
+    out = (codes | A) - D
+    if (A - {"cor"}) and "cor" in out:
+        out.discard("cor")
+    return out or {"cor"}
+
+
+def v19_fix(cats, headline, body, why=None):
+    """TAGFIX_V9 layer: runs after v18_fix on the finished category list."""
+    cur = list(cats or [])
+    codes = {CAT_TO_CODE.get(c, c) for c in cur}
+    if not codes or not codes <= set(CODE_TO_CAT) or not (codes & {"met", "fns", "lst", "act"}):
+        return cur
+    l = re.sub(r"\s+", " ", lede(body or "", 900)).strip()
+    new = _v19_apply(codes, headline or "", l, why)
+    if new == codes:
+        return cur
+    return [c for c in CATEGORIES if CAT_TO_CODE[c] in new]
+
+
+# ---------------------------------------------------------------- TAGFIX_V10 (TAG7 step 2, 2026-10-12)
+# Catch rules: add a missed tag on the seven new-tab tags, blind-checked on fresh releases (rules that failed are not
+# here). Same contract as TAGFIX_V8/V9: each rule fn(headline, lede900, codes) -> (add, drop), on the finished tag set.
+# Owner scope 2026-10-12: every issuer name change is also Listings; earn-ins / farm-ins / options to earn a partial
+# interest are also Partnerships & JV.
+_V20_NOT_FIN_RESULTS = re.compile(r"\b(?:drill\w*|assay\w*|exploration|sampl\w+|metallurg\w*|test\w*|survey|trench\w*|"
+                              r"geophysic\w*|geochem\w*|drilling|meeting|AGM|vot\w+|election|channel|soil|work program|appeal|"
+                              r"lawsuit|court|judge|"
+                              r"leach\w*|recover\w*|study|PEA|feasibility|resource|intercept\w*|hole)\b", re.I)
+
+
+# ------------------------------------------------------------------ Financials
+_V20_FNS_ADD = re.compile(
+    r"\b(?:(?:first|second|third|fourth|1st|2nd|3rd|4th) quarter(?: \w+){0,4} (?:results|report|financials|earnings)|"
+    r"Q[1-4](?:\s*(?:20\d\d|F?Y ?\d\d))?(?: \w+){0,3} (?:results|report|financials|earnings))\b", re.I)
+
+
+def _v20_fns_add(h, l, codes):
+    """A quarterly results release (Q1-Q4 / first-fourth quarter results) not tagged Financials. Only the quarterly
+    branch shipped: the year-results, statements, call-notice and dollars branches fell short on the blind checks."""
+    if "fns" in codes:
+        return set(), set()
+    m = _V20_FNS_ADD.search(h)
+    if not m:
+        return set(), set()
+    if _V20_NOT_FIN_RESULTS.search(h) and not re.search(r"\bfinancial|MD&A|net (?:income|loss|earnings)|revenue|"
+                                                    r"conference call|webcast|earnings\b", h, re.I):
+        return set(), set()
+    if re.search(r"\bannual information form\b|\bAIF\b", h, re.I) and not re.search(r"\bfinancial statements|MD&A", h, re.I):
+        return set(), set()
+    # a notice that statements will be late is Regulatory, not Financials (owner scope; TAGFIX_V9 moves those)
+    if re.search(r"\b(?:delay\w*|late|extension|postpone\w*|MCTO|cease[\s-]trade|cease traded|default|"
+                 r"not (?:be )?able to|unable to|failure to file|semi[\s-]?annual (?:financial )?reporting|amended|"
+                 r"restat\w+|update (?:on|in connection with|regarding) (?:the |its )?(?:\w+ ){0,3}(?:filing|financials)|"
+                 r"filing (?:update|status)|recent news|filings|filing (?:of|deadline)|relief|rel(?:y|ies|ying) on)\b", h, re.I):
+        return set(), set()
+    # monthly results (a month named before the year) are production updates unless money is named
+    if re.search(r"\b(?:January|February|March|April|May|June|July|August|September|October|November|December) "
+                 r"20\d\d\b", h) and not re.search(r"\bfinancial|revenues?|earnings|\$", h, re.I):
+        return set(), set()
+    # production / operating / sustainability / project results with no money words stay out (owner 2026-09-28)
+    if re.search(r"\b(?:production|operat\w+|sustainability|ESG|project|drill\w*|exploration|GEOs?|deliveries|"
+                 r"sales volumes?)\b", h, re.I) and not re.search(
+            r"\bfinancial|MD&A|net (?:income|loss|earnings)|revenues?|cash flow|earnings|EBITDA|\$", h, re.I):
+        return set(), set()
+    return {"fns"}, set()
+
+
+# ------------------------------------------------------------------ Shareholder Meetings
+_V20_MTG_ADD = re.compile(
+    r"\b(?:shareholders?|securityholders?|unitholders?|stockholders?)\b.{0,40}\b(?:approv\w+|elect\w*|vote\w*|"
+    r"pass\w*|re-?elect\w*|support\w*)|\b(?:approv\w+|elected|re-?elected)\b.{0,25}\bby (?:the )?(?:shareholders?|"
+    r"securityholders?|stockholders?)|\bannual (?:general )?(?:and special )?meeting|\bannual and special meeting|"
+    r"\bspecial (?:general )?meeting|\bAGM\b|\bAGSM\b|\bmeeting of (?:share|security|stock)holders|\bproxy (?:fight|"
+    r"contest|circular|advisor\w*|solicitation)|\binformation circular|\bmanagement circular|\brequisition\w*|"
+    r"\balternate slate|\bdissident|\badvance notice (?:policy|provision|by-?law)|\bvoting results|"
+    r"\bresults of (?:the )?(?:annual|special|shareholder)", re.I)
+
+
+def _v20_mtg_add(h, l, codes):
+    """A shareholder meeting, vote, approval, circular or requisition named in the headline."""
+    if "mtg" in codes:
+        return set(), set()
+    if not _V20_MTG_ADD.search(h):
+        return set(), set()
+    # an exchange or court approval alone is not a shareholder meeting
+    if re.search(r"\b(?:exchange|TSX|TSXV|CSE|court|regulator\w*|government|ministry)\b.{0,15}\bapprov", h, re.I) and \
+            not re.search(r"\bshareholder|meeting|AGM|vote", h, re.I):
+        return set(), set()
+    # a clarification of a circular is Regulatory; a proposed-transaction update is not a meeting by itself
+    if re.search(r"\bclarif\w+|\bretract\w*", h, re.I) and not re.search(r"\bmeeting|AGM|vote", h, re.I):
+        return set(), set()
+    return {"mtg"}, set()
+
+
+# ------------------------------------------------------------------ Corporate Actions
+_V20_ACT_ADD = re.compile(
+    r"\b(?:share consolidation|consolidation of (?:its |the )?(?:issued |outstanding |common )*shares|"
+    r"consolidat\w+ (?:its |the )?(?:issued |outstanding |common )*(?:shares|share capital|stock)|"
+    r"(?:proposed |share |stock )?roll-?back|stock split|share split|forward split|name change|change (?:of|its) "
+    r"(?:corporate )?name|changes? (?:its )?name|chang\w+ name to|renam\w+|to be renamed|formerly|"
+    r"continuance|continu\w+ (?:in)?to (?:the )?(?:province|jurisdiction|laws|British Columbia|Ontario|"
+    r"Alberta|Canada|Nevada|Delaware|Wyoming|Quebec)|continu\w+ under the (?:laws|\w+ Business Corporations)|"
+    r"continu\w+ out of|emigrat\w+|domesticat\w+|re-?domicil\w+|"
+    r"dividends?|special distribution|shareholder distribution|distribution to shareholders|return of capital|"
+    r"(?:shareholder )?rights plan)\b", re.I)
+
+
+def _v20_act_add(h, l, codes):
+    """Share consolidation/split, issuer name change, continuance, dividend or distribution, rights plan in the
+    headline. Spin-outs and the opening-text fallback did not ship (spin-outs await an owner ruling)."""
+    if "act" in codes:
+        return set(), set()
+    hit = _V20_ACT_ADD.search(h)
+    if not hit:
+        return set(), set()
+    # property / claim / interest consolidation, distribution agreements and 'formerly' alone are not actions
+    if re.search(r"\bconsolidat\w+ (?:of )?(?:the |its |a |100% )*(?:\w+ ){0,3}(?:land|claims?|property|properties|"
+                 r"project|district|interest|ownership|package|holdings?|camp|position|tenure)", h, re.I) and \
+            not re.search(r"\bshares|roll-?back|share capital", h, re.I):
+        return set(), set()
+    if re.search(r"\bdistribution (?:agreement|rights|network|centre|center)\b", h, re.I) and not \
+            re.search(r"\bdividend|shareholder", h, re.I):
+        return set(), set()
+    if re.search(r"\bformerly\b", hit.group(0), re.I) and not re.search(r"\bname|renam", h + " " + l[:300], re.I):
+        return set(), set()
+    if re.search(r"\b(?:ticker|symbol)\b", h, re.I) and not re.search(r"\bname|renam|consolidat|split", h, re.I):
+        return set(), set()
+    # a renamed project / property / facility, or another company "(proposed to be renamed ...)", is not the issuer's
+    if re.search(r"\brenam", hit.group(0), re.I) and (
+            re.search(r"\brenam\w+\b[^.;:]{0,60}\b(?:project|property|deposit|zone|mine|facility|plant|prospect)", h, re.I)
+            or re.search(r"\b(?:project|property|deposit|zone|mine)\b.{0,30}\brenam", h, re.I)
+            or re.search(r"\((?:proposed )?to be renamed[^)]*\)", h, re.I)):
+        return set(), set()
+    # a dividend counts when it is declared / paid / set, not a mention of dividend capacity or growth
+    if re.search(r"\bdividend", hit.group(0), re.I) and not re.search(
+            r"\b(?:declar\w+|pay\w*|paid|initiat\w+|inaugural|special|quarterly|annual|maiden|first|increas\w+|"
+            r"per (?:common )?share|policy|reinvest\w*|record date|in[\s-]kind|distribut\w+)\b|\$", h, re.I):
+        return set(), set()
+    return {"act"}, set()
+
+
+# ------------------------------------------------------------------ Listings & Exchange
+_V20_LST_ADD = re.compile(
+    r"\b(?:name change|change (?:of|its) (?:corporate )?name|changes? (?:its )?name|chang\w+ name to|renam\w+|"
+    r"to be renamed|new (?:\w+ ){0,2}symbol|symbol change|ticker (?:symbol )?change|"
+    r"change (?:of|in) (?:trading |stock )?symbol|resum\w+ (?:of )?(?:trading|trade)|reinstat\w+ (?:of |to )?"
+    r"(?:trading|trade)|trading (?:halt|resum\w+|reinstat\w+)|halted|halt(?:s)? trading|begins? trading|"
+    r"commenc\w+ trading|(?:to )?commence trading|start\w* trading|listed on|listing on|to list on|"
+    r"(?:conditional |final )?(?:listing )?approval (?:to list|for listing)|lists? (?:its )?(?:common )?shares|"
+    r"uplist\w*|delist\w*|graduat\w+ to|(?:upgrad\w+|graduat\w+|commenc\w+|begins?|start\w*|approv\w+|qualif\w+|trading|listed|listing|mov\w+) (?:to |on |for )?(?:trade on )?(?:the )?OTCQ[BX]|DTC eligib\w*|(?:transfer\w*|mov\w+) to (?:the )?(?:NEX|TSX|"
+    r"TSXV|TSX Venture|CSE|NYSE|Nasdaq)|NEX board|(?:completes?|completion of|closes?|closed) (?:its |the )?"
+    r"(?:qualifying transaction|change of business))\b", re.I)
+
+
+def _v20_lst_add(h, l, codes):
+    """Listing events, trading halts/resumptions, symbol changes, QT completions, and (owner 2026-10-12) every issuer
+    name change."""
+    if "lst" in codes:
+        return set(), set()
+    m = _V20_LST_ADD.search(h)
+    if not m:
+        return set(), set()
+    # a renamed project or property is not an issuer name change
+    if re.search(r"\brenam\w+\b", m.group(0), re.I) and (
+            re.search(r"\b(?:project|property|deposit|zone|mine)\b.{0,30}\brenam", h, re.I) or
+            re.search(r"\brenam\w+\b[^.;:]{0,60}\b(?:project|property|deposit|zone|mine|facility|plant|prospect)", h, re.I) or
+            re.search(r"\((?:proposed )?to be renamed[^)]*\)", h, re.I)):
+        return set(), set()
+    if re.search(r"\bupdate\b", h, re.I) and re.search(r"qualifying transaction|change of business", m.group(0), re.I):
+        return set(), set()
+    # a cease trade order on its own stays Regulatory (it is not a listing event)
+    if re.search(r"\bcease[\s-]trade|\bMCTO\b|\bCTO\b", h, re.I) and not re.search(
+            r"\bresum|reinstat|revo\w+|lift", h, re.I):
+        return set(), set()
+    return {"lst"}, set()
+
+
+# ------------------------------------------------------------------ Metallurgy & Processing
+_V20_MET_ADD = re.compile(
+    r"\b(?:test[\s-]?work|bench[\s-]?scale|bottle[\s-]roll|column (?:leach|test)\w*|leach (?:test|"
+    r"results|recover\w*)|flotation (?:test\w*|results|recover\w*|work)|flow[\s-]?sheet|ore sort\w*|beneficiat\w+|locked[\s-]cycle|comminution|"
+    r"(?:\d+(?:\.\d+)?\s?%|high) (?:\w+ ){0,2}recover(?:y|ies)|recover(?:y|ies) of (?:up to )?\d|"
+    r"(?:pilot|demonstration|demo) (?:plant|scale|program|test\w*) (?:results|test\w*|run|campaign|produc\w+)|"
+    r"(?:extraction|processing|leach|separation|purification|refining) (?:test\w*|results)|"
+    r"(?:laboratory|lab|bench) (?:test\w*|results))\b", re.I)
+
+
+def _v20_met_add(h, l, codes):
+    """Metallurgical / processing test work or process-development results named in the headline."""
+    if "met" in codes:
+        return set(), set()
+    if not _V20_MET_ADD.search(h):
+        return set(), set()
+    # awards / institutes named after metallurgy, and assay or geochemical programs, are not test work
+    if re.search(r"\b(?:institute|medal|award|society|association)\b", h, re.I):
+        return set(), set()
+    # appointments of metallurgists / advisors are people news; lab results on drill core are assays
+    if re.search(r"\b(?:appoint\w*|joins|hires?|hired|advis[oe]r|consultant|director|officer|VP|president)\b", h, re.I):
+        return set(), set()
+    if re.search(r"\b(?:lab|laboratory) results\b", h, re.I) and re.search(r"\bdrill|core|assay|kimberlite", h, re.I) and \
+            not re.search(r"\bmetall?urg|recover|leach|flotation", h, re.I):
+        return set(), set()
+    if re.search(r"\bassay\w*|geochem\w*|trench\w*", h, re.I) and not re.search(
+            r"\bmetall?urg\w* (?:test|results|recover)|test[\s-]?work|recover(?:y|ies)", h, re.I):
+        return set(), set()
+    # recovery of costs / economic recovery, or a recovery in prices, is not metallurgy
+    if re.search(r"\brecover\w*\b", h, re.I) and not re.search(
+            r"\bmetall?urg|test|leach|flotation|gold|silver|copper|lithium|nickel|zinc|graphite|rare earth|REE|"
+            r"uranium|% (?:\w+ )?recover", h, re.I):
+        return set(), set()
+    return {"met"}, set()
+
+
+# ------------------------------------------------------------------ Regulatory & Compliance
+_V20_REG_ADD = re.compile(
+    r"\b(?:early warning|cease[\s-]trade order|management cease[\s-]trade|MCTO|failure to file|filing deadline|"
+    r"(?:delay\w*|late) (?:in )?(?:the )?filing|unable to (?:file|meet)|not (?:be )?able to (?:file|meet)|"
+    r"bi-?weekly (?:default )?(?:status )?(?:report|update)|default status|revoc\w+ of (?:the )?(?:management )?"
+    r"cease|continuous disclosure review|change of auditor|auditor change|resignation of (?:the )?auditor|"
+    r"(?:at the )?request of (?:the )?(?:British Columbia|Ontario|Alberta|BC) Securities Commission|"
+    r"(?:BCSC|OSC|ASC|AMF|CIRO|IIROC) (?:review|request|order|settlement|investigation|hearing)|"
+    r"securities commission|Form 7|delinquent filer|"
+    r"to file (?:its |the )?(?:\w+ ){0,4}late)\b", re.I)
+
+
+def _v20_reg_add(h, l, codes):
+    """Early warning reports, cease trade orders, filing delays, commission reviews, auditor changes."""
+    if "reg" in codes:
+        return set(), set()
+    m = _V20_REG_ADD.search(h)
+    if m:
+        if re.search(r"\b(?:acqui|dispos)", m.group(0), re.I) and (
+                re.search(r"\ball (?:of )?the (?:issued )?shares|\b100\s?%|wholly[\s-]owned|subsidiar|\boffer\b|"
+                          r"takeover|take-over|non-dilution|anti-dilution|participation right|pre-?emptive", h, re.I) or
+                not re.search(r"\bearly warning|securityholding|ownership|\b\d+(?:\.\d+)?\s?%|"
+                              r"(?:common|issued and outstanding) shares", h + " " + l[:600], re.I)):
+            return set(), set()
+        if re.fullmatch(r"(?i)\W*(?:british columbia|ontario|alberta)? ?securities commission\W*", h.strip()):
+            return set(), set()
+        return {"reg"}, set()
+    # an early warning report named only in the opening text
+    if re.search(r"\bearly warning report\b", l[:600], re.I) and re.search(
+            r"\bacquir\w+|dispos\w+|holdings?|ownership|shares\b", h, re.I):
+        return {"reg"}, set()
+    return set(), set()
+
+
+# ------------------------------------------------------------------ Partnerships & JV (earn-in family + explicit JV)
+_V20_JV_ADD = re.compile(
+    r"\b(?:joint[\s-]venture|JV|earn[\s-]?in|farm[\s-]?in|farm[\s-]?out|option to (?:earn|acquire) (?:an? |up to |"
+    r"an undivided |a further |an additional )*(?:[1-9]\d?(?:\.\d+)?) ?%|(?:earn|earns|earned|earning|acquire|"
+    r"acquires|acquired|acquiring) (?:an? |up to |an undivided |a further |an additional |its )*(?:[1-9]\d?(?:\.\d+)?)"
+    r" ?% (?:interest|undivided interest|ownership|stake)|strategic (?:alliance|partnership|collaboration)|"
+    r"memorandum of understanding|MOU|collaboration agreement|co-?operation agreement|partnership agreement|"
+    r"exploration alliance|consortium)\b", re.I)
+
+
+def _v20_jv_add(h, l, codes):
+    """Explicit JV / earn-in / farm-in / option to earn a partial interest / alliance or MOU in the headline."""
+    if "jv" in codes:
+        return set(), set()
+    m = _V20_JV_ADD.search(h)
+    if not m:
+        return set(), set()
+    # an earn-in to 100% is an option to buy outright (owner 2026-10-12: only partial interests are JV)
+    if re.search(r"\b100\s?%", h, re.I) and re.search(r"\bearn[\s-]?in|option", h, re.I) and not re.search(
+            r"\bjoint[\s-]venture|\bJV\b|partner", h, re.I):
+        return set(), set()
+    # a stake in another listed company is an investment, not a JV
+    if re.search(r"\d\s?% (?i:interest|stake|ownership) (?i:in) (?:\w+ ){0,3}(?i:Resources|Mining|Minerals|Metals|Gold|"
+                 r"Silver|Corp\w*|Inc|Ltd|Limited|Ventures|Exploration)\b", h) and not re.search(
+            r"\bproject|property|joint[\s-]venture|\bJV\b", h, re.I):
+        return set(), set()
+    # a named JV (e.g. "Pardo JV", "Hook Lake JV") as the setting of exploration, drilling or resource news
+    if re.search(r"(?-i:[A-Z][\w'’.-]*)\s+(?:JV|Joint Venture|JOINT VENTURE)\b", h) and re.search(
+            r"\b(?:drill\w*|program\w*|survey|geophysic\w*|intersect\w*|identif\w+|defin\w+|anomal\w+|assay\w*|"
+            r"sampl\w+|resource|exploration|update|results?|holes?|expansion|ramp|discover\w*)\b", h, re.I) and not re.search(
+            r"\b(?:form\w*|sign\w*|enter\w*|terminat\w+|amend\w+|agreement|interest|stake|budget|earn\w*|"
+            r"approv\w+|vest\w*|partner\w*|acqui\w+|sell\w*|sale)\b", h, re.I):
+        return set(), set()
+    # an earn-in / farm-out named only as the setting of drilling or operations news
+    if re.search(r"\b(?:earn[\s-]?in|farm[\s-]?(?:in|out)) (?:drill\w*|program\w*|partner\w*|well|project)|"
+                 r"\b(?:drill\w*|operations update|production)\b.{0,60}\b(?:earn[\s-]?in|farm[\s-]?(?:in|out))\b|"
+                 r"\b(?:earn[\s-]?in|farm[\s-]?(?:in|out))\b.{0,60}\b(?:drilling|well)\b", h, re.I) and not re.search(
+            r"\b(?:sign\w*|enter\w*|terminat\w+|amend\w+|agreement|payment|complet\w+|earns|earned|achiev\w+|"
+            r"vest\w*|exercis\w+|approv\w+|extend\w*|extension|interest|stake|\d\s?%)\b", h, re.I):
+        return set(), set()
+    # joining an industry or defence consortium is a membership, not a partnership
+    if re.search(r"\bconsortium\b", m.group(0), re.I) and re.search(r"\b(?:joins?|joined|member\w*|selected)\b", h, re.I):
+        return set(), set()
+    # an earn-in whose opening text says it is for 100% (and names no partial interest) is an outright option
+    if re.search(r"\bearn[\s-]?in|option", h, re.I) and not re.search(r"\d\s?%|joint[\s-]venture|\bJV\b", h, re.I) and \
+            re.search(r"\b(?:earn|acquire|own)\w* (?:an? |up to |an undivided |a |the remaining |of )*100\s?%", l[:700], re.I) and \
+            not re.search(r"\b(?:earn|acquire)\w* (?:an? |up to |an undivided |a further |an additional |its |initial )*"
+                          r"[1-9]\d?(?:\.\d+)?\s?%", l[:700], re.I):
+        return set(), set()
+    # marketing / investor-relations "partnerships" are not JV (owner scope)
+    if re.search(r"\b(?:marketing|investor relations|media|advertis\w+|awareness|promotion\w*|IR)\b", h, re.I) and \
+            not re.search(r"\bjoint[\s-]venture|earn[\s-]?in|farm[\s-]?in|\d ?%", h, re.I):
+        return set(), set()
+    # an existing JV or JV partner named only as the setting of exploration activity
+    if re.search(r"\b(?:JV|joint[\s-]venture) (?:partner|project|property|claims?)\b|\bat (?:the )?(?:\w+ ){1,4}"
+                 r"(?:JV|joint[\s-]venture)\b", h, re.I) and re.search(
+            r"\b(?:commenc\w+|begins?|starts?|reports?|drill\w*|survey|geophysic\w*|intersect\w*|identif\w+|"
+            r"assay\w*|sampl\w+|program\w*|results?|exploration)\b", h, re.I) and not re.search(
+            r"\b(?:form\w*|sign\w*|enter\w*|terminat\w+|amend\w+|agreement|interest|stake|budget|earn\w*|"
+            r"approv\w+|vest\w*)\b", h, re.I):
+        return set(), set()
+    # an existing JV named only as the setting of drill/sampling results
+    if re.fullmatch(r"(?i)JV|joint[\s-]venture", m.group(0)) and re.search(
+            r"\b(?:intersect\w*|drill\w* results|assay\w*|grades?|g/t|samples? (?:return|results)|"
+            r"discover\w*)\b", h, re.I) and not re.search(r"\b(?:form\w*|sign\w*|enter\w*|terminat\w+|amend\w+|"
+                                                       r"agreement|interest|stake|budget|partner)\b", h, re.I):
+        return set(), set()
+    return {"jv"}, set()
+
+
+_V20_RULES = [
+    ("fns_add", _v20_fns_add),
+    ("mtg_add", _v20_mtg_add),
+    ("act_add", _v20_act_add),
+    ("lst_add", _v20_lst_add),
+    ("met_add", _v20_met_add),
+    ("reg_add", _v20_reg_add),
+    ("jv_add", _v20_jv_add),
+]
+
+
+def _v20_apply(codes, h, l, why=None):
+    """codes: set of tag codes; returns the new set (never empty)."""
+    A, D = set(), set()
+    for name, fn in _V20_RULES:
+        try:
+            a, d = fn(h, l, set(codes))
+        except Exception:
+            continue
+        a = (set(a) & set(CODE_TO_CAT)) - codes
+        d = set(d) & codes
+        if (a or d) and why is not None:
+            why.append(name)
+        A |= a
+        D |= d
+    both = A & D
+    A -= both
+    D -= both
+    out = (codes | A) - D
+    if (A - {"cor"}) and "cor" in out:
+        out.discard("cor")
+    return out or {"cor"}
+
+
+def v20_fix(cats, headline, body, why=None):
+    """TAGFIX_V10 layer: runs after v19_fix on the finished category list."""
+    cur = list(cats or [])
+    codes = {CAT_TO_CODE.get(c, c) for c in cur}
+    if not codes or not codes <= set(CODE_TO_CAT):
+        return cur
+    l = re.sub(r"\s+", " ", lede(body or "", 900)).strip()
+    new = _v20_apply(codes, headline or "", l, why)
+    if new == codes:
+        return cur
+    return [c for c in CATEGORIES if CAT_TO_CODE[c] in new]
+
+
+# ---------------------------------------------------------------- TAGFIX_V11 (TAG7 round 4, 2026-10-12)
+# Catch rules: add a missed tag on the seven new-tab tags, blind-checked on fresh releases (rules that failed are not
+# here). Same contract as TAGFIX_V8-V10: each rule fn(headline, lede900, codes) -> (add, drop), on the finished tag set.
+# Owner ruling 2026-10-12: a spin-out is Corporate Actions when the company's shareholders receive the new shares.
+# ------------------------------------------------------------------ Corporate Actions: spin-outs
+_V21_SPIN = re.compile(r"\b(?:spin[\s-]?outs?|spinouts?|spin[\s-]?offs?|spinco|spun[\s-]?out)\b", re.I)
+_V21_SPIN_TO_HOLDERS = re.compile(
+    r"\b(?:shareholders?|securityholders?|holders of (?:common )?shares|plan of arrangement|arrangement|"
+    r"record date|distribut\w+|dividend(?:[\s-]in[\s-]kind)?|share exchange|reorganiz\w+|spinco shares|"
+    r"pro[\s-]rata)\b", re.I)
+
+
+def _v21_act_spin_add(h, l, codes):
+    """A spin-out whose shares go to the company's shareholders (headline names the spin-out; headline or opening
+    text names shareholders, an arrangement, a record date or a distribution)."""
+    if "act" in codes:
+        return set(), set()
+    if not _V21_SPIN.search(h):
+        return set(), set()
+    if not (_V21_SPIN_TO_HOLDERS.search(h) or _V21_SPIN_TO_HOLDERS.search(l[:900])):
+        return set(), set()
+    # the spun-out company's own financing, listing, report or drilling is not the distribution
+    if re.search(r"\b(?:private placement|financing|upsiz\w+|placement|technical report|NI 43-101|drill\w*|"
+                 r"executes?|deal|signs?|option agreement|"
+                 r"assay\w*|intersect\w*|completes? (?:\w+ )?listing|commences? trading|begins? trading)\b", h, re.I) \
+            and not re.search(r"\b(?:shareholders?|record date|distribut\w+|arrangement|approv\w+|complet\w+ (?:of )?"
+                              r"(?:the )?spin|clos\w+ (?:of )?(?:the )?spin)\b", h, re.I):
+        return set(), set()
+    # a "spin-out" that is a sale to another company or a JV restructuring
+    if re.search(r"\b(?:sale|sell\w*|sold|letter of intent|LOI|joint[\s-]venture|JV|ExploreCo|partners?)\b", h, re.I) \
+            and not re.search(r"\bshareholders?|record date|distribut\w+|arrangement\b", h, re.I):
+        return set(), set()
+    # passing mentions: event invitations, management changes, warrant news
+    if re.search(r"\b(?:invites?|PDAC|conference|webinar|retire\w*|appoint\w*|warrants?)\b", h, re.I) and not \
+            re.search(r"\bspin[\s-]?out (?:of|transaction|update)|spinco|record date|distribut\w+", h, re.I):
+        return set(), set()
+    return {"act"}, set()
+
+
+# ------------------------------------------------------------------ Metallurgy: the word "metallurgical"
+_V21_MET_WORD = re.compile(r"\bmetall?urg(?:y|ical|ically)\b", re.I)
+
+
+def _v21_met_word_add(h, l, codes):
+    """'Metallurgical' work named in the headline: test work, studies, samples for testing, metallurgical drill
+    programs (they exist to supply test samples). Not assay intersections from those holes, project names, people."""
+    if "met" in codes:
+        return set(), set()
+    if not _V21_MET_WORD.search(h):
+        return set(), set()
+    if re.search(r"\b(?:institute|medal|award|society|association|appoint\w*|joins|hires?|hired|advis[oe]r|"
+                 r"consultant|director|officer|VP|president|engineer|metallurgist)\b", h, re.I):
+        return set(), set()
+    # a metallurgical drill program reported for its grades is drill news
+    if re.search(r"\b(?:intersect\w*|intercept\w*|assay\w*|trench\w*|g/t|grades?|high[\s-]grade|defines?|mineraliz\w+|"
+                 r"discover\w*|SiO2|samples up to|assays? up to|\d+(?:\.\d+)?\s?% (?:Cu|Zn|Ni|Li2O|SiO2))\b", h, re.I) and \
+            not re.search(r"\b(?:recover\w*|test\w*|leach\w*|flotation|concentrate)\b", h, re.I):
+        return set(), set()
+    # 'Metallurgical' as part of a project or property name
+    if re.search(r"\bmetall?urgical (?:silica|coal|grade|sand)\b|\b(?:project|property)\b.{0,10}$", h, re.I) and not \
+            re.search(r"\b(?:test\w*|results|recover\w*)\b", h, re.I):
+        return set(), set()
+    # another company's facility ("X's metallurgical laboratory") reported by a partner
+    if re.search(r"\w+[’']s (?:\w+ ){0,3}metall?urgical (?:lab\w*|facility|plant)", h, re.I):
+        return set(), set()
+    return {"met"}, set()
+
+
+_V21_RULES = [
+    ("act_spin_add", _v21_act_spin_add),
+    ("met_word_add", _v21_met_word_add),
+]
+
+
+def _v21_apply(codes, h, l, why=None):
+    """codes: set of tag codes; returns the new set (never empty)."""
+    A, D = set(), set()
+    for name, fn in _V21_RULES:
+        try:
+            a, d = fn(h, l, set(codes))
+        except Exception:
+            continue
+        a = (set(a) & set(CODE_TO_CAT)) - codes
+        d = set(d) & codes
+        if (a or d) and why is not None:
+            why.append(name)
+        A |= a
+        D |= d
+    both = A & D
+    A -= both
+    D -= both
+    out = (codes | A) - D
+    if (A - {"cor"}) and "cor" in out:
+        out.discard("cor")
+    return out or {"cor"}
+
+
+def v21_fix(cats, headline, body, why=None):
+    """TAGFIX_V11 layer: runs after v20_fix on the finished category list."""
+    cur = list(cats or [])
+    codes = {CAT_TO_CODE.get(c, c) for c in cur}
+    if not codes or not codes <= set(CODE_TO_CAT):
+        return cur
+    l = re.sub(r"\s+", " ", lede(body or "", 900)).strip()
+    new = _v21_apply(codes, headline or "", l, why)
+    if new == codes:
+        return cur
+    return [c for c in CATEGORIES if CAT_TO_CODE[c] in new]
+
+
 def categorize(headline: str | None, body: str | None, ticker: str | None = None) -> list[str]:
     """Return the categories this release belongs to, in CATEGORIES order
     (v8 = v7 + five tags; CU_RESCUE_V1 re-reads what is still Corporate Updates alone)."""
     cats, _recovered = categorize_v7(headline, body)
-    return v13_memory(v18_fix(v17_fix(v16_fix(v15_fix(v14_fix(v12_fix(v11_fix(add_v10_tags(add_v9r_tags(add_v8_tags(cats, headline, _recovered), headline, _recovered),
+    return v13_memory(v21_fix(v20_fix(v19_fix(v18_fix(v17_fix(v16_fix(v15_fix(v14_fix(v12_fix(v11_fix(add_v10_tags(add_v9r_tags(add_v8_tags(cats, headline, _recovered), headline, _recovered),
                                                           headline, _recovered),
                                              headline, _recovered, body),
                                      headline, _recovered, body, ticker),
@@ -5076,7 +5665,10 @@ def categorize(headline: str | None, body: str | None, ticker: str | None = None
                     headline, _recovered, body, ticker),
                    headline, _recovered, body, ticker),
                       headline, body),
-                      headline, body, ticker)   # NEWTAGS_V1, TAGFIX_V1, TAGFIX_V2, TAGFIX_V4, TAGFIX_V5, TAGFIX_V6, TAGFIX_V7, TAGFIX_V8, TAGFIX_V3
+                      headline, body),
+                      headline, body),
+                      headline, body),
+                      headline, body, ticker)   # NEWTAGS_V1, TAGFIX_V1, TAGFIX_V2, TAGFIX_V4, TAGFIX_V5, TAGFIX_V6, TAGFIX_V7, TAGFIX_V8, TAGFIX_V9, TAGFIX_V10, TAGFIX_V11, TAGFIX_V3
 
 
 def format_categories(cats: Iterable[str]) -> str:
@@ -6088,6 +6680,29 @@ SELF_TEST += [
     ('Libra Congratulates Athena Gold on New Discovery in Red Lake', '', ['Company Commentary'], ['Exploration Programs']),
     ('Acme Mining Completes Reverse Takeover of Beta Minerals', '', ['Management Changes'], []),
     ('Acme Minerals Engages Investor Relations Firm Red Cloud Communications', '', ['Marketing Announcement'], []),
+]
+
+SELF_TEST += [
+    # --- TAGFIX_V9 (TAG7, 2026-10-11) -----------------------------------------
+    ('Acme Gold Files Annual Information Form', '', [], ['Financials']),
+    ('Acme Gold Receives Cease Trade Order', '', [], ['Listings & Exchange']),
+    ('Acme Mining Restarts Processing Plant at Red Hill', '', [], ['Metallurgy & Processing']),
+]
+
+SELF_TEST += [
+    # --- TAGFIX_V10 (TAG7 step 2, 2026-10-12) ---------------------------------
+    ('Acme Gold Announces Results of Annual General Meeting', '', ['Shareholder Meetings'], []),
+    ('Acme Gold Announces Share Consolidation', '', ['Corporate Actions'], []),
+    ('Acme Gold Changes Name to Beta Gold Corp.', '', ['Corporate Actions', 'Listings & Exchange'], []),
+    ('Acme Gold Files Early Warning Report', '', ['Regulatory & Compliance'], []),
+    ('Acme Gold Signs Earn-In Agreement with Major Mining Co. for 70% Interest in Red Hill', '', ['Partnerships & JV'], []),
+    ('Acme Gold Announces Delay in Filing Annual Financial Statements', '', ['Regulatory & Compliance'], ['Financials']),
+]
+
+SELF_TEST += [
+    # --- TAGFIX_V11 (TAG7 round 4, 2026-10-12) --------------------------------
+    ('Acme Gold Announces Spin-Out of Red Hill Project to Shareholders by Plan of Arrangement', '', ['Corporate Actions'], []),
+    ('Acme Gold Reports Results of Metallurgical Test Program at Red Hill', '', ['Metallurgy & Processing'], []),
 ]
 
 

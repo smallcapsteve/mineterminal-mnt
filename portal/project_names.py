@@ -53,9 +53,11 @@ find_with(text, fallback, issuer), the shared adapter -- the helper's names firs
 helper names none, never a mill, deposits after projects.
 """
 import re
+import threading
 import unicodedata
 
-VERSION = "1.0.5"  # 2026-09-27: several projects per release -- release_projects(), project_at() (see _selftest)
+VERSION = "1.0.7"  # 2026-10-18 (PNSRC): the register's junk rules -- headline verbs and lower-case tails come off; everyday words alone are not a name (no suffix). 2026-10-13 (rev 6e): PNJUNK -- row labels, lone generic words, codes and regions are not names; 1.0.6 only removes
+# (1.0.5 2026-09-27: several projects per release -- release_projects(), project_at())
 
 # where each answer key keeps its project-name labels: (container, field). A container of None means a list at the
 # top of expect. New readers: add a line here (or give the TagSpec a `project_labels` attribute).
@@ -116,7 +118,8 @@ Acquired Newly-Acquired Independent Explore Explores Exploring Advance Develop D
 Retained Remaining Existing Adjoining Contiguous Surrounding Underlying Subject Said Above Following Underground Surface
 Open Open-Pit Pit Undeveloped Economically Robust Highly Fully Viable Attractive Compelling Profitable Leading
 Largest First-Ever Upcoming Material Style Regarding Top Top-Tier Typical Orogenic Combined Confirming Portfolio Celebrates Determines Proven Permitted Fully-Permitted
-Restart Infill Successful Near-Term Modelled Modeled External Lode""".split())
+Restart Infill Successful Near-Term Modelled Modeled External Lode
+Expand Funded Fully-Funded Fully Promising Process Report- Purchase Initiative Previous""".split())   # 1.0.6
 _ELEM = {"Au", "Ag", "Cu", "Ni", "Pt", "Pd", "Zn", "Pb", "Co", "Mo", "Li", "U", "W", "Sb", "Sn", "Fe", "V", "PGE",
          "PGM", "REE", "Nd", "Pr", "Dy", "Tb", "Te", "Bi", "Mn", "Ga", "Ge", "In"}
 _NATION = {"US", "U.S.", "U.S", "Canadian", "American", "Mexican", "Peruvian", "Chilean", "Argentine", "Argentinian", "Brazilian",
@@ -140,7 +143,9 @@ Continues Approves Approved Received Submits Applies Pours Produces Restarts Sus
 Signed Acquired Awards Award Stakes Staked Backs Supports Applauds Congratulates Celebrates Determines Confirming
 About Strategy Overview Summary Transfer These Those Our Their Its Regarding Clarifies Information President
 Vice Manager Officer Chair Chairman Annonce Annoncent Des Pour Relancer Avec Dans Which Holds Hold Holding Advancing Accelerates Accelerate Prepares Prepare Plans Receives Welcomes Figure Table Map Photo Appendix Corp
-Corp. Inc Inc. Ltd Ltd. Limited Corporation LLC Plc Accessible""".split())
+Corp. Inc Inc. Ltd Ltd. Limited Corporation LLC Plc Accessible
+Commissions Commissioned Renews Renewed Renegotiates Renegotiated Leases Leased Purchases Purchased Re-Activates
+Reactivates Activates Expands Expanded""".split())   # 1.0.6: "Gold Port Renews Groete", "TRX Gold Commissions Expanded"
 _METAL_CHAIN = re.compile(r"^(?:[A-Z][a-z]?|PGE|REE)(?:[-/](?:[A-Z][a-z]?|PGE|REE))+$")   # Cu-Zn-Au-Ag, Ni-Cu-PGE
 _DESCRIPTIVE = {"large", "scale", "high", "grade", "world", "class", "tier", "one", "district", "open", "pit", "near",
                 "surface", "past", "producing", "drill", "ready", "shovel", "wholly", "owned", "advanced", "stage", "early", "late", "bulk", "tonnage",
@@ -160,6 +165,119 @@ _CONTEXT_NOT_OURS = re.compile(r"(?i)\b(?:adjacent\s+to|near|next\s+to|neighbou?
                                r"similar\s+to|analogous\s+to|like)\s+(?:the\s+|its\s+)?(?:[\w\-’']+\s+){0,2}$")
 _ACRO = {"IP", "EM", "RC", "JV", "NI", "PGE", "REE", "VMS", "TSX", "CSE", "BC", "MT", "USA", "US", "NWT", "II", "III",
          "IV", "PGM", "DSO", "CGP", "RSM"}
+
+# 1.0.6 (PNJUNK): words of a resource table's row labels -- a name made only of these (with generic words, joins and
+# numbers) is a row of the table, not a deposit: "Fresh", "Transitional", "Project Total", "Pit-Constrained",
+# "Total Open Pit", "Selective Underground", "Stockpiles"
+_ROWLABEL = set("""fresh oxide oxides transition transitional sulphide sulphides sulfide sulfides supergene hypogene
+saprolite laterite total totals subtotal grand open pit pits open-pit in-pit pit-constrained constrained underground ug op
+stockpile stockpiles low-grade high-grade selective bulk inferred indicated measured proven probable m&i reserve reserves
+category cut-off cutoff dilution diluted undiluted tailings scenario""".split())
+# a lone word that names nothing when it stands without a suffix ("North", "Mount", "Greenfield"); with a suffix only
+# the directions and table words stay out ("North Project" is a direction, "Star Property" may be a name)
+_LONE_NOSUF = set("""north south east west central main upper lower mount mt green greenfield brownfield halo vein veins
+star rock big little deep far near new old basal satellite extension us usa america americas""".split())
+_LONE_ANY = set("""north south east west northeast northwest southeast southwest central main upper lower greenfield
+brownfield us usa""".split())
+# business words: "Operations and Growth", "Corporate Update", "Growth Projects"
+_BUSINESS = set("""operations operation growth expansion expansions development corporate update updates strategy
+outlook portfolio assets asset results overview business company organic pipeline loan loans facility facilities
+credit""".split())
+_CODE = re.compile(r"^(?:[A-Za-z]\d{1,3}[A-Za-z]?(?:-[A-Za-z]?\d{1,3})?|[IVX]{2,4}|\d+[A-Za-z]?)$")   # D4, J4-J5, II
+_DIRECTIONAL = re.compile(r"^(?:north|south|east|west|central|northern|southern|eastern|western|north-?east|"
+                          r"north-?west|south-?east|south-?west|northeastern|northwestern|southeastern|southwestern)$", re.I)
+_REGION_EXTRA = re.compile(r"(?i)^(?:US|U\.S\.?|Ring\s+of\s+Fire|ROF|Golden\s+Triangle|Abitibi|Athabasca(?:\s+Basin)?|"
+                           r"Americas|Latin\s+America|North\s+America|South\s+America|Africa|West\s+Africa|Europe|"
+                           r"Scandinavia|Fennoscandia)$")
+# a weak word: alone it cannot stand for a longer name in same() / key()
+_SEASON = {"Spring", "Summer", "Fall", "Winter", "Autumn"}     # 1.0.6: "Spring Valley Gold Mine" keeps "Spring"
+_WEAK = set("""mount mt north south east west central main upper lower lake lakes river creek hill hills mountain
+mountains valley bay canyon ridge road point island peak falls brook gulch pass range basin star rock big little black
+white red green blue golden new old deep far near extension zone""".split())
+
+# rev 6 (2026-10-13): 1.0.6 only REMOVES. What 1.0.5 (live) read is kept for the checks in primary(), find_with() and
+# release_projects(): when 1.0.6 rejects the name 1.0.5 picked, the answer is no name (or 1.0.5's name in 1.0.6's
+# spelling), never the next candidate ("Northeast Prospects" rejected must not make a release about "Lupin Mine", a
+# mine its body only mentions).
+_LEAD_ADD = set("""Expand Fully-Funded Funded Initiative Previous Process Promising Purchase Report-""".split())
+_INNER_ADD = set("""Activates Commissioned Commissions Expanded Leased Leases Purchased Purchases Re-Activates Reactivates
+Renegotiated Renegotiates Renewed Renews""".split())
+_TL = threading.local()                                    # .live: True inside _as_live() (1.0.5's rules), per thread
+_LEAD_105 = _LEAD - _LEAD_ADD
+_INNER_105 = _INNER_STOP - _INNER_ADD
+# 1.0.7 (PNSRC, 2026-10-18): the project register's junk rules (claude/PROJREG_FINDINGS_2026-10-14.md), as trims.
+# Headline verbs that may not open a name ("Issues Piskanja Project") and that end a lead-in inside one; added to the
+# 1.0.6+ sets only (1.0.5's _LEAD_105 / _INNER_105 above are already fixed).
+_LEAD_ADD7 = set("""Issues Issued Optimizes Optimises Optimize Optimise Progresses Officially Opens Opened Sets Exercises
+Exercise Supervising Extending Consolidates Consolidating Engaged Highlighted Identified Provided Secured Launched
+Began Started Commenced Signed Filed Confirmed Declared Resumed Initiated Drilled Intersected Returned Outlined
+Finalizes Finalized Renews Renewed Sells Sold Purchases Purchased Stakes Staked Appoints Appointed Enters Entered Amends
+Amended Terminates Terminated Titled Entitled Formalized Formalizes""".split()) - _LEAD
+_INNER_ADD7 = set("""Issues Issued Optimizes Optimises Progresses Officially Opens Opened Exercises Supervising
+Consolidates Engaged Highlighted Identified Provided Secured Launched Began Started Commenced Filed Confirmed Declared
+Resumed Initiated Drilled Intersected Returned Outlined Finalizes Finalized Sold Appointed Entered Amends Amended
+Terminates Terminated Titled Entitled Formalized Formalizes""".split()) - _INNER_STOP
+_LEAD |= _LEAD_ADD7
+_LEAD_ADD |= _LEAD_ADD7
+_INNER_STOP |= _INNER_ADD7
+_INNER_ADD |= _INNER_ADD7
+# 1.0.7: everyday words -- a name made only of these (and joining words), with no land word, is not a name
+_EVERYDAY7 = set("""website webinar million millions billion definition regional multi feeder metallurgical testwork soils
+soil data mined ounces depletion control priority high-priority future qualifying certain approved output yr ore nations
+province tenures tenure title number airborne geophysical survey surveys asset assets former news environmental
+mineralized exclusive acre acres senior designated potential second third key strategic flagship core advanced early
+stage stages grassroots corporate company companies business update overview summary highlights results result report
+reports program programme programs drilling drill exploration production development operations operation
+infrastructure processing plant facility facilities stockpile underground surface target targets portfolio package
+land holdings ground option options agreement agreements joint venture partner partners interest interests royalty
+royalties stream streams financing placement private public offering shares share warrant warrants meeting annual
+general special quarterly quarter year year-end fiscal mining minerals mineral resources resource reserve reserves
+estimate estimates inferred indicated measured probable proven grade grades high low total combined various several
+multiple other others additional further remaining historic historical maiden initial preliminary final phase
+extension extensions expansion growth see prospecting licence license licences licenses during acquisition ever
+operating producing past-producing past permitted contiguous adjacent adjoining nearby neighbouring neighboring large
+largest world-class tier two three four five numerous newly recently acquired staked optioned""".split())
+_LANDSUF7 = re.compile(r"(?i)^(?:projects?|propert(?:y|ies)|mines?|deposits?|prospects?|claims?|concessions?|complex|"
+                       r"mill|licen[cs]es?|leases?|tenements?|block|camp|district)$")
+# 1.0.7: lower-case words that describe a name when they trail it ("Campo Morado mill", "Plata high grade", "Phoenix
+# unconformity"). Only these come off: any other lower-case tail is left as live -- most are PDF-split words
+# ("Wate rberg", "Copperw ood") that a trim would cut in half. The row-label words (pit, underground ...) are left to
+# the row-label rule below, which also takes "Open" before them.
+_TAIL7 = set("""mill mining exploration resource resources expansion vein veins open pits operation operations operating
+patented area areas brine clay claystone tailings sulfide sulphide skarn porphyry unconformity epithermal stratiform
+mineralized mineralised mineral phosphate coal diamond chromite cesium caesium magnetite niobium laterite metallogenic
+development construction main satellite starter extension zone zones land flagship administrative commercial
+processing structural shear stockwork stockpile combined bulk tonnage high grade low acid soluble rhyolite limestone
+aggregate polymetallic iron ore gold silver copper nickel lithium zinc lead platinum palladium uranium cobalt graphite
+boron deposit project property dam railway hydropower power plant as having follows summarized below contains
+comprises hosts intersected intercepted thick including multiple""".split())
+# rev 6: a name made only of table words is a row label without a suffix or with a plural one ("Stockpiles", "Fresh");
+# with a singular suffix only these make it one ("Total Project") -- "Oxide Tailings Project", "Tailings Deposit" and
+# "Oxides Stockpile Project" are real
+_STRUCTURAL = set("""total totals subtotal grand category scenario inferred indicated measured proven probable m&i reserve
+reserves cut-off cutoff dilution diluted undiluted""".split())
+# rev 6: a word after a name that describes it: "Delta-1 Expanded Property" is the Delta-1 Property (rev 6e: not
+# "Consolidated" -- "Moose River Consolidated Mine" is the mine's own name)
+_END_ADJ = {"Expanded", "Enlarged", "Extended"}
+# rev 6: after a cut lead-in, a place and land words describe land, not a name ("... Purchases Ontario Freehold Property")
+_LANDWORD = set("""freehold patented unpatented crown mineral mining land lands lease leases title titles surface rights
+fee simple""".split())
+
+
+def _as_live(fn, *a, **k):
+    """rev 6: fn run with 1.0.5's rules -- the live helper's word lists and none of 1.0.6's filters in clean(). Only
+    this thread's calls are affected; the module's lists never change."""
+    prev = getattr(_TL, "live", False)
+    _TL.live = True
+    try:
+        return fn(*a, **k)
+    finally:
+        _TL.live = prev
+
+
+def _plural(suffix):
+    """rev 3: no suffix, or a plural one ("Projects", "Properties"): a direction or region alone is then not a name."""
+    return not suffix or suffix.lower().endswith("s") and suffix.lower() not in ("claims", "lands", "sands", "hills", "falls")
 
 
 def _tc(w):
@@ -207,9 +325,14 @@ def fold(s):
 
 
 def key(name):
-    """The name's identity: accents, case, punctuation and generic words (Project, Gold, Mine...) dropped."""
+    """The name's identity: accents, case, punctuation and generic words (Project, Gold, Mine...) dropped.
+    (1.0.6 rev 4: as live -- rev 2's "Mt" = "Mount" and weak-word metal keeping split projects inside a release.)"""
     ws = [w for w in re.findall(r"[a-z0-9]+", fold(name)) if w not in _GENERIC]
     return " ".join(ws)
+
+
+_METAL_WORDS = set("""gold silver copper lithium uranium nickel zinc lead potash phosphate molybdenum graphite tungsten
+antimony cobalt vanadium manganese tin iron pge pgm ree rare earth earths au ag cu""".split())
 
 
 def same(a, b):
@@ -217,7 +340,8 @@ def same(a, b):
     ka, kb = set(key(a).split()), set(key(b).split())
     if not ka or not kb:
         return False
-    return ka <= kb or kb <= ka
+    return ka <= kb or kb <= ka                            # rev 3: rev 2's lone-weak-word rule removed ("Brook Project"
+                                                           # is "Williams Brook Gold Property" in its own release)
 
 
 def _tcword(w):
@@ -281,26 +405,41 @@ def clean(raw, suffix=None):
     """Trim a captured candidate to its name. Returns "<name> <suffix>" (suffix as written) or None."""
     if not raw:
         return None
+    new = not getattr(_TL, "live", False)                  # rev 6: False inside _as_live() (1.0.5's rules)
+    LEAD_, INNER_ = (_LEAD, _INNER_STOP) if new else (_LEAD_105, _INNER_105)
     s = re.sub(r"\s+", " ", raw).strip(" ,.;:-–—\"“”()")
     if re.search(r"\(\d{1,2}$", s):
         s += ")"                                          # 1.0.4: "TitanBeach One (1)" keeps its bracket
+    if new and _REGION_EXTRA.match(s) and _plural(suffix):
+        return None                                        # 1.0.6: "US", "Ring of Fire", "Golden Triangle Properties"
+    if new:
+        s = re.sub(r"\s*(?:>=|<=|[≥≤>]|\bcut-?off\b).*$", "", s, flags=re.I).strip()   # 1.0.6: "Basal >=1000"
+        if s.count("(") > s.count(")") and not re.search(r"\([A-Z][A-Z0-9&]{1,7}$", s):
+            s = s[:s.rindex("(")].strip()                  # 1.0.6: "Kingfisher (Open Pit" -> "Kingfisher"; rev 6: not a
+                                                           # short form ("Little Nahanni Pegmatite Group (LNPG", as live)
+    if not s:
+        return None
     s = re.sub(r"(\w)-\s+(?=([" + _UP + r"][\w'’]*))",           # 1.0.1: "Lawyers- Ranch" (a line break) -> "Lawyers-Ranch";
-               lambda m: m.group(0) if (m.group(2) in _INNER_STOP or _tc(m.group(2)) in _INNER_STOP or m.group(2) in _LEAD)
+               lambda m: m.group(0) if (m.group(2) in INNER_ or _tc(m.group(2)) in INNER_ or m.group(2) in LEAD_)
                else m.group(1) + "-", s)                   # 1.0.2: not before a headline verb ("Release- Acquires")
     if re.search(r"\s[–—]\s|\s-\s", s):                   # "Files Report – Volney" : take the part after the dash
         s = re.split(r"\s[–—]\s|\s-\s", s)[-1]
     ws = _region_cut(s.split())
+    while new and not suffix and len(ws) > 1 and ws[-1] in _INNER_ADD7:
+        ws = ws[:-1]                                      # 1.0.7: "Barsele Project Terminated"
+    if new and len(ws) > 1 and _tc(ws[-1]) in _END_ADJ:
+        ws = ws[:-1]                                      # rev 6: "Delta-1 Expanded Property" -> "Delta-1 Property"
     cut = 0
     for i, w in enumerate(ws):
         bare = w.rstrip(",:;.")
         if re.match(r"^\(?\d{3}\)?[-.]\d{3}[-.]\d{4}$|^\d{3}-\d{3}-\d{4}$", bare) or \
                 re.search(r"(?i)^(?:https?:|www\.)|\w\.\w+/|\.(?:com|ca|net|org)\b", bare):
             cut = i + 1                                   # a phone number or a web address
-        elif w.lower() == "of" and i > 0 and (ws[i - 1] in _LEAD or _tc(ws[i - 1]) in _LEAD or ws[i - 1] in _INNER_STOP):
+        elif w.lower() == "of" and i > 0 and (ws[i - 1] in LEAD_ or _tc(ws[i - 1]) in LEAD_ or ws[i - 1] in INNER_):
             cut = i + 1                                   # "Portfolio of ...", "Results of ..."
         elif _MONEY.match(bare) and re.search(r"\$|[A-Za-z]$", bare) and i < len(ws) - 1:
             cut = i + 1                                   # "US$220M Kelly", "C$5.2M Burnthut"
-        elif bare in _INNER_STOP or _tc(bare) in _INNER_STOP or w.endswith((",", ":", ";")) or re.match(r"^(?:19|20)\d\d\.?$", w) or \
+        elif bare in INNER_ or _tc(bare) in INNER_ or w.endswith((",", ":", ";")) or re.match(r"^(?:19|20)\d\d\.?$", w) or \
                 (w.endswith(".") and len(w) >= 3 and not re.match(r"^(?:[A-Z]\.)+$|^(?:Mt|St|Ste|Pt|Ft|No|Co)\.$", w)) or \
                 re.search(r"(?i)-(?:rich|bearing|hosted|dominant|type|style)$", bare):
             cut = i + 1
@@ -311,10 +450,13 @@ def clean(raw, suffix=None):
         elif re.search(r"['’]s?$", w) and i < len(ws) - 1 and not re.match(r"^(?:St|Mt)\b", ws[0]):
             cut = i + 1                                   # "Kinross' Great Bear", "IsoEnergy’s Hurricane"
     full, ws = ws, ws[cut:]
-    while ws and (ws[0] in _LEAD or ws[0].lower().endswith("-based") or re.match(r"^(?:TiO2?|U3O8|Li2O|V2O5|Nb2O5|Ta2O5)$", ws[0]) or len(ws) > 1 and ws[0] in _NUMWORD and (ws[1] in _LEAD or _tc(ws[1]) in _LEAD) or _tc(ws[0]) in _LEAD or ws[0].lower() in _JOIN_LEAD or
+    n_before_lead = len(ws)
+    while ws and not (new and len(ws) > 1 and ws[0] in _SEASON and _tc(ws[1]) in _GEO) and \
+            (ws[0] in LEAD_ or new and ws[0].endswith("-") and _tc(ws[0].rstrip("-")) in LEAD_ or ws[0].lower().endswith("-based") or re.match(r"^(?:TiO2?|U3O8|Li2O|V2O5|Nb2O5|Ta2O5)$", ws[0]) or len(ws) > 1 and ws[0] in _NUMWORD and (ws[1] in LEAD_ or _tc(ws[1]) in LEAD_) or _tc(ws[0]) in LEAD_ or ws[0].lower() in _JOIN_LEAD or
                   _MONEY.match(ws[0]) and re.search(r"\$|[A-Za-z]$", ws[0]) or
                   all(x in _DESCRIPTIVE for x in re.split(r"[-/]", ws[0].lower()) if x) and "-" in ws[0] or re.match(r"^\d", ws[0]) and not re.match(r"^\d+[A-Za-z]", ws[0])):
         ws = ws[1:]
+    led = len(ws) < n_before_lead
     while ws and (ws[-1].lower() in _JOIN or ws[-1] in ("JV", "Joint", "Venture")):
         ws = ws[:-1]
     # the name keeps its metal words as the release writes them ("Nevada North Lithium Project"; key() and same()
@@ -328,9 +470,18 @@ def clean(raw, suffix=None):
             ws = ws[:-1]                                  # "Blue Lake Cu Ni Pt Pd" -> "Blue Lake"
     while ws and (ws[-1].lower() in _JOIN or ws[-1].endswith("-")):
         ws = ws[:-1]
+    trim7 = False
+    while new and len(ws) > 1 and ws[-1].rstrip(",") in _TAIL7:
+        ws = ws[:-1]                                      # 1.0.7: "Campo Morado mill", "Escalones Project as having"
+        trim7 = True
+        while ws and (ws[-1].lower() in _JOIN or ws[-1].endswith("-")):
+            ws = ws[:-1]
+    if trim7 and ws and all(_DIRECTIONAL.match(w) or w in _NATION or w in _NOT_ALONE or
+                            w.lower() in _JOIN for w in ws):
+        return None                                        # 1.0.7: "West African gold exploration"
     if not ws or not ws[0][:1].isupper() and not ws[0][:1].isdigit():
         return None
-    if all(re.fullmatch(_METAL, w, re.I) or w in _LEAD or _tc(w) in _LEAD or w.lower() in _JOIN for w in ws):
+    if all(re.fullmatch(_METAL, w, re.I) or w in LEAD_ or _tc(w) in LEAD_ or w.lower() in _JOIN for w in ws):
         return None                                        # "Gold Project", "Flagship Project", "Gold and Silver Project"
     if re.search(r"['’]s?$", ws[-1]):
         return None                                        # "Company's project" names the owner, not the project
@@ -359,6 +510,38 @@ def clean(raw, suffix=None):
             all(w in _NATION or w in _NUMWORD or re.fullmatch(_METAL, w, re.I) for w in ws) and \
             any(w in _NUMWORD for w in ws):
         return None                                        # 1.0.4: "Four Chilean Copper Projects"
+    # 1.0.6 (PNJUNK): a row label after a name comes off when the name has no suffix ("Bagoé 8,9 Open Pit" ->
+    # "Bagoé 8,9"); with one it is part of the name ("Alder Underground Mine")
+    while new and not suffix and len(ws) > 1 and ws[-1].lower() in ("pit", "underground", "ug", "op", "open-pit", "in-pit") and \
+            any(w.lower() not in _ROWLABEL and w.lower() not in _GENERIC and not re.match(r"^[\d,.]+$", w) for w in ws[:-1]):
+        ws = ws[:-1]
+        if ws and ws[-1].lower() == "open":
+            ws = ws[:-1]
+    low = [w.lower().strip(",.") for w in ws]
+    if new and all(w in _ROWLABEL or w in _GENERIC or w in _JOIN or re.match(r"^[\d,.%]+$", w) for w in low) and \
+            any(w in _ROWLABEL for w in low) and (_plural(suffix) or any(w in _STRUCTURAL for w in low)):
+        return None                                        # "Fresh", "Project Total", "Total Open Pit", "Stockpiles"
+        # rev 6: with a singular suffix only a structural word ("Total Project"): "Oxide Tailings Project" is a name
+    if new and all(w in _BUSINESS or w in _JOIN for w in low):
+        return None                                        # "Operations and Growth"
+    if new and len(ws) == 1 and (low[0] in _LONE_ANY and _plural(suffix) or
+                                 not suffix and (low[0] in _LONE_NOSUF or _CODE.match(ws[0]) and not trim7)):
+        return None                                        # "North", "Greenfield"; without a suffix "Mount", "D4", "II"
+    if new and _plural(suffix) and (_REGION_EXTRA.match(" ".join(ws)) or len(ws) == 2 and _DIRECTIONAL.match(ws[0]) and
+                                    (_REGION.match(ws[1]) or _REGION_EXTRA.match(ws[1]))):
+        return None                                        # "US", "Ring of Fire", "Southern Nevada", "Western USA"
+        # rev 3: with a singular suffix these are names ("Southwest Arkansas Project", "Athabasca Property")
+    if new and len(ws) == 1 and "-" in ws[0] and all(_REGION.match(p) or _REGION_EXTRA.match(p) for p in ws[0].split("-") if p):
+        return None                                        # "Mexico-Canada"
+    if new and (cut or led) and any(w.lower() in _LANDWORD for w in ws) and \
+            all(_REGION.match(_tcword(w)) or _tcword(w) in _NATION or w.lower() in _LANDWORD or w.lower() in _GENERIC or
+                w.lower() in _JOIN for w in ws):
+        return None                                        # rev 6: "... Purchases Ontario Freehold Property"
+    if new and not suffix and not any(_LANDSUF7.match(w.strip(",.")) for w in ws) and \
+            not any(re.search(r"\d", w) for w in ws) and \
+            all(w.lower().strip(",.") in _EVERYDAY7 or w.lower() in _JOIN for w in ws) and \
+            any(w.lower().strip(",.") in _EVERYDAY7 for w in ws):
+        return None                                        # 1.0.7: "Qualifying", "Data", "Special Meeting"
     name = " ".join(ws)
     if len(name) < 2 or not key(name):
         return None
@@ -425,8 +608,29 @@ def find(text, issuer=None):
             continue
         if issuer and low in ("mines",) and set(key(name).split()) <= set(key(issuer).split()):
             continue
-        out.append((m.start(), name))
+        out.append((m.start(), name))                     # rev 5: no issuer stripping here (as live)
     return out
+
+
+def strip_issuer(name, issuer):
+    """1.0.6: the issuer's own name at the start of a project name comes off -- "Dios AU33 Project" -> "AU33 Project",
+    "Steadright TitanBeach Titanium Project" -> "TitanBeach Titanium Project" -- unless nothing but generic words would
+    be left ("Kelly Gold" / "Kelly Project" stays)."""
+    if not name or not issuer:
+        return name
+    own = {w for w in re.findall(r"[a-z0-9]+", fold(issuer)) if not _COMPANY_WORD.match(w) and w not in _GENERIC}
+    if not own:
+        return name
+    ws = name.split()
+    i = 0
+    while i < len(ws) - 1 and re.sub(r"[’']s$", "", fold(ws[i]).strip(",.")) in own:
+        i += 1
+    if i == 0:
+        return name
+    while i < len(ws) - 1 and ws[i].lower() in ("and", "&", "with", "of", "-"):
+        i += 1                                             # rev 3: "Constantine and Carlin ..." -> "Carlin ..."
+    rest = " ".join(ws[i:])
+    return rest if key(rest) and not all(w.lower() in _GENERIC or w.lower() in _JOIN for w in ws[i:]) else name
 
 
 _SINGULAR = {"projects": "Project", "properties": "Property", "deposits": "Deposit", "mines": "Mine",
@@ -455,8 +659,8 @@ def projects(headline, body, issuer=None, limit=8000):
     return out
 
 
-def primary(headline, body, issuer=None):
-    """The project a release is about.
+def _primary(headline, body, issuer=None):
+    """The project a release is about (primary() below adds rev 6's check against 1.0.5's answer).
 
     1. A project the headline names ("... at its Hemlo Project"), preferring a project over a deposit inside it;
        when the headline names only a deposit or zone and the body names one project at least twice, that project.
@@ -542,6 +746,32 @@ def primary(headline, body, issuer=None):
     return None
 
 
+def _recheck(name):
+    """rev 6: a name 1.0.5 gave, read by 1.0.6: the same name (perhaps trimmed: "Fully-Funded Los Ricos South Mine" ->
+    "Los Ricos South Mine"), or None when 1.0.6 finds it is not a name or makes it a different one."""
+    if not name:
+        return None
+    m = re.search(r"\s+(" + SUFFIX + r"|Royalty|Royalties|Stream|Streams|Assets?)$", name, re.I)
+    base, suf = (name[:m.start()], m.group(1)) if m else (name, None)
+    if not base.strip():
+        return None
+    n = clean(base, suf)
+    return n if n and same(n, name) else None
+
+
+def primary(headline, body, issuer=None):
+    """The project a release is about: _primary() (see there). rev 6: 1.0.6 only removes -- when its answer is another
+    project than 1.0.5's, the answer is 1.0.5's name as 1.0.6 reads it, or None when 1.0.6 rejects that name (a
+    rejected "Northeast Prospects" does not hand the release to "Lupin Mine")."""
+    new = _primary(headline, body, issuer)
+    if getattr(_TL, "live", False):
+        return new
+    old = _as_live(_primary, headline, body, issuer)
+    if old is None or old == new or new is not None and same(old, new):
+        return new
+    return _recheck(old)
+
+
 # ------------------------------------------------------------------ the shared adapter (1.0.4)
 _MILL_END = re.compile(r"(?i)\bMills?$")
 
@@ -556,7 +786,10 @@ def find_with(text, fallback=None, issuer=None):
     """
     found = find(text or "", issuer)
     if not found and fallback is not None:
-        found = list(fallback(text or "", issuer) or [])
+        if not getattr(_TL, "live", False) and _as_live(find, text or "", issuer):
+            found = []                                     # rev 6: 1.0.6 removed the helper's only names; the
+        else:                                              # reader's own finder does not bring in others
+            found = list(fallback(text or "", issuer) or [])
     out = [(p, n) for p, n in found if n and not _MILL_END.search(n)]
     out.sort(key=lambda x: (bool(re.search(r"(?i)\bDeposits?$", x[1])), x[0]))
     return out
@@ -745,8 +978,9 @@ def _listed_together(text, names, window=600):
     return best
 
 
-def release_projects(headline, body, issuer=None, limit=8000):
-    """The projects a release reports on, for a reader that writes one row per project.
+def _release_projects(headline, body, issuer=None, limit=8000):
+    """The projects a release reports on, for a reader that writes one row per project (release_projects() below adds
+    rev 6's check against 1.0.5's answer).
 
     Counts only project-level names (Project, Property, Mine, Complex, Concession) and properties named by a royalty or
     stream; a deposit, zone, prospect or claim counts only when the release names no project, since readers that
@@ -796,7 +1030,7 @@ def release_projects(headline, body, issuer=None, limit=8000):
             at = fh.find(" " + k + " ")
             if not _HL_NOT_OURS.search(fh[max(0, at - 45):at + 1]):
                 hnames.append(g[0])
-    main = primary(head, body, issuer)
+    main = _primary(head, body, issuer)
     ph = _PORTFOLIO_HL.search(th)
     port = bool(ph and not (len(hnames) == 1 and _PORTFOLIO_ADD.search(th))
                 or not ph and _PORTFOLIO_N.search(news[:300]) and not hnames)
@@ -826,6 +1060,28 @@ def release_projects(headline, body, issuer=None, limit=8000):
     if ranked:
         return {"scope": "one", "projects": [ranked[0][0]], "why": "one project named"}
     return {"scope": "none", "projects": [], "why": "no project named in the news"}
+
+
+def release_projects(headline, body, issuer=None, limit=8000):
+    """_release_projects() (see there). rev 6: 1.0.6 only removes -- when its answer names a project 1.0.5's did not
+    (because a name 1.0.5 listed is now rejected), the answer is 1.0.5's list read by 1.0.6, rejected names dropped."""
+    new = _release_projects(headline, body, issuer, limit)
+    if getattr(_TL, "live", False):
+        return new
+    old = _as_live(_release_projects, headline, body, issuer, limit)
+    if not old["projects"] or all(any(same(n, x) for x in old["projects"]) for n in new["projects"]):
+        return new
+    keep = []
+    for x in old["projects"]:
+        y = _recheck(x)
+        if y:
+            y = next((n for n in new["projects"] if same(n, y)), y)   # 1.0.6's spelling where it gives one
+            if y not in keep:
+                keep.append(y)
+    if not keep:
+        return {"scope": "none", "projects": [], "why": "1.0.6: the names 1.0.5 read are not names"}
+    scope = "one" if old["scope"] == "several" and len(keep) < 2 else old["scope"]
+    return {"scope": scope, "projects": keep, "why": old["why"] + "; 1.0.6 dropped a non-name"}
 
 
 def project_at(text, pos, names, issuer=None):
@@ -890,6 +1146,52 @@ PN_FINGERPRINT = "whole-file"
 
 
 # ------------------------------------------------------------------ self-test
+# 1.0.7 (PNSRC) self-test cases: (raw, suffix, expected clean())
+_PNSRC_CASES = [
+    ("Issues Piskanja", "Project", "Piskanja Project"),
+    ("Campo Morado mill", None, "Campo Morado"),
+    ("Escalones Project as having", None, "Escalones Project"),
+    ("East Graben vein", None, "East Graben"),
+    ("Marmato expansion", None, "Marmato"),
+    ("Qualifying", None, None),
+    ("Data", None, None),
+    ("Special Meeting", None, None),
+    ("Designated", None, None),
+    ("Qualifying", "Property", "Qualifying Property"),
+    ("Big Bulk", None, "Big Bulk"),
+    ("October", None, "October"),
+    ("Silver Sands", None, "Silver Sands"),
+    ("Mali Gold", "Project", "Mali Gold Project"),
+    ("Van 4", "Mine", "Van 4 Mine"),
+    ("Van 4 Mine Area", None, "Van 4 Mine Area"),
+    ("Cerro de Pasco", None, "Cerro de Pasco"),
+    ("Mina de la Plata", None, "Mina de la Plata"),
+    ("Phoenix", None, "Phoenix"),
+    ("Moose River Consolidated", "Mine", "Moose River Consolidated Mine"),
+    ("Wate rberg", None, "Wate rberg"),
+    ("Copperw ood", None, "Copperw ood"),
+    ("Toroparu SE Open pit", None, "Toroparu SE"),
+    ("Haile open pits", None, "Haile"),
+    ("West African gold exploration", None, None),
+    ("B26 flagship", None, "B26"),
+    ("Ferguson Lake mining", None, "Ferguson Lake"),
+    ("Plata high grade", None, "Plata"),
+    ("Labrador West iron ore", None, "Labrador West"),
+    ("Th is", None, "Th is"),
+    ("Barsele Project Terminated", None, "Barsele Project"),
+    ("Brunswick Issues Sisson", "Project", "Sisson Project"),
+    ("Monument Progresses", "Mine", None),
+]
+
+
+def _pnsrc_selftest():
+    bad = [(r, s, e, clean(r, s)) for r, s, e in _PNSRC_CASES if clean(r, s) != e]
+    live = [(r, s, _as_live(clean, r, s)) for r, s, _e in _PNSRC_CASES[:5]]
+    for b in bad:
+        print("PNSRC SELFTEST FAIL", b)
+    return len(_PNSRC_CASES) - len(bad), len(_PNSRC_CASES), live
+
+
 def _selftest():
     ok = [0, 0]
 
@@ -1097,6 +1399,90 @@ def _selftest():
     eq("several: one and none", (release_projects("Closes Private Placement", "work at the Burnthut Project. The Burnthut "
                                                   "Project ...")["scope"],
                                  release_projects("Announces AGM Results", "All resolutions passed.")["scope"]), ("one", "none"))
+    # 1.0.6 (PNJUNK, property-count audit 2026-10-12)
+    eq("row labels are not names", (clean("Fresh"), clean("Transitional"), clean("Project Total"), clean("Stockpiles"),
+                                     clean("Pit-Constrained"), clean("Total Open Pit"), clean("Selective Underground"),
+                                     clean("BASAL >=1000")), (None,) * 8)
+    eq("a row label after a name", (clean("Kingfisher (Open Pit"), clean("Bagoé 8,9 Open Pit"), clean("Palomino (Underground"),
+                                     clean("Alder Underground", "Mine")),
+       ("Kingfisher", "Bagoé 8,9", "Palomino", "Alder Underground Mine"))
+    eq("lone words without a suffix", (clean("North"), clean("Mount"), clean("Green"), clean("Greenfield"), clean("Vein"),
+                                       clean("Halo"), clean("D4"), clean("II"), clean("US")), (None,) * 9)
+    eq("lone words with a suffix", (clean("North", "Projects"), clean("Star", "Property"), clean("K92", "Mine"),
+                                    clean("Rock Creek", "Property"), clean("South", "Deposit")),
+       (None, "Star Property", "K92 Mine", "Rock Creek Property", "South Deposit"))
+    eq("regions", (clean("Mexico-Canada"), clean("Southern Nevada"), clean("Ring of Fire"), clean("US", "Projects"),
+                   clean("Golden Triangle", "Properties"), clean("Northwestern Ontario", "Projects"), clean("Western USA")),
+       (None,) * 7)
+    eq("a region with a singular suffix is a name", (clean("Southwest Arkansas", "Project"), clean("Athabasca", "Property"),
+                                                     clean("Central Canada", "Property"), clean("West Athabasca", "Project")),
+       ("Southwest Arkansas Project", "Athabasca Property", "Central Canada Property", "West Athabasca Project"))
+    eq("business words", (clean("Operations and Growth"), clean("Growth", "Projects")), (None, None))
+    eq("more headline verbs", (clean("Gold Port Renews Groete", "Project"), clean("TRX Gold Commissions Expanded", "Mill"),
+                               clean("Expand Mckenzie Gold", "Project"), clean("Fully-Funded Los Ricos South", "Mine"),
+                               clean("Triple One Renegotiates", "Property")),
+       ("Groete Project", None, "Mckenzie Gold Project", "Los Ricos South Mine", None))
+    eq("names that look like labels stay", (clean("Mount Copper", "Deposit"), clean("Fresh Creek", "Property"),
+                                            clean("Total Lake"), clean("Big Rock", "Project"), clean("Halo", "Zone"),
+                                            clean("Grand Total", None)),
+       ("Mount Copper Deposit", "Fresh Creek Property", "Total Lake", "Big Rock Project", "Halo Zone", None))
+    eq("a season before a place word is a name", (clean("Spring Valley Gold", "Mine"), clean("Winter Drilling at Kelly", "Project"),
+                                                  clean("Fall River", "Property")),
+       ("Spring Valley Gold Mine", "Kelly Project", "Fall River Property"))
+    eq("more not-names", (clean("Loan Facility"), clean("Scenario"), clean("Previous", "Mine")), (None, None, None))
+    eq("key and same as live", (key("Mount Copper"), same("Gold Range Property", "Central Zone Gold Range Project"),
+                                same("Brook", "Williams Brook Gold Property")), ("mount", True, True))
+    eq("same still joins a project and its longer name", (same("Hemlo", "Hemlo North"), same("Kunsu", "Kunsu PL Property"),
+                                                         same("Mount Jamie", "Mount Jamie Deposit")), (True,) * 3)
+    eq("find keeps the issuer's word in a name (rev 5)", ([n for _p, n in find("the Eskay Creek Mine", "Eskay Mining Corp.")],
+                                                          [n for _p, n in find("its Sage Plains Project", "Sage Potash Corp.")]),
+       (["Eskay Creek Mine"], ["Sage Plains Project"]))
+    eq("strip_issuer itself (not called by find)", (strip_issuer("Dios AU33 Project", "Dios Exploration Inc."),
+                                                     strip_issuer("Constantine and Carlin Project", "Constantine Metal Resources")),
+       ("AU33 Project", "Carlin Project"))
+    # rev 6 (2026-10-13, "Fix the patterns first"): 1.0.6 only removes
+    eq("rev 6: table words with a singular suffix are a name",
+       (clean("Oxide Tailings", "Project"), clean("Oxides Stockpile", "Project"), clean("2016 Tailings", "Deposit"),
+        clean("Total", "Project"), clean("Inferred", "Deposit"), clean("Stockpiles"), clean("Oxide Tailings", "Projects")),
+       ("Oxide Tailings Project", "Oxides Stockpile Project", "Tailings Deposit", None, None, None, None))
+    eq("rev 6: a describing word after a name", (clean("Delta-1 Expanded", "Property"),
+                                                 clean("Of 2025 Drilling At The Delta-1 Expanded", "Property"),
+                                                 clean("TRX Gold Commissions Expanded", "Mill")),
+       ("Delta-1 Property", "Delta-1 Property", None))
+    eq("rev 6e: Consolidated is part of a name", (clean("Moose River Consolidated", "Mine"), clean("Delta-1 Expanded", "Property")),
+       ("Moose River Consolidated Mine", "Delta-1 Property"))
+    eq("rev 6: a lead word across a line break", clean("Fully- Funded Los Ricos South", "Mine"), "Los Ricos South Mine")
+    eq("rev 6: a bracketed short form is read as live", (clean("Little Nahanni Pegmatite Group (LNPG)", "Project"),
+                                         clean("Providence Greenstone Belt (PGB)", "Project"),
+                                         clean("TitanBeach One (1)", "Project"), clean("Kingfisher (Open Pit")),
+       ("Little Nahanni Pegmatite Group (LNPG Project", "Providence Greenstone Belt (PGB Project", "TitanBeach One (1) Project",
+        "Kingfisher"))
+    eq("rev 6: a cut that leaves land words", (clean("Sierra Iron Ore Purchases Ontario Freehold", "Property"),
+                                               clean("SIERRA IRON ORE PURCHASES ONTARIO FREEHOLD", "PROPERTY"),
+                                               clean("Silver Standard To Purchase Marigold", "Mine")),
+       (None, None, "Marigold Mine"))
+    eq("rev 6: a rejected name hands the release to no other project",
+       (primary("Focuses Drill Program at Northeast Prospects", "the Lupin Mine hosts ... the Lupin Mine produced"),
+        primary("Closes Deal to Purchase Four Projects in Finland", "the Alvalade Project ... the Alvalade Project"),
+        primary("Reports Results", "the Olifants River Water Resource Development Project ... the Kakula Deposit")),
+       (None, None, None))
+    eq("rev 6: a cleaner spelling of 1.0.5's name stays", (primary("SILVER STANDARD TO PURCHASE MARIGOLD MINE", "the Marigold "
+                                                                   "Mine"),
+                                                           primary("Drilling at the Delta-1 Expanded Property", "")),
+       ("Marigold Mine", "Delta-1 Property"))
+    eq("rev 6: no reader finder after a removal", find_with("work on the Northeast Prospects",
+                                                            lambda t, i: [(0, "Other Project")]), [])
+    _r6 = release_projects("Focuses Drill Program at Northeast Prospects", "the Lupin Mine hosts ... the Lupin Mine produced")
+    eq("rev 6: release_projects drops, never swaps", (_r6["scope"], _r6["projects"]), ("none", []))
+    eq("rev 6: live rules inside _as_live", (_as_live(clean, "Oxide Tailings", "Projects"), _as_live(clean, "Purchase Four", "Projects"),
+                                             _as_live(clean, "Delta-1 Expanded", "Property"), "Purchase" in _LEAD,
+                                             getattr(_TL, "live", False)),
+       ("Oxide Tailings Projects", "Purchase Four Projects", "Delta-1 Expanded Property", True, False))
+    for _r, _s, _e in _PNSRC_CASES:
+        eq("1.0.7 PNSRC " + _r, clean(_r, _s), _e)
+    eq("1.0.7 PNSRC: live rules unchanged", [_as_live(clean, r, s) for r, s, _e in _PNSRC_CASES[:5]],
+       ["Issues Piskanja Project", "Campo Morado mill", "Escalones Project as having", "East Graben vein",
+        "Marmato expansion"])
     print(f"project_names selftest: {ok[0]}/{ok[1]} passed")
     return ok[0] == ok[1]
 

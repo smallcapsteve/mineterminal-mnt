@@ -1533,3 +1533,16 @@ from portal import accuracy_dev as _accuracy_dev  # noqa: E402,F401
 # reports results for (rock samples, geochemistry, geophysics by method, bulk and brine, mapping), historical
 # results flagged. Early version: row, sample type and project gate. Imported last for the same reason.
 from portal import accuracy_smp as _accuracy_smp  # noqa: E402,F401
+
+# WCH_SPEC_V1 (2026-10-07): the Warrant Changes reader (extensions, accelerations, repricings, incentives,
+# exercises of already-issued warrants). Shares the Financings tag, so the gate is run with --set warrant_changes.
+from portal import accuracy_wch as _accuracy_wch  # noqa: E402,F401
+
+# OPS_SPEC_V1 (2026-10-12): the option payment schedule the Options reader gives each option row (one item per due
+# date). Shares the Property Options & Staking tag after options, so `gate options` still picks the options spec;
+# this one is scored with --set option_schedule.
+from portal import accuracy_opsched as _accuracy_opsched  # noqa: E402,F401
+
+# CAL_SPEC_V1 (2026-10-12): the Calendar reader (meetings, results dates, calls, dividends, NCIBs, presentations,
+# corporate actions). Its events come from many tags; the gate is run with --set calendar.
+from portal import accuracy_calendar as _accuracy_calendar  # noqa: E402,F401

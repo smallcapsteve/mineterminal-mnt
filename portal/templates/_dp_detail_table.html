@@ -4,7 +4,7 @@
   {% set _dc = namespace(cols=[], w=0) %}
   {% for c in spec.detail_columns %}
     {% set _any = namespace(v=(c.kind == 'strong')) %}
-    {% for d in det %}{% if d[c.key] is not none and d[c.key] != "" %}{% set _any.v = true %}{% endif %}{% endfor %}
+    {% for d in det %}{% if d[c.key] is not none and d[c.key] != "" %}{% set _any.v = true %}{% elif c.kind == 'num' and d.depth_note == 'not_reported' %}{% set _any.v = true %}{% endif %}{% endfor %}
     {% if _any.v %}{% set _dc.cols = _dc.cols + [c] %}{% set _dc.w = _dc.w + c.width %}{% endif %}
   {% endfor %}
   <colgroup>{% for c in _dc.cols %}<col style="width: {{ (c.width * 100 / _dc.w)|round|int }}%">{% endfor %}</colgroup>
@@ -17,7 +17,7 @@
         {% if c.kind == 'strong' %}
           <td>{% if d.including %}<span class="dp-incl-mark">incl.</span> {% endif %}{% if d.is_best %}<strong>{{ dv or "—" }}</strong>{% else %}{{ dv or "—" }}{% endif %}</td>
         {% elif c.kind == 'num' %}
-          <td class="dp-num">{{ ('%g' % dv) if dv is not none else "—" }}</td>
+          <td class="dp-num">{% if dv is not none %}{{ '%g' % dv }}{% elif d.depth_note == 'not_reported' %}{% if c.key == 'from_m' %}<span class="dp-nr" style="color:#888;font-style:italic" title="The release does not give the downhole depth of this interval">Not reported</span>{% endif %}{% else %}—{% endif %}</td>
         {% elif c.kind == 'plain' %}
           <td>{{ dv if dv else "" }}</td>
         {% else %}

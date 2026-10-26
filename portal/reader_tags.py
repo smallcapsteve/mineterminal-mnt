@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""READER_TAGS_V1 (2026-09-30): a reader's own finds can give a release its tag.
+"""READER_TAGS_V1 (2026-09-30; cross-tag rules READER_TAGS_X1 2026-10-12): a reader's own finds can give a release its tag.
 
 The keyword tagger (portal.categorize) misses many releases a reader should show: the ACC150 check measured tag
 coverage from 21% (Royalties) to 92% (Financings). Each reader already reads every release, so when the active reader
@@ -27,6 +27,11 @@ Every run (a step in sync_structured.py right after facts_sync, before the publi
   3. re-assert: every active row's release carries the tag (re-ingest recomputes categories). Adding keeps the
      CATEGORIES order and drops 'Corporate Updates' when it was the only other tag (TAGFIX v18 precedent).
 Updates are compare-and-set on events.categories, in batches.
+
+Cross-tag rules (TAG7 step 3, 2026-10-12): a rule key "<extractor>+<name>" (e.g. "options+jv") lets a reader's finds
+give a release ANOTHER tab's tag. Its row in reader_tag_rules carries that tag, its file is admit_<key>.py, it reads the
+base extractor's records, and its decisions and reader_tags rows are keyed by the rule key, so it is enabled, measured,
+dropped and revoked on its own. `enable <key> <tag> -- <note>` turns one on.
 
 Kill switch: MNT_READER_TAGS_OFF=1 in the environment, or a file portal/reader_admit/OFF: the step does nothing and
 tags already added stay. Undo: `python -m portal.reader_tags revoke <extractor>|all` sets the rule off, marks its rows
@@ -147,8 +152,15 @@ def cas(conn, event_id, old, new):
     return cur.rowcount == 1
 
 
+def base_of(key):
+    """'options+jv' -> 'options'; a plain extractor is its own base."""
+    return key.split("+", 1)[0]
+
+
 def decide(conn, A, extractor, version, rule_sha, tag, mod, log):
-    """Step 1: decisions for releases with a substantive find, no tag, and no decision for (version, rule_sha)."""
+    """Step 1: decisions for releases with a substantive find, no tag, and no decision for (version, rule_sha).
+    extractor is the rule key; records are read from its base extractor."""
+    key, extractor = extractor, base_of(extractor)
     spec = A.SPECS[extractor]
     q = ("SELECT DISTINCT r.event_id FROM fx_records r JOIN events e ON e.event_id=r.event_id "
          "WHERE r.extractor=? AND r.version=? AND e.review_status='auto_approved' "
@@ -159,7 +171,7 @@ def decide(conn, A, extractor, version, rule_sha, tag, mod, log):
          "AND NOT EXISTS (SELECT 1 FROM reader_tag_decisions d WHERE d.event_id=r.event_id AND d.extractor=? "
          "AND d.version=? AND d.rule_sha=?)" % ",".join("?" * len(TRIVIAL)))
     todo = [r[0] for r in conn.execute(q, (extractor, version, "%|" + tag + "|%", tag) + TRIVIAL
-                                       + (extractor, version, rule_sha)).fetchall()]
+                                       + (key, version, rule_sha)).fetchall()]
     n_yes = errs = 0
     for k in range(0, len(todo), BATCH):
         rows = []
@@ -178,10 +190,10 @@ def decide(conn, A, extractor, version, rule_sha, tag, mod, log):
                 ok, why = False, "error: %s" % type(x).__name__
                 errs += 1
             n_yes += ok
-            rows.append((e, extractor, version, rule_sha, 1 if ok else 0, (why or "")[:120], now()))
+            rows.append((e, key, version, rule_sha, 1 if ok else 0, (why or "")[:120], now()))
         conn.executemany("INSERT OR REPLACE INTO reader_tag_decisions VALUES (?,?,?,?,?,?,?)", rows)
         conn.commit()
-    log("[reader_tags] %s %s: decided %d, admitted %d, rule errors %d" % (extractor, version, len(todo), n_yes, errs))
+    log("[reader_tags] %s %s: decided %d, admitted %d, rule errors %d" % (key, version, len(todo), n_yes, errs))
     return len(todo), n_yes
 
 
@@ -264,18 +276,22 @@ def run(conn=None, log=print):
         for extractor, tag, rule_sha in conn.execute(
                 "SELECT extractor, tag, rule_sha FROM reader_tag_rules WHERE status='active' ORDER BY extractor").fetchall():
             try:
-                if extractor not in act or extractor not in A.SPECS:
+                base = base_of(extractor)
+                if base not in act or base not in A.SPECS:
                     log("[reader_tags] %s: no active version, skipped" % extractor)
                     continue
                 if file_sha(rule_file(extractor)) != rule_sha:
                     log("[reader_tags] %s: rule file changed since it was measured, skipped" % extractor)
                     continue
-                if A.SPECS[extractor].tag != tag:
+                if base == extractor and A.SPECS[extractor].tag != tag:
                     log("[reader_tags] %s: tag mismatch, skipped" % extractor)
                     continue
+                if base != extractor and tag == A.SPECS[base].tag:
+                    log("[reader_tags] %s: a cross-tag rule must give another tag, skipped" % extractor)
+                    continue
                 mod = load_rule(extractor)
-                decide(conn, A, extractor, act[extractor], rule_sha, tag, mod, log)
-                settle(conn, extractor, act[extractor], rule_sha, tag, log)
+                decide(conn, A, extractor, act[base], rule_sha, tag, mod, log)
+                settle(conn, extractor, act[base], rule_sha, tag, log)
             except Exception:  # noqa: BLE001
                 conn.rollback()
                 log("[reader_tags] %s failed:\n%s" % (extractor, traceback.format_exc(limit=3)))
@@ -285,12 +301,18 @@ def run(conn=None, log=print):
             conn.close()
 
 
-def enable(conn, extractor, note=""):
-    """Installer use: turn a measured rule on (its file must already be in portal/reader_admit/)."""
+def enable(conn, extractor, note="", tag=None):
+    """Installer use: turn a measured rule on (its file must already be in portal/reader_admit/). A cross-tag rule
+    ("<extractor>+<name>") must name its tag."""
     import portal.accuracy as A
     ensure_schema(conn)
+    if base_of(extractor) != extractor:
+        if not tag or tag == A.SPECS[base_of(extractor)].tag:
+            raise ValueError("a cross-tag rule needs another tab's tag")
+    else:
+        tag = A.SPECS[extractor].tag
     conn.execute("INSERT OR REPLACE INTO reader_tag_rules VALUES (?,?,?,'active',?,?)",
-                 (extractor, A.SPECS[extractor].tag, file_sha(rule_file(extractor)), now(), note))
+                 (extractor, tag, file_sha(rule_file(extractor)), now(), note))
     conn.commit()
 
 
@@ -329,6 +351,7 @@ def selftest():
     assert without_tag("Financings|Drill Results", "Drill Results") == "Financings"
     assert cut("x" * 1300 + "\nAbout Foo Corp\nboiler") == "x" * 1300
     assert not has_rows({"rows": []}) and has_rows({"rows": [1]}) and not has_rows(None) and not has_rows({"is_x": False})
+    assert base_of("options+jv") == "options" and base_of("options") == "options"
     # a full cycle on an in-memory database
     conn = sqlite3.connect(":memory:")
     ensure_schema(conn)
@@ -365,7 +388,12 @@ if __name__ == "__main__":
             elif cmd == "revoke":
                 revoke(c, sys.argv[2])
             elif cmd == "enable":
-                enable(c, sys.argv[2], " ".join(sys.argv[3:]))
+                if "+" in sys.argv[2]:   # enable <key> <tag words...> -- <note words...>
+                    rest = sys.argv[3:]
+                    cut_at = rest.index("--") if "--" in rest else len(rest)
+                    enable(c, sys.argv[2], " ".join(rest[cut_at + 1:]), " ".join(rest[:cut_at]))
+                else:
+                    enable(c, sys.argv[2], " ".join(sys.argv[3:]))
                 status(c)
             c.close()
     except Exception:  # noqa: BLE001  never break sync_structured

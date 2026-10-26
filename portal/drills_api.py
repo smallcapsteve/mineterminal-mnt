@@ -272,6 +272,38 @@ _ITEM_COLS = (
 
 _IV_COLS = ("event_id, seq, hole_id, from_m, to_m, length_m, grade, unit, metal, summary, including, "
             "is_best, reported_before")
+_LABEL_TEXT = {"previously_reported": "previously reported", "historical": "historical", "third_party": "third party",
+               "cutoff": "cut-off"}
+
+
+def _iv_cols(conn) -> str:
+    # DRILL fix B (2026-10-11): label (new | previously_reported | historical | third_party | cutoff) and kind
+    # (interval | sample) per interval, when the publisher has added the columns
+    have = {r[1] for r in conn.execute("PRAGMA table_info(drill_intervals)")}
+    # DRILL_OCR_V1 (2026-10-13): depth_note (ocr | not_reported) when the publisher has added it
+    return (_IV_COLS + (", label, kind" if {"label", "kind"} <= have else "")
+            + (", depth_note" if "depth_note" in have else ""))
+
+
+def _attach_best_note(conn, items: list[dict]) -> None:
+    """DRILL_OCR_V1: best.depth_note -- 'ocr' (From-To read from the release's table picture), 'not_reported' (the
+    release gives no depths) or None. A no-op until the publisher has added the column."""
+    have = {r[1] for r in conn.execute("PRAGMA table_info(drill_intervals)")}
+    for it in items:
+        if it.get("best") is not None:
+            it["best"]["depth_note"] = None
+    if "depth_note" not in have:
+        return
+    ids = [it["event_id"] for it in items if it.get("best") is not None]
+    notes = {}
+    for i in range(0, len(ids), 500):
+        chunk = ids[i:i + 500]
+        for eid, note in conn.execute("SELECT event_id, depth_note FROM drill_intervals WHERE event_id IN (%s) AND "
+                                      "is_best = 1 AND depth_note IS NOT NULL" % ",".join("?" * len(chunk)), chunk):
+            notes[eid] = note
+    for it in items:
+        if it.get("best") is not None:
+            it["best"]["depth_note"] = notes.get(it["event_id"])
 
 
 def _metals_in_family(conn, fam: str) -> list[str]:
@@ -328,6 +360,14 @@ def _interval_dict(r) -> dict:
         "reported_before": bool(r["reported_before"]),
         "value": interval_value(r["grade"], r["unit"], r["metal"], r["length_m"]),
         "value_unit": value_unit(r["metal"]),
+        # DRILL fix B: what the figure is (the release's own new result, or an earlier, historical, partner or cut-off
+        # figure shown with a label) and whether it is one row of a sample-by-sample table
+        "label": ((r["label"] if "label" in r.keys() else None) or "new"),
+        "label_text": _LABEL_TEXT.get((r["label"] if "label" in r.keys() else None) or "new", ""),
+        "kind": ((r["kind"] if "kind" in r.keys() else None) or "interval"),
+        # DRILL_OCR_V1: why From-To is what it is -- 'ocr' (read from the release's table picture), 'not_reported'
+        # (the release gives no depths) or None
+        "depth_note": (r["depth_note"] if "depth_note" in r.keys() else None),
     }
 
 
@@ -381,7 +421,7 @@ def _attach_intervals(conn, items: list[dict], want_all: bool, fam: Optional[str
     for i in range(0, len(ids), 500):
         chunk = ids[i:i + 500]
         for r in conn.execute("SELECT %s FROM drill_intervals WHERE event_id IN (%s) ORDER BY event_id, seq"
-                              % (_IV_COLS, ",".join("?" * len(chunk))), chunk):
+                              % (_iv_cols(conn), ",".join("?" * len(chunk))), chunk):
             by.setdefault(r["event_id"], []).append(_interval_dict(r))
     for it in items:
         ivs = by.get(it["event_id"], [])
@@ -420,6 +460,7 @@ def query_list(conn, p: dict, names: dict, universe: Optional[frozenset]) -> dic
                         jargs + args + [limit, (page - 1) * limit]).fetchall()
     items = [_item_dict(r, names, universe) for r in rows]
     _attach_intervals(conn, items, p["intervals"], fam)
+    _attach_best_note(conn, items)   # DRILL_OCR_V1
     return {
         "ok": True,
         "api_version": API_VERSION,
@@ -443,6 +484,7 @@ def query_one(conn, event_id: str, names: dict) -> Optional[dict]:
         return None
     it = _item_dict(r, names, None)
     _attach_intervals(conn, [it], True, None)
+    _attach_best_note(conn, [it])   # DRILL_OCR_V1
     return it
 
 
@@ -568,7 +610,7 @@ def _selftest() -> int:
     CREATE TABLE drill_intervals (event_id TEXT NOT NULL, seq INTEGER NOT NULL, hole_id TEXT, from_m REAL,
         to_m REAL, length_m REAL, grade REAL, unit TEXT, metal TEXT, summary TEXT,
         including INTEGER NOT NULL DEFAULT 0, is_best INTEGER NOT NULL DEFAULT 0,
-        reported_before INTEGER NOT NULL DEFAULT 0, src TEXT, PRIMARY KEY (event_id, seq)) WITHOUT ROWID;
+        reported_before INTEGER NOT NULL DEFAULT 0, src TEXT, label TEXT, kind TEXT, PRIMARY KEY (event_id, seq)) WITHOUT ROWID;
     """)
 
     def ev(eid, t, date, cats="Drill Results", status="auto_approved", extra=None, slug="s"):
@@ -583,8 +625,9 @@ def _selftest() -> int:
                      (eid, t, project, hole, g, u, m, l, "summary", 2, "h", date + "T12:00:00", "drill", "1.0.1"))
 
     def iv(eid, seq, g, u, m, l, rb=0, best=0, incl=0, hole="H1"):
-        conn.execute("INSERT INTO drill_intervals VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                     (eid, seq, hole, None, None, l, g, u, m, "s", incl, best, rb, "body"))
+        conn.execute("INSERT INTO drill_intervals VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                     (eid, seq, hole, None, None, l, g, u, m, "s", incl, best, rb, "body",
+                      "historical" if rb == 2 else None, None))
 
     # e1 AAA.V gold 2026-09-01: 10 m @ 2 g/t (20 gm), incl 1 m @ 15 g/t (15 gm)
     ev("e1aaaa", "AAA.V", "2026-09-01"); dr("e1aaaa", "AAA.V", "2026-09-01", 2.0, "g/t", "Au", 10)
@@ -693,6 +736,8 @@ def _selftest() -> int:
     ok("intervals attached", len(ivs) == 2 and ivs[1]["including"] is True and ivs[0]["is_best"] is True
        and ivs[1]["value"] == 15)
     ok("reported_before flagged", r["items"][1]["intervals"][1]["reported_before"] is True)
+    ok("fix B: label and kind default to a new interval", r["items"][1]["intervals"][0]["label"] == "new"
+       and r["items"][1]["intervals"][0]["kind"] == "interval" and r["items"][1]["intervals"][0]["label_text"] == "")
 
     uni = frozenset({"AAA", "CCC"})
     r = query_list(conn, P(universe="mtp"), names, uni)
@@ -726,6 +771,21 @@ def _selftest() -> int:
                 py = interval_value(g, u, m, 3.0)
                 ok("sql factor %s %s %g" % (u.replace("\n", "\\n"), m, g),
                    (sqlv is None and py is None) or (sqlv is not None and py is not None and abs(sqlv - py) < 1e-5))
+
+    # DRILL_OCR_V1: depth_note, once the publisher has added the column
+    one = query_one(conn, "e1aaaa", names)
+    ok("OCR: no column yet -> depth_note None", one["best"]["depth_note"] is None
+       and one["intervals"][0]["depth_note"] is None)
+    conn.execute("ALTER TABLE drill_intervals ADD COLUMN depth_note TEXT")
+    conn.execute("UPDATE drill_intervals SET depth_note = 'not_reported' WHERE event_id = 'e1aaaa'")
+    conn.execute("UPDATE drill_intervals SET depth_note = 'ocr', from_m = 1.0, to_m = 101.0 WHERE event_id = 'e2bbbb' AND seq = 1")
+    one = query_one(conn, "e1aaaa", names)
+    ok("OCR: best and interval depth_note", one["best"]["depth_note"] == "not_reported"
+       and one["intervals"][0]["depth_note"] == "not_reported")
+    r = query_list(conn, P(), names, None)
+    by = {it["event_id"]: it for it in r["items"]}
+    ok("OCR: list carries best.depth_note and the OCR depth", by["e2bbbb"]["best"]["depth_note"] == "ocr"
+       and by["e2bbbb"]["best"]["from_m"] == 1.0 and by["e3cccc"]["best"]["depth_note"] is None)
 
     print("drills_api selftest: %d failed" % len(fails))
     return 1 if fails else 0

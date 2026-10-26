@@ -211,6 +211,43 @@ except Exception:  # pragma: no cover
     import logging
     logging.getLogger(__name__).exception("feedver_api register failed")
 
+# MNT_WCH_API_V1 (2026-10-07): /api/v1/warrant-changes - extensions, accelerations, repricings and exercises
+# of issued warrants, matched to a stored financing (Mine Terminal Pro's warrant-expiry events). Guarded like
+# the other API hooks.
+try:
+    from portal import warrant_changes_api
+    warrant_changes_api.register(app)
+except Exception:  # pragma: no cover
+    import logging
+    logging.getLogger(__name__).exception("warrant_changes_api register failed")
+
+# MNT_OPS_API_V1 (2026-10-12): /api/v1/option-payments - the payment schedules of property options and earn-ins
+# (Mine Terminal Pro's "Option payment due" events). Guarded like the other API hooks.
+try:
+    from portal import option_payments_api
+    option_payments_api.register(app)
+except Exception:  # pragma: no cover
+    import logging
+    logging.getLogger(__name__).exception("option_payments_api register failed")
+
+# MNT_CAL_API_V1 (2026-10-12): /api/v1/calendar - the dated corporate events companies' releases report
+# (Mine Terminal Pro's events page). Guarded like the other API hooks.
+try:
+    from portal import calendar_api
+    calendar_api.register(app)
+except Exception:  # pragma: no cover
+    import logging
+    logging.getLogger(__name__).exception("calendar_api register failed")
+
+# MNT_WIRE_API_V1 (2026-10-19): /api/v1/wire - the scored news tape behind Mine Terminal Pro's MTP Wire
+# homepage panel. Guarded like the other API hooks.
+try:
+    from portal import wire_api
+    wire_api.register(app)
+except Exception:  # pragma: no cover
+    import logging
+    logging.getLogger(__name__).exception("wire_api register failed")
+
 __all__ = ["app"]
 
 

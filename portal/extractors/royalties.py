@@ -66,7 +66,7 @@ from portal import project_names as PN   # 1.0.1: the shared project-name helper
 from portal import fingerprint as FP     # 1.0.2: fingerprints follow exactly the helper code this reader runs
 
 NAME = "royalties"
-VERSION = "1.1.1"  # 2026-09-28: vendor and held royalties, results closings, prices, metal (Justin's ROY11 answers);
+VERSION = "1.1.3"  # 2026-10-18 PNSRC: helper 1.0.7 (no change to this reader's own code); 2026-10-13 PNJUNK: helper 1.0.6 (no change of its own); 2026-09-28: vendor and held royalties, results closings, prices, metal (Justin's ROY11 answers);
 #                   2026-10-04 FIX5: vendor-royalty parties and properties, held-royalty headlines and
 #                   operators, bracketed and trailing rates
 KIND = "royalty_row"

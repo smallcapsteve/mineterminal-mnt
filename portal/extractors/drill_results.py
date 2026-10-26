@@ -108,6 +108,7 @@ Self-tests: python3 -m portal.extractors.drill_results
 """
 from __future__ import annotations
 
+import collections
 import re
 
 from portal import drill_extract as D
@@ -116,10 +117,11 @@ from portal import project_names as PN   # 1.0.6: the shared project-name helper
 from portal import fingerprint as FP     # 1.0.7: fingerprints follow exactly the helper code this reader runs
 
 NAME = "drill_results"
-VERSION = "1.0.10"  # 2026-10-01: no row when the headline or statement says the release is about something else (NEWS_V2); full-text losses fixed; 2026-10-04 FIX5: the shown hole is replaced only by the one hole every quotation of the figure sits with (row, list item, heading or "in hole X")
+VERSION = "1.1.4"  # 2026-10-20 one release of two 10-19 fixes. FIX4: a table interval longer than its own From-To span is misread (a lost decimal takes the span, any other excess is kept out of the best figure); a figure ten or a hundred times its own row's length takes the row's; a province after the name comes off; DRILLFIX: header units written apart from their labels (Blossom BGAU), "From ft To ft" headers, a second From/To pair in one header read with the first;  2026-10-18 PNSRC: helper 1.0.7 (no change to this reader's own code); 2026-10-13 PNJUNK: helper 1.0.6 (no change of its own); 2026-10-12 DEPTH_FILL_V1: From-To for intervals that had none, from the flattened table row or a prose phrase (Justin: Melkior, "do fix 1 and 2"); 2026-10-11 fix B: results tables anywhere in the release, every metal column, single samples (kind), earlier / historical / third-party / cut-off figures kept with a label instead of dropped
 KIND = "drill_result"
 TAG = "Drill Results"
-MAX_INTERVALS = 150
+LEDE_B = 60000
+MAX_INTERVALS = 3000   # B 1.1.0: every row of every results table (Justin 2026-10-10: every metal column, every sample)
 
 MONTHS = ("january|february|march|april|may|june|july|august|september|october|november|december"
           "|jan|feb|mar|apr|jun|jul|aug|sep|sept|oct|nov|dec")
@@ -216,11 +218,12 @@ _RE_DRILL_WORD = re.compile(
     r"(?i)\b(?:drill\w*|holes?|DDH|core|RC|reverse\s+circulation|diamond|boreholes?|sonic(?=\s+(?:drill|hole|core|rig|program))|auger|percussion"
     r"|down[\-\s]?hole|intersect\w*)\b")
 _RE_HIST = re.compile(
-    r"(?i)\b(?:historic(?:al|ally)?\s+(?:[\w&/\-()]+\s+){0,4}(?:drill\w*|holes?|DDH|results?|intercepts?|intersections?"
+    r"(?i)\b(?:historic(?:al|ally)?\s+(?:[\w&/\-()]+\s+){0,4}(?:drill\w*|holes?|DDH|results?|intercepts?|intersections?|intervals?"
     r"|highlights?|assays?|data|work|sampl\w*|trench\w*|values?|grades?|programs?|programmes?|campaigns?|core)"
     r"|(?:drill\w*|holes?|results?|intercepts?|intersections?|highlights?|assays?|trench\w*|sampl\w*)"
     r"\s+(?:\w+\s+){0,2}(?:are|were|is|was)\s+historic(?:al)?"
     r"|previous(?:ly)?[\s\-]+(?:report|announc|releas|disclos|drill|trench|sampl|publish|intersect|identif|defin|known|tested|hole|return)\w*"
+    r"|(?:previous|prior|earlier)\s+(?:[\w\-]+\s+){0,3}holes?\s+(?:that|which)\s+(?:returned|intersected|reported|yielded)"
     r"|(?:highest|best)[\-\s]+grade\s+(?:\w+\s+){0,2}(?:encountered|intersected|returned|drilled)\s+to\s+date\s+(?:at\s+(?:the\s+)?[\w\-]+(?:\s+[\w\-]+){0,2}\s+)?(?:is|was|remains|came)\b"
     r"|past\s+(?:drill\w*|exploration)\s+(?:success|results?|highlights?|programs?)"
     r"|\(\s*(?:" + MONTHS + r")\.?\s+\d{1,2},?\s+(?:19|20)\d\d\s+(?:news|press)\s+release"
@@ -379,7 +382,8 @@ def context_reason(ctx: str, release_date, program_years=(), pos=None, exempt_ye
             continue  # "completed since the last news release dated ..." / FIX3 "further to its news release of ..." introduce NEW results
         if (re.match(r"(?i)historic|prior\s+drill|previous\s+drill", m.group(0)) and _RE_RELATES.search(before)
                 and (pos is None or pos < m.start() or not re.match(
-                    r"(?i)^[^.;]{0,50}?(?:\bwhich\b|\bthat\b|\breturn\w*|\bgrad\w*|\bassay\w*|\(|:)", ctx[m.end():pos]))):
+                    r"(?i)^[^.;]{0,50}?(?:\bwhich\b|\bthat\b|\breturn\w*|\bgrad\w*|\bassay\w*|\(|:|\bholes?\s+[A-Z]{1,6}[\w\-]*\d\s*[:\-–]?\s*$)",
+                    ctx[m.end():pos]))):   # B 1.1.0: "160 m below the shallow historic drill hole CRC020 54.0 m @ 1.9 g/t"
             after_other = after_other or (pos is not None and pos < m.start())   # FIX3
             continue  # new holes "confirming / beneath / filling gaps in the historic drilling"
         if (pos is not None and pos > m.end() and _RE_REFERENCE.match(m.group(0))
@@ -445,7 +449,7 @@ def context_reason(ctx: str, release_date, program_years=(), pos=None, exempt_ye
 
 # ------------------------------------------------------------------ hole ids
 # 1.0.4: a wedge or daughter hole ends in letters AND digits -- CPG-112D2, OB-26-387W2, N109-7205A2
-_ID_CORE = r"(?:[A-Za-z]{1,8}\d{0,5}|\d{1,4}[A-Za-z]{1,6}\d{0,4}|\d{1,4})(?:[\-_](?:[A-Za-z]{0,10}\d{0,6}[A-Za-z]{0,3}\d{0,3}))+"
+_ID_CORE = r"(?:[A-Za-z]{1,8}\d{1,5}[A-Za-z]{1,2}(?=[\-_])|[A-Za-z]{1,8}\d{0,5}|\d{1,4}[A-Za-z]{1,6}\d{0,4}|\d{1,4})(?:[\-_](?:[A-Za-z]{0,10}\d{0,6}[A-Za-z]{0,3}\d{0,3}(?:(?<=\d)[A-Za-z])?))+"  # 1.0.11: "378W1A"
 _RE_HOLE_KW = re.compile(
     r"(?i:\b(?:drill[\s\-]?holes?|holes?|DDH|boreholes?|drill\s+core\s+holes?)\b)(?:\s*(?:#|No\.?|ID))?\s*[:#]?\s*"
     r"(?P<id>DDH-[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*|" + _ID_CORE + r"|[A-Z]{1,6}\d{1,5}[A-Z]?|\d{1,4}[A-Z]{2,6}\d{2,6}[A-Z]?"   # 1.0.8: "hole 25GLR117"
@@ -454,7 +458,7 @@ _RE_HOLE_KW = re.compile(
 # 1.0.8: an underscore joins the parts as a hyphen does ("ABC18_046"), and a letters-only part may sit between two
 # numbered ones ("DD22-ABC-006")
 _RE_HOLE_SHAPE = re.compile(
-    r"(?<![A-Za-z0-9\-_/.])(?P<id>(?:[A-Z]{1,8}\d{0,5}|\d{1,4}[A-Z]{1,6}\d{0,4})(?:[\-_](?:[A-Z]{2,5}-)?[A-Z]{0,10}\d{1,6}[A-Z]{0,3}\d{0,3}){1,3}"
+    r"(?<![A-Za-z0-9\-_/.])(?P<id>(?:[A-Z]{1,8}\d{1,5}[A-Z]{1,2}(?=[\-_])|[A-Z]{1,8}\d{0,5}|\d{1,4}[A-Z]{1,6}\d{0,4})(?:[\-_](?:[A-Z]{2,5}-)?[A-Z]{0,10}\d{1,6}[A-Z]{0,3}\d{0,3}(?:(?<=\d)[A-Z])?){1,3}"
     r"|[A-Z]{1,6}\d{2,5}-\d{1,4}[A-Z]?\d{0,3})(?![A-Za-z0-9\-_/])")
 # 1.0.8: an unhyphenated id that heads its figures ("ABC7795: 15.2 meters at 11.1 g/t", "26AB030: 2.0 metres at
 # 44.65 g/t") or is bracketed right after one ("24m @ 0.29% Cu from 0m (AB21RC06)")
@@ -462,7 +466,7 @@ _RE_HOLE_HEADING = re.compile(r"(?<![A-Za-z0-9\-_/.])(?P<id>\d{0,2}[A-Z]{2,6}\d{
 _RE_HOLE_PAREN = re.compile(r"(?i:\d\s*(?:m|metres?|meters?|ft|feet|g/t|gpt|%|ppm|ppb))(?:\s+[\w.]+){0,3}?\s*\(\s*"
                             r"(?P<id>[A-Z]{2,6}\d{2}[A-Z]{1,4}\d{2,4}[A-Z]?|[A-Z]{2,6}\d{3,6}[A-Z]?)\s*\)")
 _NOT_HOLE = re.compile(
-    r"(?i)^(?:NI-?43-101|43-101|COVID-19|[A-Z]{1,3}\d?O\d?(?:-\d+)?|Q[1-4]-\d+|H[12]-\d+|TSX-?V?|CSE|FSE|OTC\w*"
+    r"(?i)^(?:NI-?43-101|43-101|COVID-19|[A-Z]{1,3}\d?O\d?(?:-\d{1,2})?|Q[1-4]-\d+|H[12]-\d+|TSX-?V?|CSE|FSE|OTC\w*"
     r"|Form-\d+|\d{4}-\d{2,4}|Phase-\d+|Figure-\d+|Table-\d+|No-\d+|SEDAR-\d+|Rule-\d+"
     r"|(?:19|20)\d\d)$")
 
@@ -481,6 +485,11 @@ def _hole_ok(h: str, keyword: bool) -> bool:
     if re.fullmatch(r"\d{1,4}(?:-\d{1,4})+", h) and not keyword:
         return False
     return True
+
+
+_RE_PLAIN_ID = re.compile(r"(?<![A-Za-z0-9\-_/.])(?P<id>(?-i:[A-Z]{2,8}\d{2,5}[A-Z]{0,2}\d?))(?![A-Za-z0-9\-_/])")
+_RE_NOT_PLAIN_ID = re.compile(r"^(?:GDA|MGA|NAD|WGS|EPSG|ISO|JORC|COVID|SEDAR|NI|UTM|OTCQ?[XB]?|TSXV?|ASX|FSE|CSE|NYSE|PDAC|IFRS|COP|CEO|CFO|QAQC|CRM|ICP|AAS|ALS|SGS|MS|OES|AA|FA|GRAV|CUP|COO|VP|PEA|PFS|FS|DFS|MRE|NSR|AISC|LME|TMX|USD|CAD|AUD|HQ|NQ|PQ|BQ|Q|H)\d")
+_RE_DRILL_NEAR_ID = re.compile(r"(?i)\b(?:holes?|drill\w*|intercept\w*|intersect\w*|DDH|boreholes?|assay\w*|returned|graded)\b")
 
 
 def find_holes(text: str) -> list[dict]:
@@ -506,6 +515,23 @@ def find_holes(text: str) -> list[dict]:
     # 1.0.4: an id this release has already confirmed counts wherever else it appears. "Best RC drill hole
     # intersections at the BK2 Target: BKR010 3m @ 9.21 g/t Au" -- BKR010 carries no hyphen, so the shape
     # pass will not take it on its own, though the same release names it as a hole further down.
+    # B 1.1.0: an unhyphenated id ("SDDSC115A", "PAL0227") that the release repeats and writes next to drilling words
+    # at least once is a hole ("Two drillholes (SDDSC115A and 117)", "SDDSC115A intercepted eleven ...")
+    reps = {}
+    for m in _RE_PLAIN_ID.finditer(text):
+        reps.setdefault(m.group("id"), []).append(m.start("id"))
+    # B 1.1.0: a capitalised name and a number ("Rush-011", "Kena-23"), repeated near drilling words
+    for m in re.finditer(r"(?<![\w\-/])(?P<id>[A-Z][a-z]{2,10}-\d{2,4}[A-Z]?)(?![\w\-/])", text):
+        reps.setdefault(m.group("id"), []).append(m.start("id"))
+    held = [(o["pos"], o["end"]) for o in out]
+    for h, ps in reps.items():
+        if len(ps) < 2 or _RE_NOT_PLAIN_ID.match(h) or _NOT_HOLE.match(h):
+            continue
+        if not any(_RE_DRILL_NEAR_ID.search(text[max(0, p - 90):p + len(h) + 90]) for p in ps):
+            continue
+        for p in ps:
+            if not any(a <= p < b for a, b in held):
+                out.append({"id": h, "pos": p, "end": p + len(h), "kw": False, "known": True})
     ids_seen = {o["id"] for o in out}
     # an id that is only the front of a longer one ("AL24" of "AL24-124") is a fragment, not a hole
     known = sorted([k for k in ids_seen
@@ -539,7 +565,30 @@ def find_holes(text: str) -> list[dict]:
                 continue
             out.append({"id": m.group("id"), "pos": s0, "end": m.end("id"), "kw": False, "known": True})
     out.sort(key=lambda o: o["pos"])
-    return out
+    # B 1.1.0: "Hole 57" for "DDRCCC-24-057" (one full id in the release ends in that number): the full id
+    tails = {}
+    for o in out:
+        mt = re.search(r"(?<!\d)0*(\d{1,4})([A-Z]?)$", o["id"])
+        if mt and re.search(r"[A-Za-z]", o["id"]) and ("-" in o["id"] or "_" in o["id"]):
+            tails.setdefault((mt.group(1), mt.group(2)), set()).add(o["id"])
+    if tails:
+        held = [(o["pos"], o["end"]) for o in out]
+        for m in re.finditer(r"(?<![\w\-])[Hh]ole\s+(?:#\s*|No\.?\s*)?0*(\d{1,4})([A-Z]?)(?![\w\-.])", text):
+            ids_ = tails.get((m.group(1), m.group(2)))
+            if ids_ and len(ids_) > 1:   # "DDRCCC-23-057" once (a typo) and "DDRCCC-24-057" five times: the usual one
+                cnt_ = collections.Counter(o["id"] for o in out if o["id"] in ids_)
+                (top_, n1), (_, n2) = cnt_.most_common(2)
+                ids_ = {top_} if n1 >= 2 * n2 else ids_
+            if ids_ and len(ids_) == 1 and not any(a <= m.start(1) < b for a, b in held):
+                out.append({"id": next(iter(ids_)), "pos": m.start(1), "end": m.end(2), "kw": True, "alias": True})
+        out.sort(key=lambda o: o["pos"])
+    # B 1.1.0: "three further drill holes (MDDSC013A-15A)", "eighteen drill holes (MDDSC001-018)": a range of holes
+    # written after a plural, not one hole
+    def _range(o):
+        mr = re.fullmatch(r"([A-Z]{2,})(\d{2,4})([A-Z]?)-(\d{2,4})([A-Z]?)", o["id"])
+        return (mr and int(mr.group(4)) > int(mr.group(2)) and len(mr.group(4)) <= len(mr.group(2))
+                and re.search(r"(?i)\bholes\s*\(?\s*$", text[max(0, o["pos"] - 20):o["pos"]]))
+    return [o for o in out if not _range(o)]
 
 
 def norm_hole(h):
@@ -549,20 +598,57 @@ def norm_hole(h):
 # ------------------------------------------------------------------ tables
 _TABLE_METAL = re.compile(
     r"(?P<metal>(?:\d?PGMs?|\d?PGEs?|3E)\s*\+\s*Au|(?:" + D._METAL_ALT_NEW + r")(?:\s*Eq\.?)?)(?![A-Za-z])"
-    r"\s*[\n ]*\(?\s*(?P<unit>g/t|gpt|g/tonne|ppm|ppb|%|oz/t|opt)\s*\)?", re.I)
-_TABLE_HEADER = re.compile(r"(?i)\bfrom\b[\s()m\n.]{0,12}\bto\b")
+    r"\s*[\n ]*\(?\s*(?P<unit>g/t|gpt|g/tonne|ppm|ppb|%|pct|percent|oz/t|opt)\s*\)?", re.I)
+_TABLE_HEADER = re.compile(r"(?i)\bfrom\b(?:[\s()m\n.*–\-]|\(\s*(?:metres?|meters?|ft|feet)\s*\)|depth\b|ft\b|feet\b){0,12}\bto\b")   # 1.1.4: "From ft To ft" (Blossom BGAU)   # B: "From (meters) To", "From (metres) – To"
 _NUM = re.compile(r"(?<![\w.])-?\d+(?:[.,]\d+)?(?![\w.%/])")
 _ROW_INCL = re.compile(r"(?i)^\s*(?:incl(?:uding|udes|\.)?|inc\.?|and|with|within|or(?=\s+\d))\b")
 # 1.0.2: an unhyphenated id opening a table row ("MADN0010 151.61 226 74.39 ...", USGD.CN) that find_holes does not accept in prose
 _RE_ROW_HOLE_PLAIN = re.compile(r"^\s*(?P<id>(?-i:[A-Z]{2,6}\d{3,}[A-Z]?))(?=[ \t]+(?:\([^()\n]{0,20}\)[ \t]+)?-?\d)")  # 1.0.8: "ABC127 (60, -58) 224.0 ..."
 
 
-def _row_holes(line):
+_RE_ROW_LEAD_ID = re.compile(r"^\s*(?P<id>[A-Za-z0-9][A-Za-z0-9\-_/.]*?[A-Za-z0-9])(?=[ \t])")
+
+
+def _lone_hole(line, hole_col):
+    """B 1.1.0: a line that holds only a hole id ("26-14") under a Hole column: the rows below are that hole's."""
+    if not hole_col:
+        return None
+    h = line.strip().rstrip("*")
+    if not h or " " in h or len(h) > 24:
+        return None
+    if (re.search(r"\d", h) and not re.fullmatch(r"-?\d+(?:[.,]\d+)?", h) and not re.fullmatch(r"(?:19|20)\d\d-\d\d-\d\d", h)
+            and re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9\-_/.]*", h) and ("-" in h or "_" in h or re.search(r"[A-Za-z]", h))
+            and not _ROW_LABEL.match(h) and not _NOT_HOLE.match(h) and not re.fullmatch(r"(?i)(?:m|ft|g/t|ppm|ppb|%|\w{1,2}\d?)", h)):
+        return h
+    return None
+
+
+def _row_holes(line, hole_col=False):
     holes = find_holes(line)
     if not holes:
         m = _RE_ROW_HOLE_PLAIN.match(line)
         if m and len(_NUM.findall(line[m.end():])) >= 3:
             holes = [{"id": m.group("id"), "pos": m.start("id"), "end": m.end("id"), "kw": False}]
+    if not holes and hole_col:
+        # B 1.1.0: under a "Hole" column the row's first token is the hole, however it is written ("26-DH-1333",
+        # "26-14"), when it is not a plain number or a date
+        m = _RE_ROW_LEAD_ID.match(line)
+        if m and len(_NUM.findall(line[m.end():])) >= 3:
+            h = m.group("id")
+            if (re.search(r"\d", h) and not re.fullmatch(r"-?\d+(?:[.,]\d+)?", h) and not re.fullmatch(r"(?:19|20)\d\d-\d\d-\d\d", h)
+                    and ("-" in h or "_" in h or re.search(r"[A-Za-z]", h)) and not _ROW_LABEL.match(h) and not _NOT_HOLE.match(h)):
+                holes = [{"id": h, "pos": m.start("id"), "end": m.end("id"), "kw": False}]
+    if not holes and hole_col:
+        # a text column before the hole ("South Palokas PAL0204 88.2 89.1 ..."): the id-shaped word right before the numbers
+        nm = _NUM.search(line)
+        if nm and len(_NUM.findall(line[nm.start():])) >= 3:
+            lead = line[:nm.start()]
+            for wm in reversed(list(re.finditer(r"\S+", lead))):
+                h = wm.group(0).strip(",;:*")
+                if (re.search(r"\d{2,}", h) and re.search(r"[A-Za-z]", h) and re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9\-_/.]*", h)
+                        and not _NOT_HOLE.match(h) and not _ROW_LABEL.match(h)):
+                    holes = [{"id": h, "pos": wm.start(), "end": wm.start() + len(h), "kw": False, "lead": True}]
+                break
     return holes
 
 
@@ -579,9 +665,9 @@ _HDR_UNIT = r"(?:\s*\(\s*(?P<{0}>m|ft|feet|metres?|meters?|cl|tw)\s*\))*"
 _HDR_TOKENS = [
     ("from", re.compile(r"(?i)\bfrom\b[\u00b9\u00b2\u00b3*\d]?(?:\s*\(\s*(?P<u>m|ft|feet|metres?|meters?)\s*\))?")),
     ("to", re.compile(r"(?i)\bto\b[\u00b9\u00b2\u00b3*\d]?(?:\s*\(\s*(?P<u>m|ft|feet|metres?|meters?)\s*\))?")),
-    ("tw", re.compile(r"(?i)(?:\b(?:est(?:\.|imated)?|app(?:\.|arent)?|horizontal)\s+)?\b(?:true\s+(?:width|thickness)|etw|t\.?w\.?)"
+    ("tw", re.compile(r"(?i)(?:\b(?:est(?:\.|imated)?|app(?:\.|arent)?|horizontal)\s+)?\b(?:(?:true|real)\s+(?:width|thickness)|tr\.?\s*th(?:ck|ick|k)\w*\.?|etw|e?tt|t\.?w\.?)"
                       r"(?![A-Za-z])[\w\u00b9\u00b2\u00b3*.]*(?:\s*\(\s*(?:tw|etw)\s*\))?(?:\s*\(\s*(?P<u>m|ft|feet|metres?|meters?)\s*\))?")),
-    ("len", re.compile(r"(?i)\b(?:(?:core|drilled|downhole|down[\s-]hole|sample|mineralized|intersected)\s+)?"
+    ("len", re.compile(r"(?i)\b(?:(?:core|drilled|downhole|down[\s-]hole|sample|mineralized|intersected|apparent)\s+)?"
                        r"(?:length|interval|intercept|width|thick(?:ness)?|int|intersection|cl)(?![A-Za-z])[\w\u00b9\u00b2\u00b3*.]*"
                        r"(?:\s*\(\s*(?:cl|core\s+length)\s*\))?(?:\s*\(\s*(?P<u>m|ft|feet|metres?|meters?)\s*\))?")),
     ("combo", None),        # "Zn+Pb (%)", "Pt+Pd+Au (g/t)": one column
@@ -595,13 +681,13 @@ _HDR_TOKENS = [
 ]
 # 1.0.5: "Horizon" (Footwall / Hangingwall) is a text column (CADY.TO Table 1)
 _HDR_TOKENS[-1] = ("text", re.compile(_HDR_TOKENS[-1][1].pattern.replace("|interpretation)", "|interpretation|horizons?)")))
-_HDR_NOISE = re.compile(r"(?i)\b(?:grade|assays?|avg|average|results?|uncut|cut|capped|uncapped|weighted|diluted|undiluted)\b|\(\s*(?:metres?|meters?|feet)\s*\)|\(?\s*(?:m|ft|%|g/t|gpt|ppm|ppb|oz/t|opt|g/tonne)\s*\)?(?![A-Za-z])|[()\[\]*\u00b9\u00b2\u00b3\u2074\u2075#:/|\-\u2013,.;+^~\"'\u201c\u201d\u2019]+|\d{1,2}(?![\d.])")
+_HDR_NOISE = re.compile(r"(?i)\b(?:grade|assays?|avg|average|results?|uncut|cut|capped|uncapped|weighted|diluted|undiluted|deg|degrees?|utm[nesw]?|nad\s?83|wgs\s?84|masl|significant|intersections?|intercepts?)\b|\(\s*(?:metres?|meters?|feet)\s*\)|\(?\s*(?:m|ft|%|pct|percent|g/t|gpt|ppm|ppb|oz/t|opt|g/tonne)\s*\)?(?![A-Za-z])|[()\[\]*\u00b9\u00b2\u00b3\u2074\u2075#:/|\-\u2013,.;+^~\"'\u201c\u201d\u2019]+|\d{1,2}(?![\d.])")
 _TABLE_METAL2 = re.compile(
     r"(?i)(?P<metal>(?:\d?PGMs?|\d?PGEs?|3E)\s*\+\s*Au|(?:" + D._METAL_ALT_NEW + r")(?![A-Za-z])(?:\s*Eq\.?)?)[\d\u00b9\u00b2\u00b3*]{0,3}"
-    r"\s*[\n ]*\(?\s*(?P<unit>g/t|gpt|g/tonne|ppm|ppb|%|oz/ton|oz/t|opt)\s*\)?")
+    r"\s*[\n ]*\(?\s*(?P<unit>g/t|gpt|g/tonne|ppm|ppb|%|pct|percent|oz/ton|oz/t|opt)\s*\)?")
 _TABLE_COMBO = re.compile(r"(?i)(?P<metals>(?:" + D._METAL_ALT_NEW + r")(?![A-Za-z])(?:\s*\+\s*(?:" + D._METAL_ALT_NEW + r")(?![A-Za-z]))+)"
-                          r"\s*\(?\s*(?P<unit>g/t|gpt|g/tonne|ppm|ppb|%|oz/t|opt)\s*\)?")
-_GRADE_UNIT = re.compile(r"(?i)^\(?\s*(%|g/t|gpt|g/tonne|ppm|ppb|oz/t|opt)\s*\)?$")
+                          r"\s*\(?\s*(?P<unit>g/t|gpt|g/tonne|ppm|ppb|%|pct|percent|oz/t|opt)\s*\)?")
+_GRADE_UNIT = re.compile(r"(?i)^\(?\s*(%|pct|percent|g/t|gpt|g/tonne|ppm|ppb|oz/t|opt)\s*\)?$")
 _PLACEHOLDER = re.compile(r"(?i)^(?:[-\u2013\u2014]+|n/?a|nsv|nss|ns|nsi|bdl|b\.d\.l\.?|<\s*d\.?l\.?|pending|tbd|nil|trace|tr|na|nr|n\.?s\.?|x|\*+|<[\d.,]+"
                           r"|unknown|undetermined|n\.?d\.?|ap)$")  # 1.0.2: "unknown" true width (NEXM.V), "Ap" assays pending
 _CELL_NUM = re.compile(r"^[*~]?(-?(?:\d{1,3}(?:,\d{3})+|\d+)(?:[.,]\d+)?)\*{0,3}$")
@@ -631,6 +717,88 @@ def _unit_m(u):
     return 0.3048 if (u or "").lower() in ("ft", "feet") else 1.0
 
 
+_HDR_QUALIFIER = re.compile(r"(?i)^(?:(?:19|20)\d\d|spot|price|prices|base|case|lt|long-term|current|new|old|consensus|recovered|in-situ|insitu)\W*$")
+
+
+_RE_INDIUM_COL = re.compile(r"In\b\s*\(?\s*(?P<unit>ppm|ppb|g/t)\s*\)?")
+_UF_METALS = r"(?:Au|Ag|Pt|Pd|Cu|Zn|Pb|Ni|Co|Mo|U3O8|eU3O8|AuEq|AgEq|CuEq)"
+_UF_UNITS = r"(?:g/t|gpt|g/tonne|ppm|ppb|oz/t|oz/ton|opt)"
+_RE_UNIT_FIRST_COL = re.compile(r"(?i)(?P<unit>" + _UF_UNITS + r")\s+(?P<m>" + _UF_METALS + r")\b"
+                                r"(?!\s*(?:%|" + _UF_UNITS + r")(?!\s+" + _UF_METALS + r"\b))")
+_RE_PCT_PREFIX_COL = re.compile(r"%\s*(?P<eq>e)?(?P<m>Cu|Zn|Pb|Ni|Co|Mo|Li2O|U3O8|Sn|WO3|Sb|Fe|Mn|V2O5)\b")
+
+
+_HDR_DEFAULT_GT = ["Au"]   # B 1.1.0: set per release by analyse() (single-threaded reader)
+
+
+# 1.1.4 (DRILLFIX, 2026-10-19): a header whose units are not in brackets after their own labels. Two layouts:
+#  (a) labels first, then a units row (BGAU 2026-06-30: "From To From To True Thickness Au Au | ft ft m m ft m opt* g/t");
+#  (b) each unit right after its label, unbracketed (BGAU 2026-08-12: "From ft To ft From M To m True Thickness ft m Au
+#      opt* Au g/t"). Both are rewritten to "From (ft) To (ft) From (m) To (m) True Thickness (ft) True Thickness (m)
+#      Au (oz/t) Au (g/t)". A label of a length kind (true thickness / width, length, interval) may span two length units
+#      (ft and m). Before 1.1.4 the header was refused and the fallback reading took the thickness in feet as the grade.
+_BU_LEN = r"(?:ft|feet|m|M|metres?|meters?)"
+_BU_GRD = r"(?:opt\*?|oz/t|g/t|gpt|ppm|ppb|%)"
+_BU_LBL = (r"(?:From|To|True\s+Thickness|True\s+Width|Est(?:\.|imated)?\s+True\s+(?:Width|Thickness)|Thickness|Width|"
+           r"Length|Interval|Au|Ag|Cu|Zn|Pb|Ni|Co|Mo|Pt|Pd|AuEq|AgEq|CuEq)")
+_BU_A = re.compile(r"^\s*((?:" + _BU_LBL + r"\s+){3,}?)((?:(?:" + _BU_LEN + r"|" + _BU_GRD + r")(?=\s|$)\s*){3,})")
+_BU_B = re.compile(r"\b(" + _BU_LBL + r")\s+((?:" + _BU_LEN + r"|" + _BU_GRD + r")(?:\s+" + _BU_LEN + r")?)(?=\s|$)")
+
+
+def _bu_unit(u):
+    u = u.strip()
+    if u.rstrip("*").lower() in ("opt", "oz/t"):
+        return "oz/t"
+    if u.lower() in ("gpt",):
+        return "g/t"
+    if u in ("M", "metre", "metres", "meter", "meters"):
+        return "m"
+    if u == "feet":
+        return "ft"
+    return u
+
+
+def _bu_is_len(lbl):
+    return bool(re.match(r"(?i)(?:true|est|thickness|width|length|interval)", lbl))
+
+
+def _bracket_units(s_):
+    if "(" in s_[:200]:
+        return s_
+    ma = _BU_A.match(s_)
+    if ma:
+        labels = re.findall(_BU_LBL, ma.group(1))
+        units = re.findall(r"\S+", ma.group(2))
+        extra = len(units) - len(labels)
+        out, k = [], 0
+        for lb in labels:
+            if k >= len(units):
+                return s_
+            if extra > 0 and _bu_is_len(lb) and k + 1 < len(units) and re.fullmatch(_BU_LEN, units[k]) \
+                    and re.fullmatch(_BU_LEN, units[k + 1]) and _bu_unit(units[k]) != _bu_unit(units[k + 1]):
+                out += ["%s (%s)" % (lb, _bu_unit(units[k])), "%s (%s)" % (lb, _bu_unit(units[k + 1]))]
+                k += 2
+                extra -= 1
+                continue
+            out.append("%s (%s)" % (lb, _bu_unit(units[k])))
+            k += 1
+        if k != len(units):
+            return s_
+        return " ".join(out) + " " + s_[ma.end():]
+    hits = list(_BU_B.finditer(s_[:300]))
+    if len(hits) >= 3 and hits[0].start() <= 2:
+        def one(m):
+            us = m.group(2).split()
+            if len(us) == 2 and _bu_is_len(m.group(1)):
+                return "%s (%s) %s (%s)" % (m.group(1), _bu_unit(us[0]), m.group(1), _bu_unit(us[1]))
+            if len(us) == 2:
+                return m.group(0)
+            return "%s (%s)" % (m.group(1), _bu_unit(us[0]))
+        head = _BU_B.sub(one, s_[:300])
+        return head + s_[300:]
+    return s_
+
+
 def header_columns(seg: str):
     """Column kinds from the header text starting at "From": [(kind, metal, unit, len_unit)], or None when a label
     is not understood (then the 1.0.1 reading is used)."""
@@ -638,8 +806,26 @@ def header_columns(seg: str):
     if not m0:
         return None
     s_ = seg[m0.start():]
+    s_ = _bracket_units(s_)   # 1.1.4 DRILLFIX: units written apart from their labels (Blossom BGAU)
+    s_ = re.sub(r"\b([A-Z][a-z]?)_(?=(?:g/t|gpt|ppm|ppb|pct|%))", r"\1 ", s_)   # B 1.1.0: "Au_g/t"
+    s_ = re.sub(r"(?i)\b(g/t|ppm|ppb|oz/t)(?=(?:Au|Ag|Pt|Pd|Cu)\b)", r"\1 ", s_)   # B 1.1.0: "(g/tAu)"
+    s_ = re.sub(r"(?<=\s)gt(?=\s|$)", "g/t", s_)   # B 1.1.0: a units row "gt gt % %"
+    s_ = re.sub(r"(?i)\bdepth\s+(from|to)\b", r"\1", s_)   # B 1.1.0: "Depth_from | Depth_to"
+    # B 1.1.0: the assay method in a grade label ("Fire Assay Gold Grade (g/t)") and a ratio column ("AuCN/AuFA Ratio (%)")
+    s_ = re.sub(r"(?i)\b(?:fire\s+assay|metallic\s+screen(?:ed)?|screen(?:ed)?\s+metallics?|cyanide\s+leach(?:able)?)\b", " ", s_)
+    s_ = re.sub(r"(?i)\b[A-Za-z]{2,6}/[A-Za-z]{2,6}\s+ratio\b", " Metal Factor ", s_)
+    # B 1.1.0: "Grade (g/t)" naming no metal: the release's precious metal in g/t (gold unless the release is about silver)
+    if not re.search(r"\b" + _HDR_DEFAULT_GT[0] + r"\b", s_):
+        s_ = re.sub(r"(?i)\bgrade\s*\(\s*(?:g/t|gpt|g/tonne)\s*\)", _HDR_DEFAULT_GT[0] + " (g/t)", s_, count=1)
+    # B 1.1.0: "Pb+Zn" with its unit on the units row is one combined grade column
+    s_ = re.sub(r"\b(Pb|Zn|Cu|Au|Ag|Ni|Co|Pt|Pd)\s*\+\s*(Pb|Zn|Cu|Au|Ag|Ni|Co|Pt|Pd)\b(?!\s*(?:\(|g/t|gpt|%|ppm|ppb|oz))",
+                lambda m_: m_.group(1) + "\u2295" + m_.group(2), s_)
+    # B 1.1.0: the unit of a grade x thickness column ("Metal Factor (Au g x metres)", "(g/t x m)") names no grade column
+    s_ = re.sub(r"(?i)\(\s*(?:[A-Z][a-z]?\s+)?g(?:/t|pt)?\s*[x\u00d7*]\s*m(?:etres?|eters?)?\s*\)|\(\s*grade\s*[x\u00d7*]\s*(?:length|width|thickness|interval)\s*\)", " (gxm) ", s_)
     # qualifiers of the column before: "(cut to 90 g/t)", "(uncapped)", "(CL)", "(TW)"
     s_ = re.sub(r"(?i)\(\s*(?:cut|capped|uncut|uncapped|cl|tw|core\s+length|true\s+width|not\s+true)[^()]{0,30}\)", " ", s_)
+    # B 1.1.0: the metals an equivalent grade is made of ("*AgEq (Ag,Pb,Zn) (gpt)") are not columns
+    s_ = re.sub(r"\(\s*[A-Z][a-z]?(?:\s*,\s*[A-Z][a-z]?)+\s*\)", " ", s_)
     # 1.0.2: a label split over two header lines ("Est. True | ... | Width (m)", IPT.V): join it before reading
     mt = re.search(r"(?i)\b(?:est(?:\.|imated)?\s+)?true\b(?!\s+(?:width|thickness))", s_)
     if mt:
@@ -648,24 +834,41 @@ def header_columns(seg: str):
             w0 = mt.end() + mw.start()
             s_ = s_[:mt.end()] + " " + mw.group(1) + s_[mt.end():w0] + s_[w0 + len(mw.group(1)):]
     cols, i, residue, bare = [], 0, [], []
+    col_ends, residue_pos = [], []
     while i < len(s_):
         if s_[i].isspace():
             i += 1
             continue
         hit = None
-        for kind, rx in _HDR_TOKENS:
+        mi = _RE_INDIUM_COL.match(s_, i)
+        if mi:   # B 1.1.0: "In ppm" is the indium column, not the word "in" (TK.V Table 1)
+            hit = (mi.end(), ("metal", "In", mi.group("unit").lower(), None))
+        mu = None if hit else _RE_UNIT_FIRST_COL.match(s_, i)
+        if mu:   # B 1.1.0: "g/t Au  Oz/t Au": the unit written before the metal
+            u = mu.group("unit").lower()
+            u = "g/t" if u in ("gpt", "g/tonne") else ("oz/t" if u in ("oz/ton", "opt") else u)
+            hit = (mu.end(), ("metal", D._normalize_metal(mu.group("m")), u, None))
+        mp = None if hit else _RE_PCT_PREFIX_COL.match(s_, i)
+        if mp:   # B 1.1.0: "%eCu", "%Cu", "%Zn": the unit written before the metal (ACD036, Alacran)
+            hit = (mp.end(), ("metal", D._normalize_metal(mp.group("m")) + ("Eq" if mp.group("eq") else ""), "%", None))
+        for kind, rx in ([] if hit else _HDR_TOKENS):
             if kind == "combo":
                 mm = _TABLE_COMBO.match(s_, i)
                 if mm:
                     unit = "g/t" if mm.group("unit").lower() in ("gpt", "g/tonne") else mm.group("unit").lower()
+                    unit = "%" if unit in ("pct", "percent") else unit
                     hit = (mm.end(), ("metal", "+".join(D._normalize_metal(x) for x in re.split(r"\s*\+\s*", mm.group("metals"))), unit, None))
             elif kind == "metal":
                 mm = _TABLE_METAL2.match(s_, i)
                 if mm and not (i > 0 and s_[i - 1].isalpha()):
                     unit = "g/t" if mm.group("unit").lower() in ("gpt", "g/tonne") else mm.group("unit").lower()
-                    unit = "oz/t" if unit == "oz/ton" else unit
+                    unit = "oz/t" if unit == "oz/ton" else ("%" if unit in ("pct", "percent") else unit)
                     hit = (mm.end(), (kind, D._normalize_metal(re.sub(r"\s+", "", mm.group("metal"))), unit, None))
             elif kind == "bare_metal":
+                mj = re.match(r"(Pb|Zn|Cu|Au|Ag|Ni|Co|Pt|Pd)\u2295(Pb|Zn|Cu|Au|Ag|Ni|Co|Pt|Pd)", s_[i:])
+                if mj:
+                    hit = (i + mj.end(), ("bare_metal", mj.group(1) + "+" + mj.group(2), None, None))
+                    break
                 mm = re.compile(r"(?i)(?:" + D._METAL_ALT_NEW + r")(?![A-Za-z])(?:\s*eq\.?)?[\d\u00b9\u00b2\u00b3*]*").match(s_, i)
                 if mm and mm.group(0).lower() != "cut" and not (i > 0 and s_[i - 1].isalpha()) \
                         and not (mm.end() < len(s_) and s_[mm.end()].isalpha()):
@@ -688,28 +891,90 @@ def header_columns(seg: str):
                 cols[-1] = col  # "Gold (m) (m) (m) Au g/t": one column, named twice
                 continue
             cols.append(col)
+            col_ends.append(i)
+            continue
+        mf = re.compile(r"(?:[A-Z][a-z]?\d?){1,3}[A-Z]?[a-z]?\d(?:\*|\s*eq)?(?=\s|$|\()").match(s_, i)
+        if mf and not (i > 0 and s_[i - 1].isalnum()) and re.fullmatch(r"(?:(?:Ba|Ca|Fe|Ti|Al|Si|Mg|Mn|Na|K|P|Cr|V|Zr|Nb|Ta|Ce|La|Nd|Y|Sc|Re)\d?(?:S?O\d?|F\d|S\d?)?\d?)+", mf.group(0).rstrip("*").replace(" ", "")):
+            # B 1.1.0: a compound column ("BaSO4", "CaF2", "Fe2O3", "TiO2", "V2O5") is a grade column of its own
+            cols.append(("bare_metal", mf.group(0).rstrip("*"), None, None))
+            col_ends.append(mf.end())
+            i = mf.end()
             continue
         nm = _HDR_NOISE.match(s_, i)
         if nm and nm.end() > i:
             unit_tok = _GRADE_UNIT.match(nm.group(0).strip())
             if unit_tok:
-                bare.append(unit_tok.group(1).lower())
+                bare.append("%" if unit_tok.group(1).lower() in ("pct", "percent") else unit_tok.group(1).lower())
             i = nm.end()
             continue
         wm = re.match(r"\S+", s_[i:])
+        if cols and cols[-1][0] == "metal" and _HDR_QUALIFIER.match(wm.group(0)):
+            i += wm.end()  # 1.0.11: "CuEq % 2026", "CuEq % Spot" (AMQ.CN): a qualifier of the grade column before it
+            continue
         residue.append(wm.group(0))
+        residue_pos.append(i)
         i += wm.end()
     if residue:
-        return None
+        # B 1.1.0: words after the last grade column (a section label such as "West Zone" before the first row,
+        # a "Notes" heading) do not change how the numbers line up; anywhere else they may, so the header is refused
+        last_metal_end = max((p for p, c in zip(col_ends, cols) if c[0] in ("metal", "bare_metal", "combo")), default=None)
+        if last_metal_end is None or any(p < last_metal_end for p in residue_pos):
+            # B 1.1.0: a two-level header flattened with its descriptive columns before the grade group ("Length (m)
+            # Average Grades Press Release Breccia Total depth (m) Orientation & Dip Au (g/t) Ag (g/t) Cu (%)", CA-25-24):
+            # every unread word and every plain-number column sits between the last depth column and the first grade
+            # column, and the words name such columns; the rows carry From, To, Length, then the grades
+            k_core = max((k for k, c in enumerate(cols) if c[0] in ("from", "to", "len")), default=None)
+            k_m = next((k for k, c in enumerate(cols) if c[0] in ("metal", "bare_metal", "combo")), None)
+            if k_core is None or k_m is None or k_m <= k_core:
+                return None
+            mid = cols[k_core + 1:k_m]
+            if not (all(c[0] in ("num", "text") for c in mid)
+                    and all(col_ends[k_core] <= p for p in residue_pos)
+                    and all(p < (col_ends[k_m - 1] if mid else col_ends[k_core]) or p >= last_metal_end for p in residue_pos)
+                    and any(re.fullmatch(r"(?i)grades?|assays?|averages?|weighted|orientation|azimuth|comments?|notes?|"
+                                         r"lithology|description|release", w) for w in residue)):
+                return None
+            cols = cols[:k_core + 1] + cols[k_m:]
+            col_ends = col_ends[:k_core + 1] + col_ends[k_m:]
+    # B 1.1.0: a two-row header flattened row after row ("From To Length Assay NiEq (%) CuEq (%) | (#) (m) (m) (m) Ni (%) Cu (%)
+    # ... Au (g/t)"): the second row's grade columns are the ones the group label ("Assay") spans, so they come first
+    mk_ = [k for k, c in enumerate(cols) if c[0] == "metal"]
+    if mk_ and all(c[0] in ("from", "to", "len", "tw", "metal") for c in cols):
+        for mu_ in re.finditer(r"(?:\(\s*(?:m|ft|#)\s*\)\s*){3,}", s_):
+            before_ = [k for k in mk_ if col_ends[k] <= mu_.start()]
+            after_ = [k for k in mk_ if col_ends[k] > mu_.end()]
+            core_ = [k for k, c in enumerate(cols) if c[0] != "metal"]
+            first_m = min(mk_)
+            grp = re.search(r"(?i)\b(?:assays?|grades?|analyses|analytical\s+results)\b",
+                            s_[col_ends[first_m - 1] if first_m else 0:col_ends[first_m]])
+            if before_ and after_ and grp and all(col_ends[k] < mu_.start() for k in core_):
+                order = core_ + after_ + before_
+                cols = [cols[k] for k in order]
+                col_ends = sorted(col_ends)
+                break
     # "Copper Silver Copper Eq. ... m m m % gpt %": units on their own line, in column order
     bares = [k for k, c in enumerate(cols) if c[0] == "bare_metal"]
     if bares and not any(c[0] == "metal" for c in cols) and len(bare) >= len(bares):
         for k, u in zip(bares, bare[-len(bares):]):
             cols[k] = ("metal", cols[k][1], "g/t" if u in ("gpt", "g/tonne") else u, None)
+    # B 1.1.0: a grade column named without a unit ("CuEq*" beside "Cu %"): the usual unit of that metal
+    if any(c[0] == "metal" for c in cols):
+        named = {m for c in cols if c[0] == "metal" for m in [c[1]] + (c[1] or "").split("+")}
+        cols = [("metal", c[1], _DEFAULT_UNIT(c[1]), None) if c[0] == "bare_metal" and _DEFAULT_UNIT(c[1]) and c[1] not in named else c
+                for c in cols]
     kinds = [c[0] for c in cols]
     if kinds[:1] != ["from"] or "to" not in kinds[:3] or not any(k == "metal" for k in kinds):
         return None
     return cols
+
+
+def _DEFAULT_UNIT(metal):
+    m = (metal or "").replace("Eq", "")
+    if m in ("Au", "Ag", "Pt", "Pd", "Rh", "PGE", "PGM", "2PGE", "3E") or m.startswith(("2PGE", "3PGE", "PGE", "PGM")):
+        return "g/t"
+    if m in ("Cu", "Zn", "Pb", "Ni", "Co", "Mo", "Li2O", "U3O8", "eU3O8", "Sn", "W", "WO3", "Sb", "Fe", "Mn", "V2O5", "Zn+Pb", "Pb+Zn", "TREO", "C", "Cg"):
+        return "%"
+    return None
 
 
 def row_by_columns(cells, cols, prefix_nums=0):
@@ -728,6 +993,11 @@ def row_by_columns(cells, cols, prefix_nums=0):
     else:
         need_n = len(strict)
     vals = [c for c in cells if c is not False]
+    # B 1.1.0: the last grade cells of a row may be left blank ("Sn %" empty on a silver-zone row): the row is read
+    # with what it has, provided From, To, Length and at least one grade are there
+    firstm = next((k for k, c in enumerate(strict) if c[0] == "metal"), None)
+    if firstm is not None and len(vals) < need_n and len(vals) >= firstm + 1 and len(vals) - firstm >= 1:
+        need_n = len(vals)
     starts = [prefix_nums, 0] + list(range(len(vals)))
     tried = set()
     for st in starts:
@@ -752,7 +1022,11 @@ def row_by_columns(cells, cols, prefix_nums=0):
         if lens:
             lc, lv = lens[0]
             lu = _unit_m(lc[3]) if lc[3] else fu
-            if abs((to - fr) * fu - lv * lu) > (max(0.15, 0.006 * lv * lu) if fu == lu else max(0.15, 0.03 * lv * lu) * 1.02):  # 1.0.2: tight, a grade read as "from" slips through 3% (CRTL.CN)
+            _void_ok = (fu == lu and (to - fr) > lv and any(isinstance(v_, float) and abs((to - fr) - (lv + v_)) <= 0.06
+                                                         for c_, v_ in zip(strict, seg) if c_[0] == "num"))
+            if _void_ok:
+                pass   # B 1.1.0: "Intersection (m) ... Voids (m)": the length printed is the drilled length less the voids
+            elif abs((to - fr) * fu - lv * lu) > (max(0.15, 0.006 * lv * lu) if fu == lu else max(0.15, 0.03 * lv * lu) * 1.02):  # 1.0.2: tight, a grade read as "from" slips through 3% (CRTL.CN)
                 # a second from/to pair in the other unit ("From (ft) To (ft) From (m) To (m)")
                 if not (len(d_["from"]) > 1 and any(abs((d_["to"][1][1] - d_["from"][1][1]) * _unit_m(d_["from"][1][0][3]) - v * _unit_m(c[3] or d_["from"][1][0][3])) <= max(0.15, 0.03 * v)
                                                      for c, v in lens if len(d_.get("to", [])) > 1 and d_["to"][1][1] is not None and d_["from"][1][1] is not None)):
@@ -768,6 +1042,21 @@ def row_by_columns(cells, cols, prefix_nums=0):
         if after and len(rest) == len(after):
             grades += [(c[1], c[2], v) for c, v in zip(after, rest) if c[0] == "metal"]
         if ok and grades:
+            # B 1.1.0: the same metal in ppb and in g/t ("Au ppb | Au g/t"): the g/t column is the grade shown
+            _rank = {"g/t": 0, "%": 0, "oz/t": 1, "opt": 1, "ppm": 2, "ppb": 3}
+            _first = {}
+            for k_, (m_, u_, g_) in enumerate(grades):
+                _first.setdefault(m_, []).append(k_)
+            if any(len(v) > 1 for v in _first.values()):
+                order = []
+                for k_, (m_, u_, g_) in enumerate(grades):
+                    ks = _first[m_]
+                    if len(ks) > 1 and len({grades[x][1] for x in ks}) > 1:
+                        if k_ == ks[0]:
+                            order += sorted(ks, key=lambda x: (_rank.get(grades[x][1], 1), x))
+                    elif k_ == ks[0] or len(ks) == 1:
+                        order += ks if len(ks) > 1 else [k_]
+                grades = [grades[x] for x in order]
             tws = [v * _unit_m(c[3] or mpair[0][0][3]) for c, v in d_.get("tw", []) if v is not None]
             return round(fr_m, 3), round(to_m, 3), length, grades, (round(tws[0], 3) if tws else None)  # 1.0.5: true width
     return None
@@ -781,8 +1070,20 @@ def row_by_columns(cells, cols, prefix_nums=0):
 _ROW_LABEL = re.compile(r"(?i)^(?:incl(?:uding|\.)?|inc\.?|and|a|nd|within|plus|or)$")
 
 
-def _is_hole_token(tok):
+_RE_NUM_HOLE = re.compile(r"^\d{2,5}(?:-\d{1,5}){1,3}(?:-?[A-Z]{1,3}\d{0,3}[A-Z]?)?$")  # 1.0.11: "1274-24-342-W1", "1274-26-379A"
+
+
+def _is_hole_token(tok, loose=False):
     tok = tok.strip(",;:*")
+    if re.fullmatch(r"\d{2}[A-Z]{2,6}\d{2,5}[A-Z]?", tok):
+        return True   # B 1.1.0: "21CCRC020"
+    if loose and re.fullmatch(r"(?-i:[A-Z]{1,6})\d{2,5}[A-Z]{0,2}", tok) and not _NOT_HOLE.match(tok) and not _RE_NOT_PLAIN_ID.match(tok):
+        return True   # B 1.1.0: under a Hole column, "RC197"
+    if loose and re.fullmatch(r"(?-i:[A-Z]{2,6}) \d{2,5}[A-Z]?", tok) and not _NOT_HOLE.match(tok.replace(" ", "")):
+        return True   # B 1.1.0: a cell "ASDH 546" under a Hole column (tables read one cell per line)
+    if _RE_NUM_HOLE.match(tok) and not re.match(r"^(?:19|20)\d\d-\d\d-\d\d$", tok) \
+            and (tok.count("-") >= 2 or re.search(r"[A-Z]$", tok)):
+        return True
     if not re.search(r"\d", tok) or not re.search(r"[A-Za-z]", tok):
         return False
     hs = find_holes(tok)
@@ -804,19 +1105,50 @@ def stream_table(t, hm, release_date, exempt_years=()):
         if taken >= 3 or not (re.match(r"(?i)table\b", ln) or len(ln) <= 60) or (len(ln) > 60 and ln.endswith(".")):
             break
         title, taken = ln + " " + title, taken + 1
+        if re.match(r"(?i)(?:table|figure|appendix)\s*[\dA-Z]", ln):
+            break   # B 1.1.0: the caption starts here ("... (Refer to Table 2 for prior results)." is the prose above it)
     toks = [(m.group(0), seg_start + m.start()) for m in re.finditer(r"\S+", t[seg_start:seg_start + 6000])]
+    # B 1.1.0: a table flattened one cell per line ("Core Length (m)", "Iron Formation", "800 Zone, 6 Central Zone Deep,
+    # 300 Zone" each on a line of its own): read whole lines as cells, so a many-word text cell neither ends the table nor
+    # puts its numbers among the grades
+    _ls = [(m.group(0).strip(), seg_start + m.start() + (len(m.group(0)) - len(m.group(0).lstrip())))
+           for m in re.finditer(r"[^\n]+", t[seg_start:seg_start + 60000]) if m.group(0).strip()]
+    _after = [x for x in _ls if x[1] >= hm.start()][:60]
+    if len(_after) >= 20 and sum(1 for x, _ in _after if not re.search(r"\s", x)
+                                 or re.fullmatch(r"(?-i:[A-Z]{2,6}) \d{2,5}[A-Z]?|\d[\d,.]*\s*[\-\u2013]\s*\d[\d,.]*", x)) >= 0.7 * len(_after) \
+            and not any(len(_NUM.findall(x)) >= 3 for x, _ in _after):
+        toks = _ls
+    # a From-To range in one cell ("292.5 – 307.5") is two cells
+    _tk2 = []
+    for tok, p0 in toks:
+        mr_ = re.fullmatch(r"(\d[\d,]*(?:\.\d+)?)\s*[\-\u2013\u2014]\s*(\d[\d,]*(?:\.\d+)?)", tok)
+        if mr_:
+            _tk2 += [(mr_.group(1), p0), (mr_.group(2), p0 + mr_.start(2))]
+        else:
+            _tk2.append((tok, p0))
+    toks = _tk2
     k0 = next((i for i, (tok, p) in enumerate(toks) if p >= hm.start()), None)
     if k0 is None:
         return []
     # header: labels from "From" until the first hole id, or the first number that starts a run of numbers
     head, i = [tok for tok, _ in toks[:k0] if not re.match(r"^\d$", tok)][-6:], k0
+    # B 1.1.0: "Hole ID | Easting | Northing | Depth | Dip | Azimuth | From ...": the hole column may sit further left
+    _hc_wide = any(re.match(r"(?i)(?:hole|drillhole|ddh|bhid|borehole)\b", x) for x in
+                   ([tok for tok in t[max(0, hline - 160):hline].split() if not re.match(r"^\d$", tok)]
+                    + [tok for tok, _ in toks[:k0] if not re.match(r"^\d$", tok)])[-12:])
     foot = False
     while i < len(toks):
         tok = toks[i][0]
         nxt = toks[i + 1][0] if i + 1 < len(toks) else ""
-        if _is_hole_token(tok):
+        if _is_hole_token(tok, _hc_wide or any(re.match(r"(?i)(?:hole|drillhole|ddh|bhid)", x) for x in head)):
             break
         v = _cell_value(tok)
+        if isinstance(v, float) and re.match(r"^(?:19|20)\d\d$", tok) and head and _HDR_QUALIFIER.match(head[-1]) is None \
+                and re.match(r"(?i)^\(?(?:%|g/t|gpt|ppm|ppb|oz/t)\)?$|^(?:" + D._METAL_ALT_NEW + r")(?:eq)?$", head[-1]) \
+                and _cell_value(nxt) is False and not _is_hole_token(nxt):
+            head.append(tok)  # 1.0.11: "CuEq % 2026 Cu (%)": a year qualifying a grade column, not the first cell
+            i += 1
+            continue
         if isinstance(v, float):
             if re.match(r"^\d$", tok) and (_cell_value(nxt) is False and not _is_hole_token(nxt) or _is_hole_token(nxt)):
                 i += 1
@@ -830,18 +1162,84 @@ def stream_table(t, hm, release_date, exempt_years=()):
     kcols = header_columns(" ".join(head))
     if not kcols:
         return []
-    out, hole, labels, vals, vpos, group, texts = [], None, [], [], None, 0, 0
+    # B 1.1.0: side-by-side column groups ("From To Au g/t | From To Au g/t | From To Au g/t", a sample-by-sample assay
+    # table printed in three blocks): one group is the row; the cells run row after row
+    side = False
+    for g_ in range(2, len(kcols) // 2 + 1):
+        if (len(kcols) % g_ == 0 and kcols[0][0] == "from" and any(c[0] == "metal" for c in kcols[:g_])
+                and all(kcols[k_:k_ + g_] == kcols[:g_] for k_ in range(0, len(kcols), g_))):
+            kcols, side = kcols[:g_], True
+            break
+    hole_col_s = _hc_wide or bool(re.search(r"(?i)\b(?:hole|holes|hold\s*id|drill\s*hole|drillhole|ddh|bhid|borehole)\b", " ".join(head) + " " + title[-120:]))
+    # B 1.1.0: a table of one hole's intervals names it in its title ("NAK22-02 Assay Results: Table 1")
+    _th = {h["id"] for h in find_holes(title)}
+    out, hole, labels, vals, vpos, group, texts = [], (next(iter(_th)) if len(_th) == 1 else None), [], [], None, 0, 0
     # 1.0.2: a text column between the numbers ("From | To | Type | Interval | AgEq ...", GRSL.V): the cells before it
     # wait for the rest of the row, and a row's cells end after the last numeric column
     kinds_ = [c[0] for c in kcols]
     n_before = kinds_.index("text") if "text" in kinds_ else None
+    if n_before is not None and all(k == "text" for k in kinds_[n_before:]):
+        n_before = None   # B 1.1.0: a text column after the last number ("... CuEq* West Zone") does not split rows
     n_row = len([k for k in kinds_ if k != "text"]) if n_before is not None else None
 
     def flush(keep_rest=False):
         nonlocal labels, vals, vpos
         carry = []
         if n_row and len(vals) > n_row:
-            vals, carry = vals[:n_row], (vals[n_row:] if keep_rest else [])
+            # B 1.1.0: collar cells (azimuth, dip, depth) before From on a hole's first row: start at the From/To/Length triple
+            off = 0
+            if kinds_[:3] == ["from", "to", "len"]:
+                for k in range(0, len(vals) - n_row + 1):
+                    a, b, c = vals[k], vals[k + 1], vals[k + 2]
+                    if all(isinstance(x, float) for x in (a, b, c)) and b > a >= 0 and abs((b - a) - c) <= max(0.15, 0.006 * c):
+                        off = k
+                        break
+            vals, carry = vals[off:off + n_row], (vals[off + n_row:] if keep_rest else [])
+        # B 1.1.0: one hole's rows printed column by column ("ASDH 546 | including | 292.5 - 307.5 | 295.5 - 301.0 | 15.0 | 5.5 |
+        # 1,248 | 2,333"): when the cells do not read as rows but read as columns, they are turned back into rows
+        width_ = len([k for k in kinds_ if k != "text"])
+        if n_row is None and width_ >= 3 and kinds_[:2] == ["from", "to"] and len(vals) >= 2 * width_ and len(vals) % width_ == 0:
+            r_ = len(vals) // width_
+            def _rowok(ch):
+                if not all(isinstance(x, float) for x in ch[:3]) or not (ch[1] > ch[0] >= 0):
+                    return False
+                return kinds_[2] != "len" or abs((ch[1] - ch[0]) - ch[2]) <= max(0.15, 0.006 * ch[2])
+            rows_ = [vals[k_ * width_:(k_ + 1) * width_] for k_ in range(r_)]
+            cols_ = [[vals[c_ * r_ + j_] for c_ in range(width_)] for j_ in range(r_)]
+            if not all(_rowok(x) for x in cols_):   # "From - To" printed as one cell per row: pairs first, then the columns
+                cols_ = [[vals[2 * j_], vals[2 * j_ + 1]] + [vals[2 * r_ + (c_ - 2) * r_ + j_] for c_ in range(2, width_)] for j_ in range(r_)]
+            if not all(_rowok(x) for x in rows_) and all(_rowok(x) for x in cols_):
+                _inc = any(re.match(r"(?i)incl", x) for x in labels)
+                for j_, ch in enumerate(cols_):
+                    _emit(ch, [x for x in labels if not re.match(r"(?i)incl", x)] if j_ == 0 else (["incl."] if _inc else []))
+                labels, vals, vpos = [], [], None
+                return
+        # B 1.1.0: several rows of one hole run together with no label between them ("33.0 36.0 3.0 0.3 83.0 86.0 3.0
+        # 0.2 104.0 106.0 2.0 0.3"): when the cells split into whole rows that each check out, each is a row
+        width = len([k for k in kinds_ if k != "text"])
+        if n_row is None and len(vals) >= 2 * width and (width >= 4 and kinds_[:3] == ["from", "to", "len"]
+                                                         or side and width >= 3 and kinds_[:2] == ["from", "to"]):
+            def _ok(ch):
+                if kinds_[2] != "len":   # side-by-side sample blocks print no length: a short positive From-To
+                    return (len(ch) >= 3 and all(isinstance(x, float) for x in ch[:2]) and 0 <= ch[0] < ch[1] <= ch[0] + 100)
+                return (len(ch) >= 3 and all(isinstance(x, float) for x in ch[:3]) and ch[1] > ch[0] >= 0
+                        and abs((ch[1] - ch[0]) - ch[2]) <= max(0.15, 0.006 * ch[2]))
+            k = 0
+            good = []
+            while k + width <= len(vals) and _ok(vals[k:k + width]) and (k + width == len(vals) or _ok(vals[k + width:k + 2 * width])
+                                                                         or k + 2 * width > len(vals)):
+                good.append(vals[k:k + width])
+                k += width
+            if len(good) >= 2:
+                for ch in good[:-1]:
+                    _emit(ch, labels)
+                    labels = []
+                vals = good[-1] + vals[k:]
+        if len(vals) >= 3:
+            _emit(vals, labels)
+        labels, vals, vpos = [], carry, (vpos if carry else None)
+
+    def _emit(vals, labels):
         if len(vals) >= 3:
             mapped = row_by_columns(vals, kcols, 0)
             if mapped:
@@ -850,23 +1248,34 @@ def stream_table(t, hm, release_date, exempt_years=()):
                             or (n_before is not None and any(_ROW_LABEL.match(x) for x in labels[1:])))  # 1.0.5: "Footwall | Incl." (CADY.TO)
                 seen = set()
                 for metal, unit, g in grades:
-                    if metal in seen or g is None or g <= 0 or not (0.1 <= length <= 2000) or not D._plausible(g, unit, metal, True):
+                    if metal in seen or g is None or g < 0 or not (0.1 <= length <= 2000) or (g > 0 and not D._plausible(g, unit, metal, True)):  # B: a printed 0.00 is a row
                         continue
                     seen.add(metal)
                     out.append({"length_m": length, "grade": g, "unit": unit, "metal": metal, "pos": vpos, "from_m": fr, "to_m": to, "tw_m": tw,
-                                "hole": hole, "hole_how": "table" if hole else None, "including": incl, "src": "table", "_group": group, "reason": None,
-                                "reason_src": None, "rule": None})
-        labels, vals, vpos = [], carry, (vpos if carry else None)
+                                "hole": hole, "hole_how": "table" if hole else None, "including": incl, "src": "table", "_group": group,
+                                "reason": section[0], "reason_src": "section" if section[0] else None,
+                                "rule": "table_section" if section[0] else None})
 
     prev_v = False
+    section = [None]   # B 1.1.0: a section row inside the table ("Previously Released Results") labels the rows after it
     while i < len(toks):
         tok, p = toks[i]
         i += 1
         v = _cell_value(tok)
+        if v is False and not _is_hole_token(tok, hole_col_s):
+            _lab = " ".join([x for x in labels[-5:]] + [tok])
+            if _RE_SECTION_PRIOR.search(_lab):
+                flush()
+                section[0] = "previously_reported" if not re.search(r"(?i)historic", _lab) else "historical"
+            elif _RE_SECTION_NEW.search(_lab):
+                flush()
+                section[0] = None
         if foot and re.match(r"^\d$", tok) and not isinstance(prev_v, float):
             continue  # 1.0.2: a footnote mark after a text or pending cell ("Ap 4", "Lower Zone 3 1.95", NEXM.V)
+        if v is False and tok in ("%", "g/t", "ppm", "ppb") and isinstance(prev_v, float):
+            continue   # B 1.1.0: a unit printed in the cell ("0.17 %") is not a text cell
         prev_v = v
-        if _is_hole_token(tok):
+        if _is_hole_token(tok, hole_col_s):
             flush()
             hole, group, texts = tok.strip(",;:*"), group + 1, 0
             continue
@@ -883,7 +1292,10 @@ def stream_table(t, hm, release_date, exempt_years=()):
             vpos = p
         vals.append(v)
     flush()
-    reason = context_reason(title, release_date, exempt_years=exempt_years)
+    reason = context_reason(title, release_date, exempt_years=exempt_years) or _title_label(title)
+    if reason == "historical" and _RE_TITLE_MIXED.search(title or ""):
+        reason = None   # B 1.1.0: "... from the 2026 holes ... and historic assay results": section rows tell them apart
+    reason = _title_fix(title or "", reason)
     for x in out:
         if reason in ("historical", "previously_reported", "surface"):
             x["reason"], x["reason_src"], x["rule"] = reason, "title", "table_title"
@@ -895,12 +1307,55 @@ def stream_table(t, hm, release_date, exempt_years=()):
 _RE_TITLE_HOLE_RANGE = re.compile(r"(?i)\bholes?\s+[A-Z]{0,6}-?(?P<lo>\d{2,4})\s*(?:-|\u2013|to|through)\s*[A-Z]{0,6}-?(?P<hi>\d{2,4})\s+(?:were\s+|are\s+)?previously\s+(?:reported|released|announced|disclosed)")
 
 
+_RE_SECTION_PRIOR = re.compile(r"(?i)^(?:.*\s)?(?:previously\s+(?:released|reported|announced|disclosed)|prior|historic(?:al)?)\s+(?:drill\s+)?(?:results?|holes?|intercepts?|drilling)$")
+_RE_TUNNEL_TITLE = re.compile(r"(?i)\b(?:tunnel(?:l)?ing|drifting|drift\s+(?:tunnel\w*|development|sampl\w*)|exposed\s+by\s+(?:drift|tunnel)\w*|"
+                               r"underground\s+(?:channel|chip|face)\s+sampl\w*|face\s+samples?)\b")
+
+
+def _title_fix(title, reason):
+    """B 1.1.0: "Drill Holes Previously Released from the Sulphide Zone": previously reported, not historical; "Selected
+    mineralized zones exposed by drift tunneling": underground sampling, not drilling (kept off, like surface samples)."""
+    if reason == "historical" and re.search(r"(?i)\bprevious(?:ly)?\s+(?:released|reported|announced|disclosed)\b", title) \
+            and not re.search(r"(?i)\bhistoric", title):
+        return "previously_reported"
+    if reason is None and _RE_TUNNEL_TITLE.search(title[-240:]) and not _RE_DRILL_WORD.search(title[-240:]):
+        return "surface"
+    return reason
+
+
+_RE_TITLE_MIXED = re.compile(r"(?i)\b(?:new|current|recent|(?:19|20)\d\d)\b[^.]{0,80}?\b(?:and|with|plus|versus|vs\.?|compared\s+(?:to|with))\s+"
+                             r"(?:the\s+)?(?:\w+\s+){0,2}?historic|\bhistoric(?:al)?\b[^.]{0,80}?\b(?:and|with|plus)\s+(?:the\s+)?(?:new|current|recent|(?:19|20)\d\d)\b")
+_RE_SECTION_NEW = re.compile(r"(?i)^(?:.*\s)?(?:new|current|recent|this\s+release'?s?)\s+(?:drill\s+)?(?:results?|holes?|intercepts?|drilling)$")
+
+
+def _numeric_only(line, most):
+    toks = line.split()
+    return 1 <= len(toks) <= most and all(re.fullmatch(r"[<~]?-?\d[\d,]*(?:\.\d+)?", x) for x in toks)
+
+
+_RE_TITLE_PRIOR = re.compile(r"(?i)\brestated\b|\b(?:prior|previous(?:ly)?|earlier|past)\s+(?:(?:reported|released|announced|disclosed|drill)\s+)?(?:\w+\s+){0,2}?"
+                             r"(?:intercepts?|intersections?|results?|holes?|drilling|assays?)\b")
+
+
+def _title_label(title):
+    """B 1.1.0: "Table 2. Prior intercepts from the Current Drill Program": rows released before."""
+    return "previously_reported" if title and _RE_TITLE_PRIOR.search(title) else None
+
+
 def find_tables(t: str, release_date, spans=None, exempt_years=(), header_before=None) -> list[dict]:
     """Intervals from 'Hole | From | To | Length | grades' tables in plain text."""
     out = []
+    _prev_hdr_end = -1
     for hm in _TABLE_HEADER.finditer(t):
         if header_before is not None and hm.start() >= header_before:
             break
+        # 1.1.4 (DRILLFIX): a second From/To pair in the same header ("From ft To ft From m To m", Blossom BGAU) was
+        # read as a header of its own, misaligned (a thickness in feet taken as the grade); it is read with the first
+        if _prev_hdr_end >= 0 and hm.start() - _prev_hdr_end < 200 and not _NUM.search(
+                re.sub(r"(?i)\b(?:ft|feet|m|metres?|meters?)\b", " ", t[_prev_hdr_end:hm.start()])):
+            _prev_hdr_end = hm.end()
+            continue
+        _prev_hdr_end = hm.end()
         hstart = max(0, t.rfind("\n", 0, max(0, hm.start() - 120)) + 1)
         # header runs until the first line that starts with a hole id or a number row
         lines_start = hm.end()
@@ -908,13 +1363,20 @@ def find_tables(t: str, release_date, spans=None, exempt_years=(), header_before
         header_text = t[hstart:lines_start]
         first_row = None
         cur = lines_start
+        _hc0 = bool(re.search(r"(?i)\b(?:hole|holes|drill\s*hole|drillhole|ddh|bhid|borehole|hole\s*(?:id|no\.?|number))\b", t[hstart:hm.start() + 4]))
         for lm in body_iter:
             line = lm.group(0)
             if not line:
                 break
             nums = _NUM.findall(line)
-            if len(nums) >= 3 and (_row_holes(line) or _ROW_INCL.match(line) or re.match(r"^\s*[\d.]", line)):
+            if len(nums) >= 3 and (_row_holes(line, _hc0) or _ROW_INCL.match(line) or re.match(r"^\s*[\d.]", line)):
                 first_row = cur
+                break
+            _ahead = [x for x in t[cur + len(line):cur + len(line) + 400].split("\n") if x.strip()][:4]
+            if (_hc0 and len(header_text) - (hm.start() - hstart) > 30 and _lone_hole(line, True) and not _TABLE_HEADER.search(line)
+                    and any(len(_NUM.findall(x)) >= 3 for x in _ahead)
+                    and header_columns(header_text[hm.start() - hstart:]) is not None):
+                first_row = cur   # B 1.1.0: the first hole's id on a line of its own ("ET-21-282", then its cells)
                 break
             header_text += line
             cur += len(line)
@@ -924,9 +1386,15 @@ def find_tables(t: str, release_date, spans=None, exempt_years=(), header_before
             out.extend(stream_table(t, hm, release_date, exempt_years))
             continue
         cols = [(D._normalize_metal(re.sub(r"\s+", "", c.group("metal"))),
-                 "g/t" if c.group("unit").lower() in ("gpt", "g/tonne") else c.group("unit").lower())
+                 "g/t" if c.group("unit").lower() in ("gpt", "g/tonne") else ("%" if c.group("unit").lower() in ("pct", "percent") else c.group("unit").lower()))
                 for c in _TABLE_METAL.finditer(header_text[hm.start() - hstart:])
                 if not (c.group("metal").lower() == "pt" and header_text[hm.start() - hstart:][max(0, c.start() - 1):c.start()].lower() == "g")]
+        if not cols:
+            # B 1.1.0: a header whose grade units sit on their own line ("Au (2) (3) NOTE ... (m) (g/t)") still has a
+            # column model; rows one per line are read with it before falling back to the cell stream
+            _hl0 = t.rfind("\n", 0, hm.start()) + 1
+            _kc = header_columns(header_text[max(0, _hl0 - hstart):] if _hl0 >= hstart else header_text[hm.start() - hstart:])
+            cols = [(c[1], c[2]) for c in (_kc or []) if c[0] == "metal"]
         if not cols:
             out.extend(stream_table(t, hm, release_date, exempt_years))
             continue
@@ -937,7 +1405,7 @@ def find_tables(t: str, release_date, spans=None, exempt_years=(), header_before
             hseg = header_text[hm.start() - hstart:]
         hlines = hseg.split("\n")
         for k in range(len(hlines) - 1, 0, -1):
-            if len(_NUM.findall(hlines[k])) >= 3 and not re.search(r"(?i)\bfrom\b", hlines[k]):
+            if len(_NUM.findall(re.sub(r"\(\s*\d\s*\)|(?<=[A-Za-z])\d\b", " ", hlines[k]))) >= 3 and not re.search(r"(?i)\bfrom\b", hlines[k]):  # B: "(1)", "Au2" are footnote marks
                 hseg = "\n".join(hlines[k + 1:])  # a row swallowed into the header: a repeated header follows it
                 break
         hl_ = hseg.split("\n")
@@ -969,29 +1437,88 @@ def find_tables(t: str, release_date, spans=None, exempt_years=(), header_before
                 break
             pre = line + " " + pre
             taken += 1
-        pre_reason = context_reason(pre, release_date, exempt_years=exempt_years)
+            if re.match(r"(?i)(?:table|figure|appendix)\s*[\dA-Z]", line):
+                break   # B 1.1.0: the caption starts here; the line above is the prose before it
+        pre_reason = context_reason(pre, release_date, exempt_years=exempt_years) or _title_label(pre)
+        if pre_reason == "historical" and _RE_TITLE_MIXED.search(pre):
+            pre_reason = None   # B 1.1.0: a title naming new and historic results; the section row ("HISTORICAL RESULTS") splits them
+        pre_reason = _title_fix(pre, pre_reason)
         if pre_reason is None and _RE_SURFACE.search(header_text + pre[-200:]) and not _RE_DRILL_WORD.search(header_text + pre[-200:]):
             pre_reason = "surface"
         first_out = len(out)
         tried_columns = bool(kcols)
         # 1.0.8: a table of one hole's intervals names it above the header ("Drillhole ABCD0015 From (m) To (m) ...")
+        hole_col = bool(re.search(r"(?i)\b(?:hole|holes|drill\s*hole|drillhole|ddh|bhid|borehole|hole\s*(?:id|no\.?|number))\b", header_text[:max(0, hm.start() - hstart) + 4]))
+        _hp = re.search(r"(?<![A-Za-z0-9\-])([A-Z]{1,6}-\d{2,4}-)(?=\s)", header_text[:max(0, hm.start() - hstart) + 4])
+        hole_prefix = _hp.group(1) if _hp else None
+        _frag = None   # B 1.1.0: the first part of a hole id broken over two lines
         cap = [h for h in find_holes(pre + " " + header_text) if h["kw"]]
         cap_hole = cap[0]["id"] if len({h["id"] for h in cap}) == 1 else None
+        if cap_hole is None and not hole_col:   # B 1.1.0: "NAK22-02 Assay Results: Table 1"
+            _tids = {h["id"] for h in find_holes(pre)}
+            cap_hole = next(iter(_tids)) if len(_tids) == 1 else None
+        if hole_col:   # B 1.1.0: the first hole's id on its own line just above the first row
+            _last = [l for l in t[hm.end():first_row].split("\n") if l.strip()]
+            if _last and _lone_hole(_last[-1], hole_col):
+                cap_hole = _lone_hole(_last[-1], hole_col)
+            elif _last and hole_prefix and re.fullmatch(r"\s*\d{1,4}[A-Z]?\s*", _last[-1]):
+                cap_hole = hole_prefix + _last[-1].strip()
+        # B 1.1.0: the table runs to the next results header (page breaks and notes inside it are passed over), and a
+        # row whose last cells spilled onto the next line ("182.00 188.00 6.00 4.24" / "56.49") is joined back
+        _nxt = _TABLE_HEADER.search(t, first_row + 1)
+        _end = min(t.rfind("\n", 0, _nxt.start()) + 1 if _nxt else len(t), first_row + 120000)
+        _end = max(_end, first_row + 400)
+        _raw_lines = t[first_row:_end].split("\n")
+        _n_expect = len([c for c in kcols if c[0] not in ("text",)]) if kcols else None
+        _lines, _lpos, _p = [], [], first_row
+        for _k, _ln in enumerate(_raw_lines):
+            _pn = sum(1 for x in _lines[-1].split() if re.fullmatch(r"[<~]?-?\d[\d,]*(?:\.\d+)?", x)) if _lines else 0
+            if _lines and _numeric_only(_ln, 3) and _pn >= 3 and not _numeric_only(_lines[-1], 3) \
+                    and (_n_expect is None or _pn < _n_expect):
+                _lines[-1] = _lines[-1].rstrip() + " " + _ln.strip()
+            else:
+                _lines.append(_ln)
+                _lpos.append(_p)
+            _p += len(_ln) + 1
         for kcols in ([kcols, None] if kcols else [None]):  # 1.0.2: a column model that reads no row falls back to 1.0.1 (NGEX.TO)
             hole = cap_hole
             pos = first_row
             rows = 0
             row_reason = None
             group, group_years = 0, {}
-            for line in t[first_row:first_row + 8000].split("\n"):
-                lpos = pos
-                pos += len(line) + 1
+            gap = 0
+            for line, lpos in zip(_lines, _lpos):
                 if not line.strip():
                     continue
                 if rows and not _NUM.search(line) and len(line.strip()) <= 120:
                     sub = context_reason(line, release_date, exempt_years=exempt_years)  # "Previously released on October 31, 2024" inside a table
+                    if sub is None and len(line.strip()) <= 60 and _RE_SECTION_PRIOR.search(line.strip()):
+                        sub = "historical" if re.search(r"(?i)historic", line) else "previously_reported"   # B 1.1.0: "HISTORICAL RESULTS"
+                    if sub in ("historical", "previously_reported") and len(line.strip()) <= 60:
+                        hole = None   # B 1.1.0: a section row; its rows are not the last new hole's
                     row_reason = sub if sub in ("historical", "previously_reported", "surface") else None
-                holes = [h for h in _row_holes(line) if h["pos"] < 12 or line[:h["pos"]].strip() == ""]
+                lone = _lone_hole(line, hole_col)
+                if not lone and hole_prefix and re.fullmatch(r"\s*\d{1,4}[A-Z]?\s*", line):
+                    lone = hole_prefix + line.strip()   # B 1.1.0: "CH-17-" in the header, then "113" on its own line
+                if not lone and re.fullmatch(r"\s*[A-Z]{1,6}-\d{2}-\s*", line):
+                    _frag = line.strip()   # B 1.1.0: an id broken over two lines ("ET-21-" then "282")
+                    continue
+                if not lone and _frag and re.fullmatch(r"\s*\d{2,4}[A-Z]?\s*", line):
+                    lone, _frag = _frag + line.strip(), None
+                if lone:
+                    hole = lone
+                    group += 1
+                    continue
+                holes = [h for h in _row_holes(line, hole_col) if h["pos"] < 12 or line[:h["pos"]].strip() == "" or h.get("lead")]
+                if not holes and hole_col and kcols:
+                    # B 1.1.0: a hole numbered with digits only under a Hole ID column ("7093 361.5 375 13.5 8.83 2.95 0.85"):
+                    # the row has one number more than the columns and the first is a whole number
+                    _toks = line.split()
+                    _nexp = len([c for c in kcols if c[0] != "text"])
+                    if (_toks and re.fullmatch(r"\d{3,6}[A-Z]?", _toks[0])
+                            and sum(1 for x in _toks if isinstance(_cell_value(x), float)) == _nexp + 1):
+                        _p0 = line.find(_toks[0])
+                        holes = [{"id": _toks[0], "pos": _p0, "end": _p0 + len(_toks[0]), "kw": False}]
                 if holes or (_RE_TABLE_HOLE_START.match(line) and not _ROW_INCL.match(line)):
                     group += 1
                 for ym in _RE_TABLE_DRILLED_YEAR.finditer(line):  # "Drilled 2022 (Rugby Resources)" in a comments column
@@ -1009,11 +1536,14 @@ def find_tables(t: str, release_date, spans=None, exempt_years=(), header_before
                     incl_k = bool(_ROW_INCL.match(line)) or bool(re.search(r"(?i)\binc(?:l|luding)?\.?\b", line[:40]))
                     if sum(1 for c in cells if isinstance(c, float)) < 3:
                         if rows and not holes and len(nums) < 2 and len(line.strip()) > 40:
-                            break  # prose after the table
+                            gap += 1
+                            if gap > 25 or lpos > first_row + 8000 and gap > 6:
+                                break  # prose after the table
                         continue
                     mapped = row_by_columns(cells, kcols, prefix)
                     if mapped is None:
                         continue
+                    gap = 0
                     fr, to, length, kgrades, tw = mapped
                     if kcols[0][3] is None and re.search(r"\d['\u2019](?:\s|$)", line):
                         fr, to, length = round(fr * 0.3048, 3), round(to * 0.3048, 3), round(length * 0.3048, 3)  # 1.0.2: "BHE26-01_154-158'" rows in feet (BNKR.TO)
@@ -1025,7 +1555,7 @@ def find_tables(t: str, release_date, spans=None, exempt_years=(), header_before
                         if metal in seen_metals:
                             continue  # "Au g/t | Au g/t (cut)": the first is the uncut grade
                         seen_metals.add(metal)
-                        if g is None or g <= 0 or not D._plausible(g, unit, metal, True):
+                        if g is None or g < 0 or (g > 0 and not D._plausible(g, unit, metal, True)):  # B: a printed 0.00 is a row
                             continue
                         out.append({"length_m": length, "grade": g, "unit": unit, "metal": metal, "pos": lpos,
                                     "from_m": fr, "to_m": to, "tw_m": tw, "hole": hole, "hole_how": "table" if hole else None, "including": incl_k, "src": "table", "_group": group,
@@ -1078,7 +1608,7 @@ def find_tables(t: str, release_date, spans=None, exempt_years=(), header_before
                     continue
                 rows += 1
                 for (metal, unit), g in zip(cols, grades):
-                    if g is None or g <= 0 or not D._plausible(g, unit, metal, True):
+                    if g is None or g < 0 or (g > 0 and not D._plausible(g, unit, metal, True)):  # B: a printed 0.00 is a row
                         continue
                     out.append({"length_m": length, "grade": g, "unit": unit, "metal": metal, "pos": lpos,
                                 "from_m": fr, "to_m": to, "hole": hole, "hole_how": "table" if hole else None, "including": incl, "src": "table", "_group": group,
@@ -1103,8 +1633,151 @@ def find_tables(t: str, release_date, spans=None, exempt_years=(), header_before
                 ys = group_years.get(x["_group"])
                 if ys and max(ys) <= release_date[0] - 2 and not x["reason"]:
                     x["reason"], x["rule"] = "historical", "table_drilled_year"
+    out.extend(_len_first_tables(t, release_date, out))   # B 1.1.0
+    _strip_footnote_digits(out)                            # B 1.1.0
+    out.extend(_range_paren_tables(t, release_date, out))  # B 1.1.0
     for x in out:
         x.pop("_group", None)
+    return out
+
+
+_RE_LENFIRST_HEAD = re.compile(r"(?is)\bhole[\s\-_]*(?:id|no\.?|#)?\b(?P<collar>.{0,120}?)\b(?:int(?:erval)?|length|width)\s*\(\s*m\s*\)"
+                               r"(?P<grades>(?:\s*(?:[A-Z][a-z]?(?:Eq)?|U3O8|Li2O)\s*\(\s*(?:g/t|%|ppm|ppb)\s*\)){1,10})\s*(?P<from>from\s*\(\s*m\s*\))?")
+
+
+_METAL_WORDS = {"gold": "Au", "silver": "Ag", "copper": "Cu", "lead": "Pb", "zinc": "Zn", "nickel": "Ni", "cobalt": "Co",
+                "molybdenum": "Mo", "platinum": "Pt", "palladium": "Pd", "antimony": "Sb", "tungsten": "W", "tin": "Sn"}
+_RE_RP_HEAD = re.compile(r"(?i)\b(?:intersection|interval|intercept)s?\b[^\n]{0,60}?\(?\s*(?:down[\s\-]?hole\s+)?(?:length|width)?[^\n]{0,30}$|"
+                         r"\b(?:intersection|interval|intercept)s?\b")
+_RE_RP_METAL = re.compile(r"(?i)\b(gold|silver|copper|lead|zinc|nickel|cobalt|molybdenum|platinum|palladium|antimony|tungsten|tin|Au|Ag|Cu|Pb|Zn|Ni|Co|Mo|Pt|Pd|Sb|W|Sn)\s*\(\s*(g/t|ppm|ppb|%|oz/t|opt)\s*\)")
+_RE_RP_ROW = re.compile(r"(\d+(?:\.\d+)?)\s*[\-\u2010\u2011\u2013]\s*(\d+(?:\.\d+)?)\s*\(\s*(\d+(?:\.\d+)?)\s*\)")
+
+
+def _range_paren_tables(t, release_date, have):
+    """B 1.1.0: "Hole # Dip Azimuth Hole Length (m) Intersection (Down Hole Length (m)) Gold (g/t) Silver (g/t) Lead (PPM) ..."
+    with rows "GPE-11-13 54 333 113 76.95 - 77.2 (0.25) 0.007 216 96800 167000" (Avino): From - To (Length), then the grades."""
+    out = []
+    lines = t.split("\n")
+    k = 0
+    while k < len(lines):
+        ln = lines[k]
+        if not (re.search(r"(?i)\b(?:intersection|interval)s?\b", ln) and _RE_RP_METAL.search(ln)) or _TABLE_HEADER.search(ln):
+            k += 1
+            continue
+        metals = [(_METAL_WORDS.get(m.group(1).lower(), D._normalize_metal(m.group(1))),
+                   "g/t" if m.group(2).lower() == "g/t" else ("oz/t" if m.group(2).lower() in ("oz/t", "opt") else m.group(2).lower()))
+                  for m in _RE_RP_METAL.finditer(ln)]
+        hole, j, gap = None, k + 1, 0
+        while j < len(lines) and gap < 3:
+            row = lines[j].replace("\u2010", "-").replace("\u2011", "-")
+            j += 1
+            mr = _RE_RP_ROW.search(row)
+            if not mr:
+                gap += 1 if row.strip() else 0
+                continue
+            gap = 0
+            head_ = row[:mr.start()]
+            hs = [x for x in head_.split() if re.search(r"\d", x) and re.search(r"[A-Za-z]", x)]
+            if hs:
+                hole = hs[0].strip(",;:*")
+            incl = bool(re.search(r"(?i)\bincl", head_))
+            fr, to, L = float(mr.group(1)), float(mr.group(2)), float(mr.group(3))
+            if not (to > fr >= 0 and abs((to - fr) - L) <= max(0.15, 0.02 * L)):
+                continue
+            cells = row[mr.end():].split()
+            for (metal, unit), c in zip(metals, cells):
+                g = _cell_value(c)
+                if not isinstance(g, float) or g < 0 or (g > 0 and not D._plausible(g, unit, metal, True)):
+                    continue
+                if any(x.get("from_m") == fr and x["metal"] == metal and abs(x["length_m"] - L) < 0.01 for x in have):
+                    continue
+                out.append({"length_m": L, "grade": g, "unit": unit, "metal": metal, "pos": sum(len(x) + 1 for x in lines[:j - 1]),
+                            "from_m": fr, "to_m": to, "tw_m": None, "hole": hole, "hole_how": "table" if hole else None,
+                            "including": incl, "src": "table", "reason": None, "reason_src": None, "rule": None})
+        k = j
+    if release_date:
+        for x in out:
+            if not x["reason"] and _old_hole(x.get("hole"), release_date):
+                x["reason"], x["rule"] = "historical", "table_hole_year"
+    return out
+
+
+def _strip_footnote_digits(rows):
+    """B 1.1.0: "RM25-1575" among "RM25-143", "RM25-148", "RM25-160": a footnote mark run onto the id ("RM25-157" + "5")."""
+    ids = {x["hole"] for x in rows if x.get("hole")}
+    fam = {}
+    for h in ids:
+        m = re.fullmatch(r"(.*?[\-_])(\d+)([A-Z]?)", h)
+        if m:
+            fam.setdefault(m.group(1), []).append((h, m.group(2), m.group(3)))
+    fix = {}
+    for pre, lst in fam.items():
+        lens = collections.Counter(len(d) for _, d, _ in lst)
+        if not lens:
+            continue
+        n, cnt = lens.most_common(1)[0]
+        if cnt < 3 or cnt < 0.6 * len(lst):
+            continue
+        for h, d, suf in lst:
+            if len(d) == n + 1 and not suf and pre + d[:-1] not in ids:
+                fix[h] = pre + d[:-1]
+    for x in rows:
+        if x.get("hole") in fix:
+            x["hole"] = fix[x["hole"]]
+
+
+def _len_first_tables(t, release_date, have):
+    """B 1.1.0: a table whose columns run "Hole-id | Dip | Azi | EOH (m) | Zone | Int (m) | AuEq (g/t) | Au (g/t) | ... | From (m)"
+    with no To column (Meridian Mining): each hole's collar cells come once, then one group per interval
+    (length, grades, from), an "Including" label before a sub-interval. To = From + length."""
+    out = []
+    for hm in _RE_LENFIRST_HEAD.finditer(t):
+        if re.search(r"(?i)\bto\b", hm.group(0)):
+            continue
+        collar = [w for w in re.findall(r"[A-Za-z][\w./]*", hm.group("collar")) if not re.fullmatch(r"(?i)id|m|no|hole", w)]
+        metals = [(D._normalize_metal(m.group(1)), "g/t" if m.group(2).lower() == "g/t" else m.group(2).lower())
+                  for m in re.finditer(r"([A-Z][a-z]?(?:Eq)?|U3O8|Li2O)\s*\(\s*(g/t|%|ppm|ppb)\s*\)", hm.group("grades"))]
+        has_from = bool(hm.group("from"))
+        width = 1 + len(metals) + (1 if has_from else 0)
+        if not metals or not has_from:
+            continue
+        cells = [c for c in re.split(r"\s+", t[hm.end():hm.end() + 40000]) if c]
+        hole, k, incl, rows_here, misses = None, 0, False, 0, 0
+        while k < len(cells):
+            c = cells[k]
+            if _is_hole_token(c, True) and _cell_value(c) is False:
+                hole, incl = c.strip(",;:*"), False
+                k += 1 + len(collar)   # the collar cells, once per hole
+                continue
+            if re.match(r"(?i)^(?:incl(?:uding|\.)?|and)$", c):
+                incl = c.lower().startswith("incl")
+                k += 1
+                continue
+            vals = [_cell_value(x) for x in cells[k:k + width]]
+            if hole and len(vals) == width and all(isinstance(v, float) or v is None for v in vals) and isinstance(vals[0], float) \
+                    and isinstance(vals[-1], float) and vals[0] > 0 and vals[-1] >= 0:
+                L, fr = vals[0], vals[-1]
+                for (metal, unit), g in zip(metals, vals[1:-1]):
+                    if g is None or g < 0 or (g > 0 and not D._plausible(g, unit, metal, True)):
+                        continue
+                    if any(x.get("hole") == hole and x.get("from_m") == fr and x["metal"] == metal and abs(x["length_m"] - L) < 0.01 for x in have):
+                        continue
+                    out.append({"length_m": L, "grade": g, "unit": unit, "metal": metal, "pos": hm.end(), "from_m": fr,
+                                "to_m": round(fr + L, 3), "tw_m": None, "hole": hole, "hole_how": "table", "including": incl,
+                                "src": "table", "reason": None, "reason_src": None, "rule": None})
+                rows_here += 1
+                incl = False
+                k += width
+                misses = 0
+                continue
+            misses += 1
+            k += 1
+            if misses > 6:
+                break   # prose or the next caption
+        if release_date:
+            for x in out:
+                if not x["reason"] and _old_hole(x.get("hole"), release_date):
+                    x["reason"], x["rule"] = "historical", "table_hole_year"
     return out
 
 
@@ -1246,7 +1919,36 @@ def _pn_not_a_name(own, text):
     return PN.clean(own + " Project") is None and not _pn_real(own, text)
 
 
+_RE_ROW_BEFORE = r"(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)"   # 1.1.4: From To length grade
+_RE_TAIL_REGION = re.compile(r"(?i)\s+(?:Saskatchewan|Ontario|Qu[eé]bec|Manitoba|Alberta|British\s+Columbia|Yukon|Nunavut|"
+                             r"Newfoundland(?:\s+and\s+Labrador)?|Labrador|Nova\s+Scotia|New\s+Brunswick|Northwest\s+Territories|"
+                             r"Nevada|Arizona|Idaho|Utah|Montana|Alaska|Wyoming|Colorado|California|Oregon|New\s+Mexico)$")
+
+
 def _project_pn(th, t):
+    """1.1.4 (FIX4, 2026-10-19): _project_pn_113, except that a province or state after the name comes off
+    ("Rottenstone SW Saskatchewan")."""
+    name, rank = _project_pn_113(th, t)
+    # (FIX4 10-20: the company-wide-update rule was taken out; it blanked 12 of 300 good single-project names)
+    if name and len(name.split()) > 1:
+        cut = _RE_TAIL_REGION.sub("", name).strip()
+        if cut and cut != name and PN.key(cut):
+            name = cut
+    return name, rank
+
+
+def _proj_cands(headline, text):
+    """find_project's candidates (name, rank, src), for 1.1.4's portfolio test."""
+    out = []
+    for src, s in (("h", headline or ""), ("b", text or "")):
+        for m in _RE_PROJECT.finditer(s):
+            name = _clean_name(m.group("name"))
+            if name:
+                out.append({"name": name, "rank": _SUFFIX_RANK.get(re.sub(r"\s+", " ", m.group("suffix").lower()), 3), "src": src})
+    return out
+
+
+def _project_pn_113(th, t):
     """1.0.6: (name, rank) -- 1.0.5's find_project, filled or corrected by the shared helper (see the notes above)."""
     name, rank = find_project(th, t)   # 1.0.5's choice
     try:
@@ -1346,6 +2048,16 @@ def _width_from_note(t, iv, a, b):
     return bool(re.search(r"(?<![\d.])" + re.escape(lit) + r"(?:\.0+)?(?![\d])", t[a:b])) and abs(a - iv["pos"]) < 120
 
 
+def _table_rounds(short, full):
+    """1.0.11: `short` (a table cell) is `full` (the prose figure) written with fewer decimals."""
+    s_ = ("%.6f" % short).rstrip("0").rstrip(".")
+    nd = len(s_.split(".")[1]) if "." in s_ else 0
+    f_ = ("%.6f" % full).rstrip("0").rstrip(".")
+    if nd >= (len(f_.split(".")[1]) if "." in f_ else 0) or nd > 2:
+        return False
+    return abs(round(full + 1e-9, nd) - short) < 1e-9 or abs(round(full - 1e-9, nd) - short) < 1e-9
+
+
 def _rounded_same(h, b):
     """A headline that rounds the body's figure: "14 metres of 7 g/t" for "14.0 m grading 6.68 g/t"."""
     if h["metal"] != b["metal"] or h["unit"] != b["unit"]:
@@ -1365,6 +2077,32 @@ _RE_HOLE_CREDIT_BEFORE = re.compile(
     r"(?i)(?:\b(?:in|from|for|at|with|and)\s+(?:the\s+)?)?\b(?:drill[\s\-]?)?(?:hole|ddh|borehole)s?\s*(?:#|no\.?|id)?\s*[:#]?\s*$")
 _RE_HOLE_CREDIT_AFTER = re.compile(
     r"(?i)\s*[:,]?\s*(?:has\s+|was\s+)?(?:intersect\w*|intercept\w*|return\w*|encounter\w*|cut|cuts|hit|hits|report\w*|assay\w*|grad\w*|evaluat\w*|test\w*|drill\w*|confirm\w*|extend\w*)")
+
+
+_RE_LIST_HEAD_LINE = re.compile(r"(?i)(?:\b(?:highlights?|results?|intercepts?|intersections?|assays?)\b[^\n]{0,40}\b(?:from|for|in|of)\b[^\n]{0,20}$"
+                                r"|\b(?:include[sd]?|including|intersected|intercepted|returned)\s*:?\s*$|:\s*$)")
+
+
+def _list_head_hole(t, holes, pos):
+    """B 1.1.0: the hole that heads the list a figure sits in."""
+    prev = [h for h in holes if pos - 4000 <= h["pos"] < pos]
+    if not prev:
+        return None
+    h = prev[-1]
+    gap = t[h["end"]:pos]
+    if re.search(r"\n[ \t\xa0]*\n", gap):
+        return None
+    line_end = t.find("\n", h["end"])
+    head_line = t[t.rfind("\n", 0, h["pos"]) + 1:line_end if line_end > 0 else h["end"] + 80]
+    if not _RE_LIST_HEAD_LINE.search(head_line) and not _heads_list(t, h):
+        return None
+    # every line between the head and the figure is a list item (a figure line), not prose
+    for ln in gap.split("\n")[1:]:
+        if ln.strip() and not re.search(r"\d\s*(?:m|metres?|meters?|ft|feet)\b|\d\s*(?:g/t|%|ppm|ppb)", ln) and len(ln.strip()) > 40:
+            return None
+    if context_reason(t[h["pos"]:h["pos"] + 200], None):
+        return None
+    return h["id"]
 
 
 def _heads_list(t, h):
@@ -1392,6 +2130,10 @@ def _fig_list_paren(t, pos, end):
     return pos + k2
 
 
+_RE_REL_BEFORE_ID = re.compile(r"(?i)\b(?:of|from|beneath|below|above|than|near|beside|towards?|between|and|under|past|along)\s+(?:the\s+)?"
+                               r"(?:(?:shallow|deep|historic(?:al)?|previous(?:ly)?\s+\w+|earlier|nearby)\s+)*(?:drill\s*)?(?:holes?\s+)?$")
+
+
 def _attach_holes(t, spans, holes, intervals, targets=None):
     """Hole for each text interval: 'in/from hole X' right after it, else the nearest id before it in
     the same unit, else a keyword id earlier in the same paragraph. Ids in historical units never count.
@@ -1403,20 +2145,34 @@ def _attach_holes(t, spans, holes, intervals, targets=None):
         us, ue = spans[u] if u >= 0 else (0, len(t))
         # 1.0.4: an "including ..." clause between a parent and the hole it is credited to must not cut the
         # search short: "4.75 g/t Au over 1.4 m. including 16.03 g/t Au over 0.4 m (VG), in hole BRDS-26-114"
-        nxt = min((x["pos"] for x in intervals if x["pos"] > iv["pos"] and not x.get("including")),
-                  default=len(t))
-        after = [h for h in holes if iv["pos"] < h["pos"] < min(nxt, iv["pos"] + 220, ue)
+        nxt = min((x["pos"] for x in intervals if x["pos"] > iv["pos"] and not x.get("including")
+                   and abs(x["length_m"] - iv["length_m"]) > 0.01), default=len(t))   # B 1.1.0: "A g/t Au and B g/t Ag over L ... in hole X"
+        ue_after = ue
+        if ue < len(t):   # B 1.1.0: "(incl. 467 g/t Au & 9510 g/t Ag over 1.1 m) in hole P26U-0095" -- a bracketed sub-interval
+            _gap = t[iv["pos"]:min(len(t), iv["pos"] + 220)]   # ends the unit but not the sentence that names the hole
+            _cut = re.search(r"\.\s|;|\n", re.sub(r"\([^()]*\)", lambda m: " " * len(m.group(0)), _gap))
+            ue_after = max(ue, iv["pos"] + (_cut.start() if _cut else len(_gap)))
+        after = [h for h in holes if iv["pos"] < h["pos"] < min(nxt, iv["pos"] + 220, ue_after)
                  and re.search(r"(?i)\b(?:in|from|of|for)\s+(?:the\s+)?(?:drill[\s\-]?)?(?:hole|DDH|borehole)s?\s*"
                                r"(?:#|No\.?)?\s*[:#]?\s*$", t[max(iv["pos"], h["pos"] - 40):h["pos"]])]
         if after:
             iv["hole"], iv["hole_how"] = after[0]["id"], "after"
+            continue
+        # B 1.1.0: "8 meters of 22 g/t Ag ... and 6 meters of 17 g/t Ag ..., both in KH06-10": a list of figures closed by
+        # "both / all / each in (hole) X" is that hole's
+        both = [h for h in holes if iv["pos"] < h["pos"] < min(iv["pos"] + 260, ue_after if ue_after > ue else len(t))
+                and re.search(r"(?i)\b(?:both|all|each)\s+(?:of\s+which\s+(?:are|were)\s+)?(?:in|from)\s+(?:the\s+)?(?:drill[\s\-]?)?(?:holes?\s+)?$",
+                              t[max(iv["pos"], h["pos"] - 40):h["pos"]])
+                and not re.search(r"[;]|\.\s|\n\s*\n", t[iv["pos"]:h["pos"]])]
+        if both:
+            iv["hole"], iv["hole_how"] = both[0]["id"], "after"
             continue
         # 1.0.4: an "including ..." clause is part of this intercept, not the next one, so it must not end
         # the window either ("14.10 g/t gold over 1.59 m, including 47.87 g/t over 0.46 m (TR1-26-145)")
         nxt_other = min((x["pos"] for x in intervals if x["pos"] > iv["pos"] and not x.get("including")
                          and abs(x["length_m"] - iv["length_m"]) > 0.01), default=len(t))
         paren = [h for h in holes if iv["pos"] < h["pos"] < min(nxt_other, iv["pos"] + 160, ue)
-                 and re.search(r"\(\s*$", t[max(iv["pos"], h["pos"] - 3):h["pos"]])
+                 and re.search(r"(?i)\(\s*(?:(?:drill\s*)?(?:hole|DDH|drillhole|borehole)\s*(?:#|no\.?)?\s*)?$", t[max(iv["pos"], h["pos"] - 18):h["pos"]])
                  and not re.search(r"[.;]\s", t[iv["pos"]:h["pos"]])]
         if paren:
             iv["hole"], iv["hole_how"] = paren[0]["id"], "paren"  # "327.0 g/t Au over 1.0 metre (TM25-176)"
@@ -1436,9 +2192,29 @@ def _attach_holes(t, spans, holes, intervals, targets=None):
         if named:
             iv["hole"], iv["hole_how"] = named[0]["id"], "named"
             continue
+        # B 1.1.0: "75 meters below holes LP19-140 (38.0 meters averaging 2.43 g/t Au ...)": a figure in brackets right
+        # after an id is that hole's
+        pl = [h for h in holes if 0 < iv["pos"] - h["pos"] < 60 and re.fullmatch(r"\s*\(\s*(?:[\d.,]+\s*(?:m|metres?|meters?|ft|feet)\b[^()]{0,40}?)?",
+                                                                           t[h["pos"] + len(h["id"]):iv["pos"]])]
+        if pl:
+            iv["hole"], iv["hole_how"] = pl[-1]["id"], "paren_lead"
+            continue
         before = [h for h in holes if us <= h["pos"] < iv["pos"]]
         if before:
-            iv["hole"], iv["hole_how"] = before[-1]["id"], "before"
+            pick = before[-1]
+            # B 1.1.0: "SDDSC047 drilled 30 m east of SDDSC049, ... 10.2 m @ 0.9 g/t": the id written after a relation
+            # word is the reference; the sentence's subject id is the hole
+            # (but "... west of previously reported hole PAL0222 which intersected 7.2 m @ 21.7 g/t": the figure is that
+            # hole's own)
+            if (len(before) > 1 and _RE_REL_BEFORE_ID.search(t[max(0, pick["pos"] - 40):pick["pos"]])
+                    and not re.match(r"(?i)\s*,?\s*(?:which|that)\s+(?:\w+\s+){0,2}(?:intersect|return|grad|assay|cut|encounter|yield)",
+                                     t[pick["pos"] + len(pick["id"]):iv["pos"]])
+                    and not re.fullmatch(r"\s*[:\-\u2013(]?\s*", t[pick["pos"] + len(pick["id"]):iv["pos"]])):
+                subj = [h for h in before if not _RE_REL_BEFORE_ID.search(t[max(0, h["pos"] - 40):h["pos"]])
+                        and norm_hole(h["id"]) != norm_hole(pick["id"])]
+                if subj:
+                    pick = subj[-1]
+            iv["hole"], iv["hole_how"] = pick["id"], "before"
             continue
         para_start = t.rfind("\n\n", 0, iv["pos"])
         back = [h for h in holes if (h["kw"] or h.get("known")) and max(para_start, iv["pos"] - 700) <= h["pos"] < iv["pos"]]
@@ -1451,7 +2227,23 @@ def _attach_holes(t, spans, holes, intervals, targets=None):
             iv["hole"], iv["hole_how"] = head[-1]["id"], "heading"
             continue
         if back and not context_reason(t[back[-1]["pos"]:back[-1]["pos"] + 200], None):
-            iv["hole"], iv["hole_how"] = back[-1]["id"], "para_kw"
+            pk = back[-1]
+            # B 1.1.0: "Drill hole SDDSC042, drilled 40 m above SDDSC045 intersected ...: o 14.0 m @ ...": the id after a
+            # relation word in the lead-in sentence is the reference; the sentence's subject is the hole
+            if _RE_REL_BEFORE_ID.search(t[max(0, pk["pos"] - 40):pk["pos"]]):
+                sb = [h for h in back if h["pos"] < pk["pos"] and pk["pos"] - h["pos"] < 120
+                      and not re.search(r"[.;]\s|\n\s*\n", t[h["pos"]:pk["pos"]])
+                      and not _RE_REL_BEFORE_ID.search(t[max(0, h["pos"] - 40):h["pos"]])
+                      and norm_hole(h["id"]) != norm_hole(pk["id"])]
+                if sb:
+                    pk = sb[-1]
+            iv["hole"], iv["hole_how"] = pk["id"], "para_kw"
+            continue
+        # B 1.1.0: a long list headed by its hole ("Highlights from SDDSC115A include:" then twenty "o 3.4 m @ ..."
+        # lines): every item of the list, until a blank line, another hole or prose
+        lh = _list_head_hole(t, holes, iv["pos"])
+        if lh:
+            iv["hole"], iv["hole_how"] = lh, "list_head"
             continue
         # 1.0.3: "drillhole BA-25-006 evaluated an IP anomaly. The hole intersected ... 6.27 g/t Au over 7.4 m" --
         # one hole named in a preceding sentence, and nothing else in between, is the hole.
@@ -1807,7 +2599,7 @@ _RE_PLAN_PHRASE = re.compile(
 _RE_TABLE_DRILLED_YEAR = re.compile(r"(?i)\bdrilled\s+(?:in\s+)?(?:[A-Za-z\-]+\s+)?((?:19|20)\d\d)\b")
 _RE_TABLE_HOLE_START = re.compile(r"^\s*(?-i:[A-Z]{1,6})[\-_]?\d[\w\-]*\b")
 _RE_FIGURE_END = re.compile(r"(?i)(?:\d|g/t|gpt|%|ppm|ppb|oz/t|\bm|metres?|meters?|feet|ft|\)|\b[A-Z][a-z]?(?:Eq)?|\bU3O8|\bLi2O|\bWO3|\bdown\s?hole|\bdepth|\bcore\s+length|\btrue\s+width|\bsurface"
-                            r"|\b(?:gold|silver|copper|zinc|lead|nickel|cobalt|uranium|lithium|antimony|tungsten|molybdenum|palladium|platinum)(?:\s+equivalent)?)\s*[,;:\-]?\s*$")
+                            r"|\b(?:gold|silver|copper|zinc|lead|nickel|cobalt|uranium|lithium|antimony|tungsten|molybdenum|palladium|platinum)(?:\s+equivalent)?)\s*[,;:\-]?\s*\(?\s*$")   # B 1.1.0: "... over 3.1 m (incl. 467 g/t ..."
 
 
 def _is_sub(tail):
@@ -2437,7 +3229,8 @@ def analyse(headline: str, body: str) -> dict:
     hl = repair(headline or "")
     raw_body = repair(body or "")
     rdate = dateline(raw_body)
-    ld = D.lede(raw_body)
+    _HDR_DEFAULT_GT[0] = "Au"   # B 1.1.0: reset for this release
+    ld = D.lede(raw_body, LEDE_B)   # B 1.1.0: the whole news part, not its first 6,000 characters
     th = D._prep(hl)
     t = D._prep(ld)
     result = {"is_result": False, "reason": None, "intervals": [], "top": None, "project": None,
@@ -2446,6 +3239,7 @@ def analyse(headline: str, body: str) -> dict:
     # a release that announces a plan, or says results are still pending, and carries no number of its own
     _body_all = D.find_intercepts(ld)
     _dom = dominant_precious(D.find_intercepts(hl) + _body_all, t)
+    _HDR_DEFAULT_GT[0] = "Ag" if _dom == "Ag" else "Au"   # B 1.1.0
     hl_ints = _one_length_per_grade(fix_metals(D.find_intercepts(hl), D._prep(hl), _dom), D._prep(hl))
     # 1.0.1: a plan / pending / corporate headline no longer ends the analysis on its own. The body is read, and the
     # release keeps a row only if its own opening says it reports new results ("Completes Drill Program" releases that
@@ -2495,6 +3289,10 @@ def analyse(headline: str, body: str) -> dict:
         release_reason = "historical_operator"
     elif _RE_FOLLOW_UP_HEADLINE.search(th) and _RE_PLAN_PHRASE.search(th) and not _RE_DRILL_VERB_HEADLINE.search(th):
         release_reason = "previously_reported"  # "Announces Drill Program to Follow up on Saddle Zone's Recent 5.94% CuEq over 11 m"
+    elif re.search(r"(?i)\broyalt(?:y|ies)\b", th + " " + t[:1500]) and re.search(
+            r"(?i)\b(?:holes?|drilling|drill\s+program(?:me)?|results?)\b[^.]{0,80}?\b(?:completed|drilled|conducted|carried\s+out|undertaken|operated|reported)\s+by\s+(?-i:[A-Z])",
+            t[:2500]):
+        release_reason = "third_party"   # B 1.1.0: a royalty holder relaying the operator's drilling on its royalty ground
     elif _RE_INVESTEE.search(th) or _RE_INVESTEE_HEADLINE.search(th) or _RE_INVESTEE.search(t[:1500]):
         release_reason = "investee"  # results of a company this one holds shares in
     elif _RE_RECAP_HEADLINE.search(th) or _RE_RECAP_BODY.search(t[:3000]):
@@ -2505,6 +3303,12 @@ def analyse(headline: str, body: str) -> dict:
     def reason_for(ctx, head="", pos=None):
         r = context_reason(ctx, rdate, program_years, pos, hl_years)
         if r is None and head:
+            # B 1.1.0: a lead-in whose earlier sentence carries its own figure ("... previously reported drill hole PAL0222
+            # which intersected 7.2 metres @ 21.7 g/t gold. Intersections within PAL0227 include:"): only the last
+            # sentence leads the list
+            _hb = [m.end() for m in re.finditer(r"[.;]\s+(?=[A-Z])", head)]
+            if _hb and D.find_intercepts(head[:_hb[-1]]):
+                head = head[_hb[-1]:]
             r = context_reason(head, rdate, program_years, len(head), hl_years)  # 1.0.2: the list items follow their lead-in
         return r
 
@@ -2535,6 +3339,13 @@ def analyse(headline: str, body: str) -> dict:
                 for x in prev:
                     if abs(x["length_m"] - ln) < 0.01 and x["length_m"] < iv["length_m"]:
                         x["including"] = True  # "4.60 g/t Au over 5.9m within 0.64 g/t Au over 55.4m"
+        # B 1.1.0: "(incl. 467 g/t Au & 9510 g/t Ag over 1.1 m)": every grade of the sub-interval is a sub-interval
+        if not iv["including"]:
+            sib_ = [x for x in text_ints if x is not iv and 0 < iv["pos"] - x["pos"] < 80
+                    and _is_sub(t[max(0, x["pos"] - 90):x["pos"]]) and not _RE_WITHIN_TAIL.search(t[max(0, x["pos"] - 90):x["pos"]])
+                    and abs(x["length_m"] - iv["length_m"]) < 0.001 and not re.search(r"[;()]|\.\s|\n\s*\n", t[x["pos"]:iv["pos"]])]
+            if sib_:
+                iv["including"] = True
         ctx, head, pin = _unit_ctx(t, spans, iv["pos"])
         iv["reason"] = release_reason or reason_for(ctx, head, pin)
         _rule(iv, "context")
@@ -2604,6 +3415,20 @@ def analyse(headline: str, body: str) -> dict:
                 iv["reason"] = par["reason"]
                 _rule(iv, "incl_parent")
     _attach_holes(t, spans, holes, text_ints)
+    # B 1.1.0: the bracketed figure of a hole named as the reference ("75 m below holes LP19-140 (38.0 m ...) and LP19-142
+    # (60.4 m ...)") is that earlier hole's result, quoted again
+    for iv in text_ints:
+        if iv.get("hole_how") == "paren_lead" and iv["reason"] is None:
+            hp = max((h["pos"] for h in holes if h["id"] == iv["hole"] and h["pos"] < iv["pos"]), default=None)
+            if hp is not None:
+                back_ = t[max(0, hp - 160):hp]
+                mrel = None
+                for mrel in re.finditer(r"(?i)\b(?:below|above|beneath|beside|near|between|than|towards?|under|past|along|adjacent\s+to|(?:north|south|east|west)\w*\s+of"
+                                        r"|(?:up|down)[\s\-]?dip\s+(?:of|from)|offset\w*\s+(?:of|from|to)|twin\w*\s+(?:of)?)\s+(?:the\s+)?(?:\w+\s+){0,3}?(?:drill\s*)?holes?\b", back_):
+                    pass
+                if mrel and not re.search(r"\.\s+[A-Z]|;|\n\s*\n", re.sub(r"\([^()]*\)", "", back_[mrel.end():])):
+                    iv["reason"] = "reference_hole"
+                    _rule(iv, "paren_ref_hole")
     _text_depths(t, text_ints)                                # 1.0.5
     # 1.0.2: one quoted interval in several metals shares its hole ("61 metres @ 0.47 g/t Au & 0.78 g/t Ag" in MV21-010):
     # the gold took the hole and was judged by its year, the silver had none and stood as a new result (NOM.CN)
@@ -2733,7 +3558,22 @@ def analyse(headline: str, body: str) -> dict:
         full = D._prep(D.lede(raw_body, D.LEDE_CHARS + 4000))
         if len(full) > len(t) and full.startswith(t):
             tab_t = full
-    table_ints = find_tables(tab_t, rdate, spans, hl_years, header_before=len(t))
+    # B 1.1.0: every results table in the whole release is read, wherever it sits (appendix tables after the
+    # boilerplate included); rows after the lead keep their own title/row context for labels
+    full_t = D._prep(raw_body)
+    if full_t.startswith(t) or True:
+        table_ints = find_tables(_split_runon_rows(_unzip_side_by_side(full_t)), rdate, None, hl_years)
+    # B 1.1.0: a row printed in two tables (a highlights table and the full table) is one interval
+    _seen_rows, _uniq = set(), []
+    for iv in table_ints:
+        k = (norm_hole(iv.get("hole")), iv.get("from_m"), iv.get("to_m"), round(iv["length_m"], 2), iv["metal"], round(iv["grade"], 4))
+        if iv.get("from_m") is not None and k in _seen_rows:
+            continue
+        _seen_rows.add(k)
+        _uniq.append(iv)
+    table_ints = _uniq
+    for iv in table_ints:
+        iv["far"] = iv["pos"] >= len(t)
     for iv in table_ints:
         iv["pos"] = min(iv["pos"], len(t) - 1)
     for iv in table_ints:
@@ -2747,6 +3587,22 @@ def analyse(headline: str, body: str) -> dict:
     merged = list(table_ints)
     for iv in text_ints:
         dup = next((x for x in merged if _same(x, iv)), None)
+        if dup is None:
+            # B 1.1.0: the table rounds the prose figure ("1.2" for "1.25% CuEq"): the same interval; the prose's more
+            # precise grade is kept
+            dup = next((x for x in merged if x.get("src") == "table" and x["metal"] == iv["metal"] and x.get("unit") == iv.get("unit")
+                        and (_table_rounds(x["grade"], iv["grade"]) or _table_rounds(iv["grade"], x["grade"]))   # either way
+                        and (abs(x["length_m"] - iv["length_m"]) <= 0.051 or _table_rounds(iv["length_m"], x["length_m"]))
+                        and (not iv.get("hole") or not x.get("hole") or norm_hole(iv["hole"]) == norm_hole(x["hole"]))
+                        and (iv.get("from_m") is None or x.get("from_m") is None or abs(iv["from_m"] - x["from_m"]) <= 0.051)), None)
+            if dup is not None and len(repr(iv["grade"])) > len(repr(dup["grade"])):
+                dup["grade"] = iv["grade"]
+        if dup is None:
+            # B 1.1.0: the prose quotes the table row's estimated true width as its length ("5.8 metre interval
+            # averaging 173g/t Ag" for the 7.5 m row with a 5.8 m true width): the same interval
+            dup = next((x for x in merged if x.get("src") == "table" and x.get("tw_m") and x["metal"] == iv["metal"]
+                        and abs(x["tw_m"] - iv["length_m"]) <= 0.051 and abs(x["grade"] - iv["grade"]) <= max(0.0051, 0.005 * x["grade"])
+                        and (not iv.get("hole") or not x.get("hole") or norm_hole(iv["hole"]) == norm_hole(x["hole"]))), None)
         if dup:
             if dup["src"] == "table" and iv["reason"] and not dup["reason"]:
                 dup["reason"] = iv["reason"]
@@ -2783,8 +3639,9 @@ def analyse(headline: str, body: str) -> dict:
                     if iv.get("hole") and r.get("hole") and norm_hole(iv["hole"]) != norm_hole(r["hole"]):
                         continue
                     gi, gr = iv["grade"] * D._TO_PPM.get(iv["unit"], 1.0), r["grade"] * D._TO_PPM.get(r["unit"], 1.0)
-                    if abs(gi - gr) > max(0.005 * max(gi, gr), 0.0051 * D._TO_PPM.get(r["unit"], 1.0)):
-                        continue
+                    if abs(gi - gr) > max(0.005 * max(gi, gr), 0.0051 * D._TO_PPM.get(r["unit"], 1.0)) and not (
+                            iv.get("hole") and r.get("hole") and r["unit"] == iv["unit"] and _table_rounds(r["grade"], iv["grade"])):
+                        continue  # 1.0.11: a table that rounds the prose ("1.2" for "1.25% CuEq", AMQ.CN) lends when the hole is the same
                     same_len = abs(iv["length_m"] - r["length_m"]) <= max(0.02 * r["length_m"], 0.051)
                     same_tw = r.get("tw_m") is not None and abs(iv["length_m"] - r["tw_m"]) <= max(0.02 * r["tw_m"], 0.051)
                     if same_len or same_tw or (etw_doc and r.get("tw_m") is None and iv.get("hole") and r.get("hole")
@@ -2806,6 +3663,16 @@ def analyse(headline: str, body: str) -> dict:
                     iv["from_m"], iv["to_m"], iv["depth_src"] = r["from_m"], r["to_m"], "far_table"
                     if not iv.get("hole") or norm_hole(iv["hole"]) != norm_hole(r["hole"]):
                         iv["hole"], iv["hole_how"] = r["hole"], "table"
+
+    for iv in merged:                                          # B 1.1.0: "... from 289.7 m - news release May 2 '23."
+        if iv.get("src") == "text" and not iv.get("reason") and _cites_earlier_release(t, iv, rdate):
+            iv["reason"], iv["rule"] = "previously_reported", "news_release_after"
+    for iv in merged:                                          # B 1.1.0: cut-off statements are rows labelled "cutoff"
+        if iv.get("src") in ("text", "headline") and _is_cutoff_stmt(t, iv):
+            iv["reason"], iv["rule"], iv["hole"] = "cutoff", "cutoff_stmt", None
+    _eq_components(t, merged)                                  # B 1.1.0
+    merged.extend(_about_recaps(raw_body, len(ld), merged))     # B 1.1.0
+    _share_sibling_depths(merged)                              # 1.0.11
 
     # headline figures must agree with the body; a headline figure the body rejects is rejected,
     # and a headline that calls its own figures XRF or visual condemns the body copies too
@@ -2861,6 +3728,32 @@ def analyse(headline: str, body: str) -> dict:
         merged = trimmed
     for x in merged:
         x.pop("_drill_ctx", None)
+        # 1.1.4 (FIX4, 2026-10-19): a table interval longer than its own From-To span is misread. A lost decimal point in
+        # the release ("11 16 5 1.3 500m @ 1.3 g/t") takes the span; any other excess ("Rafael 2 141.30 142.75 1.45": the
+        # vein's number read as From, every column after it one place on) keeps the row out of the best figure. A length
+        # shorter than the span is a true width and stays.
+        _f, _to, _L = x.get("from_m"), x.get("to_m"), x.get("length_m")
+        if not x["reason"] and x.get("src") == "table" and _f is not None and _to is not None and _L and _to > _f:
+            _span = _to - _f
+            _tol = max(0.15, 0.01 * _span)
+            if _L > _span + _tol:
+                if any(abs(_L / d - _span) <= _tol for d in (10.0, 100.0)):
+                    x["length_m"] = round(_span, 3)
+                    _rule(x, "length_from_depths")
+                else:
+                    x["reason"] = "implausible"
+                    _rule(x, "depth_mismatch")
+        # 1.1.4 (FIX4): a figure written beside its own row's numbers ("MSRC23 -256 11 16 5 1.3 500m @ 1.3 g/t") that is
+        # ten or a hundred times the row's length lost its decimal point: the row's From, To and length stand
+        if not x["reason"] and x.get("src") == "text" and x.get("from_m") is None and x.get("pos") is not None and _L:
+            _ls = ("%d" % _L) if float(_L).is_integer() else ("%g" % _L)
+            _m = re.search(_RE_ROW_BEFORE + r"\s+" + re.escape(_ls) + r"(?:\.0+)?\s*m\b", t[max(0, x["pos"] - 120):x["pos"] + 40])
+            if _m:
+                _a, _b, _c, _g = (float(v) for v in _m.groups())
+                if _b > _a and abs((_b - _a) - _c) <= 0.15 and abs(_g - (x.get("grade") or -1)) <= 0.051 and _c > 0 \
+                        and any(abs(_L - _c * d) <= 0.011 * _c * d for d in (10.0, 100.0)):
+                    x["length_m"], x["from_m"], x["to_m"] = _c, _a, _b
+                    _rule(x, "length_from_row")
         cap = _PCT_CAP.get(x["metal"])
         gm = _GM_CAP.get(x["metal"])
         if not x["reason"] and gm and x["unit"] == "g/t" and x["grade"] * x["length_m"] > gm and not x.get("headline"):
@@ -2936,6 +3829,17 @@ def analyse(headline: str, body: str) -> dict:
     else:
         reasons = [x["reason"] for x in merged if x["reason"]]
         result["reason"] = max(set(reasons), key=reasons.count) if reasons else "no_intervals"
+    # B 1.1.0: every interval, not only the top one, takes the hole its other quotations agree on ("Highlight intercepts
+    # include: 31.64 g/t Au over 2.0 m ..." and later "31.64 g/t Au over 2 m in BMU-26-034 from 50.0 m")
+    for x in merged:
+        if ((result["top"] is not None and x is merged[result["top"]]) or x.get("src") != "text" or x.get("pos") is None
+                or x.get("reason") or x.get("eq_part") or not x.get("grade")):
+            continue
+        if not x.get("hole") or x.get("hole_how") not in _HOLE_HOW_FIRM:
+            try:
+                _hole_from_repeats(t, spans, holes, x, text_ints, merged, copy)
+            except Exception:  # noqa: BLE001
+                pass
     if result["top"] is not None:
         top = merged[result["top"]]
         _hole_from_repeats(t, spans, holes, top, text_ints, merged, copy)   # 1.0.8
@@ -2981,15 +3885,524 @@ def analyse(headline: str, body: str) -> dict:
     if result["is_result"]:
         kind, why = release_news(hl, t, rdate, any(x.get("src") == "headline" and not x["reason"] or x.get("headline") and not x["reason"]
                                                    for x in merged))
+        if kind != "results" and why in ("plan", "not_results", "no_new_results"):
+            # B 1.1.0: a corporate update that carries its own drill-results table ("Meridian Accelerates ... Programmes" with
+            # "Table 1: Santa Helena Central drill results"): the table's new rows are this release's results
+            _tab_new = [x for x in merged if x.get("src") == "table" and not x["reason"] and x.get("hole")]
+            if (len({norm_hole(x["hole"]) for x in _tab_new}) >= 2 and len(_tab_new) >= 8
+                    and re.search(r"(?im)^\s*table\s*\d*\s*[:.\-\u2013]?\s*[^\n]{0,80}(?:\b(?:drill(?:ing|hole)?|assay)\s+(?:hole\s+)?(?:results|intercepts|highlights)\b"
+                                  r"|\b(?:significant|highlight\w*|selected)\s+(?:summary\s+of\s+)?(?:\d{4}\s+)?(?:drill\w*|intercepts|intersections|assays?)\b)", D._prep(raw_body))
+                    and not re.search(r"(?im)^\s*table[^\n]{0,80}\b(?:previous|prior|historic)", D._prep(raw_body))):
+                kind = "results"
         if kind != "results":
             for x in merged:
                 if not x["reason"]:
                     x["reason"], x["rule"] = why, "release_news"
             result["is_result"], result["top"], result["reason"] = False, None, why
+    if result["is_result"]:
+        # B 1.1.0: "TM21-107/107X": an old hole extended in this program ("TM21-107X") is reported again as one hole; its
+        # first part is not an old program's result
+        _ext = {norm_hole(x["hole"])[:-1] for x in merged if x.get("hole") and not x["reason"] and re.search(r"(?i)X$", x["hole"])}
+        for x in merged:
+            if x.get("hole") and x["reason"] == "historical" and x.get("rule") in ("table_hole_year", "hole_year") and norm_hole(x["hole"]) in _ext:
+                x["reason"], x["rule"] = None, None
+        _prev_depth_ranges(D._prep(raw_body), merged)
+        # B 1.1.0: the other metals of a row whose hole is known ("TREO" credited, "MREO" and "Ga" of the same 9-12 m not)
+        _sib = {}
+        for x in merged:
+            if x.get("hole") and x.get("from_m") is not None:
+                _sib.setdefault((round(x["from_m"], 2), round(x.get("to_m") or -1, 2), round(x["length_m"], 2)), set()).add(x["hole"])
+        for x in merged:
+            if not x.get("hole") and x.get("from_m") is not None:
+                hs_ = _sib.get((round(x["from_m"], 2), round(x.get("to_m") or -1, 2), round(x["length_m"], 2)))
+                if hs_ and len({norm_hole(h) for h in hs_}) == 1:
+                    x["hole"], x["hole_how"] = next(iter(hs_)), "sibling_row"
+        _hole_by_depth(merged)   # B 1.1.0
+        _mark_samples(merged)   # B 1.1.0
+        _labels(merged, _hole_status(D._prep(raw_body), rdate, {x["hole"] for x in merged if x.get("hole")}))   # B 1.1.0
+        _fill_depths(t, merged, holes, D._prep(raw_body))   # 1.1.1 DEPTH_FILL_V1: last, so it changes nothing but empty From-To
     result["intervals"] = merged
-    name, rank = _project_pn(th, t)   # 1.0.6
+    name, rank = _project_pn(th, D._prep(D.lede(raw_body)))   # 1.0.6; B 1.1.0: the project is still read from the lead
     result["project"], result["project_rank"] = name, rank
     return result
+
+
+# ------------------------------------------------------------------ B 1.1.0: labelled rows instead of dropped rows
+# Justin 2026-10-07: figures that are not the company's new drilling are shown, labelled, not hidden.
+LABEL_OF_REASON = {"historical": "historical", "historical_operator": "historical",
+                   "previously_reported": "previously_reported", "recap": "previously_reported",
+                   "reference_hole": "previously_reported", "investee": "third_party", "third_party": "third_party",
+                   "cutoff": "cutoff"}
+
+
+_RE_STATUS_HEAD = re.compile(r"(?i)\b(?:date\s+(?:reported|released|announced)|(?:news|press)\s+release(?:\s+date)?|reported\s+(?:in|on|date)|release\s+date|status)\b")
+_RE_STATUS_NEW = re.compile(r"(?i)\b(?:here(?:in)?|this\s+(?:news\s+|press\s+)?release|current(?:\s+release)?|new)\b\W*$")
+_RE_STATUS_OLD = re.compile(r"(?i)\bprevious(?:ly)?(?:\s+(?:reported|released|announced))?\b\W*$")
+_MON_ANY = MONTHS + r"|jan|feb|mar|apr|jun|jul|aug|sept?|oct|nov|dec"
+_RE_ANY_DATE = re.compile(r"(?i)(?:\b(?P<d1>\d{1,2})\s?(?:st|nd|rd|th)?\s+(?P<m1>" + _MON_ANY + r")\.?,?\s+(?P<y1>(?:19|20)\d\d)"
+                          r"|\b(?P<m2>" + _MON_ANY + r")\.?\s+(?P<d2>\d{1,2})\s?(?:st|nd|rd|th)?,?\s+(?P<y2>(?:19|20)\d\d)"
+                          r"|\b(?P<y3>(?:19|20)\d\d)-(?P<m3>\d\d)-(?P<d3>\d\d))\b")
+
+
+def _hole_status(t, rdate, known=()):
+    """B 1.1.0: a collar or summary table with a "Date Reported" / "Press Release" column says which holes were
+    released before ("October 07, 2020", "Previous") and which are new here ("Here", "This release"); a comment
+    cell does the same ("(Reported May 2, 2023)", "Au & Co reported 20 Apr, 2020"). {norm hole: label}.
+    A row's cells may wrap onto the next lines; they are read with it until the next row starts."""
+    out = {}
+    lines = t.split("\n")
+    head_at = -999
+    known_rx = (re.compile(r"(?<![A-Za-z0-9\-])(" + "|".join(re.escape(k) for k in sorted(known, key=len, reverse=True)) + r")(?![A-Za-z0-9\-])")
+                if known else None)
+
+    def row_id(line):
+        hs = _row_holes(line, True)
+        if not hs and known_rx:
+            mk = known_rx.search(line)
+            if mk:
+                hs = [{"id": mk.group(1), "pos": mk.start(1), "end": mk.end(1)}]
+        return hs[0] if hs and hs[0]["pos"] <= 25 else None
+
+    blocks, cur = [], None
+    for k, line in enumerate(lines):
+        if (_RE_STATUS_HEAD.search(line) and re.search(r"(?i)\bhole|ddh|bhid", line + " " + " ".join(lines[max(0, k - 3):k]))
+                and not re.search(r"\d{2}", line) and len(line.strip()) < 200):   # a header row, not prose with a date
+            head_at = k
+            cur = None
+            continue
+        h = row_id(line)
+        if h:
+            cur = [h, line[h["end"]:].strip(), k - head_at <= 60, 0]
+            blocks.append(cur)
+        elif (cur is not None and cur[3] < 3 and line.strip() and not _ROW_INCL.match(line)
+              and (len(_NUM.findall(line)) < 3 or re.match(r"(?i)\W*(?:[\w&]+\s+){0,4}(?:reported|released|announced)\b", line.strip()))):
+            cur[1] += " " + line.strip()
+            cur[3] += 1
+        else:
+            cur = None if not line.strip() or len(_NUM.findall(line)) >= 3 or _ROW_INCL.match(line) else cur
+    for h, tail, in_status, _n in blocks:
+        lab = None
+        if not in_status:
+            mr = re.search(r"(?i)\b(?:reported|released|announced)\s+(?:on\s+|in\s+)?", tail)
+            if not mr:
+                continue
+            tail = tail[mr.end():]
+        m = _RE_ANY_DATE.search(tail)
+        if m and not rdate and not in_status:
+            lab = "previously_reported"   # "(Reported May 2, 2023)" on a release with no dateline: reported before it
+        elif m and rdate:
+            if m.group("y1"):
+                d = (int(m.group("y1")), _month(m.group("m1")), int(m.group("d1")))
+            elif m.group("y2"):
+                d = (int(m.group("y2")), _month(m.group("m2")), int(m.group("d2")))
+            else:
+                d = (int(m.group("y3")), int(m.group("m3")), int(m.group("d3")))
+            lab = "previously_reported" if d < tuple(rdate) else "new"
+        elif lab is None and _RE_STATUS_OLD.search(tail):
+            lab = "previously_reported"
+        elif lab is None and in_status and _RE_STATUS_NEW.search(tail):
+            lab = "new"
+        if lab:
+            out[norm_hole(h["id"])] = lab
+    # B 1.1.0: "GW07-04: This historic drill hole was drilled ...", "historic drill hole CRC020": that hole's rows are historical
+    for mh in re.finditer(r"(?i)(?:\bhistoric(?:al)?\s+(?:drill\s*)?holes?\s+(?P<a>[A-Z0-9][\w\-]*\d[\w\-]*)"
+                          r"|(?:^|\n)\s*(?P<b>[A-Z0-9][\w\-]*\d[\w\-]*)\s*[:\-\u2013]\s*(?:this|the)\s+historic(?:al)?\s+(?:drill\s*)?hole\b)", t):
+        hid = mh.group("a") or mh.group("b")
+        # B 1.1.0: "Historic drill hole 16TK0250 was re-examined and extended from 649 meters": the extension is new drilling
+        if re.search(r"(?i)\b(?:extended|deepened|re-?entered|extension|lengthened)\b", t[mh.end():mh.end() + 160]):
+            continue
+        if hid and _hole_ok(hid, True):
+            out.setdefault(norm_hole(hid), "historical")
+    # B 1.1.0: "Results for holes TCK-001 to TCK-006 were reported in the Company's press release dated February 3, 2026"
+    for mr in re.finditer(r"(?i)\b(?:results?|assays?)\s+(?:for|from)\s+(?:drill\s*)?holes?\s+(?P<a>[A-Z]{1,6}[\-_]?\d{2}[\w\-]*?)(?P<an>\d{1,4})\s*"
+                          r"(?:to|through|-|\u2013|and)\s*(?P<b>[A-Z]{1,6}[\-_]?\d{2}[\w\-]*?)?(?P<bn>\d{1,4})\s+(?:were|was|have\s+been|had\s+been)\s+"
+                          r"(?:previously\s+)?(?:reported|released|announced|disclosed)", t):
+        pre_, lo, hi = mr.group("a"), int(mr.group("an")), int(mr.group("bn"))
+        if hi < lo or hi - lo > 200 or known_rx is None:
+            continue
+        for mh in known_rx.finditer(t):
+            hid = mh.group(1)
+            mm_ = re.fullmatch(re.escape(pre_) + r"(\d{1,4})", hid)
+            if mm_ and lo <= int(mm_.group(1)) <= hi:
+                out.setdefault(norm_hole(hid), "previously_reported")
+    # B 1.1.0: "(results from CO-0001 and CO -0002 were previously released in a news release dated February 2, 2026)"
+    if known_rx is not None:
+        for ml in re.finditer(r"(?i)\b(?:results?|assays?)\s+(?:for|from|of)\s+(?:drill\s*)?(?:holes?\s+)?(?P<lst>[^.;()]{3,120}?)\s+(?:were|was|have\s+been|had\s+been)\s+"
+                              r"(?:previously\s+)?(?:reported|released|announced|disclosed)\b", t):
+            lst = re.sub(r"\s+(?=-\d)", "", ml.group("lst"))
+            if re.search(r"(?i)\b(?:between|depths?|above|below|metres?|meters?|feet|intervals?|portions?|parts?|sections?|upper|lower|first|top)\b|\d\s*m\b", lst):
+                continue   # part of a hole was reported before, not the hole
+            for mh in known_rx.finditer(lst):
+                out.setdefault(norm_hole(mh.group(1)), "previously_reported")
+    # B 1.1.0: a legend mark ("*2 indicates previously reported results"; "* denotes previously released") on a hole's row
+    for ml in re.finditer(r"(?i)(?P<mk>\*{1,3}\d?|[\u2020\u2021\u00a7#^]|\(\d\))\s*['\u2019\u201d\"]?\s*(?:(?:indicates?|denotes?|=|:|are|is)\s+)?"
+                          r"(?:holes?\s+(?:with\s+)?|results?\s+)?(?:previously|prior|earlier)\s+(?:reported|released|announced|disclosed)", t):
+        mk = ml.group("mk")
+        if known_rx is None:
+            break
+        for mh in known_rx.finditer(t):
+            if mh.start() <= ml.end() and mh.end() >= ml.start():
+                continue
+            if re.match(r"\s*" + re.escape(mk) + r"(?![\d*])", t[mh.end(1):mh.end(1) + 12]):
+                out.setdefault(norm_hole(mh.group(1)), "previously_reported")
+    # "For previously reported exploration results, refer to the following: \u2022 May 30, 2022 SDDSC033 ...": each
+    # hole cited in that list was reported before (unless the release also says it is reported here)
+    for mh in _RE_PREV_REFLIST.finditer(t):
+        seg = t[mh.end():mh.end() + 1500]
+        blank = 0
+        for line in seg.split("\n")[1:40]:
+            if not line.strip():
+                blank += 1
+                if blank > 3:
+                    break
+                continue
+            if not _RE_ANY_DATE.search(line) or len(line) > 160:
+                break
+            ids = [h["id"] for h in find_holes(line)] + ([m_.group(1) for m_ in known_rx.finditer(line)] if known_rx else [])
+            for hid in ids:
+                h = {"id": hid}
+                k = norm_hole(h["id"])
+                if not re.search(r"(?i)" + re.escape(h["id"]) + r"[^.\n]{0,40}\b(?:reported|released)\s+here", t):
+                    out.setdefault(k, "previously_reported")
+    return out
+
+
+_RE_PREV_REFLIST = re.compile(r"(?i)\b(?:previously|prior)\s+(?:reported|released|announced)\s+(?:exploration\s+|drill(?:ing)?\s+|assay\s+)?"
+                              r"results?,?\s+(?:please\s+)?(?:refer|see)\b[^\n]{0,60}:?")
+
+
+_RE_NR_AFTER = re.compile(r"(?i)(?:news|press)\s+release[sd]?\s+(?:dated\s+|of\s+|on\s+)?(?P<date>[A-Za-z]{3,9}\.?\s+\d{1,2}(?:st|nd|rd|th)?,?\s*(?:(?:19|20)\d\d|['\u2018\u2019]\d\d)|\d{1,2}\s+[A-Za-z]{3,9}\.?,?\s*(?:(?:19|20)\d\d|['\u2018\u2019]\d\d))")
+
+
+def _cites_earlier_release(t, iv, rdate):
+    """B 1.1.0: the figure's own line ends by citing an earlier news release ("- news release May 2 '23")."""
+    p = iv.get("pos") or 0
+    line_end = t.find("\n", p)
+    seg = t[p:line_end if line_end > 0 else p + 250][:250]
+    m = _RE_NR_AFTER.search(seg)
+    if not m:
+        return False
+    # the citation must close this figure's own clause: no other interval statement (unless an "including" list),
+    # no sentence break, no other hole it is related to, no inner "previously announced" figure
+    between = seg[:m.start()]
+    other_iv = re.search(r"(?i)\d\s*(?:m|metres?|meters?|ft|feet)\s+(?:at|@|of|grading|averaging)\s+\d|\d\s*(?:g/t|gpt|%|ppm|ppb)[^,;]{0,40}?\bover\s+\d", between[8:])
+    if (re.search(r"(?i)\bpreviously\b|\bannounced\b|\breported\b|\breleased\b", between) or re.search(r"\.\s+[A-Z]", between)
+            or (other_iv and not re.search(r"(?i)\bincl(?:uding|udes|\.)", between[:other_iv.start() + 8]))
+            or re.search(r"(?i)\b(?:below|above|from|of|near|beside)\s+(?:the\s+)?(?:previously\s+\w+\s+)?(?:drill\s*)?holes?\b", between)):
+        return False
+    if re.search(r"(?i)\bthis\s+(?:news\s+|press\s+)?release\b", seg[:m.start()]):
+        return False
+    ds = m.group("date")
+    y = re.search(r"(?:19|20)(\d\d)|['\u2018\u2019](\d\d)", ds)
+    yy = int(y.group(1) or y.group(2)) + 2000 if y else None
+    mo = _month(re.search(r"[A-Za-z]{3,9}", ds).group(0))
+    if yy is None or mo is None:
+        return False
+    return rdate is None or (yy, mo) < (rdate[0], rdate[1])
+
+
+_RE_CUTOFF_WORD = re.compile(r"(?i)(?<!no\s)(?<!without\s)\b(?:lower[\s\-]+cut(?:[\s\-]*off)?s?|cut[\s\-]?offs?|cut\s+of|composited\s+(?:at|using)|bottom\s+cut|minimum\s+grade\s+of|grade\s+threshold)\b")
+
+
+def _is_cutoff_stmt(t, iv):
+    """B 1.1.0: "a lower cut of 0.3 g/t Au over 3.0 m", "(2 m @ 0.5 g/t Au lower cut)", "5.0 g/t Au lower cutoff over a
+    maximum of 1 m width": a reporting threshold written like an interval (Justin: shown, labelled cut-off)."""
+    p = iv.get("pos") or 0
+    a = max(0, p - 70)
+    pre = t[a:p]
+    cut = max(pre.rfind(". "), pre.rfind(";"), pre.rfind("\n\n"), pre.rfind("("), pre.rfind(")"))
+    pre = pre[cut + 1:] if cut >= 0 else pre
+    post = t[p:p + 70]
+    m_end = re.search(r"[;)\n]|\.(?!\d)", post)
+    post = post[:m_end.start()] if m_end else post
+    if re.search(r"(?i)\bno\s+(?:lower\s+)?cut", pre + post):
+        return False
+    # "with higher grades reported with a 5 g/t Au cut over 1.0 metre"; "intervals where 1 metre @ >2.0 g/t gold was applied"
+    if re.match(r"(?i)[^@]{0,40}?(?:g/t|%|ppm|gpt)\s*(?:[A-Za-z]{1,3}\s+|gold\s+|copper\s+)?cut\s+over\b", post):
+        return True
+    if re.match(r"(?i)[^.;]{0,20}?[@of]\s*[>\u2265]\s*\d", post) and re.search(r"(?i)\b(?:was|were|is)\s+applied\b", t[p:p + 90]):
+        return True
+    return bool(_RE_CUTOFF_WORD.search(pre) or _RE_CUTOFF_WORD.search(post))
+
+
+_RE_EQ_FIG = re.compile(r"(?i)(?P<g>\d[\d,]*(?:\.\d+)?)\s*(?P<u>g/t|%|ppm|ppb|oz/t)\s*(?P<m>[A-Za-z0-9]{1,6})\s*(?:eq\.?|equivalent)\s*\((?P<inner>[^()]{3,120})\)")
+_RE_COMP = re.compile(r"(?i)(?P<g><?\s*\d[\d,]*(?:\.\d+)?)\s*(?P<u>g/t|%|ppm|ppb|oz/t)\s*(?P<m>[A-Za-z][A-Za-z0-9]{0,5})(?![A-Za-z])")
+
+
+def _eq_components(t, ivs):
+    """B 1.1.0: "1.5 m @ 12.4 g/t AuEq (10.6 g/t Au, 1.0% Sb)": the grades inside the brackets are the same interval's
+    other metal rows (Justin: every metal of an interval is shown)."""
+    add = []
+    for iv in ivs:
+        if iv.get("src") != "text" or not str(iv.get("metal", "")).endswith("Eq"):
+            continue
+        p = iv.get("pos") or 0
+        m = next((m for m in _RE_EQ_FIG.finditer(t, max(0, p - 5), min(len(t), p + 160))
+                  if abs(D._num(m.group("g")) - iv["grade"]) < 1e-6 and D._normalize_metal(m.group("m") + "Eq") == iv["metal"]), None)
+        if not m:
+            continue
+        for c in _RE_COMP.finditer(m.group("inner")):
+            g = c.group("g").replace("<", "").strip()
+            try:
+                gv = D._num(g)
+            except Exception:  # noqa: BLE001
+                continue
+            metal = D._normalize_metal(c.group("m"))
+            unit = c.group("u").lower()
+            if not metal or metal == iv["metal"] or not D._plausible(gv, unit, metal, True):
+                continue
+            if any(x is not iv and x["metal"] == metal and abs(x["grade"] - gv) < 1e-6 and abs(x["length_m"] - iv["length_m"]) < 0.011
+                   for x in ivs + add):
+                continue
+            y = {k: v for k, v in iv.items() if k not in ("headline", "hl_pos")}
+            y.update({"grade": gv, "unit": unit, "metal": metal, "pos": m.start("inner") + c.start(), "eq_part": True})
+            add.append(y)
+    # the other way round: "119.2 m @ 3.2 g/t Au and 0.4% Sb (3.9 g/t AuEq)" -- the bracketed equivalent grade after the
+    # component grades is the same interval's equivalent row
+    groups = {}
+    for iv in ivs:
+        if iv.get("src") == "text" and not str(iv.get("metal", "")).endswith("Eq") and iv.get("length_m"):
+            groups.setdefault(round(iv["length_m"], 3), []).append(iv)
+    for L, grp in groups.items():
+        grp.sort(key=lambda x: x.get("pos") or 0)
+        clusters, cur = [], []
+        for x in grp:
+            if cur and (x.get("pos") or 0) - (cur[-1].get("pos") or 0) > 90:
+                clusters.append(cur)
+                cur = []
+            cur.append(x)
+        if cur:
+            clusters.append(cur)
+        for cl in clusters:
+            last = max(x.get("pos") or 0 for x in cl)
+            for m in _RE_EQ_AFTER.finditer(t, last, min(len(t), last + 110)):
+                gap = t[last:m.start()]
+                if re.search(r"(?i);|\.\s|\n\s*\n|\bincl|\bwithin|\bover\s+\d|@", gap[12:]):
+                    break
+                lens = [D._num(v) for v in re.findall(r"(?i)(\d+(?:\.\d+)?)\s*(?:m|metres?|meters?)\b", gap)]
+                if any(abs(v - L) > 0.011 for v in lens):
+                    break
+                metal = D._normalize_metal(m.group("m")) + "Eq"
+                gv = D._num(m.group("g"))
+                unit = "g/t" if m.group("u").lower() in ("g/t", "gpt") else m.group("u").lower()
+                if any(x["metal"] == metal and abs(x["length_m"] - L) < 0.011 and abs(x["grade"] - gv) < 1e-6 for x in ivs + add):
+                    break
+                y = {k: v for k, v in cl[0].items() if k not in ("headline", "hl_pos")}
+                y.update({"grade": gv, "unit": unit, "metal": metal, "pos": m.start("g"), "eq_part": True})
+                add.append(y)
+                break
+    ivs.extend([y for y in add if y not in ivs])
+
+
+_RE_EQ_AFTER = re.compile(r"(?i)\(\s*(?P<g>\d[\d,]*(?:\.\d+)?)\s*(?P<u>g/t|gpt|%|ppm)\s*(?P<m>Au|Ag|Cu|Zn|Ni|Pt|Pd|Pb|Mo|Sn|W)\s*eq\.?\s*\)")
+
+
+def _unzip_side_by_side(t):
+    """B 1.1.0: two tables printed side by side ("Hole # From (m) To (m) Width (m) Au g/t Hole # From (m) To (m) Width (m)
+    Au g/t", each line a left row and a right row): rewritten as the left table followed by the right table."""
+    lines = t.split("\n")
+    out, k = [], 0
+    while k < len(lines):
+        ln = lines[k]
+        words = ln.split()
+        half = len(words) // 2
+        if (len(words) >= 8 and len(words) % 2 == 0 and words[:half] == words[half:] and re.search(r"(?i)\bfrom\b", ln)
+                and not _NUM.search(ln.replace("(m)", ""))):
+            hdr = " ".join(words[:half])
+            ncols = len([w for w in re.findall(r"(?i)\b(?:from|to|width|length|interval|thickness|[A-Z][a-z]?(?:eq)?)\b(?=\s*(?:\(|g/t|%|ppm|$|\s))", hdr)
+                         if not re.fullmatch(r"(?i)hole|m", w)])
+            left, right, j = [], [], k + 1
+            while j < len(lines):
+                toks = lines[j].split()
+                if not toks:
+                    j += 1
+                    if j < len(lines) and not lines[j].split():
+                        break
+                    continue
+                segs, cur, nn = [], [], 0
+                for tk in toks:
+                    isnum = _cell_value(tk) not in (False,)
+                    if isnum and nn == ncols - 1 and cur:
+                        cur.append(tk)
+                        segs.append(cur)
+                        cur, nn = [], 0
+                        continue
+                    if not isnum and nn > 0:
+                        segs.append(cur)
+                        cur, nn = [], 0
+                    cur.append(tk)
+                    nn += 1 if isnum else 0
+                if cur:
+                    segs.append(cur)
+                nums_line = sum(1 for tk in toks if _cell_value(tk) is not False)
+                if nums_line == 0 and len(toks) > 3:
+                    break   # prose or a caption: the tables end
+                if len(segs) > 2 or nums_line > 2 * ncols:
+                    break
+                if len(segs) == 2:
+                    left.append(" ".join(segs[0]))
+                    right.append(" ".join(segs[1]))
+                elif segs:
+                    (right if lines[j].startswith("    ") else left).append(" ".join(segs[0]))
+                j += 1
+            if ncols >= 3 and len(left) >= 2 and len(right) >= 2:
+                out += [hdr] + left + ["", hdr] + right + [""]
+                k = j
+                continue
+        out.append(ln)
+        k += 1
+    return "\n".join(out)
+
+
+def _split_runon_rows(t):
+    """B 1.1.0: several table rows flattened onto one line ("incl. 135.0 142.0 7.0 0.44 27 ... incl. 151.0 160.0 9.0 0.07 55
+    ...                  174.0 180.0 6.0 ..."): each row on a line of its own. Only lines with at least twelve numbers are
+    touched, split before an "incl." label or a wide gap that a number follows."""
+    out = []
+    # spreadsheet headers ("Depth_from | Depth_to | Interval_m | Au_g/t | Cu_%"): words, not one token
+    t = re.sub(r"(?i)(?<=[A-Za-z])_(?=(?:from|to|m|g/t|%|ppm|ppb|pct)(?![A-Za-z]))", " ", t)
+    # an oxide written with its subscript on a line of its own ("Cs | 2 | O (%)", "Li | 2 | O %"): one name
+    t = re.sub(r"(?m)\b(Cs|Li|Ta|Nb|Rb|U|V|Fe|Al|Si|K|P|W|Sc|Cr|Ti|Mn)[ \t]*\n?[ \t]*([2-5])[ \t]*\n?[ \t]*(O[2-5]?)(?=[\s(%])", r"\1\2\3", t)
+    # an id broken over two lines ("ET-21-" then "282"): one line
+    t = re.sub(r"(?m)^(\s*[A-Z]{1,6}-\d{2}-)[ \t]*\n[ \t]*(\d{2,4}[A-Z]?)[ \t]*$", r"\1\2", t)
+    for ln in t.split("\n"):
+        # a units row with the first data row run onto it ("(m) (m) (m) gt gt % % % %  MB17-01  27.0 432.0 ...")
+        mu = re.match(r"^(\s*(?:\((?:m|ft|metres?)\)|g/?t|gpt|%|ppm|ppb|oz/t)(?:\s+(?:\((?:m|ft|metres?)\)|g/?t|gpt|%|ppm|ppb|oz/t)){2,})\s+(?=\S*\d)", ln)
+        if mu and len(_NUM.findall(ln[mu.end():])) >= 3:
+            out.append(mu.group(1))
+            ln = ln[mu.end():]
+        if len(_NUM.findall(ln)) >= 12:
+            parts = re.split(r"(?:(?<=\d)|(?<=\d\s))\s+(?=(?:incl(?:uding)?\s*\.?|and)\s+\d)|(?<=\S)\s{8,}(?=\d)", ln)
+            parts = [p_ for p_ in parts if p_ and p_.strip()]
+            if len(parts) >= 2 and all(len(_NUM.findall(p_)) >= 3 for p_ in parts[1:]):
+                out += parts
+                continue
+        out.append(ln)
+    return "\n".join(out)
+
+
+_RE_PREV_RANGE = re.compile(
+    r"(?i)\b(?:results?|assays?|intervals?)\s+(?:for|from|in)\s+(?:drill\s*)?(?:hole\s+)?(?P<h>[A-Z]{1,6}[\s\-]?\d[\w\-\s]{0,8}?\d)\s*,?\s*"
+    r"(?:between|from)\s+(?:a\s+)?(?:depths?\s+of\s+)?(?P<a>\d+(?:\.\d+)?)\s*(?:m|metres?|meters?)?\s*(?:and|to|-|\u2013)\s*(?P<b>\d+(?:\.\d+)?)\s*"
+    r"(?:m|metres?|meters?)?\s*,?\s*(?:were|was|have\s+been|had\s+been)\s+previously\s+(?:reported|released|announced|disclosed)")
+
+
+def _prev_depth_ranges(t, ivs):
+    """B 1.1.0: "results for hole SAL 09-25, between a depth of 223 and 542 metres were previously reported": that hole's
+    rows inside the range are earlier results."""
+    for m in _RE_PREV_RANGE.finditer(t):
+        h = norm_hole(m.group("h"))
+        a, b = float(m.group("a")), float(m.group("b"))
+        for x in ivs:
+            if (x.get("hole") and norm_hole(x["hole"]) == h and not x.get("reason") and x.get("from_m") is not None
+                    and x.get("to_m") is not None and a - 0.051 <= x["from_m"] and x["to_m"] <= b + 0.051):
+                x["reason"], x["rule"] = "previously_reported", "prev_depth_range"
+
+
+_RE_ABOUT_HEAD = re.compile(r"(?im)^\s*about\s+(?:the\s+)?[A-Z][\w&.,'\- ]{2,60}\s*$")
+_RE_ABOUT_END = re.compile(r"(?im)^\s*(?:qualified\s+person|forward[\s\-]looking|cautionary|neither\s+(?:the\s+)?tsx|for\s+(?:further|more)\s+information|on\s+behalf\s+of|contact)")
+
+
+def _about_recaps(raw_body, lede_len, have):
+    """B 1.1.0: the "About <Company>" section after the news ("Key intercepts to date include: 10.8m of 10.0% Zn+Pb and
+    109 g/t Ag (G11-468-03)"): earlier results, shown labelled as previously reported."""
+    body = D._prep(raw_body)
+    m = _RE_ABOUT_HEAD.search(body, max(0, min(lede_len, len(body)) - 200))
+    if not m:
+        return []
+    end = _RE_ABOUT_END.search(body, m.end())
+    sec = body[m.end():end.start() if end else min(len(body), m.end() + 6000)]
+    if not re.search(r"(?i)\b(?:drill\w*|holes?|intercepts?|intersect\w*)\b", sec):
+        return []
+    if not re.search(r"(?i)\bto\s+date\b|\bprevious(?:ly)?\b|\b(?:were|was)\s+reported\b|\breported\s+(?:on|in)\b|\bprior\b|\bhighlights?\s+(?:of|from)\b", sec):
+        return []   # a recap says so; otherwise the "About" heading may sit inside the news itself
+    ivs = fix_metals(D.find_intercepts(sec), sec, None)
+    for iv in ivs:
+        iv["including"] = _is_sub(sec[max(0, iv["pos"] - 90):iv["pos"]])
+    try:
+        _attach_holes(sec, units(sec), find_holes(sec), ivs)
+        _text_depths(sec, ivs)
+    except Exception:  # noqa: BLE001
+        pass
+    out = []
+    new_holes = {norm_hole(x["hole"]) for x in have if x.get("hole") and not x.get("reason")}
+    for iv in ivs:
+        if any(x["metal"] == iv["metal"] and abs(x["grade"] - iv["grade"]) < 1e-6 and abs(x["length_m"] - iv["length_m"]) < 0.011
+               for x in have + out):
+            continue
+        if iv.get("hole") and norm_hole(iv["hole"]) in new_holes:
+            continue   # a hole this release reports as new: the figure is not a recap (columns of a PDF interleaved)
+        y = dict(iv)
+        y.update({"src": "text", "reason": "previously_reported", "rule": "about_section", "pos": m.end() + iv["pos"], "far": True})
+        out.append(y)
+    return out
+
+
+def _mark_samples(ivs):
+    """B 1.1.0 (Justin 2026-10-10: show every sample too, marked as a single sample): a sample-by-sample assay table is a
+    run of at least eight back-to-back short table intervals (each at most 3 m, each starting where the one before ended)
+    in one hole. Those rows get kind "sample"; everything else is an interval."""
+    by = {}
+    for x in ivs:
+        x.setdefault("kind", "interval")
+        if x.get("src") == "table" and x.get("from_m") is not None and x.get("to_m") is not None and x["length_m"] <= 3.0:
+            by.setdefault((norm_hole(x.get("hole")), x["metal"]), []).append(x)
+    for rows in by.values():
+        rows.sort(key=lambda r: (r["from_m"], r["to_m"]))
+        run = [rows[0]] if rows else []
+        for r in rows[1:]:
+            if abs(r["from_m"] - run[-1]["to_m"]) <= 0.011:
+                run.append(r)
+                continue
+            if len(run) >= 8:
+                for y in run:
+                    y["kind"] = "sample"
+            run = [r]
+        if len(run) >= 8:
+            for y in run:
+                y["kind"] = "sample"
+
+
+def _hole_by_depth(ivs):
+    """B 1.1.0: a table row with no hole (a sample-by-sample table titled "TM21-107/107X") lies inside an interval that
+    exactly one hole of this release reports ("TM21-107X 204.2-451.2 m"): it is that hole's sample."""
+    spans = [(x["hole"], x["from_m"], x["to_m"], x.get("reason"), x.get("rule")) for x in ivs if x.get("hole")
+             and x.get("from_m") is not None and x.get("to_m") is not None and (not x.get("reason") or x["reason"] in LABEL_OF_REASON)]
+    if not spans:
+        return
+    for x in ivs:
+        if x.get("hole") or x.get("src") != "table" or x.get("from_m") is None or x.get("to_m") is None:
+            continue
+        cov = [sp for sp in spans if sp[1] - 0.051 <= x["from_m"] and x["to_m"] <= sp[2] + 0.051 and sp[2] - sp[1] > (x["to_m"] - x["from_m"]) + 0.01]
+        if len({norm_hole(sp[0]) for sp in cov}) == 1:
+            x["hole"], x["hole_how"] = cov[0][0], "depth"
+            why = {sp[3] for sp in cov}
+            if not x.get("reason") and len(why) == 1 and None not in why:
+                x["reason"], x["rule"] = cov[0][3], "depth_parent"   # the same hole's interval is labelled: so is its sample
+
+
+def _hole_family(h):
+    return re.sub(r"\d+", "#", re.sub(r"(?<=\d)[A-Z]{1,2}$", "", (h or "").upper().strip()))   # "KM-21-18A" ~ "KM-23-100"
+
+
+def _labels(ivs, status=None):
+    # B 1.1.0: a hole only older by its year ("VA24-068" in a 2026 release whose new holes are "VA25-270") is the
+    # company's own earlier drilling: previously reported, not historical (legacy holes are named another way)
+    fam_new = {_hole_family(x["hole"]) for x in ivs if x.get("hole") and not x.get("reason")
+               and (status or {}).get(norm_hole(x["hole"])) not in ("previously_reported", "historical")}
+    for x in ivs:
+        if (x.get("reason") == "historical" and x.get("rule") in ("table_hole_year", "hole_year") and x.get("hole")
+                and _hole_family(x["hole"]) in fam_new):
+            x["reason"] = "previously_reported"
+        st = (status or {}).get(norm_hole(x.get("hole")))
+        if st in ("previously_reported", "historical") and not x.get("reason"):
+            x["reason"], x["rule"] = st, "hole_status"
+        lab = LABEL_OF_REASON.get(x.get("reason"))
+        if lab:
+            x["label"], x["label_rule"] = lab, x.get("rule")
+            x["reason"] = None
+        elif not x.get("reason"):
+            x.setdefault("label", "new")
 
 
 # ------------------------------------------------------------------ 1.0.5: downhole depths quoted in prose
@@ -3043,6 +4456,16 @@ def _depth_at(t, p, L):
     if m and not others(w[:m.start()]):
         got = m
     if got is None:
+        # B 1.1.0: "5,486 ppm TREO over 3 metres (4–7m)", "1,918 ppm TREO over 1m at 12–13m": the range right after the length
+        for x in _RE_FT_LEN.finditer(w):
+            if not _ft_close(_ft_m(D._num(x.group(1)), x.group(2)), L):
+                continue
+            pm = re.match(r"\s*(?:\(\s*|at\s+|between\s+)(?:from\s+)?" + _FT_NUM + r"\s*(?:" + _FT_UNIT + r")?\s*(?:" + _FT_DASH + r"|and)\s*"
+                          + _FT_NUM + r"\s*(?:" + _FT_UNIT + r")?", w[x.end():])
+            if pm and not others(w[:x.start()]):
+                got = pm
+            break
+    if got is None:
         # the depths in brackets right after the length, before the grade
         back = t[max(0, p - 140):p]
         for x in _RE_FT_LEN.finditer(back):
@@ -3050,6 +4473,18 @@ def _depth_at(t, p, L):
                 continue
             pm = _RE_FT_PAREN.match(back, x.end())
             if pm and not _RE_FT_STOP.search(back[pm.end():]) and not others(back[pm.end():]):
+                got = pm
+    if got is None:
+        # B 1.1.0: "returned a downhole intercept (351.40 - 366.06m) of 3.66 g/t ... over 14.66 m": a bracketed range before the
+        # grade whose span is the length
+        back = t[max(0, p - 120):p]
+        for pm in re.finditer(r"\(\s*(?:from\s+)?" + _FT_NUM + r"\s*(?:" + _FT_UNIT + r")?\s*" + _FT_DASH + r"\s*" + _FT_NUM
+                              + r"\s*(?:" + _FT_UNIT + r")?\s*\)", back):
+            try:
+                a_, b_ = D._num(pm.group(1)), D._num(pm.group(3))
+            except (ValueError, TypeError):
+                continue
+            if b_ > a_ and _ft_close(_ft_m(b_ - a_, pm.group(4) or pm.group(2) or "m"), L) and not re.search(r"[;]|\.\s|\n\s*\n", back[pm.end():]):
                 got = pm
     if got is None:
         return None
@@ -3065,6 +4500,14 @@ def _depth_at(t, p, L):
         return None                                    # "from 12 samples", "from 2024": no depth without a unit
     a = _ft_m(a, ua)
     etw = bool(_RE_FT_ETW.search(t[max(0, p - 60):p + 160]))
+    if etw:
+        # B 1.1.0: "3.2 m @ 48.2 g/t AuEq ... from 643.4m (ETW 2.5 m)": a true width printed as its own figure, different
+        # from L, means L is the drilled length
+        ev = [D._num(x.group(1) or x.group(2)) for x in re.finditer(
+            r"(?i)\b(?:E?TW|true\s+(?:width|thickness))\s*(?:of\s+)?[:=~]?\s*(\d+(?:\.\d+)?)\s*m\b|(\d+(?:\.\d+)?)\s*m\s*(?:E?TW|true\s+(?:width|thickness))\b",
+            t[max(0, p - 60):p + 160])]
+        if ev and all(abs(v - L) > 0.051 for v in ev):
+            etw = False
     if b is not None:
         b = _ft_m(b, ub)
         if not (b > a and (_ft_close(b - a, L) or (etw and b - a > L))):
@@ -3079,6 +4522,20 @@ def _depth_at(t, p, L):
 
 
 _RE_FT_GRADE_UNIT = re.compile(r"(?i)^\s*(?:%|g/t|gpt|g/tonne|ppm|ppb|oz/t|opt)")
+
+
+def _share_sibling_depths(ints):
+    """1.0.11: "1.25% CuEq (1.08% Cu, 0.14 g/t Au, 5.04 g/t Ag) over 60.2 m from 548.8 m" is one interval in four
+    metals; the depth found for one of them is the others' too. Same hole, same length, quoted within 400 characters,
+    and only when every sibling that has a depth agrees on it."""
+    for iv in ints:
+        if iv.get("from_m") is not None or not iv.get("hole") or not iv.get("length_m") or iv.get("pos") is None:
+            continue
+        sib = [x for x in ints if x is not iv and x.get("from_m") is not None and x.get("hole")
+               and norm_hole(x["hole"]) == norm_hole(iv["hole"]) and abs(x["length_m"] - iv["length_m"]) <= 0.011
+               and x.get("pos") is not None and abs(x["pos"] - iv["pos"]) <= 400]
+        if sib and len({(x["from_m"], x["to_m"]) for x in sib}) == 1:
+            iv["from_m"], iv["to_m"], iv["depth_src"] = sib[0]["from_m"], sib[0]["to_m"], "sibling"
 
 
 def _text_depths(t, ints):
@@ -3115,6 +4572,308 @@ def _text_depths(t, ints):
             iv["from_m"], iv["to_m"] = got
             iv["depth_src"] = "text"
 
+# ------------------------------------------------------------------ 1.1.1 DEPTH_FILL_V1 (2026-10-12)
+# Justin, 2026-10-12: the first /drilling row (Melkior) had no From-To though the release's table gives it; an audit of all
+# 15,203 releases found 4,905 best intervals without depths, most of them given by the release. The release text the
+# reader gets is flattened: a results table becomes one run of numbers ("MKR-26-001 56.09 56.81 0.72 2.3 0.72m @ 2.3 gptAu
+# 226.48 228.09 ..."), or a PDF table whose column layout the table reader does not know. The numbers are still in order,
+# so a row's From and To sit side by side, followed by its length and grades.
+#
+# This last step fills From-To ONLY on accepted intervals that have none, after every other decision (rows, grades,
+# holes, labels, samples) is made, so nothing else about a release changes. An interval takes a depth pair when exactly
+# one distinct pair fits it:
+#   * two numbers a < b side by side (space, "|", "-", "to", "and" after "between") with b - a equal to the interval's
+#     length, inside a results table (a From ... To heading earlier in the release) or a "from"/"between" phrase;
+#   * the interval's grade written in the same row (the next ~150 characters, or just before the pair);
+#   * no other hole of the release named between the row's hole and the pair (when the interval has a hole);
+#   * for a true width (the table heading names "true width" / "ETW" / "est. true thickness"), the pair may span the
+#     drilled length when the row also carries the interval's length as its true-width cell.
+# Prose forms the 1.0.5 depth step does not read: "at 141.0 m down the drill / downhole", "beginning at 14.9 metres
+# downhole" after an "including", "between 208.0 and 209.0 meters".
+
+_DF_NUM = r"(\d{1,4}(?:\.\d{1,3})?)"
+_RE_DF_PAIR = re.compile(r"(?<![\w.,\-/])" + _DF_NUM + r"(?=\s*(?:m\b|metres?\b|meters?\b)?\s*(?:[|\-–—]|to|and|\s)\s*"
+                         + _DF_NUM + r"(?![\d]|\.\d|\s*(?:%|g/t|gpt|ppm|ppb|oz|opt|g\b)))")
+_RE_DF_HEAD = re.compile(r"(?i)\bfrom(?:\b|(?=_))[\s_(,]*(?:\(?\s*(?:m|metres?|meters?|ft|feet)\s*\)?)?(?:[^.\n]{0,60}?|\s*(?:\S+\s*){0,3}?)\bto(?:\b|(?=_))")
+_RE_DF_TW = re.compile(r"(?i)\btrue\s+(?:width|thickness)|\bE\.?T\.?W\b|\best\.?\s*(?:tr\.?|true)\s*(?:thck|thick|width)|\bTW\b")
+_RE_DF_AT = re.compile(r"(?i)\b(?:at|beginning(?:\s+at)?|starting(?:\s+at)?|from)\s+(?:a\s+)?(?:down[\s\-]?hole\s+)?(?:depth\s+of\s+)?"
+                       + _DF_NUM + r"\s*(?:m\b|metres?\b|meters?\b)\s*(?:down[\s\-]?(?:the\s+)?(?:drill\s*)?hole\b|down\s+the\s+drill\b|downhole\b|down[\s\-]hole\b|along\s+the\s+hole\b)")
+_DF_GRADE_UNITS = {"%": 1e4, "ppm": 1.0, "g/t": 1.0, "ppb": 1e-3}
+
+
+def _df_close_len(a, b):
+    return a > 0 and b > 0 and abs(a - b) <= max(0.02 * max(a, b), 0.06)
+
+
+def _df_grade_hit(g, unit, tok):
+    """the grade g (in unit) is written as tok, allowing the release to round it, or to give it in ppm/ppb/% instead."""
+    try:
+        v = float(tok.replace(",", ""))
+    except ValueError:
+        return False
+    if v <= 0 or g is None or g <= 0:
+        return False
+    nd = len(tok.split(".")[1]) if "." in tok else 0
+    base = _DF_GRADE_UNITS.get(unit or "", 1.0)
+    for f in (1.0, base / 1.0, 1.0 / base if base else 1.0, 1e3, 1e-3):
+        gg = g * f
+        if abs(gg - v) <= 1e-9 * max(1.0, gg):
+            return True
+        if 1 <= nd <= 3 and abs(round(gg, nd) - v) <= 0.5 * 10 ** -nd + 1e-9:
+            return True                              # the release rounds
+        if nd == 0 and abs(gg - v) <= 0.01 * v:
+            return True                              # a whole number only when it is within 1% (545 for 545.3 g/t)
+        sg = ("%.6f" % g).rstrip("0").rstrip(".")
+        ng = len(sg.split(".")[1]) if "." in sg else 0
+        if f == 1.0 and ng <= 3 and abs(round(v, ng) - g) <= 1e-9:
+            return True                              # the release is more precise than the figure we hold
+        if f == 1.0 and ng <= 3 and nd == ng + 1 and abs(v - g) < 10 ** -ng - 1e-9:
+            return True                              # ... and truncates rather than rounds (201.65 held as 201.6)
+    return False
+
+
+def _df_hole_rx(holes):
+    out = []
+    for h in holes:
+        core = re.sub(r"[^A-Za-z0-9]", "", h or "")
+        if len(core) < 3 or not re.search(r"\d", core):
+            continue
+        parts = re.findall(r"[A-Za-z]+|\d+", h)
+        out.append((norm_hole(h), re.compile(r"(?<![A-Za-z0-9])" + r"[\s\-_#.]*".join(re.escape(p) for p in parts) + r"(?![A-Za-z0-9])", re.I)))
+    return out
+
+
+def _df_nz(h):
+    return re.sub(r"(?<![0-9])0+(?=[0-9])", "", norm_hole(h or ""))
+
+
+def _df_shape(h):
+    """'MKR-26-001' -> 'A-9-9', '21BAP071' -> '9A9': the pattern a release's hole ids share."""
+    return re.sub(r"[A-Za-z]+", "A", re.sub(r"\d+", "9", re.sub(r"[\s_#.]+", "-", (h or "").strip())))
+
+
+def _df_sibling_before(t, p, mine_raw, back=400):
+    """the nearest token before p shaped like this interval's hole (same letters/digits/dash pattern) that is another
+    hole: in a flattened table the row's hole is the last such id before its From-To."""
+    if not mine_raw:
+        return None
+    shp = _df_shape(mine_raw)
+    if not re.search(r"9", shp) or len(re.sub(r"[^A-Za-z0-9]", "", mine_raw)) < 3:
+        return None
+    lo = max(0, p - back)
+    last = None
+    for m in re.finditer(r"(?<![\w\-.])[A-Za-z0-9][A-Za-z0-9\-_]{1,30}(?![\w\-])", t[lo:p]):
+        tok = m.group(0)
+        if _df_shape(tok) == shp:
+            last = tok
+    return _df_nz(last) if last else None
+
+
+def _df_last_hole(t, p, hole_rx, back=600, text_holes=()):
+    """the hole named last before position p (within `back` characters), as norm_hole, or None: any hole id the
+    reader finds in the text (find_holes), or a credited hole written with other separators ("MKR 26-001")."""
+    lo = max(0, p - back)
+    seg = t[lo:p]
+    best, at = None, -1
+    for h in text_holes:
+        if lo <= h["pos"] < p and h["pos"] - lo > at:
+            best, at = norm_hole(h["id"]), h["pos"] - lo
+    for nh, rx in hole_rx:
+        for m in rx.finditer(seg):
+            if m.start() > at or (m.start() == at and len(nh) > len(best or "")):
+                best, at = nh, m.start()
+    return best
+
+
+def _df_pairs(t):
+    heads = [m.start() for m in _RE_DF_HEAD.finditer(t)]
+    out = []
+    for m in _RE_DF_PAIR.finditer(t):
+        a_s, b_s = m.group(1), m.group(2)
+        a, b = float(a_s), float(b_s)
+        if not (b > a >= 0) or b - a < 0.05 or b > 5000:
+            continue
+        if a >= 1900 and b <= 2100 and a == int(a) and b == int(b):
+            continue                                  # years
+        sep = t[m.end(1):m.start(2)]
+        if "and" in sep.lower() and not re.search(r"(?i)\bbetween\s*$", t[max(0, m.start() - 12):m.start()]):
+            continue
+        pre = t[max(0, m.start() - 14):m.start()]
+        prose = bool(re.search(r"(?i)\b(?:from|between)\s*$", pre)) or bool(re.search(r"\(\s*$", pre))
+        rng = bool(re.fullmatch(r"\s*(?:m\b|metres?\b|meters?\b)?\s*(?:[\u2013\u2014]|\s-\s|to)\s*", sep, re.I))
+        h = None
+        for hp in reversed(heads):
+            if hp < m.start():
+                h = hp
+                break
+        in_table = h is not None and m.start() - h < 20000
+        if not (prose or in_table or rng):
+            continue
+        end = m.end(2)
+        stop = t.find("\n\n", end)
+        hi = min(len(t), end + 150, stop if stop > 0 else len(t))
+        after = t[end:hi]
+        before = t[max(0, m.start() - 40):m.start()]
+        toks = [x.group(0) for x in re.finditer(r"(?<![\w.\-])\d[\d,]*(?:\.\d+)?(?![\d\-])", after)]
+        btoks = [x.group(0) for x in re.finditer(r"(?<![\w.\-])\d[\d,]*(?:\.\d+)?(?![\d\-])", before)]
+        head_txt = t[h:h + 400] if h is not None else ""
+        out.append({"a": a, "b": b, "pos": m.start(), "end": end, "after": toks[:14], "before": btoks[-3:], "prose": prose,
+                    "tw_head": bool(_RE_DF_TW.search(head_txt)), "head": h, "hi": hi})
+    # a row ends where the next row's From-To begins: a pair followed by its own length (or written as "from X to Y")
+    starts = [q["pos"] for q in out if q["prose"] or (q["after"] and _df_close_len(float(q["after"][0].replace(",", "") or 0), q["b"] - q["a"]))]
+    import bisect
+    for q in out:
+        k = bisect.bisect_right(starts, q["end"] - 1)
+        nxt = starts[k] if k < len(starts) else None
+        if nxt is not None and nxt < q["hi"]:
+            seg = t[q["end"]:nxt]
+            q["after"] = [x.group(0) for x in re.finditer(r"(?<![\w.\-])\d[\d,]*(?:\.\d+)?(?![\d\-])", seg)][:14]
+    return out
+
+
+def _df_prose_at(t, iv):
+    """'5.30 grams per tonne Au over 3.8 m at 141.0 m down the drill': the from-depth written right after the figure.
+    Only inside the figure's own clause: no other length, grade, hole id, bullet or sentence end in between."""
+    p = iv.get("pos")
+    if p is None:
+        return None
+    seg = t[p:p + 140]
+    m = _RE_DF_AT.search(seg)
+    if not m:
+        return None
+    gap = seg[:m.start()]
+    if re.search(r"\.\s+[A-Z]|;|\n\n|[\u2022\u25aa\u25e6\u25cf\u2023]|\s[o\-\u2013]\s+[A-Z0-9]|\bincluding\b|\band\b\s+\d", gap):
+        return None
+    L = float(iv["length_m"])
+    lens = [float(x.group(1)) for x in re.finditer(r"(\d+(?:\.\d+)?)\s*(?:m\b|metres?\b|meters?\b)", gap)]
+    if any(not _df_close_len(v, L) for v in lens):
+        return None
+    grades = re.findall(r"(\d[\d,]*(?:\.\d+)?)\s*(?:%|g/t|gpt|ppm|ppb)", gap)
+    if any(not _df_grade_hit(float(iv["grade"]), iv.get("unit"), g_) for g_ in grades):
+        return None
+    if iv.get("hole"):
+        shp = _df_shape(iv["hole"])
+        if any(_df_shape(tok) == shp and norm_hole(tok) != norm_hole(iv["hole"])
+               for tok in re.findall(r"(?<![\w\-.])[A-Za-z0-9][A-Za-z0-9\-_]{1,30}(?![\w\-])", gap)):
+            return None
+    if iv.get("tw_m") or _RE_DF_TW.search(gap):
+        return None
+    a = float(m.group(1))
+    return (a, round(a + L, 3))
+
+
+def _df_owned_by_figure_before(t, q, iv, ends=()):
+    """'2.00 m at 11.17 g/t 50.00 52.00' (the depths belong to the figure written just before them) or a grade-first
+    row '4.07 3 6' (grade, length, depth): the pair is not this interval's From-To."""
+    pre = t[max(0, q["pos"] - 32):q["pos"]]
+    g = float(iv["grade"])
+    L = float(iv["length_m"])
+    m_last = None
+    for m in re.finditer(r"(?<![\w.])(\d[\d,]*(?:\.\d+)?)\s*(?:g/t|gpt|%|ppm|ppb|oz/t|opt)", pre):
+        m_last = m
+    if m_last is not None:
+        at = q["pos"] - len(pre) + m_last.start()
+        import bisect
+        k = bisect.bisect_right(ends, at)
+        if k and at - ends[k - 1] <= 80:
+            m_last = None                             # the figure closes the previous row (a "Remarks" cell), it owns nothing
+    if m_last is not None:
+        tail = pre[m_last.end():]
+        if not re.search(r"(?i)\b(?:and|incl\w*|within|hole|from)\b|[A-Za-z]{1,8}[\-_]?\d{2,}|\d{2,}[\-_][A-Za-z0-9]", tail):
+            if not _df_grade_hit(g, iv.get("unit"), m_last.group(1)):
+                return True
+    m2 = re.search(r"(?<![\w.])(\d[\d,]*(?:\.\d+)?)\s*$", pre)
+    if m2 and _df_grade_hit(g, iv.get("unit"), m2.group(1)) and _df_close_len(q["a"], L):
+        return True
+    return False
+
+
+def _fill_depths(t, merged, text_holes=(), full=None):
+    """1.1.1: From-To for accepted intervals that still have none (see the note above). Changes nothing else.
+    The pairs are looked for in the whole release (`full`, the prepared body), because results tables often follow the
+    "About" / QA-QC / qualified-person paragraphs where the reader's own text (`t`) stops; `full` starts with `t`, so the
+    intervals' positions hold in both."""
+    need = [x for x in merged if not x.get("reason") and x.get("from_m") is None and x.get("length_m") and x.get("grade")]
+    if not need:
+        return
+    if full and len(full) > len(t) and full[:max(0, len(t) - 200)] == t[:max(0, len(t) - 200)]:
+        t = full
+    pairs = _df_pairs(t)
+    ends = sorted(q["end"] for q in pairs)
+    by_len = collections.defaultdict(list)
+    for q in pairs:
+        by_len[round(q["b"] - q["a"], 1)].append(q)
+    hole_rx = _df_hole_rx({x["hole"] for x in merged if x.get("hole") and not x.get("reason")})
+    for iv in need:
+        L = float(iv["length_m"])
+        g = float(iv["grade"])
+        mine = norm_hole(iv.get("hole") or "")
+        cands = []
+        keys = {round(L + d, 1) for d in (-0.2, -0.1, 0.0, 0.1, 0.2)} | {round(L * (1 + d), 1) for d in (-0.02, 0.02)}
+        seen = set()
+        for k in keys:
+            for q in by_len.get(k, ()):
+                if id(q) in seen:
+                    continue
+                seen.add(id(q))
+                span = q["b"] - q["a"]
+                if not _df_close_len(span, L):
+                    continue
+                # exactly the length, or the row's own length cell right after To (a table that rounds); a span that
+                # only comes near the length is a chance pair (sample tables: "0.08 24.60" against 25 m)
+                if abs(span - L) > max(0.06, 0.005 * L) and not any(
+                        _df_close_len(float(c.replace(",", "")), L) for c in (q["after"][:3] + (q["before"][-1:] if q["prose"] else []))):
+                    continue
+                if not (any(_df_grade_hit(g, iv.get("unit"), tk) for tk in q["after"])
+                        or (q["prose"] and any(_df_grade_hit(g, iv.get("unit"), tk) for tk in q["before"]))):
+                    continue
+                if not q["prose"] and _df_owned_by_figure_before(t, q, iv, ends):
+                    continue
+                cands.append(q)
+        # a true width: the pair spans the drilled length, the row carries the true width right after it
+        if not cands:
+            for q in pairs:
+                if not q["tw_head"] or q["prose"]:
+                    continue
+                span = q["b"] - q["a"]
+                if not (L < span <= 3 * L):
+                    continue
+                cells = q["after"][:4]
+                if not any(_df_close_len(float(c.replace(",", "")), L) for c in cells if re.fullmatch(r"\d[\d,]*(?:\.\d+)?", c)):
+                    continue
+                if not (any(_df_close_len(float(c.replace(",", "")), span) for c in cells[:3])
+                        or (cells and _df_close_len(float(cells[0].replace(",", "")), L))):
+                    continue
+                if not any(_df_grade_hit(g, iv.get("unit"), tk) for tk in q["after"][:10]):
+                    continue
+                cands.append(q)
+        if mine and cands:
+            ok = []
+            for q in cands:
+                last = _df_last_hole(t, q["pos"], hole_rx, text_holes=text_holes)
+                sib = _df_sibling_before(t, q["pos"], iv.get("hole"))
+                if sib is not None and sib != _df_nz(iv.get("hole")):
+                    continue                          # the row sits under another hole of the same kind
+                if last is None or _df_nz(last) == _df_nz(mine) or last.endswith(mine) or mine.endswith(last):
+                    ok.append(q)
+            cands = ok
+        got = {(round(q["a"], 3), round(q["b"], 3)) for q in cands}
+        if len(got) > 1 and mine:
+            named = {(round(q["a"], 3), round(q["b"], 3)) for q in cands if _df_last_hole(t, q["pos"], hole_rx, text_holes=text_holes) == mine}
+            if len(named) == 1:
+                got = named
+        if len(got) == 1:
+            a, b = next(iter(got))
+            iv["from_m"], iv["to_m"], iv["depth_src"] = a, b, "fill_pair"
+            iv["depth_pos"] = min(q["pos"] for q in cands if (round(q["a"], 3), round(q["b"], 3)) == (a, b))
+            continue
+        if not got:
+            at = _df_prose_at(t, iv)
+            if at:
+                iv["from_m"], iv["to_m"], iv["depth_src"] = at[0], at[1], "fill_at"
+                iv["depth_pos"] = iv.get("pos")
+
+
 # ------------------------------------------------------------------ facts store adapter
 def extract(headline: str, body: str) -> list:
     a = analyse(headline, body)
@@ -3139,9 +4898,14 @@ def extract(headline: str, body: str) -> list:
             facts.append(F.Fact("iv_including", value_num=1.0, seq=seq))
         if iv.get("hole"):
             facts.append(F.Fact("iv_hole", value_text=iv["hole"], seq=seq))
+        if ok and iv.get("label") and iv["label"] != "new":   # B 1.1.0: historical / previously_reported / third_party / cutoff
+            facts.append(F.Fact("iv_label", value_text=iv["label"], seq=seq))
+        if ok and iv.get("kind") == "sample":                 # B 1.1.0: one row of a sample-by-sample table
+            facts.append(F.Fact("iv_kind", value_text="sample", seq=seq))
         if iv.get("from_m") is not None:
             facts.append(F.Fact("iv_from_m", value_num=float(iv["from_m"]), unit="m", seq=seq))
-            facts.append(F.Fact("iv_to_m", value_num=float(iv["to_m"]), unit="m", seq=seq))
+            if iv.get("to_m") is not None:
+                facts.append(F.Fact("iv_to_m", value_num=float(iv["to_m"]), unit="m", seq=seq))
         if iv["reason"]:
             facts.append(F.Fact("iv_reason", value_text=iv["reason"], seq=seq))
             if iv.get("rule"):
@@ -3387,7 +5151,9 @@ def self_test(verbose: bool = True) -> int:
 
     def accepted(hl, body):
         a = analyse(hl, body)
-        return a, [x for x in a["intervals"] if not x["reason"]]
+        # B 1.1.0: earlier, historical and third-party figures are now kept with a label; "accepted" still means
+        # the release's own new results
+        return a, [x for x in a["intervals"] if not x["reason"] and x.get("label", "new") == "new"]
 
     def show(ok, label):
         if verbose or not ok:
@@ -3573,6 +5339,32 @@ def self_test(verbose: bool = True) -> int:
     ok = bool(cols) and [c[0] for c in cols] == ["from", "to", "len", "tw", "metal", "text"]
     bad += not ok
     show(ok, "105 a Horizon column is text (got %r)" % (cols,))
+    # ---------------------------------------------------------------- 1.0.11: AMQ.CN 2026-09-17
+    cols = header_columns("From (m) To (m) Core Length (m) Est true width (m) CuEq % 2026 Cu (%) Au (g/t) CuEq % Spot")
+    ok = bool(cols) and [c[1] for c in cols if c[0] == "metal"] == ["CuEq", "Cu", "Au", "CuEq"]
+    bad += not ok
+    show(ok, "111 a year or 'Spot' after a grade column qualifies it (got %r)" % (cols,))
+    got = [h["id"] for h in find_holes("Hole 1274-26-378W1A intersected 0.66% CuEq over 40 m.")]
+    ok = got == ["1274-26-378W1A"]
+    bad += not ok
+    show(ok, "111 a wedge hole with a letter after its number (got %r)" % (got,))
+    ok = [_is_hole_token(x) for x in ("1274-24-342-W1", "1274-26-379A", "2026-09-17", "26-14")] == [True, True, False, False]
+    bad += not ok
+    show(ok, "111 digit-led hole ids in a stream table, not dates")
+    lead = ("March 3, 2026 - Company Corp. reports results from the B26 Deposit. \nHole \n1274-25-366-W1\n returned \n1.25% CuEq \n"
+            "(1.08% Cu, 0.14 g/t Au, and\n0.03% Zn)\n over 60.2 m\n at the B26 Deposit.\n") + "Drilling continues on the deposit with three rigs. " * 130
+    table = ("\nTable 1: Significant Intercepts\nDrill hole ID\nFrom \n(m)\nTo \n(m)\nCore\nLength\n(m)\nCuEq %\n2026\nCu \n(%)\n"
+             "Au \n(g/t)\nCuEq %\nSpot\n1274-24-342-W1\n1404.5\n1406.5\n2.0\n2.5\n2.5\n0.1\n2.6\n"
+             "1274-25-366-W1\n548.8\n609.0\n60.2\n1.2\n1.1\n0.1\n1.3\n")
+    got = [depths("Company Reports Results", lead + table, 60.2, g) for g in (1.25, 1.08, 0.14)]
+    ok = got == [(548.8, 609.0)] * 3
+    bad += not ok
+    show(ok, "111 a later table that rounds the prose lends its From-To (got %r)" % (got,))
+    got = depths("Company Reports Results", "March 3, 2026 - Company Corp. reports results.\nHole \n1274-26-378W2\n intersected "
+                 "\n1.45% CuEq \n(1.36% Cu, 0.08 g/t Au, 2.58 g/t Ag, and\n0.02% Zn)\n over 14.1 m\n starting at 985.3 m depth.", 14.1, 0.02)
+    ok = got == (985.3, 999.4)
+    bad += not ok
+    show(ok, "111 the metals of one interval share its depth (got %r)" % (got,))
     # 1.0.6: the shared helper
     got = [_pn_page(n) for n in ("Lac Dor\u00e9 Vanadium Property", "Campo Morado polymetallic VMS Mine",
                                  "Ishk\u014dday Gold and Polymetallic Project", "Tom and Jason Deposits", "Eagle River Underground Mine")]
@@ -4017,6 +5809,76 @@ def self_test(verbose: bool = True) -> int:
     ok = got == [None, None, None, "Lac T\u00eate"]
     bad += not ok
     show(ok, "108 descriptors are not names, accented names are kept (got %r)" % (got,))
+
+    # B 1.1.0 (fix B): tables anywhere, labels instead of drops, single samples
+    hdr = "Vancouver, BC, March 3, 2026 - XYZ Gold reports drill results.\n"
+    cells = "\n".join(["Table 1: Drill results", "Hole ID", "From (m)", "To (m)", "Length (m)", "Au (g/t)",
+                       "AB-26-01", "10.0", "22.0", "12.0", "2.15", "incl.", "12.0", "14.0", "2.0", "9.80",
+                       "Previously Released Results", "AB-25-07", "30.0", "41.0", "11.0", "1.40",
+                       "New Results", "AB-26-02", "5.0", "9.5", "4.5", "0.88", "AB-26-03", "50.0", "52.0", "2.0", "3.10"])
+    a = analyse("XYZ Gold Drills 12.0 m of 2.15 g/t Au", hdr + "XYZ Gold drilled AB-26-01 to AB-26-03.\n\n" + cells + "\n")
+    lab = {(x.get("hole"), x["grade"]): x.get("label") for x in a["intervals"] if not x["reason"]}
+    ok = lab.get(("AB-26-01", 2.15)) == "new" and lab.get(("AB-26-01", 9.8)) == "new" and lab.get(("AB-25-07", 1.4)) == "previously_reported" \
+        and lab.get(("AB-26-03", 3.1)) == "new"
+    bad += not ok
+    show(ok, "B one-cell-per-line table read; a 'Previously Released Results' section row labels the rows after it (got %r)" % (lab,))
+    blocks = "\n".join(["Table 3: TM26-107 individual sample results", "From (m) To (m) Au g/t From (m) To (m) Au g/t"] +
+                        ["%.1f\n%.1f\n%.3f\n%.1f\n%.1f\n%.3f" % (10 + i, 11 + i, 0.1 * i + 0.05, 40 + i, 41 + i, 0.2 * i + 0.01)
+                         for i in range(10)])
+    a = analyse("XYZ Gold Drills TM26-107", hdr + "Hole TM26-107 returned 30.0 m of 0.55 g/t Au from 10.0 m.\n\n" + blocks + "\n")
+    smp = [x for x in a["intervals"] if not x["reason"] and x.get("kind") == "sample"]
+    ok = len(smp) >= 16 and all(abs((x["to_m"] - x["from_m"]) - 1.0) < 1e-6 for x in smp)
+    bad += not ok
+    show(ok, "B side-by-side sample blocks read as single samples (got %d)" % len(smp))
+    a = analyse("XYZ Gold Drills 505 m of 0.50 g/t Au",
+                hdr + "The second hole, DDRCCC-26-058 (Hole 58), is logged. Drill hole DDRCCC-26-057 was completed.\n"
+                "Hole 57 was mineralized throughout, returning 505.0 m of 0.50 g/t gold from 13.0 to 518.0 m.\n")
+    got = [x.get("hole") for x in a["intervals"] if not x["reason"] and abs(x["length_m"] - 505.0) < 0.01]
+    ok = got == ["DDRCCC-26-057"]
+    bad += not ok
+    show(ok, "B 'Hole 57' is the release's DDRCCC-26-057 (got %r)" % (got,))
+    a = analyse("XYZ Gold Drills 21.0 m of 0.80% Cu", hdr + "XYZ is pleased to report a 21m intercept grading 0.80% Cu over 21m "
+                "from 50.5 to 71.5m in Rush-011 drill hole. Rush-011 was the first hole of the program.\n")
+    got = [x.get("hole") for x in a["intervals"] if not x["reason"]]
+    ok = got and all(h == "Rush-011" for h in got)
+    bad += not ok
+    show(ok, "B a capitalised id repeated near drilling words ('Rush-011') is a hole (got %r)" % (got,))
+    # ---------------------------------------------------------------- 1.1.1 DEPTH_FILL_V1
+    _hdr = "October 8, 2026 - Company Corp. is pleased to report assay results from its drill program at the Alpha Project. "
+    for label, hl, body, want in [
+        ("a flattened results table gives the highlight its From-To (Melkior)", "Company Reports Drill Results at Alpha",
+         _hdr + "Highlights: AB-26-001: 2.91 g/t Au over 2.89 m, including 9.17 g/t Au over 0.90 m.\n"
+         "About the Company. Company Corp. is an explorer.\n"
+         "Hole ID From_m To_m Length_m Au_Grade Remarks AB-26-001 56.09 56.81 0.72 2.3 0.72m @ 2.3 gptAu 231.86 234.75 2.89 2.91 "
+         "2.89m @ 2.91 gptAu 233.85 234.75 0.9 9.17 (Including 0.90m @ 9.17 gptAu) AB-26-002 156.32 158.92 2.6 2.52 2.60m @ 2.52 gptAu "
+         "Table 1. Significant intercepts.", (231.86, 234.75)),
+        ("a table heading split over lines, the hole after the row's figures", "Company Drills 234.6 Metres of 0.52% CuEq at Alpha",
+         _hdr + "Hole S045 intersected 234.6 m of 0.52% CuEq.\nTable 2\nFrom \n(m) \nTo \n(m) \nInterval \n(m) \nCuT \n% \nCuEq \n% \n"
+         "S045 \n174.1 408.7 234.6 0.43 0.52 \n411.3 434.5 23.2 0.25 0.31 \n", (174.1, 408.7)),
+        ("'at 141.0 m down the drill hole' gives the From", "Company Drills 5.3 g/t Au over 3.8 m at Alpha",
+         _hdr + "Hole AB-26-021 intersected 5.30 g/t Au over 3.8 m at 141.0 m down the drill hole.", (141.0, 144.8)),
+        ("a row under another hole of the same naming does not lend its depths", "Company Intersects 1.86% Li2O over 19.0 m at Alpha",
+         _hdr + "Hole AB-26-134 intersected 1.86% Li2O over 19.0 m. About the Company. Company Corp. is an explorer. "
+         "Hole_ID From_m To_m Length_m Li2O_pct Remarks AB-26-133 4.00 9.00 5.00 1.10 5.0m @ 1.10% AB-26-135 7.00 26.00 19.00 "
+         "1.86 19.0m @ 1.86% Table 1.", None),
+        ("a grade-first row ('4.07 3 6': grade, length, depth) is no From-To", "Company Reports Auger Results at Alpha",
+         _hdr + "Highlights: 4.07 g/t gold over 3 m (AB-AUG-1104).\nHole ID Easting Northing Au g/t Length From To Target\n"
+         "AB-AUG-1104 503567 1318501 4.07 3 6 Daina 2\n", None),
+        ("digits of the next hole's id are not a grade", "Company Reports Results at Alpha",
+         _hdr + "Hole AB-26-003 returned 2.91 g/t Au over 0.50 m. About the Company. Company Corp. is an explorer. "
+         "Hole_ID From_m To_m Length_m Au_gpt Remarks AB-26-003 101.80 104.80 3.00 2.74 3.0m @ 2.74 CD-25-002 264.90 266.90 2.00 "
+         "12.83 2.0m @ 12.83 and 265.90 266.40 0.50 45.40 0.5m @ 45.40 CD-25-003 86.50 87.00 0.50 3.19 Table 1.", None),
+    ]:
+        a, top = topof(hl, body)
+        if want is None:
+            # the release's own highlight (written in the prose) must not take a row's depths
+            got = [(x["from_m"], x["to_m"]) for x in a["intervals"] if not x["reason"] and x.get("src") == "text" and x.get("from_m") is not None]
+            ok = not got
+        else:
+            got = None if top is None or top.get("from_m") is None else (top["from_m"], top["to_m"])
+            ok = top is not None and got is not None and abs(got[0] - want[0]) < 0.011 and abs(got[1] - want[1]) < 0.011
+        bad += not ok
+        show(ok, "1.1.1 %s (got %r)" % (label, got))
     if verbose:
         print("failures:", bad)
     return bad

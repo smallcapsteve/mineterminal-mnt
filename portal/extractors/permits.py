@@ -165,7 +165,7 @@ from portal import project_names as PN
 from portal.extractors import technical as T
 
 NAME = "permits"
-VERSION = "1.0.9"  # 2026-10-01: own permit news only, rows on the parent project, one row per permit, stage wordings; full-text losses fixed; 2026-10-02: accuracy (FIX4) -- stage words between permits, one permit named twice, Brazil LP/LI/LO, mine permit and BLM types, stage wordings; 2026-10-04 FIX5: whose stage word it is, stages not reached yet, one row per named project or community, issuing bodies named in full, project names that are no names, more permit names, a permit named by what it allows; authority names whole or blank
+VERSION = "1.0.13"  # 2026-10-18 PNSRC: helper 1.0.7 (no change to this reader's own code); 2026-10-14 PNJUNK7b: only a project the release names solely as what was sold ("sale of the X", "sold its X") gives way, and only to a single other project the row's sentences name (never blanked); 2026-10-14 PNJUNK7: a project the release says was sold is no row's project (the one its own sentences name, else none); 2026-10-13 PNJUNK: helper 1.0.6 (no change of its own); 2026-10-01: own permit news only, rows on the parent project, one row per permit, stage wordings; full-text losses fixed; 2026-10-02: accuracy (FIX4) -- stage words between permits, one permit named twice, Brazil LP/LI/LO, mine permit and BLM types, stage wordings; 2026-10-04 FIX5: whose stage word it is, stages not reached yet, one row per named project or community, issuing bodies named in full, project names that are no names, more permit names, a permit named by what it allows; authority names whole or blank
 KIND = "permit"
 TAG = "Permits & Approvals"
 TEXT_CAP = 40000
@@ -3113,6 +3113,40 @@ def analyse(headline, body):
                 re.search(r"(?i)\bNew\s+" + re.escape(p_), h + " " + b[:3000]) and \
                 re.match(r"(?i)(?:Brunswick|South\s+Wales|Mexico|Zealand|Caledonia|York|Jersey|Hampshire)\s+(?:Project|Property)$", p_):
             r["project"] = None
+    # PNJUNK7: a project the release says was sold is not where the company's permit is. A row that carries one its own
+    # sentences never name (it came from the release, e.g. the helper's main project) takes the release project those
+    # sentences do name when exactly one is named that is not another row's, else none (Aris Mining Q4 2025: the Guyana
+    # licence row read "Juby Gold Project", which Aris sold -> Toroparu)
+    allp = None
+    sold_rx = (r"(?i)\b(?:(?:sale|divestiture|disposition|disposal)\s+of|sold|sells|selling|divested|disposed\s+of)\s+"
+               r"(?:(?:all\s+of\s+)?(?:its|the|our|their|a|an)\s+)?(?:(?:remaining\s+)?\d{1,3}(?:\.\d+)?\s*%\s+"
+               r"(?:(?:interest|stake)\s+in\s+)?(?:the\s+)?)?")     # PNJUNK7b: the thing sold, right after the word
+    for r in rows:
+        p_ = r["project"]
+        sents_r = r.get("sents") or [r["sent"]]
+        keys_r = [set(T._pkey(t_).split()) for t_ in sents_r]
+        if not p_ or not _pwords(_strip_suffix(p_)) or any(_pwords(_strip_suffix(p_)) <= k_ for k_ in keys_r):
+            continue
+        core_ = re.escape(_strip_suffix(p_).strip())
+        txt_ = h + " . " + b[:TEXT_CAP]
+        if not (re.search(sold_rx + core_ + r"\b", txt_) or re.search(
+                r"(?i)\b" + core_ + r"\b[^.]{0,40}?\b(?:was|were|has\s+been|have\s+been)\s+(?:\w+\s+)?sold\b", txt_)):
+            continue      # PNJUNK7b: 1.0.11 took any "sale"/"sold" within 60 characters ("gold sold from the Kapan Mine")
+        n_sold_ = len(re.findall(sold_rx + core_ + r"\b", txt_)) + len(re.findall(
+            r"(?i)\b" + core_ + r"\b[^.]{0,40}?\b(?:was|were|has\s+been|have\s+been)\s+(?:\w+\s+)?sold\b", txt_))
+        if len(re.findall(r"(?i)\b" + core_ + r"\b", txt_)) > n_sold_:
+            continue      # PNJUNK7b: named elsewhere too (IAMGOLD's Cote after selling a 9.7% interest): still the company's
+        if allp is None:
+            allp = [p for _, p in list(hl_projs) + list(_projects(b[:TEXT_CAP], issuer))]
+        others = [x["project"] for x in rows if x is not r and x["project"]]
+        cands = []
+        for q in allp:
+            wq = _pwords(_strip_suffix(q))
+            if wq and not _same_project(q, p_) and any(wq <= k_ for k_ in keys_r) and \
+                    not any(_same_project(q, o) for o in others) and not any(_same_project(q, c) for c in cands):
+                cands.append(q)
+        if len(cands) == 1:
+            r["project"] = cands[0]      # PNJUNK7b: otherwise the row keeps its project (1.0.11 blanked it)
     body_sents = [x for x, hl_ in sents if not hl_]
     # JUR_ROW (1.0.4): a release naming several projects gives each row its own project's place
     multi = _several_projects(rows, hl_projs, projs_all)

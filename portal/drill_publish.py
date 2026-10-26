@@ -28,6 +28,27 @@ on the new reader, never fall back). If publishing fails after the switch, rows 
 backfill wrote are removed rather than left on the page.
 
 Self-tests: python3 -m portal.drill_publish --selftest   (in-memory; touches nothing live)
+
+DRILL fix B (reader 1.1.0, 2026-10-11): every interval keeps a label and a kind.
+  label  new | previously_reported | historical | third_party | cutoff (iv_label fact; none = new). Figures that are not
+         the release's own new drilling are shown, labelled, never hidden (Justin 2026-10-07/10).
+  kind   interval | sample (iv_kind fact): one row of a sample-by-sample assay table (Justin 2026-10-10: show every sample).
+  A release is listed only when it has at least one new interval not published before (Justin 2026-10-11: releases with
+  only earlier, historical or partner figures stay off the drill pages); the best interval is taken from its new
+  intervals, drill intervals before single samples; a labelled row counts as reported before for ranking.
+
+DRILL_OCR_V1 (2026-10-13): depth_note per interval, from portal/drill_ocr.py's own database (data/drill_ocr.db).
+  ocr           the best interval's From-To was read from the release's table picture (strict rule; filled only while
+                the hole, length and grade it was read for are unchanged)
+  not_reported  the release gives no From-To that fits its best interval (drill_ocr 1.1.0); set on that interval only
+  NULL          everything else. Kill switch: /opt/mnt/app/portal/drill_ocr_OFF (or no drill_ocr.db) -> no notes, no fills.
+
+DRILLGAP_V1 (2026-10-19): while a newer reader version waits as a candidate, facts_sync reads new releases with the
+  candidate only, so the active version never sees them and they never reached the pages (frozen 16:43 UTC 10-18 to
+  10-19: Benz, Capitan, Cambria and 26 more). Now a tagged approved release that the ACTIVE version never ran on (no
+  fx_runs row at all) is published from the newest candidate that has a record for it. A release the active version
+  did read, including one where it found nothing, is never taken from a candidate. Each row's extractor_version is the
+  version it came from. Kill switch: /opt/mnt/app/portal/drill_fill_OFF -> active version only, as before.
 """
 from __future__ import annotations
 
@@ -80,9 +101,17 @@ CREATE TABLE IF NOT EXISTS drill_intervals (
     is_best          INTEGER NOT NULL DEFAULT 0,
     reported_before  INTEGER NOT NULL DEFAULT 0,
     src              TEXT,
+    label            TEXT,
+    kind             TEXT,
+    depth_note       TEXT,
     PRIMARY KEY (event_id, seq)
 ) WITHOUT ROWID;
 """
+OCR_DB = "/opt/mnt/app/data/drill_ocr.db"
+OCR_OFF = "/opt/mnt/app/portal/drill_ocr_OFF"
+FILL_OFF = "/opt/mnt/app/portal/drill_fill_OFF"   # DRILLGAP_V1 kill switch
+_IV_SYNC_COLS = ("event_id", "seq", "hole_id", "from_m", "to_m", "length_m", "grade", "unit", "metal", "summary",
+                 "including", "is_best", "reported_before", "src", "label", "kind", "depth_note")
 
 
 def family(metal):
@@ -165,15 +194,18 @@ def compute(items):
             continue
         tseen = seen.setdefault(ev.get("ticker") or "", set())
         fresh = [iv for iv in ok if _key(iv) not in tseen]
-        if not fresh:
+        # fix B: only the release's own new intervals list it and can be its best (labelled rows are shown, not ranked)
+        fresh_new = [iv for iv in fresh if (iv.get("label") or "new") == "new"]
+        if not fresh_new:
             stats["recap"] += 1
             continue
         fresh_keys = {_key(iv) for iv in fresh}
         tseen.update(fresh_keys)
-        best = next((iv for iv in fresh if iv["seq"] == p["best_seq"]), None)
+        best = next((iv for iv in fresh_new if iv["seq"] == p["best_seq"] and iv.get("kind") != "sample"), None)
         if best is None:
             ref = next((iv for iv in ok if iv["seq"] == p["best_seq"]), None)
-            pool = [iv for iv in fresh if not iv.get("including")] or fresh
+            drill = [iv for iv in fresh_new if iv.get("kind") != "sample"] or fresh_new
+            pool = [iv for iv in drill if not iv.get("including")] or drill
             same = [iv for iv in pool if ref is not None and family(iv.get("metal")) == family(ref.get("metal"))]
             best = max(same or pool, key=_value)
         eid = ev["event_id"]
@@ -191,10 +223,57 @@ def compute(items):
                 "metal": iv.get("metal"),
                 "summary": summary(iv["grade"], iv.get("unit"), iv.get("metal"), iv["length_m"]),
                 "including": 1 if iv.get("including") else 0, "is_best": 1 if iv is best else 0,
-                "reported_before": 0 if _key(iv) in fresh_keys else 1, "src": iv.get("src")})
+                "reported_before": 0 if _key(iv) in fresh_keys and (iv.get("label") or "new") == "new" else 1,
+                "src": iv.get("src"), "label": iv.get("label") or "new", "kind": iv.get("kind") or "interval",
+                "depth_note": None})
         stats["published"] += 1
         stats["intervals"] += len(ok)
     return rows, intervals, stats
+
+
+def _hole_key(h):
+    return "".join(ch for ch in (h or "").upper() if ch.isalnum())
+
+
+def apply_ocr(intervals, path=OCR_DB, off=OCR_OFF):
+    """DRILL_OCR_V1: copy drill_ocr.db's fills and 'not reported' marks onto the intervals compute() built (in place).
+    Never raises: on any problem nothing is applied and the reason is returned."""
+    import os
+    st = {"ocr_fills": 0, "ocr_stale": 0, "not_reported": 0}
+    if os.path.exists(off):
+        st["ocr"] = "off"
+        return st
+    if not os.path.exists(path):
+        st["ocr"] = "no database"
+        return st
+    try:
+        c = sqlite3.connect(f"file:{path}?mode=ro", uri=True, timeout=10)
+        fills = {r[0]: r[1:] for r in c.execute("SELECT event_id, hole_id, length_m, grade, from_m, to_m FROM ocr_fill")}
+        nr = {r[0] for r in c.execute("SELECT event_id FROM ocr_release WHERE depths = 'not_reported'")}
+        c.close()
+    except Exception as exc:  # noqa: BLE001
+        st["ocr"] = f"unreadable: {type(exc).__name__}"
+        return st
+    best_has = {}
+    for iv in intervals:
+        if iv["is_best"]:
+            f = fills.get(iv["event_id"])
+            if iv["from_m"] is None and f:
+                hole, L, g, fr, to = f
+                if (_hole_key(hole) == _hole_key(iv.get("hole_id")) and L is not None and g is not None
+                        and abs(L - iv["length_m"]) < 1e-6 and abs(g - iv["grade"]) < 1e-9 and fr is not None
+                        and to is not None and 0 <= fr < to):
+                    iv["from_m"], iv["to_m"], iv["depth_note"] = fr, to, "ocr"
+                    st["ocr_fills"] += 1
+                else:
+                    st["ocr_stale"] += 1
+            best_has[iv["event_id"]] = iv["from_m"] is not None
+    for iv in intervals:
+        if iv["is_best"] and iv["from_m"] is None and iv["event_id"] in nr:
+            iv["depth_note"] = "not_reported"
+            st["not_reported"] += 1
+    st["ocr"] = "applied"
+    return st
 
 
 # ------------------------------------------------------------------ reading the facts store
@@ -228,6 +307,57 @@ def load_items(conn, version):
     return [(evs[e], parse_facts(facts.get(e, []))) for e in evs]
 
 
+def candidate_versions(conn):
+    """DRILLGAP_V1: versions waiting to be switched in, newest first."""
+    if not _has_table(conn, "fx_extractor_versions"):
+        return []
+    return [r[0] for r in conn.execute(
+        "SELECT version FROM fx_extractor_versions WHERE extractor=? AND status='candidate' "
+        "ORDER BY created_at DESC, rowid DESC", (EXTRACTOR,))]
+
+
+def load_fill_items(conn, version, candidates, have=()):
+    """DRILLGAP_V1: (event, parsed, from_version) for tagged approved releases the active `version` has never run on,
+    taken from the newest candidate that wrote a record for them. Releases in `have` are skipped."""
+    if not candidates or not _has_table(conn, "fx_runs"):
+        return []
+    seen, out = set(have), []
+    for cand in candidates:
+        for eid, tk, pub, hl, rid in conn.execute(
+                "SELECT e.event_id, e.ticker, e.published_at, e.raw_headline, r.record_id FROM fx_records r "
+                "JOIN events e ON e.event_id=r.event_id "
+                "WHERE r.extractor=? AND r.version=? AND r.ordinal=0 AND e.review_status='auto_approved' "
+                "AND ('|' || COALESCE(e.categories,'') || '|') LIKE ? "
+                "AND NOT EXISTS (SELECT 1 FROM fx_runs x WHERE x.event_id=r.event_id AND x.extractor=? AND x.version=?)",
+                (EXTRACTOR, cand, "%|" + TAG + "|%", EXTRACTOR, version)).fetchall():
+            if eid in seen:
+                continue
+            seen.add(eid)
+            fs = conn.execute("SELECT field, seq, value_num, value_text, unit, metal FROM fx_facts WHERE record_id=?",
+                              (rid,)).fetchall()
+            out.append(({"event_id": eid, "ticker": tk, "published_at": pub, "raw_headline": hl},
+                        parse_facts(fs), cand))
+    return out
+
+
+def gather(conn, version, fill=None):
+    """Items to publish for `version`, plus the DRILLGAP_V1 fill from candidates. Returns (items, from_version, fill_stats)."""
+    items = load_items(conn, version)
+    src = {}
+    fst = {"fill": "off"}
+    if fill is None:
+        import os
+        fill = not os.path.exists(FILL_OFF)
+    if fill:
+        cands = [c for c in candidate_versions(conn) if c != version]
+        extra = load_fill_items(conn, version, cands, have={ev["event_id"] for ev, _ in items})
+        for ev, p, cand in extra:
+            items.append((ev, p))
+            src[ev["event_id"]] = cand
+        fst = {"fill": "on", "fill_candidates": cands, "fill_loaded": len(extra)}
+    return items, src, fst
+
+
 def current_event_ids(conn):
     return {r[0] for r in conn.execute("SELECT event_id FROM drill_results")}
 
@@ -238,12 +368,22 @@ def publish(conn, version, log=print):
     if not re.match(r"^[0-9]+[.][0-9]+[.][0-9]+$", version or ""):
         raise ValueError(f"bad version {version!r}")
     t0 = time.time()
-    rows, intervals, st = compute(load_items(conn, version))
+    items, src, fst = gather(conn, version)   # DRILLGAP_V1
+    rows, intervals, st = compute(items)
+    for r in rows:
+        r["extractor_version"] = src.get(r["event_id"], version)
+    st.update(fst)
+    st["fill_published"] = sum(1 for r in rows if r["event_id"] in src)
+    st.update(apply_ocr(intervals))   # DRILL_OCR_V1
     conn.executescript(SCHEMA)
     cols = {r[1] for r in conn.execute("PRAGMA table_info(drill_results)")}
     for col in ("sample_type", "extractor_version"):
         if col not in cols:
             conn.execute(f"ALTER TABLE drill_results ADD COLUMN {col} TEXT")
+    icols = {r[1] for r in conn.execute("PRAGMA table_info(drill_intervals)")}
+    for col in ("label", "kind", "depth_note"):   # fix B; DRILL_OCR_V1
+        if col not in icols:
+            conn.execute(f"ALTER TABLE drill_intervals ADD COLUMN {col} TEXT")
     # OPTD step A (2026-10-06): the same rowsync calls, run once before the write lock to work out the
     # differences; the locked pass below then only applies them (portal/rowsync.py, planning). Kill switch:
     # /opt/mnt/app/portal/rowsync_plan_OFF.
@@ -253,11 +393,8 @@ def publish(conn, version, log=print):
         from portal import rowsync
         _rs = [rowsync.sync_rows(conn, "drill_results", "drill_id", (
             "event_id", "ticker", "project", "top_hole_id", "top_grade", "top_unit", "top_metal", "top_length_m",
-            "top_summary", "n_intercepts", "raw_headline", "published_at", "sample_type"), rows,
-            {"extractor_version": version})]
-        _rs.append(rowsync.sync_rows_pk(conn, "drill_intervals", ("event_id", "seq"), (
-            "event_id", "seq", "hole_id", "from_m", "to_m", "length_m", "grade", "unit", "metal", "summary",
-            "including", "is_best", "reported_before", "src"), intervals))
+            "top_summary", "n_intercepts", "raw_headline", "published_at", "sample_type", "extractor_version"), rows)]
+        _rs.append(rowsync.sync_rows_pk(conn, "drill_intervals", ("event_id", "seq"), _IV_SYNC_COLS, intervals))
         st["rowsync"] = _rs
     conn.execute("BEGIN IMMEDIATE")
     try:
@@ -265,11 +402,8 @@ def publish(conn, version, log=print):
         from portal import rowsync
         _rs = [rowsync.sync_rows(conn, "drill_results", "drill_id", (
             "event_id", "ticker", "project", "top_hole_id", "top_grade", "top_unit", "top_metal", "top_length_m",
-            "top_summary", "n_intercepts", "raw_headline", "published_at", "sample_type"), rows,
-            {"extractor_version": version})]
-        _rs.append(rowsync.sync_rows_pk(conn, "drill_intervals", ("event_id", "seq"), (
-            "event_id", "seq", "hole_id", "from_m", "to_m", "length_m", "grade", "unit", "metal", "summary",
-            "including", "is_best", "reported_before", "src"), intervals))
+            "top_summary", "n_intercepts", "raw_headline", "published_at", "sample_type", "extractor_version"), rows)]
+        _rs.append(rowsync.sync_rows_pk(conn, "drill_intervals", ("event_id", "seq"), _IV_SYNC_COLS, intervals))
         st["rowsync"] = _rs
         conn.execute("COMMIT")
     except Exception:
@@ -291,7 +425,12 @@ def main(argv=None):
     version = active_version(conn)
     if "--dry-run" in argv:
         v = argv[argv.index("--version") + 1] if "--version" in argv else version
-        rows, intervals, st = compute(load_items(conn, v))
+        items, src, fst = gather(conn, v) if v == version else (load_items(conn, v), {}, {"fill": "n/a"})
+        rows, intervals, st = compute(items)
+        st.update(fst)
+        st["fill_published"] = sum(1 for r in rows if r["event_id"] in src)
+        st["fill_rows"] = sorted((r["ticker"], (r["published_at"] or "")[:10], r["top_summary"], src[r["event_id"]])
+                                 for r in rows if r["event_id"] in src)
         cur = current_event_ids(conn)
         new = {r["event_id"] for r in rows}
         st.update(version=v, current_rows=len(cur), removed=len(cur - new), added=len(new - cur))
@@ -321,14 +460,31 @@ def main(argv=None):
 def _selftest():
     bad = 0
 
+    def publish_nofill(conn):
+        global FILL_OFF
+        import os
+        import tempfile
+        keep = FILL_OFF
+        FILL_OFF = os.path.join(tempfile.mkdtemp(), "drill_fill_OFF")
+        open(FILL_OFF, "w").close()
+        try:
+            publish(conn, "1.0.0", log=lambda s: None)
+        finally:
+            FILL_OFF = keep
+        return [r[0] for r in conn.execute("SELECT event_id FROM drill_results ORDER BY event_id")]
+
     def ok(name, cond):
         nonlocal bad
         bad += not cond
         print(("  ok    " if cond else "  FAIL  ") + name)
 
-    def iv(seq, g, u, m, l, ok_=True, incl=False, hole=None):
+    def iv(seq, g, u, m, l, ok_=True, incl=False, hole=None, label=None, kind=None):
         rows = [("iv_grade", seq, g, None, u, m), ("iv_length_m", seq, l, None, "m", None),
                 ("iv_ok", seq, 1.0 if ok_ else 0.0, None, None, None), ("iv_src", seq, None, "text", None, None)]
+        if label:
+            rows.append(("iv_label", seq, None, label, None, None))
+        if kind:
+            rows.append(("iv_kind", seq, None, kind, None, None))
         if incl:
             rows.append(("iv_including", seq, 1.0, None, None, None))
         if hole:
@@ -367,6 +523,23 @@ def _selftest():
     ok("summary g/t", summary(13.53, "g/t", "Au", 13.4) == "13.53 g/t Au / 13.4m")
     ok("summary large grade", summary(1841.14, "g/t", "Ag", 16.8) == "1841.1 g/t Ag / 16.8m")
 
+    # fix B: labels and single samples
+    items_b = [
+        (ev("f1", "DDD", "2026-03-01"), rec(True, 0, iv(0, 50.0, "g/t", "Au", 1.0, label="historical"),
+                                         iv(1, 2.0, "g/t", "Au", 12.0), iv(2, 9.0, "g/t", "Au", 1.0, kind="sample"))),
+        (ev("f2", "DDD", "2026-04-01"), rec(True, 0, iv(0, 3.0, "g/t", "Au", 8.0, label="previously_reported"))),
+        (ev("f3", "EEE", "2026-04-01"), rec(True, 0, iv(0, 30.0, "g/t", "Au", 1.0, kind="sample"))),
+    ]
+    rows_b, ivs_b, st_b = compute(items_b)
+    by_b = {r["event_id"]: r for r in rows_b}
+    ok("B: a release with only earlier figures is not listed", "f2" not in by_b)
+    ok("B: best is the new drill interval, not the historical one or a sample", by_b["f1"]["top_grade"] == 2.0)
+    ok("B: labelled rows are kept, labelled and counted as reported before",
+       [(x["seq"], x["label"], x["reported_before"]) for x in ivs_b if x["event_id"] == "f1"]
+       == [(0, "historical", 1), (1, "new", 0), (2, "new", 0)])
+    ok("B: kind carried", [x["kind"] for x in ivs_b if x["event_id"] == "f1"] == ["interval", "interval", "sample"])
+    ok("B: a release of single samples only is listed with a sample as its best", by_b.get("f3", {}).get("top_grade") == 30.0)
+
     # the database path, end to end, on an in-memory store
     from portal import facts as F
     conn = F.connect(":memory:")
@@ -399,6 +572,63 @@ def _selftest():
     ok("summary row", tuple(conn.execute("SELECT top_summary, top_hole_id FROM drill_results WHERE event_id='x0'").fetchone())
        == ("3 g/t Au / 4m", "DH-1"))
     ok("publish is repeatable", publish(conn, "1.0.0", log=lambda s: None)["published"] == 2)
+
+    # DRILLGAP_V1: a candidate's record fills in releases the active version never read
+    F.register_version(conn, EXTRACTOR, "1.1.0", "drill_result", TAG)
+    conn.execute("INSERT INTO events VALUES ('x4','T4','2026-01-05','drill late','body','Drill Results','auto_approved')")
+    conn.execute("INSERT INTO events VALUES ('x5','T5','2026-01-06','drill late untagged','body','Financings','auto_approved')")
+    def ext2(hl, body):   # the candidate finds a result in every release, even the one the active version found nothing in
+        fs = [F.Fact("is_result", value_num=1.0), F.Fact("project", value_text="Proj2"), F.Fact("best_seq", value_num=0.0),
+              F.Fact("iv_grade", value_num=6.0, unit="g/t", metal="Au"), F.Fact("iv_length_m", value_num=7.0, unit="m"),
+              F.Fact("iv_ok", value_num=1.0), F.Fact("iv_hole", value_text="DH-9")]
+        return [F.Record("drill_result", facts=fs)]
+    F.run_batch(conn, F.ExtractorSpec(EXTRACTOR, "1.1.0", "drill_result", TAG, ext2), F.pending_events(conn, EXTRACTOR, "1.1.0"))
+    ok("fill: candidate listed", candidate_versions(conn) == ["1.1.0"])
+    stf = publish(conn, "1.0.0", log=lambda s: None)
+    gotf = {r[0]: r[1] for r in conn.execute("SELECT event_id, extractor_version FROM drill_results")}
+    ok("fill: unread tagged release published from the candidate", gotf.get("x4") == "1.1.0")
+    ok("fill: active rows keep the active version and their own figures", gotf.get("x0") == "1.0.0" and
+       conn.execute("SELECT top_summary FROM drill_results WHERE event_id='x0'").fetchone()[0] == "3 g/t Au / 4m")
+    ok("fill: a release the active version read and found nothing in is not taken from the candidate", "x3" not in gotf)
+    ok("fill: untagged release not published", "x5" not in gotf)
+    ok("fill: stats", stf["fill_loaded"] == 1 and stf["fill_published"] == 1 and stf["published"] == 3)
+    ok("fill: intervals of the filled release written", conn.execute(
+        "SELECT COUNT(*) FROM drill_intervals WHERE event_id='x4'").fetchone()[0] == 1)
+    ok("fill: off switch -> active only, filled row removed", publish_nofill(conn) == ["x0", "x1"])
+    ok("fill: repeat publish stable", publish(conn, "1.0.0", log=lambda s: None)["published"] == 3)
+
+    # DRILL_OCR_V1: fills and 'not reported' marks from drill_ocr.db
+    import os
+    import tempfile
+    td = tempfile.mkdtemp()
+    side = os.path.join(td, "o.db")
+    sc = sqlite3.connect(side)
+    sc.executescript("CREATE TABLE ocr_fill (event_id TEXT PRIMARY KEY, hole_id TEXT, length_m REAL, grade REAL, from_m REAL,"
+                     " to_m REAL, rule TEXT, row_text TEXT, image_url TEXT, version TEXT, checked_at TEXT);"
+                     "CREATE TABLE ocr_release (event_id TEXT PRIMARY KEY, depths TEXT);")
+    sc.execute("INSERT INTO ocr_fill VALUES ('a','RM26-213',33.5,0.92,30.5,64.0,'length+grade','','u','1.0.0','')")
+    sc.execute("INSERT INTO ocr_fill VALUES ('b','H-2',5.0,1.0,10.0,15.0,'length+grade','','u','1.0.0','')")
+    sc.executemany("INSERT INTO ocr_release VALUES (?,?)", [("c", "not_reported"), ("d", "not_reported"), ("a", "unknown")])
+    sc.commit()
+    sc.close()
+    mk = lambda eid, seq, best, fr=None, hole="H", L=1.0, g=1.0: {"event_id": eid, "seq": seq, "is_best": best, "from_m": fr,
+                                                                   "to_m": None if fr is None else fr + L, "hole_id": hole,
+                                                                   "length_m": L, "grade": g, "depth_note": None}
+    ivs_o = [mk("a", 0, 1, hole="RM26-213", L=33.5, g=0.92), mk("a", 1, 0),
+             mk("b", 0, 1, hole="H-2", L=5.0, g=1.5),                       # grade changed since the OCR read -> stale
+             mk("c", 0, 1), mk("c", 1, 0), mk("c", 2, 0, fr=3.0),
+             mk("d", 0, 1, fr=7.0), mk("d", 1, 0)]                          # best now has a depth -> no label
+    so = apply_ocr(ivs_o, path=side, off=os.path.join(td, "OFF"))
+    ok("OCR: fill applied to the matching best", ivs_o[0]["from_m"] == 30.5 and ivs_o[0]["to_m"] == 64.0
+       and ivs_o[0]["depth_note"] == "ocr" and ivs_o[1]["depth_note"] is None)
+    ok("OCR: stale fill not applied", ivs_o[2]["from_m"] is None and so["ocr_stale"] == 1)
+    ok("OCR: not reported on the best interval only", [x["depth_note"] for x in ivs_o[3:6]] == ["not_reported", None, None])
+    ok("OCR: no label once the best has a depth", ivs_o[7]["depth_note"] is None)
+    open(os.path.join(td, "OFF"), "w").close()
+    ivs_off = [mk("a", 0, 1, hole="RM26-213", L=33.5, g=0.92)]
+    ok("OCR: kill switch", apply_ocr(ivs_off, path=side, off=os.path.join(td, "OFF"))["ocr"] == "off" and ivs_off[0]["from_m"] is None)
+    ok("OCR: missing database is harmless", apply_ocr([mk("a", 0, 1)], path=os.path.join(td, "none.db"), off=os.path.join(td, "no_switch"))["ocr"] == "no database")
+    ok("OCR: depth_note column written", "depth_note" in {r[1] for r in conn.execute("PRAGMA table_info(drill_intervals)")})
     print(f"failures: {bad}")
     return 1 if bad else 0
 

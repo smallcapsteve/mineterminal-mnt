@@ -479,6 +479,68 @@ def _attach_events(conn, deals: list[dict]) -> None:
         d["events"] = by.get(d["financing_id"], [])
 
 
+# FINLINK_API_V1 (2026-10-12, Justin: "find the relation between announced/upsized ... the dropdown should have the
+# connected announcement"). Additive fields on every deal, read from its releases:
+#   latest_*            the deal's most recent release (a close or an upsize after the announcement), so MTP can lead
+#                       the row with it and keep the earlier releases in the dropdown;
+#   announcement_on_file  the deal holds its announcement;
+#   refers_back         it does not, and its first release says the deal was announced before ("previously
+#                       announced", "further to its news release of ...") - MTP shows "announcement not on file".
+_REF_BACK = re.compile(
+    r"(previously[- ]announced|further to (?:its|the|their|our)\b|as announced on|"
+    r"announced on (?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)|"
+    r"news releases? (?:dated|of) (?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec))", re.I)
+_ROLE_RANK = {"announcement": 0, "update": 1, "amendment": 2, "upsize": 3, "tranche_close": 4, "final_close": 5,
+              "terminated": 6}
+
+
+def _attach_links(conn, deals: list[dict]) -> None:
+    ids = [d["financing_id"] for d in deals]
+    if not ids:
+        return
+    by: dict[int, list] = {}
+    for i in range(0, len(ids), 500):
+        chunk = ids[i:i + 500]
+        for r in conn.execute(
+                "SELECT fe.financing_id, fe.event_id, fe.role, fe.ticker, COALESCE(fe.is_duplicate, 0) AS dup, "
+                "COALESCE(fe.event_date, e.published_at) AS d, COALESCE(e.raw_headline, fe.raw_headline) AS h, "
+                "e.slug FROM financing_events fe LEFT JOIN events e ON e.event_id = fe.event_id "
+                "WHERE fe.financing_id IN (%s)" % ",".join("?" * len(chunk)), chunk):
+            if r["dup"]:
+                continue
+            by.setdefault(r["financing_id"], []).append(r)
+    firsts = {}
+    for d in deals:
+        evs = sorted(by.get(d["financing_id"], []),
+                     key=lambda r: ((r["d"] or "")[:10], _ROLE_RANK.get(r["role"] or "", 1), r["event_id"]))
+        has_ann = any((r["role"] or "") == "announcement" for r in evs)
+        d["announcement_on_file"] = has_ann
+        d["refers_back"] = False
+        if evs:
+            last = evs[-1]
+            t = (last["ticker"] or d["ticker"] or "").strip()
+            d["latest_event_id"] = last["event_id"]
+            d["latest_role"] = last["role"] or ""
+            d["latest_date"] = (last["d"] or "")[:10]
+            d["latest_headline"] = _title(last["h"] or "")
+            d["latest_release_url"] = release_url(t, last["slug"], last["event_id"])
+            if not has_ann:
+                firsts[evs[0]["event_id"]] = d
+        else:
+            d["latest_event_id"] = d.get("seed_event_id") or ""
+            d["latest_role"] = ""
+            d["latest_date"] = d.get("date") or ""
+            d["latest_headline"] = d.get("headline") or ""
+            d["latest_release_url"] = d.get("release_url") or ""
+    eids = list(firsts)
+    for i in range(0, len(eids), 500):
+        chunk = eids[i:i + 500]
+        for r in conn.execute("SELECT event_id, substr(COALESCE(raw_body, raw_excerpt, ''), 1, 5000) AS b "
+                              "FROM events WHERE event_id IN (%s)" % ",".join("?" * len(chunk)), chunk):
+            if _REF_BACK.search(re.sub(r"\s+", " ", r["b"] or "")):
+                firsts[r["event_id"]]["refers_back"] = True
+
+
 def query_list(conn, p: dict, names: dict, universe: Optional[frozenset]) -> dict:
     where, args = _where(p, universe)
     order = {
@@ -493,6 +555,7 @@ def query_list(conn, p: dict, names: dict, universe: Optional[frozenset]) -> dic
     rows = conn.execute("SELECT " + _DEAL_COLS + " " + base + " ORDER BY " + order + " LIMIT ? OFFSET ?",
                         args + [limit, (page - 1) * limit]).fetchall()
     items = [_deal_dict(r, names, p.get("today")) for r in rows]
+    _attach_links(conn, items)   # FINLINK_API_V1
     if p["events"]:
         _attach_events(conn, items)
     return {
@@ -519,6 +582,7 @@ def query_one(conn, financing_id: int, names: dict, today=None) -> Optional[dict
     if not r:
         return None
     d = _deal_dict(r, names, today)
+    _attach_links(conn, [d])   # FINLINK_API_V1
     _attach_events(conn, [d])
     return d
 
@@ -851,6 +915,33 @@ def _selftest() -> int:
        4 not in [i["financing_id"] for i in query_list(conn, P(raises_only="1"), names, None)["items"]])
     ok("but it is still listed by default",
        4 in [i["financing_id"] for i in query_list(conn, P(), names, None)["items"]])
+
+    # FINLINK_API_V1
+    ev("e20", "JJJ.V", "2026-09-01", head="Jay Announces Private Placement", body="Jay is pleased to announce ...")
+    ev("e21", "JJJ.V", "2026-09-20", slug="s21", head="Jay Closes Private Placement",
+       body="Jay is pleased to announce the closing of its previously announced private placement")
+    deal(20, "JJJ.V", "2026-09-01", "2026-09-20", "PP", "closed", 1000000.0, 1000000.0, seed="e20", events=2)
+    fev("e20", 20, "JJJ.V", "announcement", "2026-09-01", total=1000000.0)
+    fev("e21", 20, "JJJ.V", "final_close", "2026-09-20", close=1000000.0, total=1000000.0)
+    ev("e22", "KKK.V", "2026-09-21", head="Kay Closes Private Placement",
+       body="Kay is pleased to announce the closing of the previously-announced non-brokered placement")
+    deal(22, "KKK.V", "2026-09-21", "2026-09-21", "PP", "closed", None, 150000.0, seed="e22")
+    fev("e22", 22, "KKK.V", "final_close", "2026-09-21", close=150000.0, total=150000.0)
+    ev("e23", "LLL.V", "2026-09-22", head="Ell Closes Private Placement", body="Ell has closed a private placement")
+    deal(23, "LLL.V", "2026-09-22", "2026-09-22", "PP", "closed", None, 90000.0, seed="e23")
+    fev("e23", 23, "LLL.V", "final_close", "2026-09-22", close=90000.0, total=90000.0)
+    by = {i["financing_id"]: i for i in query_list(conn, P(limit="200"), names, None)["items"]}
+    ok("latest release is the close", by[20]["latest_event_id"] == "e21" and by[20]["latest_role"] == "final_close"
+       and by[20]["latest_date"] == "2026-09-20" and by[20]["latest_release_url"].endswith("/news/jjj.v/s21"))
+    ok("seed headline is unchanged", by[20]["headline"] == _title("Jay Announces Private Placement"))
+    ok("announcement on file", by[20]["announcement_on_file"] is True and by[20]["refers_back"] is False)
+    ok("a lone close that says previously announced refers back",
+       by[22]["announcement_on_file"] is False and by[22]["refers_back"] is True)
+    ok("a lone close that does not, does not", by[23]["refers_back"] is False)
+    ok("a duplicate is never the latest", by[2]["latest_event_id"] == "e2b")
+    ok("a deal with no releases falls back to its seed", by[4]["latest_event_id"] == "gone"
+       and by[4]["refers_back"] is False)
+    ok("one deal has the fields too", query_one(conn, 22, names, TODAY)["refers_back"] is True)
 
     ok("universe parse", _parse_universe({"tickers": ["aaa", "BBB.V"]}) == frozenset({"AAA", "BBB"})
        and _parse_universe(None) == frozenset())

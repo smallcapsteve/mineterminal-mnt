@@ -197,7 +197,7 @@ def find_twin(pcon, rel: dict, headline: str, published: dt.date):
     iso = published.isoformat()
     rows = pcon.execute(
         "SELECT event_id, raw_headline, date(published_at) FROM events "
-        "WHERE review_status IN ('auto_approved', 'duplicate_of_wire') AND (ticker = ? OR ticker LIKE ?) "
+        "WHERE +review_status IN ('auto_approved', 'duplicate_of_wire') AND (ticker = ? OR ticker LIKE ?) "
         "AND date(published_at) BETWEEN date(?,?) AND date(?,?)",  # SHORTFIX_V1, EXCOV_V1
         (rel["bare"], rel["bare"] + ".%", iso, f"-{TWIN_WIDE_DAYS} day", iso, f"+{TWIN_WIDE_DAYS} day"),
     ).fetchall()
@@ -462,19 +462,20 @@ def main() -> int:
 
     pcon = X.sqlite3.connect(f"file:{X.PORTAL_DB}?mode=ro", uri=True)
     now = dt.datetime.now(dt.UTC).isoformat()
+    X.assign_uids(con, releases)   # EXCH_FINLINK_V1: same-day TMX documents get their own uid
 
     settled = {r[0] for r in con.execute(
         "SELECT uid FROM releases WHERE status IN "
         "('covered','matched','ingested','skipped')")}
     fresh = [r for r in releases
-             if X.uid_for(r["source"], r["ticker"], r["published_date"], r["title"])
+             if X.rel_uid(r)
              not in settled]
     log(f"{len(releases) - len(fresh)} settled by an earlier run; {len(fresh)} to look at")
 
     def record(rel, status, **kw):
         if not args.apply:
             return
-        uid = X.uid_for(rel["source"], rel["ticker"], rel["published_date"], rel["title"])
+        uid = X.rel_uid(rel)
         con.execute(
             "INSERT INTO releases (uid,ticker,bare,exchange,source,published_date,"
             "title,url,status,matched_event,wrong_ticker,note,acted_at) "
@@ -495,7 +496,7 @@ def main() -> int:
     cov = X.covered_by_count(pcon, [r for r in fresh if r["source"] == "tmx"])
     candidates, n_covered, n_matched = [], 0, 0
     for rel in fresh:
-        uid = X.uid_for(rel["source"], rel["ticker"], rel["published_date"], rel["title"])
+        uid = X.rel_uid(rel)
         if rel["source"] == "tmx":
             if uid in cov:
                 n_covered += 1
@@ -560,7 +561,7 @@ def main() -> int:
             eid, wrong = find_twin(pcon, rel, headline, published)
             # NEWSFIX_V1: one event stands for one release. If another release of this company already
             # matched it (ledger, or earlier in this run), this one is not that event.
-            _uid = X.uid_for(rel["source"], rel["ticker"], rel["published_date"], rel["title"])
+            _uid = X.rel_uid(rel)
             if eid and ((claimed_run.get(eid) not in (None, _uid)) or con.execute(
                     "SELECT 1 FROM releases WHERE matched_event=? AND uid<>? AND bare=? "
                     "AND status='matched' LIMIT 1", (eid, _uid, rel["bare"])).fetchone()):

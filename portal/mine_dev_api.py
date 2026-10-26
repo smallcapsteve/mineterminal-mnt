@@ -42,6 +42,9 @@ SITE_BASE = "https://miningnewsterminal.com"
 API_VERSION = "1"
 MAX_LIMIT = 200
 DEFAULT_LIMIT = 50
+AI_NOTE = ("Read from each release by two readers side by side, the rules reader and an AI reader "   # MNT_DEV_AI_LIVE_V1
+           "(claude-haiku-5-5). ai_label: agreed = both found the event; AI-read = only the AI found it; "
+           "rules = not read by the AI yet. Events the readers disagree on are held back for review.")
 EARLY_NOTE = ("Early version: read by rules from the release headline; about 4 in 5 rows were right on a fresh "
               "sample (2026-09-28).")
 
@@ -298,14 +301,24 @@ def build_items(rows, names: dict) -> list[dict]:
             "date": _s(r["published_at"])[:10], "published_at": _s(r["published_at"]),
             "headline": _title(_s(r["raw_headline"])),
             "release_url": release_url(t, r["slug"], r["event_id"]),
+            "ai_label": _s(r["ai_label"]) if "ai_label" in r.keys() else "",   # MNT_DEV_AI_LIVE_V1
             **_early(r),
         })
     out.sort(key=lambda x: (x["published_at"], x["event_row_id"]), reverse=True)
     return out
 
 
+def _ai_cols(conn) -> str:
+    """MNT_DEV_AI_LIVE_V1: ', ai_label' when the connection is the AI reader's live file."""
+    try:
+        return ", ai_label" if any(r[1] == "ai_label" for r in conn.execute("PRAGMA table_info(mine_dev_events)")) else ""
+    except Exception:  # noqa: BLE001
+        return ""
+
+
 def query_events(conn, p: dict, names: dict, universe: Optional[frozenset]) -> dict:
-    sql = "SELECT " + _COLS + " FROM mine_dev_events WHERE event_type IS NOT NULL AND tag_confirmed = 1"
+    _ai = _ai_cols(conn)
+    sql = "SELECT " + _COLS + _ai + " FROM mine_dev_events WHERE event_type IS NOT NULL AND tag_confirmed = 1"
     args: list = []
     t = p.get("ticker")
     if t:
@@ -331,7 +344,8 @@ def query_events(conn, p: dict, names: dict, universe: Optional[frozenset]) -> d
         items = [x for x in items if x["bare_ticker"] in universe]
     total, limit, page = len(items), p["limit"], p["page"]
     return {
-        "ok": True, "api_version": API_VERSION, "early_version": True, "note": EARLY_NOTE,
+        "ok": True, "api_version": API_VERSION, "early_version": True, "note": AI_NOTE if _ai else EARLY_NOTE,
+        "reader": "hybrid" if _ai else "rules",
         "total": total, "page": page, "pages": max(1, math.ceil(total / limit)) if total else 0, "limit": limit,
         "filters": {k: p[k] for k in ("ticker", "type", "group", "status", "since") if p.get(k)},
         "universe": p["universe"], "universe_applied": bool(universe) and not t,
@@ -354,7 +368,12 @@ def register(app) -> None:
         except BadRequest as e:
             return _err(str(e), 400)
         uni = _universe.get() or None if p["universe"] == "mtp" else None
-        with closing(_conn()) as conn:
+        try:   # MNT_DEV_AI_LIVE_V1: the AI reader's live file while Mine Development is switched to it
+            from portal import mine_dev_source as _src
+            _aic = _src.ai_conn()
+        except Exception:  # noqa: BLE001
+            _aic = None
+        with closing(_aic or _conn()) as conn:
             if not conn.execute("SELECT 1 FROM sqlite_master WHERE name='mine_dev_events'").fetchone():
                 return JSONResponse({"ok": True, "api_version": API_VERSION, "total": 0, "page": 1, "pages": 0,
                                      "limit": p["limit"], "items": []}, headers=_headers())

@@ -32,6 +32,8 @@ from portal.extractors import options as _options
 from portal.extractors import debt as _debt
 from portal.extractors import mine_dev as _mine_dev
 from portal.extractors import sampling as _sampling
+from portal.extractors import warrant_changes as _warrant_changes
+from portal.extractors import corp_calendar as _corp_calendar
 
 # FIN_V1 (2026-09-17): the new financings reader; portal/financing_publish.py publishes the active version
 # MGMT_V1 (2026-09-17): the new management-changes reader, one record per person;
@@ -67,4 +69,10 @@ REGISTRY = [_drill_results.SPEC, _financings.SPEC, _management.SPEC, _resources.
             _mine_dev.SPEC,
             # SMP_V1 (2026-09-29): the Sampling & Geoscience Results reader, one record per sample type per
             # project; portal/sampling_publish.py publishes the active version (tagged releases)
-            _sampling.SPEC]
+            _sampling.SPEC,
+            # WCH_V1 (2026-10-07): the Warrant Changes reader, one record per change to one group of issued warrants;
+            # portal/warrant_changes_publish.py publishes the active version with the financing gate
+            _warrant_changes.SPEC,
+            # CAL_V1 (2026-10-12): the Calendar reader, one record per dated corporate event a release reports;
+            # portal/calendar_publish.py publishes the active version (calendar_events)
+            _corp_calendar.SPEC]

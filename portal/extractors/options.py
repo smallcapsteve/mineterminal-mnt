@@ -143,6 +143,7 @@ its most-named province or state. Ruby Creek (Stuhini) is British Columbia again
 from __future__ import annotations
 
 import re
+from datetime import date, timedelta
 
 from portal import facts as F
 from portal import fingerprint as FP
@@ -151,7 +152,7 @@ from portal.extractors import permits as PM    # 1.0.5: jurisdiction, the Permit
 from portal.extractors import technical as T
 
 NAME = "options"
-VERSION = "1.0.10"  # 2026-10-01: no row for releases whose news is not a land deal (company-level M&A, non-land deals, background); stage and type cues; 2026-10-02: the deal's own ground (not a neighbour's or host project named after a relation, a place or a company), other companies' deals and background, option direction and stage cues; 2026-10-04 FIX5: cash only from an explicitly stated cash total; shares as the stated total or the schedule summed (never a tranche, milestone, financing or warrant), counterparty names as written and by role (keeps the royalty, holds the optioned claims), staking and option-out cues, own staking beside an option or a purchase beside staking as its own row; rev b: own staking only when the company is the subject and the ground is measured
+VERSION = "1.0.14"  # 2026-10-18 PNSRC: helper 1.0.7 (no change to this reader's own code); 2026-10-14 PNJUNK7: a subsidiary's name does not reject the deal's property; Payment/Consideration are not names; the headline's other news is not an unnamed deal's ground; a package grown is not the ground bought; descriptors cut; acquired claims paid in shares = completed; 2026-10-13 PNJUNK: helper 1.0.6 (no change of its own); 2026-10-12 OPS_V1 (C9): option payment schedules as item facts (rule calls OE-ON, Justin 2026-10-07); totals are the items summed when none is stated (OT); deal fixes (direction, stage, not-a-deal, currency, property). 1.0.10: 2026-10-01: no row for releases whose news is not a land deal (company-level M&A, non-land deals, background); stage and type cues; 2026-10-02: the deal's own ground (not a neighbour's or host project named after a relation, a place or a company), other companies' deals and background, option direction and stage cues; 2026-10-04 FIX5: cash only from an explicitly stated cash total; shares as the stated total or the schedule summed (never a tranche, milestone, financing or warrant), counterparty names as written and by role (keeps the royalty, holds the optioned claims), staking and option-out cues, own staking beside an option or a purchase beside staking as its own row; rev b: own staking only when the company is the subject and the ground is measured
 KIND = "land_deal"
 TAG = "Property Options & Staking"
 TEXT_CAP = 40000
@@ -231,7 +232,8 @@ _STOCK_OPT = re.compile(r"(?i)\b(?:stock|share|incentive|employee)\s+options?\b|
                         r"\bGrants\s+(?:Stock\s+)?Options\b|\bOption\s+Grants?\b|\bOptions?\s+Cancell?ation\b(?![^.]{0,40}propert)"
                         # 1.0.8: "... and Issues Options", "Cancellation of Options", "awarded 500,000 options"
                         r"|\b(?:issu(?:es|ed|ance\s+of)|award(?:s|ed)?|grant\s+of)\s+(?:an\s+aggregate\s+of\s+)?(?:[\d,]+\s+)?(?:incentive\s+|stock\s+)?"
-                        r"options\b(?!\s+(?:to\s+acquire|on|over|for\s+the)\b)|\bcancell?ation\s+of\s+(?:[\w\-]+\s+){0,2}?options\b(?![^.]{0,40}propert)")
+                        r"options\b(?!\s+(?:to\s+acquire|on|over|for\s+the)\b)|\bcancell?ation\s+of\s+(?:[\w\-]+\s+){0,2}?options\b(?![^.]{0,40}propert)"
+                        r"|\bwarrants?\s*(?:&|and)\s*options\b|\bexercises?\s+of\s+options\b")     # OPS_V1
 _OPT = re.compile(r"(?i)\boption(?:ed|s|ing)?\b|\bearn[- ]?in\b|\boptionor|\boptionee|\bearns?\s+(?:a\s+)?(?:further|additional|initial|"
                   r"second|first)\s+(?:\d{1,3}\s*%\s+)?interest\b")
 _EARN_PCT = re.compile(r"(?i)\bearn(?:s|ed|ing)?\s+(?:up\s+to\s+)?(?:an?\s+|the\s+)?(?:initial\s+|additional\s+|undivided\s+|further\s+|full\s+)?"
@@ -266,7 +268,7 @@ _BACKGROUND = re.compile(r"(?i)\b(?:also\s+(?:holds?|has|owns)|currently\s+(?:ho
                          r"\w+\s+project|has\s+optioned\s+the\s+[A-Z]|holds\s+an\s+option\s+over|(?:its|our|[A-Z]\w+['\u2019]s)\s+optioned\s+\w+|"
                          r"\bin\s+which\s+the\s+Company\s+(?:owns|holds|has)\b|\bsince\s+acquiring\s+(?:the\s+)?[^.]{0,60}\bin\s+(?:19|20)\d\d\b|\bacquired\s+(?:the\s+)?[^.]{0,60}\bin\s+(?:January|February|March|April|May|June|July|August|September|October|"
                          r"November|December)\s+(?:19|20)\d\d\b|\bincluding\s+options?\s+to\s+(?:purchase|acquire)|\bbetween\s+(?:19|20)\d\d\s*(?:-|\u2013|and|to)\s*(?:19|20)\d\d\b|"
-                         r"\b(?:now|currently)\s+(?:optioned|under\s+option)\b)")     # 1.0.9: "the X Project, now optioned to MATSA"
+                         r"\b(?:now|currently)\s+(?:optioned|under\s+option)\b|\bis\s+under\s+option\s+from\b|\bis\s+acquirable\s+by\s+the\s+Company\b)")     # 1.0.9: "the X Project, now optioned to MATSA"
 _THEIR_STAKING = re.compile(r"((?:[A-Z][\w&.\-]*\s+){0,4}(?!Company['\u2019]|Corporation['\u2019])[A-Z][\w&.\-]*)['\u2019]s\s+(?:\([^)]{0,30}\)\s+)?"
                             r"(?:[\w\-]+\s+){0,4}?(stak(?:ing|ed))\b")
 # 1.0.9: another company's deal: "The San Antonio claims acquired by Osisko Development Corp. are contiguous with ..."
@@ -431,7 +433,7 @@ _TERM = re.compile(r"(?i)\bterminat\w*|(?<!for\s)\bcancel+(?:ed|s|ation)\b|\bnot
 _COMP = re.compile(r"(?i)\bacquired\s+an?\s+(?:initial|additional|further|undivided)\s+\d{1,3}\s*%|"    # 1.0.9: an earn-in step done
                    r"(?<!not\s)(?<!never\s)\bexercis(?:ed|es)\s+(?:the|its|an?)\b(?:\s+\w+){0,4}?\s*option\b|\bhas\s+(?:now\s+)?(?:successfully\s+)?earned\b|"
                    r"\bsuccessfully\s+earn|\bearns\s+(?:\d{1,3}\s*%|100)|\bearned\s+(?:an?\s+|its\s+)?(?:\d{1,3}\s*%|100)|"
-                   r"\bcompleted\s+all\s+(?:the\s+)?requirements|\bcompletion\s+of\s+(?:the\s+)?final\s+(?:requirements|cash|payment|option)|"
+                   r"\bcompleted\s+all\s+(?:of\s+)?(?:its\s+|the\s+)?(?:requirements|obligations)\b|\b(?:has|have)\s+(?:now\s+)?elected\s+to\s+exercise\s+(?:its|the)\s+(?:\w+\s+){0,2}?option\b|\bAnnounces\s+Exercise\s+of\b|\bcompletion\s+of\s+(?:the\s+)?final\s+(?:requirements|cash|payment|option)|"
                    r"\bnow\s+(?:holds|owns)\s+(?:a\s+)?\d{1,3}\s*%|\bnow\s+own\s+\d{1,3}\s*%|\bto\s+achieve\s+a\s+\d{1,3}\s*%\s+ownership|"
                    r"\bacquisition\s+(?:has\s+been\s+|was\s+)?(?:completed|closed)|\b(?:final|last)\s+(?:earn-in\s+)?option\s+payment\s+(?:to|for)\s+acquire|"
                    r"\bcomplet(?:ed|es)\s+(?:the\s+|its\s+)?(?:purchase|acquisition)\b(?:\s*\([^)]{0,40}\))?\s+of\b|\bCompletes\b[^.]{0,80}\bAcquisition\b|"
@@ -447,14 +449,17 @@ _COMP = re.compile(r"(?i)\bacquired\s+an?\s+(?:initial|additional|further|undivi
                    r"\bcomplet(?:ed|es)\s+(?:the\s+|its\s+)?sale\s+of\b(?!\s+(?:\d|shares|securities|units|flow))|"
                    r"\b(?:pleased|delighted|excited)\s+to\s+(?:have\s+)?(?:close|closed|complete|completed)\s+the\s+(?:[\w\-]+\s+){0,3}?"
                    r"(?:amalgamation|acquisition|purchase|transaction)")
-_AMEND = re.compile(r"(?i)\bamend(?:ed|s|ing|ments?)\b|\bextend(?:ed|s)?\s+(?:the\s+)?(?:Outside|term|option|deadline|date)|\bextension\s+(?:of|to)\s+(?:the\s+)?(?:\w+\s+){0,2}?(?:option|term|agreement|deadline|date|time|outside|period|expiry|LOI|letter\s+of\s+intent)\b|"
+_AMEND = re.compile(r"(?i)\bamend(?:ed|s|ing|ments?)\b|\bmodif(?:y|ies|ied|ying)\s+(?:the\s+|its\s+)?(?:\w+\s+){0,2}?(?:option|agreement|terms)\b|"
+                    r"\bmodifying\s+terms\b|\bextend\w*\s+(?:the\s+)?cure\s+period|\bextend(?:ed|s)?\s+(?:the\s+)?(?:Outside|term|option|deadline|date)|\bextension\s+(?:of|to)\s+(?:the\s+)?(?:\w+\s+){0,2}?(?:option|term|agreement|deadline|date|time|outside|period|expiry|LOI|letter\s+of\s+intent)\b|"
                     r"\bextend(?:s|ed|ing)\s+(?:the\s+|its\s+)?(?:[\w\-]+\s+){1,2}?(?:option(?:\s+agreement)?|LOI|letter\s+of\s+intent|deadline)\b|\bextending\s+the\s+(?:date|term|deadline|time)\b|"
                     r"\bland\s+position\s+covered\s+under\s+the\s+option|\brevised\s+terms\b|\bto\s+expedite\s+earn|\brenegotiat\w+|\baddend(?:um|a)\b|"
                     # 1.0.8: the deadline to close extended ("Extension of X Acquisition Closing", "agreed to extend the
                     # period to complete the acquisition")
                     r"\bextension\s+of\s+(?:the\s+)?(?:[\w\-]+\s+){0,3}?closing\b|\bextend\w*\s+(?:the\s+)?(?:period|time|closing\s+date|"
                     r"outside\s+date)\s+(?:to|for)\s+(?:complete|close|closing)\b")
-_PAY = re.compile(r"(?i)\b(?:issu(?:ed|es|ance\s+of)|made|makes|received|receives|paid)\b[^.]{0,90}\b(?:shares|payment)\b[^.]{0,90}"
+_PAY = re.compile(r"(?i)\b(?:has|have)\s+(?:made|paid|issued)\b(?:[^.;]|\.(?=\d)){0,220}?\b(?:pursuant\s+to|under|in\s+accordance\s+with)\s+"
+                  r"(?:the\s+|its\s+|an?\s+)?(?:\w+\s+){0,2}?option\s+agreement|"      # OPS_V1 (HRK.CN)
+                  r"\b(?:issu(?:ed|es|ance\s+of)|made|makes|received|receives|paid)\b[^.]{0,90}\b(?:shares|payment)\b[^.]{0,90}"
                   r"\b(?:pursuant\s+to|under|in\s+connection\s+with|per)\b[^.]{0,40}\b(?:option|agreement)|"
                   r"\b(?:first|second|secondary|third|fourth|annual)\s+(?:anniversary\s+)?(?:option\s+)?payment\b|\b(?:second|third|first|initial)\s+"
                   r"tranche\s+of\s+(?:common\s+)?shares|\bissu(?:ed|es)\s+(?:a\s+)?further\s+[\d,]+\s+(?:common\s+)?shares|"
@@ -716,9 +721,9 @@ def _name(raw, suffix=None):
             return None            # OPT_V1f: "NV Quito Gold Lander NV America Mine" is a list, not a name ("VMS" is a deposit type)
     if re.search(r"(?i)\b(?:financing|placement|offering|equity)\b", n):
         return None                # OPT_V1f: "Closing of Equity Financing & Mineral Claims Acquisitions"
-    if re.search(r"(?i)\b(?:debt|settlement|investment|shares|warrants|loan|transaction|update)\b|\w-(?:area|region|district)\b|"
+    if re.search(r"(?i)\b(?:debt|settlement|investment|shares|warrants|loan|transaction|update|payments?|consideration)\b|\w-(?:area|region|district)\b|"
                  r"\b(?:trend|belt|goldbelt|district|region|camp)\s+(?:" + PN.SUFFIX + r")$", n):
-        return None                # 1.0.7: "Debt Settlement Property", "Investment Property", "Timmins-Area Properties"
+        return None                # 1.0.7: "Debt Settlement Property", "Investment Property", "Timmins-Area Properties"; PNJUNK7: "Payment Property"
     k = PN.key(n)
     if k and all(len(w) <= 2 and w.isalpha() for w in k.split()):
         return None                # OPT_V1f: "N WT Lithium Properties"
@@ -892,6 +897,8 @@ _ON_DATE = re.compile(r"(?i)\bon\s+(?:" + T._DATE_RX + r")\s*,?\s+(?:it\s+)?(?:e
 
 
 def _curr(tag):
+    if (tag or "") in ("a", "an", "u"):
+        return "CAD"            # OPS_V1: "a $500,000 cash payment" ((?i) patterns read the article as A$)
     t = (tag or "").upper()
     if t in ("US", "USD"):
         return "USD"
@@ -905,6 +912,33 @@ def _num_of(v):
 
 
 # ------------------------------------------------------------------ analyse
+_SUBS = re.compile(
+    r"(?<![\w&.'\u2019\-])(?P<n1>(?:[A-Z][\w&.'\u2019\-]*\s+(?:(?:de|y|del|la|and|of|&)\s+)?){0,6}[A-Z][\w&.'\u2019\-]*)\s*(?:\(\s*(?:the\s+)?[\u201c\"]\s*(?P<a1>[^\u201d\"]{2,30}?)\s*[\u201d\"]\s*\)\s*)?,?\s+(?:a|its|the\s+Company['\u2019]s)\s+"
+    r"(?:wholly[\s-]+own(?:ed)?|100\s*%[\s-]+owned)\s+(?:[\w\-]+\s+){0,2}?subsidiary(?:\s+of\s+(?P<of>(?:the\s+)?[A-Z][\w\-]+(?:\s+[A-Z][\w\-]+){0,3}|"
+    r"the\s+[a-z]+))?\s*(?:\(\s*(?:the\s+)?[\u201c\"]\s*(?P<a2>[^\u201d\"]{2,30}?)\s*[\u201d\"]\s*\))?|"
+    r"\bits\s+wholly[\s-]+own(?:ed)?\s+(?:[\w\-]+\s+){0,2}?subsidiar(?:y|ies),?\s+(?P<n2>(?:[A-Z][\w&.'\u2019\-]*\s+(?:(?:de|y|del|la|and|of|&)\s+)?){0,5}?[A-Z][\w&.'\u2019\-]*)\s*(?:\([^)\u201c\"]{0,30}\)\s*)?"
+    r"(?:Limited|Ltd|Inc|Corp|S\.A)?\.?\s*(?:,\s*)?(?:\(\s*(?:the\s+)?[\u201c\"]\s*(?P<a3>[^\u201d\"]{2,30}?)\s*[\u201d\"]\s*\))?")
+
+
+def _self_words(names):
+    """PNJUNK7: the issuer words of a set of the company's names, as _self_rx() builds them (first words, suffixes cut)."""
+    names = set(names)
+    for n in list(names):
+        fw = n.split()[0] if n.split() else ""
+        if len(fw) >= 4 and fw.lower() not in ("gold", "silver", "copper", "lithium", "uranium", "canadian", "american", "north",
+                                                "south", "western", "eastern", "northern", "southern", "great", "new", "first",
+                                                "global", "golden", "royal", "united", "international", "pacific", "atlantic"):
+            names.add(fw)
+    words = set()
+    for n in names:
+        n = re.sub(r"\s+(?:Corp(?:oration)?|Inc|Ltd|Limited|Resources|Metals|Mining|Minerals|Gold|Uranium|Energy|Exploration|Ventures|"
+                   r"Lithium)\.?$", "", n).strip()
+        if n and len(n) > 2 and n.lower() not in ("gold", "resources", "metals", "mining", "minerals", "energy", "lithium",
+                                                  "uranium", "silver", "copper", "exploration", "ventures", "capital", "the company"):
+            words.add(n)
+    return words
+
+
 def _self_rx(h, b):
     names = set()
     iss = T._issuer(b)
@@ -928,6 +962,17 @@ def _self_rx(h, b):
         a = m.group(1) or m.group(2)
         if a.split()[0].lower() in hl_head and not re.match(r"(?i)(?:the\s+)?(?:company|corporation|issuer)$", a):
             names.add(a)       # OPT_V1b: '(\u201cBoreal\u201d) (CSE:BGLD)' names the issuer when the headline starts with it
+    subs = set()
+    for m in _SUBS.finditer(b[:8000]):          # OPS_V1
+        of = m.group("of")
+        if of and not re.match(r"(?i)the\s+Company\b|the\s+Corporation\b", of) and not any(
+                len(n) > 3 and n.lower() in of.lower() for n in names):
+            continue                # another company's subsidiary ("a wholly owned subsidiary of the Optionor")
+        for k in ("n1", "a1", "a2", "n2", "a3"):
+            if m.group(k) and len(m.group(k).strip()) > 2:
+                subs.add(m.group(k).strip(" ,"))    # PNJUNK7: kept apart (see the issuer words below)
+    own = set(names)
+    names |= subs
     for n in list(names):
         fw = n.split()[0] if n.split() else ""
         if len(fw) >= 4 and fw.lower() not in ("gold", "silver", "copper", "lithium", "uranium", "canadian", "american", "north",
@@ -947,8 +992,8 @@ def _self_rx(h, b):
         alt = (alt + "|" if alt else "") + "(?-i:" + tk.group(1) + ")"     # OPT_V1d: "MCC has been granted" (TSXV: MCC) is the issuer
     rx = re.compile(r"(?i)\b(?:the\s+Company|Company['\u2019]s|the\s+Corporation|we|our|us" + ("|" + alt if alt else "") + r")\b")
     iw = set()
-    for w in words:
-        iw |= set(T._fold(w).split())
+    for w in _self_words(own):  # PNJUNK7: a subsidiary is the company for who-is-who (rx), but its name is often the
+        iw |= set(T._fold(w).split())   # property's ("Horse Heaven Parent"): not used to reject property names
     return rx, iw
 
 
@@ -966,7 +1011,11 @@ _OUT_HL = re.compile(r"\b(?:[Oo]ptions?|OPTIONS?)\s+(?:[Ii]ts\s+|[Tt]he\s+|THE\s
 # acquire an 80% interest in its X project", "Minsur ... its option to acquire the Company's 55%-owned Lara Project",
 # "received notice from KG Exploration ... that it intends to terminate the option", "to option the X Project to a
 # private British Columbia company"
-_OUT_BODY = re.compile(r"(?i)\b(?:the\s+Company|we)\s+(?:has\s+|have\s+|will\s+)?grant(?:ed|s)?\s+(?:to\s+)?(?:the\s+|an?\s+)?[^.]{0,60}?\b(?:option|right)\s+"
+_OUT_BODY = re.compile(r"(?i)\bthe\s+Optionee\s+of\s+(?:our|its|the\s+Company['\u2019]s)\b|\bour\s+Optionee\b|"      # OPS_V1
+                       r"\bwith\s+(?!the\s+Company\b)[^.()]{2,80}?\(\s*(?:the\s+|an?\s+)?[\u201c\"]\s*Optionee\s*[\u201d\"]\s*\)|"      # R4
+                       r"\b(?:providing|allowing|permitting|enabling)\s+(?:for\s+)?(?:it|them|the\s+Optionee|[A-Z][\w&.\-]*)\s+to\s+(?:acquire|earn)\s+(?:up\s+to\s+)?(?:an?\s+)?"
+                       r"(?:[\d.]+\s*%\s+)?(?:\w+\s+){0,2}?interest\s+in\s+(?:the\s+Company['\u2019]s|our)\b|"      # R4
+                       r"\b(?:the\s+Company|we)\s+(?:has\s+|have\s+|will\s+)?grant(?:ed|s)?\s+(?:to\s+)?(?:the\s+|an?\s+)?[^.]{0,60}?\b(?:option|right)\s+"
                        r"to\s+(?:acquire|earn|purchase)\b|\boption\s+to\s+(?:acquire|earn|purchase)\s+(?:all\s+of\s+|up\s+to\s+)?(?:an?\s+|the\s+)?"
                        r"(?:[\d.]+\s*%\s+(?:\w+\s+){0,2}interest\s+in\s+)?the\s+Company['\u2019]s\b|"
                        r"\b(?:received\s+(?:\w+\s+){0,2}notice\s+from|(?:been\s+)?notified\s+by)\b" + _NP + r"{0,160}?\b(?:its|their|it)\s+(?:intention\s+to\s+|"
@@ -985,6 +1034,7 @@ def _direction(s, is_hl, self_rx, hl):
     other = r"(?!(?:the\s+)?Company\b)(?!we\b)[A-Z][\w&.'\u2019\-]*(?:\s+[A-Z][\w&.'\u2019\-]*){0,4}"
     if re.search(r"(?i)\b(?:grant(?:ed|ing|s)?|providing)\s+(?:to\s+)?(?:the\s+)?option\s+to\s+acquire\s+[^.]{0,60}\b(?:the\s+)?Company['\u2019]s\b", s) or \
             any(not self_rx.search(x.group(1)) and not re.match(r"(?i)(?:Upon|Pursuant|Under|Following|If|Once|After|Subject)\b", x.group(1))
+                and not (s[x.end(1):x.end(1) + 3].lstrip().startswith("(") and self_rx.search(s[x.end(1):x.end(1) + 60].split(")")[0]))
                 and not (re.search(r"(?:\band|&)\s+$", s[:x.start(1)]) and self_rx.search(s[max(0, x.start(1) - 50):x.start(1)]))  # "ABC and X can earn"
                 for x in re.finditer(r"\b(" + other + r")\s+(?:\([^)]{0,60}\)\s+)?(?:will\s+obtain|has\s+the\s+right\s+to\s+acquire|"
                                      r"may\s+earn|can\s+earn|has\s+exercised|may\s+exercise|will\s+conduct|may\s+acquire|can\s+acquire|"
@@ -994,11 +1044,14 @@ def _direction(s, is_hl, self_rx, hl):
                                      r"will\s+have\s+(?:the|an)\s+(?:exclusive\s+)?(?:right|option)\s+(?:and\s+(?:first\s+)?option\s+)?"
                                      r"(?:\([^)]{0,40}\)\s+)?to\s+(?:acquire|earn))\b", s)) or \
             any(not self_rx.search(x.group(1)) and not re.match(r"(?i)(?:the|an?|its)\b", x.group(1))
-                for x in re.finditer(r"(?i:\b(?:has\s+|will\s+)?(?:grant(?:ed|s|ing)?|giv(?:ing|es|en))\s+(?:to\s+)?)(" + other + r")\s+(?:\([^)]{0,60}\)\s+)?"
+                for x in re.finditer(r"(?i:\b(?:has\s+|will\s+)?(?:grant(?:ed|s|ing)?|giv(?:ing|es|en))\s+(?:to\s+)?)(" + other.replace("[A-Z][", "[A-Z0-9][", 1) + r")\s+(?:\([^)]{0,60}\)\s+)?"
                                      r"(?i:(?:the|an?)\s+(?:[\w-]+\s+){0,2}?(?:exclusive\s+)?(?:(?:right\s+and\s+)?option|right\s+to\s+"
                                      r"(?:acquire|earn|purchase)))", s)) or \
             any(self_rx.search(x.group(1)) for x in re.finditer(r"(?i)\bto\s+acquire\s+from\s+([^.,]{2,40})", s)) or \
             re.search(r"(?i)\b(?:earn-in|option)\s+partner\b|\breceived\s+(?:the\s+)?[^.]{0,40}payment\s+from\b", s) or \
+            not re.search(r"(?i)\bbuy[\s-]?back\b|\bback[\s-]?in\b|\bright\s+of\s+first\s+refusal\b|\broyalt", s) and \
+            any(self_rx.match(x.group(1)) and not re.search(r"['\u2019]s\b", x.group(1)) for x in re.finditer(
+                r"(?i)\b(?:pay(?:ing|s)?|issu(?:e|es|ing))\s+to\s+((?:the\s+)?[\w&.'\u2019\-]+(?:\s+[\w&.'\u2019\-]+){0,2})", s)) or \
             _OUT_BODY.search(s) and not re.search(r"(?i)\bbuy[\s-]?back\b|\bright\s+of\s+first\s+refusal\b|\broyalt", s) or \
             any(self_rx.search(x.group(1)) for x in re.finditer(r"(?i)\b(?:option|earn[\s-]?in)\b[^.]{0,60}?\b(?:to|in|on|over|into)\s+"
                                                                 r"([\w&.'\-]+(?:\s+[\w&.'\-]+){0,2})['\u2019]s\s+(?!SEDAR|EDGAR|[Ww]ebsite)[A-Z]"
@@ -1244,6 +1297,11 @@ def analyse(headline, body):
                                                         b[max(0, dm.start() - 12):dm.start()]) else ""
     dl_year = int(dl[:4]) if dl else None
     other_sp = _other_news_spans(h)
+    pn7_other = []
+    pn7 = _PN7_UPD_AND_DEAL.search(h)
+    if pn7 and not re.search(r"(?i)\b(?:acqui|purchas|option|stak|sale\b|sells?\b|sold\b|earn)", pn7.group(1)):
+        pn7_other = [p for _q, p in _props_in(pn7.group(1), issuer_words)]     # PNJUNK7 (XTM)
+        other_sp = list(other_sp) + [(0, pn7.end(1))]
     # 1.0.7: the projects of the headline's other news (a resource estimate, an update ...) are not the deal's ground in
     # the body either, unless the deal adds ground to a project
     other_names = [p for a, z in other_sp for _q, p in _props_in(h[a:z], issuer_words)] if not any(
@@ -1258,6 +1316,9 @@ def analyse(headline, body):
     hl_props = [(q, p) for q, p in hl_props if not re.search(
         r"(?i)\b(?:two|three|four|five|six|several|multiple|\d+)\s+(?:\w+\s+){0,2}$", h[max(0, _at(h, p, q) - 40):_at(h, p, q)])
         or not re.search(r"(?i)(?:projects|properties)$", p)]
+    pn7pk = _PN7_PACKAGE.search(h)
+    if pn7pk:
+        hl_props = [(q, p) for q, p in hl_props if not (PN.key(p).split() and PN.key(p).split()[0] in T._fold(pn7pk.group(1)).lower().split())]
     if not hl_props:
         # 1.0.7: "Renegotiates Rubi-Esperanza Cash and Option Agreement", "Extends Radio Option Agreement": the name
         # before the agreement, unless the body writes it as a company's name (the optionor's)
@@ -1393,6 +1454,7 @@ def analyse(headline, body):
             continue                # OPT_V1b: a release whose headline is about something else reports a deal only in its lead
         # 1.0.7: a body sentence's names, not those of the copy of the headline it may open with (checked above)
         props = hl_props if is_hl else _props_in(_drop_head_copy(h, s) if i <= 3 else s, issuer_words)
+        props = [(q, p) for q, p in props if not any(PN.same(p, o) for o in pn7_other)]      # PNJUNK7
         if kind not in ("staking", "expand"):          # staked ground is added to the project the other news is about
             props = [(q, p) for q, p in props if not any(PN.same(p, o) for o in other_names)]
         mentions.append({"i": i, "s": s, "hl": is_hl, "kind": kind, "props": [p for _, p in props]})
@@ -1576,9 +1638,13 @@ def analyse(headline, body):
                     main = deals[i]
     rows = []
     hl_type = _hl_type(h)
+    if len(deals) > 1:          # OPS_V1: each item to the deal the body names last before it
+        _split_items(body_main, deals, _iso_d(dl), self_rx)
     for d in deals:
+        d["dl"] = dl
         d["dl_year"] = dl_year
         d["other_names"] = other_names
+        d["pn7_other"] = pn7_other
         r = _row(d, sents, h, b, body_main, self_rx, issuer_words, hl_type if d is main and not d.get("dual") else None, d is main,
                  len(deals))
         if r:
@@ -1640,6 +1706,30 @@ def _opt_terms(ms, dl_year, props=()):
     return False
 
 
+# PNJUNK7: the headline's other news, then " and " an unnamed purchase or staking of claims (XTM 2020-09-01)
+_PN7_UPD_AND_DEAL = re.compile(r"^(.*?\b(?:Provides|Announces|Reports|Gives)\s+(?:an?\s+)?(?:\w+\s+){0,2}?(?:Update|Progress|Results)\b.*?)"
+                               r"\s+(?:and|&)\s+(?=(?:Purchases|Acquires|Buys|Stakes)\s+(?:(?:Additional|New|More|Strategic|Key)\s+)?"
+                               r"(?:(?:Mining|Mineral|Exploration)\s+)?(?:Claims?|Ground|Land|Licen[cs]es|Tenements)\s*(?:$|[,;:|(]|\s+from\b))")
+# PNJUNK7: "Consolidation of Strategic Duparquet Property Package with Acquisition of ..." (FF 2020)
+_PN7_PACKAGE = re.compile(r"(?i)\b(?:consolidat\w*|expan\w*|strengthen\w*|grow\w*|enlarg\w*)\s+(?:of\s+)?(?:(?:its|the|our)\s+)?"
+                          r"((?:[\w\-]+\s+){1,5}?)(?:property|project|land|claims?)\s+package\s+(?:with|through|by|via)\s+(?:the\s+)?(?:acqui|purchas)")
+_PN7_COM = r"(?:Copper|Gold|Silver|Zinc|Lead|Nickel|Cobalt|Molybdenum|Moly|Tungsten|Lithium|Uranium|Platinum|Palladium|PGM|PGE|Tin|Antimony|Vanadium)"
+_PN7_DESC = re.compile(r"(?<=[A-Za-z])\s+" + _PN7_COM + r"(?:(?:-" + _PN7_COM + r")+(?:\s+(?:Porphyry|Skarn|Epithermal|VMS|Polymetallic))?|"
+                       r"\s+(?:Porphyry|Skarn|Epithermal|VMS|Polymetallic))$")
+
+
+def _pn7_desc(prop):
+    """PNJUNK7: a metals / deposit-style descriptor after the name is not part of it."""
+    return " / ".join(_PN7_DESC.sub("", x) for x in prop.split(" / ")) if prop else prop
+
+
+def _pn7_consid(x):
+    """PNJUNK7: "the Company will issue 71,500 common shares" pays for claims already bought; it leaves nothing open."""
+    if re.search(r"(?i)\bshares?\b|\bcash\b|\$", x):
+        return re.sub(r"(?i)\b(?:will|shall)\s+(?:be\s+)?(?:issue|pay)\b|\bto\s+be\s+(?:issued|paid)\b", " ", x)
+    return x
+
+
 def _row(d, sents, h, b, body_main, self_rx, issuer_words, hl_type, is_main, n_deals):
     ms = d["ms"]
     if is_main and not re.search(r"(?i)\boption|\bearn[\s-]?in\b|\bearns?\b", h):
@@ -1679,6 +1769,11 @@ def _row(d, sents, h, b, body_main, self_rx, issuer_words, hl_type, is_main, n_d
             r"\boption\s+to\s+earn\s+(?:up\s+to\s+)?(?:an?\s+)?\d{1,3}\s*%\s+interest", text) or re.search(     # 1.0.9: earning an interest is ground
             r"(?i)\boption\s+to\s+acquire\b[^.]{0,120}\b(?:shares|share\s+capital|ownership\s+of)\b", text)):
         return None                 # an option over a company's shares (Temas / ORF Technologies) is not a land deal
+    if typ == "option" and (re.search(r"(?i)\boption\b[^.]{0,40}\b(?:buy[\s-]?down|royalt\w*|NSR)\b", h) and re.search(
+            r"(?i)\boption\s+to\s+(?:acquire|purchase|buy)\s+(?:up\s+to\s+)?(?:an?\s+|the\s+)?(?:\d{1,3}(?:\.\d+)?\s*%\s+(?:of\s+)?)?(?:the\s+|an?\s+)?"
+            r"(?:[\w\-]+\s+){0,3}?(?:royalty|NSR|GOR)\b", text) or re.search(r"(?i)\bshare\s+exchange\s+agreement\b", text) and
+            not re.search(r"(?i)\b(?:propert(?:y|ies)|claims?|project|concessions?)\b", text)):
+        return None                 # OPS_V1: an option on a royalty or under a share exchange is not a land deal
     if typ in ("claim_purchase", "property_purchase", "purchase") and not d.get("bought") and _STAKED_BODY.search(body_main[:5000]) or \
             typ in ("claim_purchase", "property_purchase", "purchase") and re.search(
             r"(?i)\bnewly[\s-]+staked\b|\bgovernment\b[^.]{0,40}\b(?:has|have)\s+granted\b[^.]{0,40}\b(?:licen[cs]es|permits|concessions)\b",
@@ -1754,7 +1849,8 @@ def _row(d, sents, h, b, body_main, self_rx, issuer_words, hl_type, is_main, n_d
             kw = PN.key(pr).split() if pr else []
             if len(kw) == 1 and kw[0] in PN._PART_WORDS:
                 continue           # OPT_V1f: "Lake Property" from "McFarlane Lake Mining" is no name
-            if pr and typ != "staking" and any(PN.same(pr, o) for o in d.get("other_names") or ()):
+            if pr and (typ != "staking" and any(PN.same(pr, o) for o in d.get("other_names") or ()) or
+                       any(PN.same(pr, o) for o in d.get("pn7_other") or ())):     # PNJUNK7: staking too
                 continue           # 1.0.7: the project of the headline's other news
             iw = {T._fold(w).lower() for w in issuer_words} if issuer_words else set()
             if kw and kw[0] in iw and (len(kw) > 1 and kw[1] in iw or
@@ -1777,6 +1873,7 @@ def _row(d, sents, h, b, body_main, self_rx, issuer_words, hl_type, is_main, n_d
                 break
     if prop:
         prop = " / ".join(PN.bare(x) for x in prop.split(" / "))     # the column is headed Property
+        prop = _pn7_desc(re.sub(r"^(?:Out|OUT)\s+(?=[A-Z])", "", prop))       # OPS_V1: "Options Out Gander Gold Project"
     # counterparty
     cp = _counterparty(ms, typ, self_rx, b)
     if cp is None and typ != "staking" and not d.get("cp_short"):
@@ -1799,13 +1896,21 @@ def _row(d, sents, h, b, body_main, self_rx, issuer_words, hl_type, is_main, n_d
         if dm and not re.search(r"(?i)news\s+release\s+dated|press\s+release\s+dated", m["s"][max(0, dm.start() - 30):dm.end()]):
             date = T._iso(dm)
             break
+    items, sched = [], None
+    if typ in ("option_in", "option_out"):       # OPS_V1: the payment schedule
+        items, sched, doc_cur = _deal_schedule(body_main[:SCHED_CAP], typ, stage, date, _iso_d(d.get("dl")), self_rx,
+                                               d.get("pre_items") if n_deals > 1 else None)
+        gate = schedule_gate(items, body_main[:SCHED_CAP]) if items else None     # OPS_GATE_V1
+        _ot_totals(terms, items, region)
+        if doc_cur and terms.get("currency") in (None, "CAD") and not re.search(r"(?i)\b(?:C|CA|CDN)\$|\bCAD\b", region):
+            terms["currency"] = doc_cur
     if typ == "staking" and stage not in ("terminated",):
         stage = "completed" if _STAKE_DONE.search(h + " " + text) or re.search(
             r"(?i)\bgovernment\b[^.]{0,40}\b(?:has|have)\s+granted\b[^.]{0,40}\b(?:licen[cs]es|permits|concessions)\b", body_main[:5000]) \
             else "signed"     # 1.0.7: licences granted = registered
     return dict({"deal_type": typ, "stage": stage, "property": prop, "counterparty": None if typ == "staking" else cp,
                  "interest_pct": pct, "date": date, "metal": T._metal(h + " " + b[:2500]),
-                 "jurisdiction": _juris(h, sents, ms, n_deals)}, **terms)
+                 "jurisdiction": _juris(h, sents, ms, n_deals), "items": items, "schedule": sched, "sched_gate": gate if typ in ("option_in", "option_out") else None}, **terms)
 
 
 def _earner_out(cp, b, self_rx):
@@ -1815,7 +1920,9 @@ def _earner_out(cp, b, self_rx):
     w = re.escape(cp.split()[0])
     them = re.search(r"\b" + w + r"\b[\w\s.&'\u2019\-]{0,30}?\s+(?:will|may|can|shall|could)\s+(?:\w+\s+){0,2}?earn\b|\bfor\s+" + w +
                      r"\b[\w\s.&'\u2019\-]{0,30}?\s+to\s+(?:incur|earn|exercise|fund|spend)\b|\bearn[\s-]?in\s+(?:to\s+)?(?:\w+\s+){0,3}?by\s+" + w + r"\b|"
-                     r"\b" + w + r"\b[\w\s.&'\u2019\-]{0,30}?\s+(?:has\s+the\s+right|is\s+entitled|has\s+the\s+option)\s+to\s+(?:\w+\s+){0,2}?(?:earn|acquire)\b", b)
+                     r"\b" + w + r"\b[\w\s.&'\u2019\-]{0,30}?\s+(?:has\s+the\s+right|is\s+entitled|has\s+the\s+option)\s+to\s+(?:\w+\s+){0,2}?(?:earn|acquire)\b|"
+                     r"\b" + w + r"\b[\w\s.&'\u2019\-]{0,30}?\s+(?:is|will\s+be|has\s+been)\s+granted\s+(?:the|an)\s+(?:sole\s+)?(?:exclusive\s+)?"
+                     r"(?:right|option)\s+to\s+(?:\w+\s+){0,2}?(?:earn|acquire)\b", b)       # OPS_V1
     if not them:
         return None
     us = re.search(r"(?i)\b(?:the\s+Company|we)\s+(?:will|may|can|shall|could)\s+(?:\w+\s+){0,2}?earn\b|\b(?:the\s+Company|we)\s+(?:has|have)\s+the\s+"
@@ -1888,6 +1995,8 @@ _STAKE_DONE = re.compile(r"(?i)\b(?:licen[cs]es?|claims?|applications?|tenements
 
 
 # 1.0.9: "has now acquired ..." while "the acquisition ... remains subject to customary conditions of closing": signed
+_WERE_ACQ = re.compile(r"(?i)\b(?:were|was|have\s+been|has\s+been)\s+(?:now\s+)?(?:acquired|purchased)\s+"
+                       r"(?:pursuant\s+to|under|from|through|by\s+the\s+Company)\b")     # PNJUNK7
 _OPEN_CLOSE = re.compile(r"(?i)\bremains?\s+subject\s+to\b|\bsubject\s+to\s+(?:the\s+)?(?:customary\s+)?(?:conditions\s+(?:of|to|for)\s+)?closing\b")
 
 
@@ -1932,6 +2041,11 @@ def _stage(ms, typ, term_flag, h=""):
         if group is bodies and typ in ("claim_purchase", "property_purchase") and \
                 any(_ACQUIRED.search(x) for x in group[:3]) and not any(_PENDING.search(x) for x in group):
             return "completed"      # 1.0.7: "has acquired the Wilson Claims ... for $1,000 and 10,000 shares"
+        if group is bodies and typ in ("claim_purchase", "property_purchase") and not _OPEN_CLOSE.search(t) and any(
+                (_ACQUIRED.search(x) or _WERE_ACQ.search(x)) and not _PENDING.search(x) and not re.search(
+                    r"(?i)\b(?:previously|originally|historically|formerly)\b|\bin\s+(?:19|20)\d\d\b|\b(?:if|once|when|upon)\b", x)
+                for x in group[:3]) and not any(_PENDING.search(_pn7_consid(x)) for x in group):
+            return "completed"      # PNJUNK7 (OMGA 2024-05-24): "has acquired additional claims"; "will issue 71,500 shares"
         if group is bodies and typ == "property_sale" and any(
                 re.search(r"(?i)\b(?:has|have)\s+(?:now\s+)?(?:sold|divested)\b|^[^,;]{0,80}?\bsold\s+(?:its|a|the|all|100)\b", x) and
                 not _PENDING.search(x) for x in group[:3]):
@@ -1957,6 +2071,12 @@ def _stage(ms, typ, term_flag, h=""):
             return "proposed"
         if _SIGN.search(t) and group is not hl:
             return "signed"
+        if group is hl and re.search(r"(?i)\bfurther\s+to\s+(?:its|the|our)\s+(?:press|news)\s+release", " ".join(bodies[:2])) and \
+                any(_PAY.search(x) for x in bodies[:2]):
+            continue                # OPS_V1: "Options Ontario Gold Property": the body reports a payment under the option announced before
+        if group is hl and _PROP.search(" ".join(bodies[:4])) and not re.search(r"(?i)\bdefinitive\b", " ".join(bodies[:4]) + " " + t) and \
+                not _BINDING.search(" ".join(bodies[:4]) + " " + t):
+            continue                # R4: the body's first words call the paper a letter of intent
         if group is hl and re.search(r"\b(?:Options|OPTIONS|Signs|SIGNS|Enters|ENTERS|Executes|EXECUTES)\b", t):
             return "signed"         # OPT_V1b: "Voyageur ... Options Mink Narrows Project": a termination deeper down is another deal
     return "signed"
@@ -2284,6 +2404,826 @@ def _terms(t, typ):
     return out
 
 
+# ------------------------------------------------------------------ OPS_V1 (C9, 2026-10-12): option payment schedules
+# One item per due date an option's terms state: cash, shares (a count or a $ value), work, or a dated condition.
+# Rule calls (Justin, 2026-10-07; claude/MNT_EVENTS_READERS_2026-10-07.md): OE dates the release gives as a calendar
+# date are exact, dates counted from an agreement / effective date the release states are exact, the rest are
+# estimated from the agreement or release date and labelled so; OA no date while the anchor has not happened (an
+# Election Date, a later Definitive Agreement, earning an interest); OT the deal's totals are its items summed when the
+# release states no total; OP a paid item is marked paid; OD dated conditions (outside dates, report deadlines, cure
+# periods) are items too; OR one item per instalment; OM milestone and bonus payments are conditional, never dated; OY
+# a payment someone other than the company makes keeps its payer.
+_OD_CORE = (r"(?:(" + T._MON + r")\s*(\d{1,2})\s*(?:st|nd|rd|th)?\s*,?\s*((?:19|20)\d\d)|(\d{1,2})\s*(?:st|nd|rd|th)?\s+"
+            r"(?:(?:day\s+)?of\s+)?(" + T._MON + r")\s*,?\s*((?:19|20)\d\d))")
+_ODATE = re.compile(r"(?i)\b" + _OD_CORE + r"\b")
+_ORD = {"first": 1, "second": 2, "third": 3, "fourth": 4, "fifth": 5, "sixth": 6, "seventh": 7, "eighth": 8, "ninth": 9, "tenth": 10,
+        "eleventh": 11, "twelfth": 12}
+_ORD_RX = r"(?:first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth|\d{1,2}(?:st|nd|rd|th))"
+_UNITS = ("one", "two", "three", "four", "five", "six", "seven", "eight", "nine")
+_TENS = {"twenty": 20, "thirty": 30, "forty": 40, "fifty": 50, "sixty": 60, "seventy": 70, "eighty": 80, "ninety": 90}
+_NWORD = (r"(?:\d{1,3}|(?:twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)(?:\s*-?\s*(?:one|two|three|four|five|six|seven|eight|nine)\b)?|"
+          r"one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen)")
+_NUMW = dict(_WORDN, eleven=11, thirteen=13, fourteen=14, fifteen=15, sixteen=16, seventeen=17, eighteen=18, nineteen=19)
+_MONEY = re.compile(r"(?i)(?<![\w.])(?:(C|CA|CDN|US|U|A|AU)\s?\$|\$\s?(?:CAD|USD|CDN)?|(CAD|USD|CDN)\s?\$?)\s?(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)"
+                    r"(?:\s*-?\s*(million|mm|m|k)\b)?")
+_SHN = re.compile(r"(?i)(?<![\w$.,])(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)\s*(million|m)?\s+(?:\(\d\)\s*)?(?:of\s+(?:its|the\s+Company['’]s)\s+)?"
+                  r"(?:(?:[A-Z][\w\-]*|fully\s+paid|and|non-?\s?assessable|common|ordinary|consideration|class\s+a|option|voting|voting\s+class)\s+){0,6}?s\s?hares\b")
+_SHV_AFTER = re.compile(r"(?i)^\s*(?:\w+\s+){0,2}?(?:(?:in|of|worth\s+of|in\s+the\s+form\s+of|payable\s+in|value\s+in)\s+(?:the\s+)?(?:\w+\s+){0,2}?(?:common\s+)?shares|"
+                        r"(?:common\s+)?shares\b|in\s+(?:\w+\s+){0,2}?(?:stock|equity))")
+_SHV_BEFORE = re.compile(r"(?i)(?:shares?|stock)\s+(?:\([^)]{0,40}\)\s+)?(?:\w+\s+){0,3}?(?:having|with)\s+(?:an?\s+)?(?:aggregate\s+)?(?:deemed\s+|fair\s+market\s+)?"
+                         r"value\s+(?:equal\s+to\s+|of\s+)?$|shares\s+(?:worth|valued\s+at)\s+$")
+_WORK_AFTER = re.compile(r"(?i)^\s*(?:minimum\s+|in\s+)?work\b(?!\s+(?:program|permit))|^\s*(?:\w+\s+){0,7}?(?:spent|used|allocated)\s+(?:\w+\s+){0,3}?(?:as\s+|on\s+)?(?:exploration\s+)?expenditures|^\s*(?:\w+\s+){0,3}?(?:(?:in|of|on)\s+(?:the\s+)?(?:qualified\s+|qualifying\s+|direct\s+|eligible\s+|staged\s+|"
+                         r"required\s+)?(?:exploration|work|eligible\s+expenditures|expenditures|development)|(?:exploration|work)\s+(?:expenditures|commitments?|program))")
+_WORK_BEFORE = re.compile(r"(?i)\b(?:incur(?:ring|red|s)?|expend(?:ing|ed|itures?\s+of)?|spend(?:ing)?|spent|invest(?:ing|s)?|fund(?:ing)?\s+(?:up\s+to\s+)?|"
+                          r"exploration\s+expenditures\s+(?:of|totall?ing)|work\s+(?:commitments?|expenditures?)\s+(?:of|totall?ing)|"
+                          r"(?:exploration|work)\s+(?:program|commitment)\s+of|expenditures\s+(?:[\w\-]+\s+){0,4}?of)\s+(?:a\s+(?:minimum|total)\s+of\s+|at\s+least\s+|not\s+less\s+than\s+|"
+                          r"(?:an\s+)?(?:additional|further)\s+)?$")
+_TOTAL_B4 = re.compile(r"(?i)\b(?:aggregate|total(?:ling|ing|ed)?|in\s+total|totals|for\s+(?:a|an)\s+(?:total|aggregate)|up\s+to)\s+(?:(?:of|cash|payments?|amount)\s+){0,3}$")
+_ITEM_NEG = re.compile(r"(?i)\(\s*see\s+(?:the\s+)?(?:Company['\u2019]s\s+)?(?:\w+\s+){0,3}(?:press|news)\s+release|\bbuy[\s-]?(?:back|down)|\bnotes?\s+due\b|\bsenior\s+notes|\bcredit\s+facilit|\brevolving|\bdebentures?\b|\bconvertible\b|"
+                       r"\bmaturity\b|\blease\s+liabilit|\bbeneficial\s+ownership|\bearly\s+warning|\bcontrol\s+or\s+direction|\bissued\s+and\s+outstanding|"
+                       r"\b(?:non|partially)[\s-]diluted|\baccelerat\w+|\bwaiv\w+|\brepurchas|\bpurchase\s+(?:\d|one|half|the\s+remaining\s+\d|up\s+to\s+(?:one|\d))[^.;]{0,40}(?:NSR|royalt)|"
+                       r"\broyalt|\bNSR\b|\bnet\s+smelter|\bprivate\s+placement|\bsubscription|\boffering\b|\bfinder|\bfinancing|\bgross\s+proceeds|\bwarrants?\b|"
+                       r"\bstock\s+options?|\bper\s+(?:tonne|ounce|pound|unit)\b|\b/oz\b|\bmarket\s+capitali|\bNPV|\bbudget\b|"
+                       r"\bhistorical(?:ly)?\b|\bsince\s+(?:acquisition|19|20)|\bto\s+date\b[^.;]{0,40}\b(?:spent|incurred)|\bmonthly\s+fee|\bconsult|"
+                       r"\bmanagement\s+fee|\bloan\b|\bdebt\b|\bsettle|\bseverance|\bsalary|\bhold\s+period|\btrading\s+restriction|\bresale")
+_COND = re.compile(r"(?i)\b(?:milestone|bonus|upon\s+(?:the\s+)?(?:delivery|completion|filing|publication|establish\w*|announcement|receipt)\s+of\s+(?:an?\s+|the\s+)?"
+                   r"(?:\w+\s+){0,3}?(?:resource|feasibility|PEA|preliminary\s+economic|pre-?feasibility|technical\s+report|NI\s+43-101)|"
+                   r"(?:in\s+the\s+event|if)\s+(?:that\s+)?(?:the\s+Company\s+)?(?:obtains?|establish\w*|completes?|delivers?|achieves?|receives?)\s+(?:an?\s+)?"
+                   r"(?:\w+\s+){0,3}?(?:resource|feasibility|PEA|economic|production|study)|commercial\s+production|production\s+decision|"
+                   r"(?:upon|on)\s+(?:establishing|achieving|filing|delivering|completing)\s+(?:an?\s+|the\s+)?(?:\w+\s+){0,3}?(?:resource|feasibility|study)|"
+                   r"\b(?:resource|feasibility|PEA)\b[^.;]{0,40}\bwithin\s+\w+\s+(?:days|months)\s+of\s+its\s+(?:public\s+)?disclosure|court\s+confirmation)")
+_LATER = re.compile(r"(?i)\bElection\s+Date|\bcompletion\s+of\s+(?:the\s+)?(?:Option|Stage|Phase)\s+(?:\d|[IV]+|one|two)\b|"
+                    r"\bacquir\w+\s+(?:the\s+)?(?:initial|first)\s+interest|\b(?:anniversar\w+|execution|signing)\s+of\s+a\s+Definitive\s+Agreement|"
+                    r"\bwithin\s+\w+\s+(?:\(\d+\)\s+)?(?:years?|months?)\s+of\s+(?:the\s+)?(?:\w+\s+){0,2}?(?:having\s+)?earn(?:ed|ing)\b|"
+                    r"\bfollowing\s+(?:the\s+)?(?:exercise|completion)\s+of\s+the\s+(?:first|initial)\s+option")
+_PAID = re.compile(r"(?i)\(\s*(?:paid|issued|completed|received)\b|\bpaid\s+on\b|\bissued\s+on\b|\b(?:has|have)\s+(?:already\s+)?(?:been\s+)?(?:paid|issued|made|received|completed)\b|"
+                   r"\b(?:was|were)\s+(?:paid|issued|received)\b|\balready\s+(?:been\s+)?(?:paid|issued)\b|\breceived\b|(?<!\w)paid(?!\s+(?:to|in|by|on\s+or|out|for))\b")
+_PAID_HEAD = re.compile(r"(?i)\b(?:has|have)\s+(?:completed|made|paid|issued)\s+the\s+following\b|\bto\s+date\b|\balready\s+(?:paid|made|completed)")
+_DONE_SENT = re.compile(r"(?i)\b(?:has|have)\s+(?:now\s+)?(?:completed|made|paid)\s+(?:the\s+)?(?:\w+\s+){0,3}?(?:cash\s+)?payment|"
+                        r"\b(?:has|have)\s+(?:been\s+)?(?:issued|paid)\b|\bwere\s+issued\b")
+
+
+def _odate(m):
+    g = m.groups()
+    try:
+        y, mo, d = (int(g[2]), T._MONTHS[g[0][:3].lower()], int(g[1])) if g[0] else (int(g[5]), T._MONTHS[g[4][:3].lower()], int(g[3]))
+    except (ValueError, KeyError, TypeError):
+        return None
+    if not 1 <= d <= 31:
+        return None
+    for dd in (d, 30, 29, 28):          # "November 31, 2021": the month's last day
+        try:
+            return date(y, mo, min(d, dd))
+        except ValueError:
+            continue
+    return None
+
+
+def _add(d, years=0, months=0, days=0):
+    if d is None:
+        return None
+    m = d.month - 1 + months + 12 * years
+    y, m = d.year + m // 12, m % 12 + 1
+    dd = min(d.day, [31, 29 if y % 4 == 0 and (y % 100 or y % 400 == 0) else 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m - 1])
+    return date(y, m, dd) + timedelta(days=days)
+
+
+def _nw(s):
+    s = re.sub(r"\s+", "", s.lower()).replace("-", "")
+    if s.isdigit():
+        return int(s)
+    for w, v in _TENS.items():
+        if s.startswith(w):
+            return v + (_UNITS.index(s[len(w):]) + 1 if s[len(w):] in _UNITS else 0)
+    return _NUMW.get(s)
+
+
+def _ordn(x):
+    return _ORD.get(x.lower()) or int(re.sub(r"\D", "", x))
+
+
+_ANC_TAIL = r"(?P<{0}>[\w\-\s]{{0,40}}?)(?=[,;:.()]|\s+(?:the|a|and|or|in|USD?|CAD|C?\$|\d)\b|\s+" + T._MON.replace("{", "{{").replace("}", "}}") + r"\s+\d|$)"
+_DUE_RX = re.compile(
+    r"(?i)(?P<cal>\b(?:by|on\s+or\s+before|on\s+or\s+about|before|prior\s+to|no\s+later\s+than|not\s+later\s+than|until|on|due|to)\s+(?:the\s+)?" + _OD_CORE + r")|"
+    r"(?P<calyr>\b(?:during|in|by\s+the\s+end\s+of)\s+(?:the\s+)?calendar\s+(?:year\s+)?(?P<cy>(?:19|20)\d\d))|"
+    r"(?P<byyr>\bby\s+(?:the\s+end\s+of\s+)?(?P<by>(?:19|20)\d\d)\b(?![,\-/]\d))|"
+    r"(?P<anrng>\b(?P<a1>" + _ORD_RX + r")\s+(?:and|through|to|-|–)\s+(?:the\s+)?(?P<a2>" + _ORD_RX + r")\s+anniversar(?:y|ies))|"
+    r"(?P<mann>\b(?P<mn2>\d{1,3})\s*(?:st|nd|rd|th)?\s*-?\s*months?\s+anniversary(?:\s+(?:date\s+)?(?:of|from|following|after)\s+(?:the\s+)?"
+    r"(?:date\s+of\s+)?(?:(?:this|the)\s+)?" + _ANC_TAIL.format("anc2") + r")?)|"
+    r"(?P<ann>\b(?P<an>" + _ORD_RX + r")\s+(?:year\s+)?anniversary(?P<ofw>\s+(?:date\s+)?(?:of|from|following|after)\s+(?:the\s+)?(?:date\s+of\s+)?(?:(?:this|the)\s+)?"
+    + _ANC_TAIL.format("anc") + r")?)|"
+    r"(?P<win>\b(?:within|on\s+or\s+before|no\s+later\s+than|not\s+later\s+than|by)?\s*(?:the\s+date\s+that\s+is\s+|a\s+period\s+of\s+)?(?P<wn>" + _NWORD +
+    r")\s*(?:\(\d+\)\s*)?(?P<wu>calendar\s+days?|business\s+days?|days?|weeks?|months?|years?)\s+(?:of|from|following|after)\s+(?:the\s+)?(?:date\s+of\s+)?"
+    r"(?:(?:this|the)\s+)?(?:receipt\s+of\s+)?" + _ANC_TAIL.format("wa") + r")|"
+    r"(?P<winb>\b(?:within|at|on\s+or\s+before)\s+(?P<bn>" + _NWORD + r")\s*(?:\(\d+\)\s*)?(?P<bu>days?|months?|years?)(?=\s*[,;:.]|\s*$|\s+(?:C|CA|US)?\$|"
+    r"\s+\d|\s+(?:Not|Nil|N/A)\b))|"
+    r"(?P<dur>\bduring\s+the\s+(?P<dn>" + _NWORD + r")[\s-]*(?:\(\d+\)\s*)?years?\s+(?:option\s+)?(?:period|term))|"
+    r"(?P<yr>\b(?P<yo>first|second|third|fourth|fifth|1st|2nd|3rd|4th|5th)\s+year\b)|"
+    r"(?P<now>\b(?:upon|on|at)\s+(?:the\s+)?(?:receipt\s+of\s+)?(?:(?:final\s+)?(?:TSX[\s-]?V(?:enture)?(?:\s+Exchange)?|CSE|Canadian\s+Securities\s+Exchange|"
+    r"Exchange|regulatory|stock\s+exchange)\s+)?(?:signing|execution|closing|approval|acceptance|non-objection|the\s+Assignment|the\s+Closing\s+Date|Closing|the\s+effective\s+date|"
+    r"the\s+Effective\s+Date)\b(?:\s+(?:date\s+)?of\s+(?:the\s+|this\s+)?(?:\w+\s+){0,2}?(?:agreement|transaction|letter\s+of\s+intent|LOI|Heads))?|"
+    r"\binitial\s+(?:cash\s+)?(?:(?:C|CA|CDN|US)?\$\s?[\d,.]+\s+(?:million\s+)?)?(?:option\s+)?payment\b|\bon\s+the\s+(?P<bd>fifth|tenth|\d{1,2}(?:st|nd|rd|th)?)\s+business\s+day\b)|"
+    r"(?P<over>\bover\s+(?:a|an|the)?\s*(?:period\s+of\s+)?(?:approximate\s+|approximately\s+)?(?:next\s+)?(?P<on>" + _NWORD + r")[\s-]*(?:\(\d+\)\s*)?(?:years?|months?)(?:\s+period)?(?P<thr>\s+thereafter)?)")
+
+
+def _anchor_kind(s):
+    if _LATER.search(s or ""):
+        return "later"
+    s = (s or "").lower()
+    if re.search(r"permit|environmental|\bdia\b|licen[cs]|government|ministry|court|shareholder|commencement|production|discovery|listing|"
+                 r"\benter(?:ing)?\s+(?:into\s+)?the\s+(?:stage|phase|second|third)\b|\b(?:stage|phase)\s+(?:\d|[ivx]+|two|three)\s+option", s):
+        return "later"          # an event that has not happened yet
+    if re.search(r"effective", s):
+        return "effective"
+    if re.search(r"clos", s):
+        return "closing"
+    if re.search(r"approv|accept|exchange|tsx|cse", s):
+        return "approval"
+    if re.search(r"election|earn", s):
+        return "later"
+    if re.search(r"heads|letter\s+of\s+intent|\bloi\b", s):
+        return "loi"
+    return "agreement"          # the agreement, its date, signing, execution, or not said
+
+
+def _dues(t):
+    out = []
+    for m in _DUE_RX.finditer(t):
+        g = m.groupdict()
+        d = {"a": m.start(), "z": m.end(), "text": m.group(0).strip(), "ctx": t[m.end():m.end() + 60]}
+        if g["cal"] and re.search(r"(?i)\b(?:announced|reported|disclosed|released|dated|filed|signed|executed|entered\s+into|effective|"
+                                  r"amended|commenced|began|incorporated|press\s+release|news\s+release)\s*(?:\w+\s+){0,2}$",
+                                  t[max(0, m.start() - 40):m.start()]):
+            continue
+        if g["cal"] and re.match(r"(?i)on\b", m.group(0)) and re.search(r"(?:^|[.;:]\s*|\|\s*)$", t[max(0, m.start() - 3):m.start()]) and \
+                re.match(r"[^.;]{0,80}?\b(?:has|have|had|was|were|\w{3,}ed)\b", t[m.end():m.end() + 90]):
+            continue
+        if g["cal"]:
+            dm = _ODATE.search(m.group(0))
+            d.update(date=_odate(dm) if dm else None, cal=True, exact=True)
+        elif g["calyr"]:
+            d.update(date=date(int(g["cy"]), 12, 31), cal=True, exact=True)
+        elif g["byyr"]:
+            d.update(date=date(int(g["by"]), 12, 31), cal=True, exact=False)
+        elif g["anrng"]:
+            a1, a2 = _ordn(g["a1"]), _ordn(g["a2"])
+            rng = list(range(a1, a2 + 1)) if re.search(r"(?i)through|\bto\b|-|–", m.group(0)) else [a1, a2]
+            d.update(offs=[(n, 0, 0) for n in rng], anchor="agreement")
+        elif g["ann"]:
+            ctx = (g["anc"] or "") + " " + t[m.end():m.end() + 50] if g["ofw"] else ""     # R4: "3rd anniversary - $30,000 Total ... Upon earning" is not of the earning
+            anc_k = _anchor_kind(ctx if re.fullmatch(r"(?i)\s*date(?:\s+(?:that|on\s+which|upon\s+which|when))?\s*", g["anc"] or "") else g["anc"])
+            d.update(offs=[(_ordn(g["an"]), 0, 0)], anchor="later" if _anchor_kind(ctx) == "later" else
+                     anc_k if g["ofw"] else "agreement", anc_text=g["anc"] or "")
+        elif g["win"]:
+            n, u = _nw(g["wn"]), g["wu"].lower()
+            if n is None or not re.match(r"(?i)\s*(?:within|on\s+or\s+before|no\s+later|not\s+later|by)", m.group(0)) and \
+                    not u.startswith("day") and not re.match(r"(?i)\s*(?:effective|execution|closing|signing|date\s+of\s+(?:the\s+)?(?:\w+\s+)?agreement)",
+                                                             g["wa"] or ""):
+                continue        # "12 months from the effective date" is a due date; "3 years after the war" is not
+            off = (n, 0, 0) if u.startswith("year") else (0, n, 0) if u.startswith("month") else \
+                (0, 0, 7 * n) if u.startswith("week") else (0, 0, round(n * 7 / 5)) if u.startswith("business") else (0, 0, n)
+            ctx = (g["wa"] or "") + " " + t[m.end():m.end() + 50]
+            wk = _anchor_kind(ctx if re.fullmatch(r"(?i)\s*date(?:\s+(?:that|on\s+which|upon\s+which|when))?\s*", g["wa"] or "") else g["wa"])
+            d.update(offs=[off], anchor="later" if _anchor_kind(ctx) == "later" else wk, anc_text=g["wa"] or "")
+        elif g["mann"]:
+            ctx = (g["anc2"] or "") + " " + t[m.end():m.end() + 50] if g["anc2"] is not None else ""
+            d.update(offs=[(0, int(g["mn2"]), 0)], anchor="later" if _anchor_kind(ctx) == "later" else _anchor_kind(g["anc2"]),
+                     anc_text=g["anc2"] or "")
+        elif g["winb"]:
+            n, u = _nw(g["bn"]), g["bu"].lower()
+            if n is None:
+                continue
+            d.update(offs=[(n, 0, 0) if u.startswith("year") else (0, n, 0) if u.startswith("month") else (0, 0, n)], anchor="agreement")
+        elif g["dur"]:
+            d.update(offs=[(_nw(g["dn"]) or 0, 0, 0)], anchor="agreement")
+        elif g["yr"]:
+            if re.search(r"(?i)\b(?:after|following|beyond|from|during|in|for|of)\s+(?:the\s+|its\s+)?$", t[max(0, m.start() - 20):m.start()]):
+                continue
+            d.update(offs=[(_ordn(g["yo"]), 0, 0)], anchor="agreement")
+        elif g["now"]:
+            s = m.group(0).lower()
+            if g["bd"]:
+                d.update(offs=[(0, 0, round(_ordn(g["bd"]) * 7 / 5))], anchor="agreement")
+            else:
+                d.update(offs=[(0, 0, 0)], anchor="approval" if re.search(r"approv|accept", s) else
+                         "closing" if "clos" in s else "effective" if "effective" in s else
+                         "loi" if re.search(r"letter|loi|heads", s) else "agreement", anc_text=s)
+        elif g["over"]:
+            d.update(over=True, thereafter=bool(g["thr"]))
+        out.append(d)
+    for d in out:
+        if not d.get("cal") and not d.get("over"):
+            bm = re.match(r"\s*[,(]?\s*(?:i\.e\.\s*|being\s+)?" + _OD_CORE + r"\)?", t[d["z"]:d["z"] + 40])
+            if bm:
+                dm = _ODATE.search(bm.group(0))
+                if dm and _odate(dm):
+                    d.update(date=_odate(dm), cal=True, exact=True, z=d["z"] + bm.end(), text=d["text"] + " " + bm.group(0).strip())
+    out = [d for i, d in enumerate(out) if not (re.match(r"(?i)initial\b", d["text"]) and any(
+        e["a"] > d["z"] and e["a"] - d["z"] <= 120 and re.match(r"(?i)(?:within|on\s+or\s+before|no\s+later|not\s+later|by|before|prior\s+to)\b", e["text"]) and
+        not re.search(r"[.;]", t[d["z"]:e["a"]])
+        for e in out[i + 1:]))]      # R4: "a one-time initial cash payment ... of C$25,000 within 180 days following ..."
+    # adjacent dues with nothing between are one ("on signing on or before March 10, 2026", "on the effective date
+    # (paid on November 18, 2024)"): the calendar date wins
+    merged = []
+    for d in out:
+        gap = t[merged[-1]["z"]:d["a"]] if merged else None
+        if merged and re.fullmatch(r"(?i)[\s,]*(?:\(?\s*|and\s+|or\s+|being\s+)?(?:(?:paid|issued|received|completed)\s+)?", gap):
+            p = merged[-1]
+            if d.get("cal") and not p.get("cal"):
+                d = dict(d, a=p["a"], text=p["text"] + " " + d["text"], was=p)
+                if re.search(r"(?i)paid|issued|received|completed", gap):
+                    d["paid"] = True
+            elif p.get("cal") and not d.get("cal"):
+                d = dict(p, z=d["z"], text=p["text"] + " " + d["text"], was=d)
+            else:
+                merged.append(d)
+                continue
+            merged[-1] = d
+        else:
+            merged.append(d)
+    return merged
+
+
+def _window(c, d, real):
+    """The text of one item: its amounts and its due, give or take a few words."""
+    ps = [x[0] for x in real] + [d["a"], d["z"]]
+    return c[max(0, min(ps) - 40):max(ps) + 40]
+
+
+def _done(seg, a, z):
+    """An amount the sentence says was already paid or issued, or a value restated ("representing an aggregate value of")."""
+    cl = re.split(r"[,;]\s|\band\s+(?:is|are|will|must|shall)\b", seg[max(0, a - 120):a])[-1]
+    return bool(re.search(r"(?i)\b(?:has|have)\s+(?:already\s+)?(?:made|issued|paid|received|completed)\b|\brepresenting\b", cl) or
+                re.match(r"(?i)[^.;,]{0,40}?\b(?:has|have)\s+been\s+(?:made|issued|paid|received)\b", seg[z:z + 60]))
+
+
+def _amounts(seg, head=""):
+    """[(pos, kind, value, currency, is_total)] of the cash, shares (count / $ value) and work in seg."""
+    out, taken = [], []
+    for m in _MONEY.finditer(seg):
+        v = _amt(m.group(3), m.group(4))
+        if v < 100:
+            continue
+        before, after = seg[max(0, m.start() - 70):m.start()], seg[m.end():m.end() + 60]
+        tot = bool(_TOTAL_B4.search(before[-40:])) and not re.search(r"(?i)\bfurther\b|\badditional\b", before[-45:])
+        cur = _curr(m.group(1) or m.group(2) or "")
+        if _SHV_AFTER.match(after) or _SHV_BEFORE.search(before):
+            k = "sh_v"
+        elif _WORK_AFTER.match(after) or _WORK_BEFORE.search(before[-60:]) or re.search(r"(?i)expenditure|exploration\s+(?:work|expenses)|\bexpenses\b", head) and \
+                not re.search(r"(?i)\b(?:cash|pay)", before[-30:]) and not re.match(r"(?i)\s*(?:\w+\s+){0,2}?(?:cash|payment)", after):
+            k = "work"
+        elif out and out[-1][1] == "work" and not re.search(r"(?i)\bcash\b|\bpay|\bshares?\b", seg[out[-1][0]:m.start()]):
+            k = "work"              # "invest US$2,000,000 ... during 2026 and US$4,000,000 during 2027"
+        else:
+            k = "cash"
+        out.append((m.start(), k, v, cur, tot, bool(re.search(r"(?i)\bof\s+which\s+(?:\w+\s+){0,3}$", before[-30:])),
+                    _done(seg, m.start(), m.end())))
+        taken.append((m.start(), m.end()))
+    for m in _SHN.finditer(seg):
+        if any(x <= m.start() < y for x, y in taken):
+            continue
+        before = seg[max(0, m.start() - 50):m.start()]
+        tot = bool(_TOTAL_B4.search(before[-40:])) and not re.search(r"(?i)\bfurther\b|\badditional\b", before[-25:])
+        v = _amt(m.group(1), m.group(2))
+        if v >= 1000 and not re.fullmatch(r"(?:19|20)\d\d", m.group(1)):
+            out.append((m.start(), "sh_n", v, None, tot, False, _done(seg, m.start(), m.end())))
+    return sorted(out)
+
+
+# a schedule table flattened into text: its header names the columns, each row is a due then its values
+_COLS = re.compile(r"(?i)\b(?:(?<!option\s)payments?(?!\s+date)(?:\s*\((?:USD|CAD|US\$|C\$)\))?|cash(?:\s+payments?)?|property\s+payments?|option\s+payments?|(?:common\s+)?shares?(?:\s+payments?)?|"
+                   r"(?:exploration\s+(?:and\s+development\s+)?)?expenditures|work(?:\s+commitments?)?|earn[\s-]?in|interest|status|total(?:\s+value)?|"
+                   r"(?:payment\s+)?date(?:\s+for\s+completion)?|timing)\b")
+_CELL = re.compile(r"(?i)(?:(?:C|CA|CAD|CDN|US|USD|A|AU)\s?\$|\$|(?:CAD|USD)\s?\$?)\s?\d[\d,]*(?:\.\d+)?(?:\s*(?:million|m)\b)?|"
+                   r"(?<![\w$.,])\d{1,3}(?:,\d{3})+(?:\.\d+)?(?:\s*\(\d\))?(?:\s+shares)?|\d{1,3}\s*%|(?<!\w)[–—\-](?!\w)|\bnil\b|\bnot\s+applicable\b|\bN/A\b|\bpaid\b")
+
+
+def _table(c):
+    """(columns, header_end) when c opens with a schedule table's header, else None."""
+    m = re.search(r"(?i)\b(?:date\s+for\s+completion|timing|payment\s+date|due\s+dates?|as\s+at\s+" + T._MON + r"\s+\d{1,2}|"
+                  r"cash\s+payments?|cash|property\s+payments|milestone(?=\s+(?:work|cash|payment))|work\s+commitments?)\b", c[:400])
+    if not m:
+        return None
+    cols, z = [], m.start()
+    v1 = re.compile(r"\$|\d{2}").search(c, m.start() + (len(m.group(0)) if re.match(r"(?i)as\s+at", m.group(0)) else 0))
+    for x in _COLS.finditer(c, m.start(), min(m.start() + 260, v1.start() if v1 else len(c))):
+        w = x.group(0).lower()
+        k = "cash" if re.match(r"cash|property|option\s+pay|payment", w) else "sh" if "share" in w else "work" if re.match(r"explor|expend|work", w) else \
+            "earn" if re.match(r"earn|interest|total", w) else "status" if w == "status" else None
+        if k and (not cols or cols[-1][0] != k):
+            payer = re.match(r"(?i)\s+to\s+be\s+(?:made|satisfied|issued|paid)\s+by\s+([A-Z][\w&.\-]*)", c[x.end():x.end() + 60])
+            cols.append((k, payer.group(1) if payer else None))
+        if k or not cols:
+            z = x.end()
+        if re.match(r"\s*(?:to\s+be\s+(?:made|satisfied)\s+by\s+\w+\s*)?(?:(?:C|US)?\$|\d|initial|upon|on\s+or|within|first|1st|20\d\d)", c[x.end():], re.I) \
+                and len(cols) >= 2:
+            break
+    if re.search(r"\$|\d{3}|\b(?:of|and|the|to)\s+(?!be\s+(?:made|satisfied)|[A-Z])|\b(?:will|shall|must)\s+(?!be\s+(?:made|satisfied))", c[m.start():z]):
+        return None                     # a sentence, not a header ("a cash payment of $50,000 and ... Common Shares")
+    return (cols, z) if len(cols) >= 2 and sum(1 for k, _p in cols if k in ("cash", "sh", "work")) >= 2 else None
+
+
+def schedule_items(t, release=None, agreement=None, effective=None, self_rx=None, owners=None, stage=None):
+    """The schedule items of one option in text t. release / agreement / effective: datetime.date or None.
+    owners: [(deal index, regex of its property's name)]: each item then belongs to the deal named last before it."""
+    t = _digits(re.sub(r"[\u200b-\u200f\u2060\ufeff]", "", t))      # R4: invisible marks hide sentence ends
+    t = re.sub(r"(\$\s?\d{1,3}),\s(\d{3})\b", r"\1,\2", t)              # '$500, 000'
+    t = re.sub(r"\b(\d{1,2})\s+(st|nd|rd|th)\b", r"\1\2", t)             # '1 st anniversary'
+    is_heads = bool(re.search(r"(?i)\bHeads\s+of\s+Agreement|\bletter\s+of\s+intent\b|\bterm\s+sheet\b|\bLOI\b|"
+                             r"\b(?:anticipate|expect|intend|plan)\w*\s+(?:\w+\s+){0,4}?(?:sign|enter\s+into|execute|negotiate)\s+(?:a|the)\s+"
+                             r"(?:formal\s+|definitive\s+)", t)) and \
+        not re.search(r"(?i)\bDefinitive\s+Agreement\s+dated\b", t) and stage in (None, "proposed")     # R4: a signed deal's LOI is history
+    items = []
+    clauses = [c for c in _CLAUSE_SPLIT.split(t) if c and c.strip()]
+    head, eff, pending = "", effective, None
+    defined = {}
+    for m in re.finditer(r"(?i)" + _OD_CORE + r"\s*\(\s*(?:the\s+)?[\u201c\"]\s*([A-Z][\w\s\-]{2,40}?)\s*[\u201d\"]\s*\)", t):
+        dm = _ODATE.search(m.group(0))
+        if dm and _odate(dm):
+            defined[re.sub(r"\s+", " ", m.group(7).strip().lower())] = _odate(dm)
+    marks = sorted((m.start(), k) for k, rx in (owners or ()) for m in rx.finditer(t))
+    at = 0
+    for c in clauses:
+        cpos = t.find(c, at)
+        if cpos >= 0:
+            at = cpos + len(c)
+        owner = next((k for p, k in reversed(marks) if p <= max(cpos, 0)), owners[0][0] if owners else 0)
+        if pending:
+            head, pending = pending, None
+        if re.search(r"(?i)\bas\s+follows\s*:?\s*$|:\s*$", c.strip()):
+            if not _dues(c):
+                head = c                 # the list's head: what bare amounts are, and whether they are paid
+                continue
+            pending = c[_dues(c)[-1]["z"]:]    # a head with items of its own: read with the previous head; what follows them heads the list
+        adv = re.search(r"(?i)\badvance\s+(?:royalt|NSR|minimum\s+royalt|payment\s+(?:of|on|against|towards?)\s+(?:the\s+)?(?:[\w\-]+\s+){0,2}?(?:NSR|royalt))", c)
+        if adv:                 # R4: advance royalty payments are not option payments
+            if re.search(r"(?i)\b(?:which|such|this|that)\s+(?:payment|amount)s?\s+(?:will|shall|is|are)\s+(?:also\s+)?(?:constitute|be|deemed|considered)|"
+                         r"\bas\s+(?:an?\s+)?$", c[max(0, adv.start() - 60):adv.start()]) or not any(d["a"] < adv.start() for d in _dues(c)):
+                continue
+            c = c[:adv.start()]
+        neg = _ITEM_NEG.search(c)
+        if neg and not re.search(r"(?i)\boption\s+payment", c):
+            if not any(d["a"] < neg.start() for d in _dues(c)):
+                continue
+            c = c[:neg.start()]
+        tab = _table(c)
+        tot_m = re.compile(r"(?i)\bTOTAL\b(?!\s+(?:of|cash|consideration|aggregate|value))").search(c, tab[1]) if tab else None
+        if tab and tot_m:
+            c = c[:tot_m.start()]
+        dues = _dues(c)
+        asat = re.search(r"(?i)\bas\s+at\s+(" + T._MON + r")\s+(\d{1,2})\b", c[:200]) if tab else None
+        if asat:                # "As at January 31 ... 2024 $500,000 $165,000 250,000 shares 2025 ...": one row a year
+            mo, dy = T._MONTHS[asat.group(1)[:3].lower()], int(asat.group(2))
+            dues = [{"a": y.start(), "z": y.end(), "text": "%s %s, %s" % (asat.group(1), dy, y.group(1)), "cal": True, "exact": True,
+                     "date": date(int(y.group(1)), mo, dy)}
+                    for y in re.finditer(r"(?<![\d,.$])((?:19|20)\d\d)(?=\s+(?:(?:C|US)?\$|\d|[\u2013\u2014\-]))", c[tab[1]:])] or dues
+            dues = [dict(x, a=x["a"] + tab[1], z=x["z"] + tab[1]) if x.get("cal") and x["text"].startswith(asat.group(1)) else x
+                    for x in dues]
+        if not dues:
+            continue
+        bad_tab, lst = False, False
+        if tab:
+            amts = []
+            cols, hz = tab
+            hdr = c[:hz]
+            counts = bool(re.search(r"(?<![\w$.,])\d{1,3}(?:,\d{3})+(?!\s*%)", re.sub(r"(?:(?:C|CA|CAD|US|USD)\s?\$|\$)\s?[\d,.]+", " ", c[hz:])))
+            sh_value = bool(re.search(r"(?i)share\s+value|value\s+of\s+shares|shares\s*\(\s*\$", hdr)) or not counts
+            revised = bool(re.search(r"(?i)\boriginal\b.{0,80}\b(?:revised|amended|new)\b", hdr))
+            for j, d in enumerate([d for d in dues if d["a"] >= hz]):
+                nxt = [e["a"] for e in dues if e["a"] > d["a"]]
+                end = nxt[0] if nxt else len(c)
+                prose = re.compile(r"(?:\b[A-Za-z][a-z']+\b[\s,]+){6,}").search(c, d["z"] + 1, end)
+                if prose and re.search(r"\d", c[d["z"]:prose.start()]):
+                    end = prose.start()         # the row ends where running text starts
+                cells = [x for x in _CELL.finditer(c, d["z"], end)
+                         if not (_MONEY.match(x.group(0)) and _amt(_MONEY.match(x.group(0)).group(3), _MONEY.match(x.group(0)).group(4)) < 100)]
+                vals = [x for x in cells if not re.fullmatch(r"(?i)paid", x.group(0))]
+                vcols = [cc for cc in cols if cc[0] in ("cash", "sh", "work", "earn")]
+                money = [x for x in vals if _MONEY.match(x.group(0))]
+                place = [x for x in vals if re.fullmatch(r"(?i)[\u2013\u2014\-]|nil|not\s+applicable|N/A", x.group(0).strip())]
+                mcols = [i for i, cc in enumerate(vcols) if cc[0] in ("cash", "work") or cc[0] == "sh" and sh_value]
+                if revised and len(money) > 1:
+                    vals, money, place = money[-1:], money[-1:], []      # "Original ... Revised": the revised amount
+                    mcols = mcols[:1]
+                shift = len(mcols) - len(money) if not place and len(money) < len(mcols) and len(vals) == len(money) else 0
+                k, mi = 0, 0
+                for x in vals:
+                    s_ = x.group(0)
+                    if x in place:
+                        k += 1
+                        continue
+                    if x in money:
+                        if shift:
+                            if mi + shift >= len(mcols):
+                                break
+                            k = mcols[mi + shift]
+                            mi += 1
+                        else:
+                            while k < len(vcols) and k not in mcols:
+                                k += 1
+                    elif re.search(r"%", s_):
+                        while k < len(vcols) and vcols[k][0] != "earn":
+                            k += 1
+                    else:
+                        while k < len(vcols) and vcols[k][0] != "sh":
+                            k += 1
+                    if k >= len(vcols):
+                        break
+                    col, payer = vcols[k]
+                    k += 1
+                    if col == "earn":
+                        continue
+                    mm = _MONEY.match(s_)
+                    if col == "sh":
+                        n = re.match(r"[\d,]+(?:\.\d+)?", s_.lstrip("$ CAUSD"))
+                        v = _amt(n.group(0), None) if n else None
+                        kk = "sh_v" if mm else "sh_n"
+                    else:
+                        v = _amt(mm.group(3), mm.group(4)) if mm else _amt(re.match(r"[\d,]+(?:\.\d+)?", s_).group(0), None)
+                        kk = col
+                    if v:
+                        amts.append((x.start(), kk, v, _curr(mm.group(1) or mm.group(2) or "") if mm else None, False, False, False, payer))
+                if any(re.fullmatch(r"(?i)paid", x.group(0)) for x in cells):
+                    d["paid"] = True
+                if len(vals) > len(cols):
+                    amts, bad_tab = [], True    # more values than columns: tables side by side (one per property)
+                    break
+            amts = sorted(amts)
+            due_first = True
+            if bad_tab:
+                continue
+        else:
+            lst = bool(re.match(r"\s*(?:[\u2022\u25aa\u25cf\uf0b7\-*o]\s|\(?(?:[ivx]{1,4}|[a-h])[).]\s|\d{1,2}\.\s)", c))
+            amts = [(a[0], a[1], a[2], a[3], a[4] and not lst, a[5], a[6], None) for a in _amounts(c, head) if not a[6]]
+            due_first = dues[0]["a"] <= (amts[0][0] if amts else len(c))
+            if not due_first and len(dues) >= 2 and len(amts) > 2 * len(dues):
+                continue                # many values per due, amounts first: a table read without its header
+        if not amts and not re.search(r"(?i)\boutside\s+date|\bcure\s+period|\btechnical\s+report\b|\bNI\s+43-101\b|\bdrilling\b|"
+                                      r"\blicen[cs]ing|\bdeadline|\bfeasibility\s+study|\bextend|\bfulfil", c):
+            continue
+        groups = []
+        for j, d in enumerate(dues):
+            if due_first:
+                lo, hi = d["a"], dues[j + 1]["a"] if j + 1 < len(dues) else len(c)
+            else:
+                lo, hi = (dues[j - 1]["z"] if j else 0), d["z"]
+            groups.append((d, [x for x in amts if lo <= x[0] < hi], c[lo:hi]))
+        if not due_first and dues and dues[-1]["z"] < len(c):
+            tail = [x for x in amts if x[0] >= dues[-1]["z"]]
+            if tail and groups and not [x for x in groups[-1][1] if not x[4]]:
+                groups[-1] = (groups[-1][0], tail, groups[-1][2] + c[dues[-1]["z"]:])
+        if tab and any(x[7] for x in amts):     # OY: a column another party pays is its own item
+            sp = []
+            for d, ga, span in groups:
+                for py in dict.fromkeys(x[7] for x in ga):
+                    sp.append((d, [x for x in ga if x[7] == py], span))
+                if not ga:
+                    sp.append((d, ga, span))
+            groups = sp
+        n_real = sum(1 for _d, ga, _s in groups if any(not x[4] for x in ga))
+        d0 = dues[0]
+        far = (d0.get("date") and release and (d0["date"] - release).days >= 365) or \
+            any(o[0] * 12 + o[1] >= 12 for o in d0.get("offs") or [])
+        one_deadline = len(dues) == 1 and not d0.get("over") and any(x[4] for x in amts) and not tab and not lst and far and \
+            (d0.get("cal") or re.match(r"(?i)(?:within|on\s+or\s+before|no\s+later|not\s+later|by|before|until)\b", d0["text"]))
+        prev = None
+        for d, ga, span in groups:
+            real = [x for x in ga if not x[4]]
+            kind0 = None
+            if one_deadline:
+                # totals by one deadline ("cash payments totaling $500,000 and incurring $1,000,000 ... before February 13,
+                # 2028"): one deadline item; a stated total that is the sum of the parts given beside it is left out
+                parts = [x for x in ga if not x[4]]
+                real = [x for x in ga if not x[4] or not any(abs(sum(p[2] for p in parts if p[1] in ("cash", "sh_v")) - x[2]) <= 0.01 * x[2]
+                                                             for _ in [0]) or not parts]
+                kind0 = "deadline"
+            it = {"due": d["text"][:120], "cash": None, "sh_n": None, "sh_v": None, "work": None, "cur": None, "payer": None,
+                  "kind": "payment", "paid": bool(d.get("paid") or not tab and _PAID.search(_window(c, d, real)) or _PAID_HEAD.search(head) and
+                                                  not re.search(r"(?i)\bremaining|\bpayable\b|\bdue\b", head)),
+                  "date": None, "exact": False, "anchor": d.get("anchor"), "off": None, "owner": owner}
+            if not due_first or re.search(r"(?i)\boriginal\b.{0,80}\b(?:revised|amended)\b", (c[:dues[0]["a"]] + " " + head)[-300:]):
+                real = sorted(real, key=lambda x: -x[0])      # amounts before their due, or "original / revised": the nearest one
+            for x in real:
+                _p, kk, v, cur, _tt, of_which, _dn, payer = x
+                if it[kk] is None:
+                    it[kk] = v
+                    if kk == "cash" and cur:
+                        it["cur"] = cur
+                    if payer and not (self_rx and self_rx.search(payer)):
+                        it["payer"] = payer
+                    if of_which and prev and prev.get(kk) and prev[kk] > v:
+                        prev[kk] = prev[kk] - v     # "$2.5M by 2026, of which $1.0M by 2024": $1.5M is due in 2026
+            has_amt = any(it[x] for x in ("cash", "sh_n", "sh_v", "work"))
+            if _COND.search(span) and not d.get("cal"):
+                it["kind"] = "milestone"
+            elif re.search(r"(?i)\bcure\s+period", c):
+                it["kind"] = "cure"
+            elif kind0 or not has_amt:
+                it["kind"] = "deadline"
+            elif not (it["cash"] or it["sh_n"] or it["sh_v"]):
+                it["kind"] = "work"
+            if it["cash"] and re.search(r"(?i)\b(?:on|upon)\s+(?:the\s+)?exercise\b|\bto\s+exercise\s+the\s+(?:second\s+)?option\s+by\s+paying|"
+                                        r"\bpurchase\s+price\b|\bpayable\s+on\s+exercise", span):
+                it["kind"] = "exercise"
+            prev = it
+            if it["kind"] == "deadline" and not has_amt and not re.search(
+                    r"(?i)\boutside\s+date|\bcure\b|\btechnical\s+report\b|\bNI\s+43-101\b|\bdrilling\b|\blicen[cs]ing|\bdeadline|"
+                    r"\bfeasibility\s+study|\bextend\w*\s+(?:\w+\s+){0,6}?(?:to|until)\b|\bfulfil\w*\s+the\s+terms", c):
+                continue
+            if it["kind"] == "deadline" and not has_amt and re.search(r"(?i)\binitial\s+payment", d["text"]):
+                continue
+            if it["kind"] == "deadline" and not has_amt and (d.get("anchor") == "later" or _LATER.search(d["text"])):
+                continue                # a condition with no amount and no date says nothing
+            if d.get("over"):
+                if d.get("thereafter") and ga:          # "and issue up to an aggregate of 2,650,000 ... over a four-year period thereafter"
+                    for x in ga:
+                        if it[x[1]] is None:
+                            it[x[1]] = x[2]
+                    items.append(it)
+                continue
+            if it["kind"] == "milestone":
+                items.append(it)
+                continue
+            if d.get("cal"):
+                it["date"], it["exact"] = d.get("date"), d.get("exact", True)
+                was = d.get("was") or {}
+                if was.get("anchor") == "effective" and d.get("date"):
+                    eff = d["date"]          # "on the effective date (paid on November 18, 2024)" dates the effective date
+                items.append(it)
+                continue
+            dctx = d["text"] + " " + (d.get("anc_text") or "") + " " + d.get("ctx", "")[:40]
+            later = _LATER.search(dctx) or d.get("anchor") == "later" or \
+                is_heads and re.search(r"(?i)\b(?:Definitive|formal)\s+(?:Option\s+)?Agreement", d["text"] + " " + (d.get("anc_text") or "") +
+                                       " " + d.get("ctx", "")[:25])
+            if later:
+                items.append(it)
+                continue
+            anc = d.get("anchor")
+            base, exact = None, False
+            at_ = re.sub(r"\s+", " ", (d.get("anc_text") or "").strip().lower())
+            dt_ = d["text"].lower()
+            hit = next((v for k, v in defined.items() if at_ and (at_ == k or at_.startswith(k)) or
+                        re.search(r"\b(?:the\s+)?" + re.escape(k) + r"\b", dt_)), None)
+            if hit:
+                anc, base, exact = "defined", hit, True     # "six (6) months after the Initial Payment Date"
+            if base is not None:
+                pass
+            elif anc == "effective" and eff:
+                base, exact = eff, True
+            elif anc in ("agreement", "effective") and agreement:
+                base, exact = agreement, anc == "agreement" and not re.search(r"(?i)\bfollowing|\bafter\b", d["text"])
+            elif anc == "agreement" and eff:
+                base, exact = eff, True      # R4: "ratified December 23, 2024, with effect December 18, 2024"
+            elif anc == "loi":
+                if not is_heads:
+                    items.append(it)        # the letter of intent came before the agreement; its date is not given
+                    continue
+                base = agreement
+            if base is None:
+                base = release
+            for o in d.get("offs") or [(0, 0, 0)]:
+                x = dict(it, off=o, date=_add(base, *o), exact=exact and base is not None and anc not in ("approval", "closing"))
+                if len(d.get("offs") or ()) > 1:
+                    x["due"] = (x["due"] + " #%d" % o[0])[:120]
+                items.append(x)
+    # the same item twice (a list printed twice), then the cash, shares and work lists of one schedule merged by date
+    out = []
+    for it in items:
+        key = (it["date"], it["cash"], it["sh_n"], it["sh_v"], it["work"], it["kind"])
+        if any((o["date"], o["cash"], o["sh_n"], o["sh_v"], o["work"], o["kind"]) == key for o in out):
+            continue
+        tw = next((o for o in out if it["date"] and o["date"] == it["date"] and o["kind"] in ("payment", "work") and
+                   it["kind"] in ("payment", "work") and o["payer"] == it["payer"] and
+                   not any(o[f] and it[f] for f in ("cash", "sh_n", "sh_v", "work"))), None)
+        if tw:
+            for f in ("cash", "sh_n", "sh_v", "work"):
+                tw[f] = tw[f] or it[f]
+            if tw["cash"] or tw["sh_n"] or tw["sh_v"]:
+                tw["kind"] = "payment"
+            continue
+        out.append(it)
+    for o in list(out):          # R4: "upon grant of the Option" + "will receive ... on or about December 27, 2024"
+        if o["exact"] or o["kind"] not in ("payment", "exercise"):
+            continue
+        twin = next((x for x in out if x is not o and x["exact"] and x["date"] and x["kind"] == o["kind"] and
+                     all(x[f] == o[f] for f in ("cash", "sh_n", "sh_v", "work")) and (o["date"] is None or abs((x["date"] - o["date"]).days) <= 92)), None)
+        if twin:
+            twin["paid"] = twin["paid"] or o["paid"]
+            out.remove(o)
+    # OR: "C$10,000 every three months thereafter until the total consideration of C$120,000 has been paid"
+    for m in re.finditer(r"(?i)(" + _MONEY.pattern[4:] + r")\s+(?:\w+\s+){0,3}?(?:every|each)\s+(?P<rn>" + _NWORD + r"|)\s*(?P<ru>months?|years?|quarters?)\s+"
+                         r"thereafter\b[^.;]{0,80}?\b(?:until|up\s+to)\b[^.;$]{0,60}?(" + _MONEY.pattern[4:] + r")", t):
+        step_m = (_nw(m.group("rn")) if m.group("rn") else 1) * (12 if m.group("ru").lower().startswith("year") else
+                                                                  3 if m.group("ru").lower().startswith("quarter") else 1)
+        x = _MONEY.match(m.group(1))
+        tot_m = _MONEY.search(t, m.start("ru"))
+        if not x or not tot_m or not step_m:
+            continue
+        amt, total = _amt(x.group(3), x.group(4)), _amt(tot_m.group(3), tot_m.group(4))
+        prev = [o for o in out if o.get("date") and o.get("cash") and not o.get("payer") and o["kind"] == "payment"]
+        have = sum(o["cash"] for o in out if o.get("cash") and not o.get("payer") and o["kind"] == "payment")
+        n_more = (total - have) / amt if amt else 0
+        if not prev or n_more < 1 or n_more > 60 or abs(n_more - round(n_more)) > 0.01:
+            continue
+        last = max(prev, key=lambda o: o["date"])
+        for k in range(1, int(round(n_more)) + 1):
+            out.append(dict(last, due=("%s every %d months thereafter #%d" % (m.group(1), step_m, k))[:120], cash=amt, sh_n=None,
+                            sh_v=None, work=None, paid=False, date=_add(last["date"], months=step_m * k), exact=last["exact"],
+                            off=None))
+    # a payment the release says was made (OP): "Benton has completed the cash payment of $40,000"
+    for s in re.split(r"(?<=[.;])\s+", t):
+        if _DONE_SENT.search(s) and not _dues(s):
+            for _p, kk, v, _c, _t, _o, _dn in _amounts(s):
+                for o in out:
+                    if o.get(kk) and abs(o[kk] - v) <= 0.01 * v:
+                        o["paid"] = True
+    return out
+
+
+_CLAUSE_SPLIT = re.compile(r"(?<=[.;])\s+(?=[A-Z(•▪●\-*]|\d{1,2}\.\s)|\s(?=[•▪●\uf0b7]\s?)|\s(?=\(?(?:[ivx]{1,4}|[a-h])\)\s)|"
+                           r"(?<=[;:])\s+|\s(?=\d{1,2}\.\s+(?:a|an|the|on|upon|within|by)\s)|\s(?=[ivx]{1,4}\.\s)|(?<=[.])\s+(?=\$|(?:US|C)\$)")
+
+
+# (inserted after schedule_items) ------------------------------------------------ OPS_V1: one deal's schedule
+SCHED_CAP = 24000          # the part of the body a schedule is read from
+_EFF_DATE = re.compile(r"(?i)\bdated\s+effective\s+(?:as\s+of\s+)?(" + _OD_CORE + r")|\beffective\s+(?:as\s+of\s+|on\s+)(" + _OD_CORE + r")|"
+                       r"\bwith\s+effect\s+(?:from\s+|as\s+of\s+|on\s+)?(" + _OD_CORE + r")|"
+                       r"(" + _OD_CORE + r")\s*\(\s*the\s+[“\"]\s*Effective\s+Date")
+_AG_DATE = re.compile(r"(?i)\b(?:agreement|addendum|amendment|heads(?:\s+of\s+agreement)?|LOI|letter\s+of\s+intent)\b[^.;]{0,60}?\b(?:is\s+)?dated\s+"
+                      r"(?:as\s+of\s+)?(?:the\s+)?(" + _OD_CORE + r")|\bon\s+(" + _OD_CORE + r")\s*,?\s+(?:the\s+Company\s+|it\s+)?(?:entered|signed|executed)")
+_DOC_USD = re.compile(r"(?i)\(\s*(?:all\s+amounts\s+)?in\s+(?:USD|US\$|U\.S\.\s+dollars|US\s+dollars)\s*\)|\ball\s+(?:dollar\s+)?(?:amounts|figures)\s+"
+                      r"(?:are\s+)?(?:expressed\s+|stated\s+)?in\s+(?:USD|US\$|U\.S\.\s+dollars|US\s+dollars|United\s+States\s+dollars)")
+_PAY_DONE = re.compile(r"(?i)\b(?:has|have)\s+(?:now\s+)?(?:issued|made|paid|completed|received)\b|\bhas\s+been\s+(?:issued|paid|received)\b")
+
+
+def _first_date(rx, t):
+    for m in rx.finditer(t):
+        if re.search(r"(?i)\bunderlying\b|\btechnical\s+report|\bprepared\s+(?:for|by)\b|\b43-?\s?1\s?01\b|\breport\s+(?:entitled|titled)|"
+                     r"\bfinancial\s+statements", t[max(0, m.start() - 160):m.start() + 40]):
+            continue            # R4: "an underlying agreement ... dated", "technical report ... dated effective": not this agreement
+        dm = _ODATE.search(m.group(0))
+        return _odate(dm) if dm else None
+    return None
+
+
+def _iso_d(s):
+    try:
+        return date.fromisoformat(str(s)[:10]) if s else None
+    except ValueError:
+        return None
+
+
+def _deal_schedule(seg, typ, stage, row_date, rel, self_rx, pre=None):
+    """(items, schedule type, doc currency) of one option deal. pre: its items, already read (several deals)."""
+    seg = seg or ""
+    eff = _first_date(_EFF_DATE, seg)
+    ag = _iso_d(row_date) if row_date else None
+    if ag is None:
+        ag = _first_date(_AG_DATE, re.sub(r"(?i)\b(?:news|press)\s+releases?\s+dated\s+", " ", seg))
+    items = list(pre) if pre is not None else schedule_items(seg, rel, ag, eff, self_rx, stage=stage)
+    if stage == "proposed":
+        for it in items:            # OA: a letter of intent's dates hang on an agreement not yet signed
+            if not it.get("exact") and it.get("anchor") not in ("defined",):
+                it["date"], it["off"] = None, None
+    if stage == "payment":
+        # OP: a payment release: the payment it reports, made by the release date
+        for s in re.split(r"(?<=[.;])\s+", _digits(seg[:6000])):
+            if _PAY_DONE.search(s) and not _ITEM_NEG.search(s):
+                am = _amounts(s)
+                if not am:
+                    continue
+                it = {"due": "paid (this release)", "cash": None, "sh_n": None, "sh_v": None, "work": None, "cur": None, "payer": None,
+                      "kind": "payment", "paid": True, "date": rel, "exact": False, "anchor": "release", "off": None}
+                for _p, kk, v, cur, _t, _o, _dn in am:
+                    if it[kk] is None:
+                        it[kk] = v
+                        if kk == "cash" and cur:
+                            it["cur"] = cur
+                items = [it] + [x for x in items if not any(x.get(f) and it.get(f) and abs(x[f] - it[f]) <= 0.01 * it[f]
+                                                            for f in ("cash", "sh_n", "sh_v"))]
+                break
+    usd = bool(_DOC_USD.search(seg))
+    for it in items:
+        if usd and (not it["cur"] or it["cur"] == "CAD"):
+            it["cur"] = "USD"
+    pay = [x for x in items if x["kind"] in ("payment", "exercise")]
+    if not items:
+        sched = "none"
+    elif stage == "payment" and all(x["paid"] for x in pay) and pay:
+        sched = "paid_item"
+    elif sum(1 for x in pay if x["date"]) >= 2 or any(x["date"] and not x["paid"] for x in pay):
+        sched = "itemized"
+    elif any(x["kind"] == "cure" for x in items):
+        sched = "cure"
+    elif any(x["date"] for x in items):
+        sched = "deadlines"
+    elif any(x["anchor"] == "later" or _LATER.search(x["due"]) for x in items):
+        sched = "anchored_later"
+    else:
+        sched = "itemized"
+    return items, sched, "USD" if usd else None
+
+
+def _ot_totals(out, items, region):
+    """OT: with no total stated, the deal's totals are its items summed (not milestones, not another payer's shares)."""
+    its = [x for x in items if x["kind"] in ("payment", "exercise", "deadline", "work") and not x.get("payer")]
+    if not its:
+        return
+    cs = sum(x["cash"] or 0 for x in its)
+    if cs and sum(1 for x in its if x["cash"]) >= 2 and not _cash_stated(region) and not _best(_CASH_TOTAL, region):
+        out["cash"] = cs
+        cur = next((x["cur"] for x in its if x["cash"] and x["cur"]), None)
+        if cur:
+            out["currency"] = cur
+    sn = sum(x["sh_n"] or 0 for x in its)
+    ss = _share_sum(_digits(region))
+    if sn and sum(1 for x in its if x["sh_n"]) >= 2 and not (ss and ss[1] == "total"):
+        out["shares"] = sn
+    wk = sum(x["work"] or 0 for x in its)
+    if wk and sum(1 for x in its if x["work"]) >= 2 and wk > (out.get("work") or 0):
+        out["work"] = wk
+
+
+def _name_rx(prop):
+    """A property's name as it may be written: its key words, the last one by its first four letters."""
+    w = [x for x in PN.key(prop or "").split() if len(x) >= 3]
+    if not w:
+        return None
+    parts = [re.escape(x) for x in w[:-1]] + [re.escape(w[-1][:4]) + r"\w*"]
+    return re.compile(r"(?i)\b" + r"[\s\-]+".join(parts))
+
+
+def _split_items(body, deals, rel, self_rx):
+    """OPS_V1, several deals in one release: the body's schedule items read once, each given to the deal whose
+    property the body names last before it."""
+    owners = [(i, rx) for i, d in enumerate(deals) for rx in [_name_rx((d.get("props") or [None])[0])] if rx]
+    if not owners:
+        return
+    seg = body[:SCHED_CAP]
+    ag = _first_date(_AG_DATE, re.sub(r"(?i)\b(?:news|press)\s+releases?\s+dated\s+", " ", seg))
+    items = schedule_items(seg, rel, ag, _first_date(_EFF_DATE, seg), self_rx, owners)
+    for i, d in enumerate(deals):
+        d["pre_items"] = [x for x in items if x.get("owner") == i]
+
+
+_TOT_WORDS = re.compile(r"(?i)\b(?:total(?:ling|ing|s)?|aggregate|in\s+all|sum\s+of|accumulative|cumulative)\b")
+
+
+def stated_totals(seg):
+    """{kind: [values]}: the totals a release states (kind cash, sh_n, sh_v, work, or 'any' for a table's TOTAL row)."""
+    t = _digits(re.sub(r"\s+", " ", seg or ""))
+    out = {"cash": [], "sh_n": [], "sh_v": [], "work": [], "any": []}
+    for m in _MONEY.finditer(t):
+        b, a = t[max(0, m.start() - 70):m.start()], t[m.end():m.end() + 50]
+        if not _TOT_WORDS.search(b) and not re.match(r"(?i)\s*(?:in\s+(?:total|aggregate)|in\s+the\s+aggregate)\b", a):
+            continue
+        v = _amt(m.group(3), m.group(4))
+        if v < 100:
+            continue
+        if _SHV_AFTER.match(a) or _SHV_BEFORE.search(b):
+            out["sh_v"].append(v)
+        elif _WORK_AFTER.match(a) or re.search(r"(?i)expenditure|\bwork\b|spend", b[-40:]):
+            out["work"].append(v)
+        else:
+            out["cash"].append(v)
+    for m in _SHN.finditer(t):
+        if _TOT_WORDS.search(t[max(0, m.start() - 60):m.start()]) or \
+                re.match(r"(?i)\s*(?:in\s+(?:total|aggregate)|in\s+the\s+aggregate)\b", t[m.end():m.end() + 25]):
+            v = _amt(m.group(1), m.group(2))
+            if 1000 <= v <= 5e9:
+                out["sh_n"].append(v)
+    for m in re.finditer(r"(?i)\bTOTALS?\b\s*:?\s*((?:(?:(?:C|CA|CAD|US|USD)\s?\$|\$)?\s?\d[\d,]*(?:\.\d+)?\s*(?:shares\s*)?)+)", t):
+        for x in re.findall(r"\d[\d,]*(?:\.\d+)?", m.group(1)):
+            try:
+                out["any"].append(float(x.replace(",", "")))
+            except ValueError:
+                pass
+    return out
+
+
+def schedule_gate(items, seg):
+    """OPS_GATE_V1 (Justin, 2026-10-12: "Gate + 3rd blind check"): a schedule may reach Mine Terminal Pro only when its
+    items add up to the totals the release states: every kind of consideration the items carry (cash, share count, share
+    value) must add up to a total the release states (within 2%). -> 'pass:<kinds>' or 'hold:<why>'."""
+    its = [x for x in items if x["kind"] in ("payment", "exercise", "deadline") and not x.get("payer")]
+    if len(its) < 2:
+        return "hold:few_items"
+    tot = stated_totals(seg)
+    ok, bad = [], []
+    for k in ("cash", "sh_n", "sh_v"):
+        sm = sum(x.get(k) or 0 for x in its)
+        if not sm:
+            continue
+        hit = lambda vals: any(v and abs(sm - v) <= 0.02 * v for v in vals)
+        (ok if hit(tot[k]) or hit(tot["any"]) else bad).append(k)
+    if bad:     # every kind the items carry must add up to a stated total
+        return ("hold:mismatch:" if any(tot[k] for k in bad) else "hold:no_total:") + ",".join(bad)
+    wk = sum(x.get("work") or 0 for x in items if not x.get("payer"))
+    if wk and tot["work"] and not any(abs(wk - v) <= 0.02 * v for v in tot["work"]):
+        return "hold:mismatch:work"
+    return "pass:" + ",".join(ok)
+
+
 # ------------------------------------------------------------------ records
 def extract(headline: str, body: str) -> list:
     a = analyse(headline, body)
@@ -2301,6 +3241,25 @@ def extract(headline: str, body: str) -> list:
             v = r.get(k)
             if v is not None:
                 fs.append(F.Fact(k, value_num=float(v)))
+        if r.get("schedule"):
+            fs.append(F.Fact("schedule", value_text=r["schedule"]))
+        if r.get("sched_gate"):
+            fs.append(F.Fact("sched_gate", value_text=r["sched_gate"][:100]))
+        for i, it in enumerate(r.get("items") or []):       # OPS_V1: one seq per schedule item
+            fs.append(F.Fact("item_kind", value_text=it["kind"], seq=i))
+            fs.append(F.Fact("item_due", value_text=(it.get("due") or "")[:200], seq=i))
+            fs.append(F.Fact("item_exact", value_num=1.0 if it.get("exact") else 0.0, seq=i))
+            fs.append(F.Fact("item_paid", value_num=1.0 if it.get("paid") else 0.0, seq=i))
+            if it.get("date"):
+                fs.append(F.Fact("item_date", value_text=it["date"].isoformat(), seq=i))
+            if it.get("off") and it.get("anchor"):
+                fs.append(F.Fact("item_off", value_text="%d,%d,%d" % tuple(it["off"]), seq=i))
+            for k in ("anchor", "cur", "payer"):
+                if it.get(k):
+                    fs.append(F.Fact("item_" + k, value_text=str(it[k])[:100], seq=i))
+            for k in ("cash", "sh_n", "sh_v", "work"):
+                if it.get(k):
+                    fs.append(F.Fact("item_" + k, value_num=float(it[k]), seq=i))
         out.append(F.Record(KIND, facts=fs, confidence=1.0))
     return out
 
@@ -2310,7 +3269,9 @@ def parse_records(rows_by_ordinal):
     rows = []
     for ordinal in sorted(rows_by_ordinal):
         r = {k: None for k in TXT_FIELDS + NUM_FIELDS}
+        r["schedule"] = r["sched_gate"] = None
         yes = False
+        its = {}
         for field_, seq, num, text in rows_by_ordinal[ordinal]:
             if field_ == "is_deal":
                 yes = num == 1.0
@@ -2318,6 +3279,22 @@ def parse_records(rows_by_ordinal):
                 r[field_] = text
             elif field_ in NUM_FIELDS:
                 r[field_] = num
+            elif field_ in ("schedule", "sched_gate"):
+                r[field_] = text
+            elif field_.startswith("item_"):       # OPS_V1
+                it = its.setdefault(seq, {"due": None, "date": None, "exact": False, "kind": None, "cash": None, "sh_n": None,
+                                          "sh_v": None, "work": None, "paid": False, "payer": None, "cur": None, "anchor": None,
+                                          "off": None})
+                k = field_[5:]
+                if k in ("exact", "paid"):
+                    it[k] = num == 1.0
+                elif k in ("cash", "sh_n", "sh_v", "work"):
+                    it[k] = num
+                elif k == "off":
+                    it[k] = tuple(int(x) for x in (text or "0,0,0").split(","))
+                elif k in it:
+                    it[k] = text
+        r["items"] = [its[k] for k in sorted(its) if its[k]["kind"]]
         if yes and r["deal_type"]:
             rows.append(r)
     return {"is_deal": bool(rows), "rows": rows}

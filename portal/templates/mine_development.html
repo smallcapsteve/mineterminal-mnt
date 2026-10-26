@@ -12,11 +12,20 @@
     .md-table tr.md-cont td.md-quiet { opacity: .35; }
     .md-none { opacity: .55; font-style: italic; }
     .md-note { font-size: .85em; opacity: .75; margin: .2em 0 .8em; }
+    .md-ai { display: inline-block; margin-left: .35em; padding: 0 .35em; border-radius: 3px; font-size: .7em;
+             background: #7a3fb0; color: #fff; letter-spacing: .02em; white-space: nowrap; vertical-align: middle; }
   </style>
+  {# MNT_DEV_AI_LIVE_V1 (2026-10-26): badge and note while the AI reader is switched on #}
 
   <h2 class="page-title">Mine Development &amp; Operations</h2>
+  {% if ai_live %}
+  <p class="md-note">Each release is read by two readers side by side: the rules reader and an AI reader. Rows both
+    found carry no badge; rows only the AI reader found are marked <span class="md-ai">AI-read</span>. Where the two
+    disagree on what happened, the row is held back for review. Some rows are still wrong; every row links to its release.</p>
+  {% else %}
   <p class="md-note">Early version: each row is read automatically from the headline of a release tagged Mine Development
     &amp; Operations, and some rows are wrong. Every row links to its release.</p>
+  {% endif %}
 
   <section class="filters fin-filters">
     <form method="get" action="/mine-development">
@@ -113,6 +122,7 @@
             {% if r["event_type"] %}
               <td>
                 <span class="md-kind">{{ r["event_type"] | md_type }}</span>
+                {%- if r["ai_label"] == "AI-read" %}<span class="md-ai" title="Only the AI reader found this event; the rules reader did not">AI-read</span>{% endif -%}
                 {%- if r["event_type"] == "incident" and r["incident_kind"] %}<span class="md-sub">{{ r["incident_kind"] }}</span>{% endif -%}
               </td>
               <td>{{ r["mine"] or "—" }}</td>

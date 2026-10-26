@@ -69,6 +69,12 @@ steps = [
     # SMP_PUBLISH_V1 (2026-09-29): publish the active sampling reader, one row per sample type per project of a
     # tagged release. There is no legacy reader: until a version is active it does nothing.
     (['-m', 'portal.sampling_publish'],      'sampling_results'),
+    # WCH_PUBLISH_V1 (2026-10-07): publish the active warrant_changes reader with the financing gate (after the
+    # financings publisher, whose closings it matches). Until a version is active it does nothing.
+    (['-m', 'portal.warrant_changes_publish'], 'warrant_changes'),
+    # CAL_PUBLISH_V1 (2026-10-12): publish the active calendar reader into calendar_events (Mine Terminal Pro's
+    # events). Until a version is active it does nothing.
+    (['-m', 'portal.calendar_publish'], 'calendar'),
     # ACCURACY_V1 (2026-09-16): re-measure pages against their accuracy sets at most once per 20 hours; always exits 0
     (['/opt/mnt/app/accuracy_run.py'],        'accuracy'),
 ]

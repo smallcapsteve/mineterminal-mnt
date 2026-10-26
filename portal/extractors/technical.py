@@ -110,7 +110,7 @@ from portal import fingerprint as FP
 from portal import project_names as PN
 
 NAME = "technical"
-VERSION = "1.0.6"  # 2026-10-01: only the release's own report news, on the study's own project, author and date; full-text losses fixed; 2026-10-04 FIX5: report date as stated, QP names and author lines read right
+VERSION = "1.0.8"  # 2026-10-18 PNSRC: helper 1.0.7 (no change to this reader's own code); 2026-10-13 PNJUNK: helper 1.0.6 (no change of its own); 2026-10-01: only the release's own report news, on the study's own project, author and date; full-text losses fixed; 2026-10-04 FIX5: report date as stated, QP names and author lines read right
 KIND = "tech_report"
 TAG = "Technical Reports (NI 43-101)"
 TEXT_CAP = 40000

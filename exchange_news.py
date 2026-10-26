@@ -211,7 +211,7 @@ def log(msg: str) -> None:
 
 
 def db() -> sqlite3.Connection:
-    con = sqlite3.connect(DB_PATH)
+    con = sqlite3.connect(DB_PATH, timeout=120)      # EXCH_FINLINK_V1d: wait for a long --recheck run instead of failing
     con.row_factory = sqlite3.Row
     con.execute("PRAGMA journal_mode=WAL")
     con.executescript(SCHEMA)
@@ -231,6 +231,49 @@ def uid_for(source: str, ticker: str, date: str, title: str) -> str:
     h = hashlib.sha1()
     h.update("|".join([source, ticker, date[:10], norm(title)[:80]]).encode())
     return h.hexdigest()
+
+
+# EXCH_FINLINK_V1 (2026-10-12, Justin: "find why announcements aren't collected"): TMX names every release
+# "News release", so uid_for() gave two releases from one company on one day the same uid and the second was
+# never looked at (144 in the 90 days to 2026-10-12, e.g. Clean Air Metals' 2026-10-07 flow-through
+# announcement). Each TMX document now gets its own uid. The document the ledger already holds under the old uid
+# keeps it, so nothing already settled is fetched or published again; only the extra same-day documents get a
+# per-document uid. uid_for() itself is unchanged (majors_news and the event ids depend on it).
+def doc_uid(source: str, ticker: str, date: str, url: str) -> str:
+    import hashlib
+    h = hashlib.sha1()
+    h.update("|".join([source, ticker, date[:10], "doc", url or ""]).encode())
+    return h.hexdigest()
+
+
+def assign_uids(con, rels: list[dict]) -> int:
+    """Sets rel["uid"] on every release; returns how many same-day TMX documents got their own uid."""
+    groups: dict = {}
+    for r in rels:
+        base = uid_for(r["source"], r["ticker"], r["published_date"], r["title"])
+        r["uid"] = base
+        if r["source"] == "tmx":
+            groups.setdefault(base, []).append(r)
+    n = 0
+    for base, g in groups.items():
+        if len(g) < 2:
+            continue
+        keep = None
+        row = con.execute("SELECT url FROM releases WHERE uid = ?", (base,)).fetchone() if con is not None else None
+        if row and row[0]:
+            keep = next((r for r in g if (r["url"] or "") == row[0]), None)
+        if keep is None:
+            keep = sorted(g, key=lambda r: r["url"] or "")[0]
+        for r in g:
+            if r is not keep:
+                r["uid"] = doc_uid(r["source"], r["ticker"], r["published_date"], r["url"])
+                n += 1
+    return n
+
+
+def rel_uid(rel: dict) -> str:
+    """The release's ledger uid: assign_uids() result, or the old title uid."""
+    return rel.get("uid") or uid_for(rel["source"], rel["ticker"], rel["published_date"], rel["title"])
 
 
 def http_get(url: str, timeout: int = FETCH_TIMEOUT_S) -> bytes:
@@ -563,8 +606,114 @@ def _dv16_same(a, b) -> bool:
         return False
 
 
+# EXCH_FINLINK_V1: words that change what a financing release reports. Two headlines that report different steps
+# are two releases ("Announces $10 Million Strategic Private Placement" is not "Closes $10 Million ...").
+_FIN_STAGE = re.compile(
+    r"\b(announc\w*|propos\w*|arrang\w*|launch\w*|clos(?:e|es|ed|ing)|complet\w*|upsiz\w*|increas\w*|"
+    r"oversubscrib\w*|amend\w*|repric\w*|pric(?:e|es|ed|ing)|extend\w*|extension|terminat\w*|cancel\w*)\b", re.I)
+_STAGE_OF = (("announc", "ann"), ("propos", "ann"), ("arrang", "ann"), ("launch", "ann"),
+             ("clos", "close"), ("complet", "close"),
+             ("upsiz", "up"), ("increas", "up"), ("oversubscrib", "up"),
+             ("amend", "amend"), ("repric", "amend"), ("pric", "amend"), ("extend", "amend"), ("extension", "amend"),
+             ("terminat", "end"), ("cancel", "end"))
+
+
+def _stage_words(h: str | None) -> set:
+    out = set()
+    for m in _FIN_STAGE.finditer(h or ""):
+        w = m.group(1).lower()
+        for pre, st in _STAGE_OF:
+            if w.startswith(pre):
+                out.add(st)
+                break
+    if len(out) > 1:
+        out.discard("ann")          # "Announces Closing of", "Announces Upsize of": the other word is the step
+    return out
+
+
+def _stage_conflict(a: str | None, b: str | None) -> bool:
+    """True when the two headlines report different steps of a deal."""
+    return _stage_words(a) != _stage_words(b)
+
+
+def _event_body(pcon, eid: str) -> str:
+    try:
+        r = pcon.execute("SELECT COALESCE(raw_body, raw_excerpt, '') FROM events WHERE event_id = ?", (eid,)).fetchone()
+        return (r[0] or "") if r else ""
+    except Exception:                                # noqa: BLE001
+        return ""
+
+
+def _accept(pcon, t_raw: str, hl: str, eid: str, body: str | None, other_ticker: bool,
+            strong: bool = False) -> bool:
+    """EXCH_FINLINK_V1: a headline hit is only a match when nothing says it is a different release.
+    With the document's text: the bodies agree (portal/dupguard.same_body), or the headlines are the same
+    (dupguard headline_match == 2) and report the same step. Without it (CSE before stage 2): the same step, and for
+    another company's release the same headline. A wrong 'no' costs a duplicate, which the ingest-time duplicate
+    rule (DATEDUP) still catches; a wrong 'yes' loses the release for good, which is what this fixes."""
+    try:
+        from portal import dupguard as _G
+        hm = _G.headline_match(t_raw, hl)
+        same_body = _G.same_body
+    except Exception:                                # noqa: BLE001
+        hm, same_body = 0, None
+    if strong and not other_ticker and not _stage_conflict(t_raw, hl):
+        # the company's own release with the same first 40 characters of headline: a copy (a wire's text and the
+        # PDF's text differ too much for same_body to see it - Edge Copper 2026-10-07 in the dry run)
+        return True
+    if body and same_body is not None:
+        eb = _event_body(pcon, eid)
+        if eb and same_body(body, eb):
+            return True
+        if eb and len(eb) >= 400:
+            # both texts are there and they disagree. Another company's release is then never this one (a generic
+            # PDF headline such as "Announces Closing of Second Tranche of Private Placement" matched CleanTech's
+            # for Tesoro); for the company's own, only an identical headline for the same step keeps the match.
+            if other_ticker:
+                return False
+            return hm == 2 and not _stage_conflict(t_raw, hl)
+    if _stage_conflict(t_raw, hl):
+        return False
+    if other_ticker:
+        return hm == 2
+    return True
+
+
+# EXCH_FINLINK_V1e (2026-10-14): the 12-month re-check called ~10% of its gaps "missing" when MNT already had the
+# company's release from a wire: the PDF headline carried page-header noise ("p.1", "1 of 2", "CORRECTION FROM SOURCE:")
+# or was under 30 characters ("Teck Announces Dividend"), so it never reached the matching test. For the company's own
+# releases within the date window: after removing that noise, one headline containing the other (15+ characters) or
+# 85% of the shorter headline's words in common, with no difference in deal step, is the same release.
+_PDF_NOISE = re.compile(r"^\s*(?:p\.?\s*\d+\b|\d+\s+of\s+\d+\b|page\s+\d+\b|correction\s+from\s+source\s*:?|correction\s*[-:]"
+                        r"|source\s*:|news\s+release\s*[-:]?|[\"“”'’]+)\s*", re.I)
+
+
+def _clean_pdf_headline(h: str | None) -> str:
+    h = h or ""
+    for _ in range(4):
+        h2 = _PDF_NOISE.sub("", h, count=1)
+        if h2 == h:
+            break
+        h = h2
+    return h
+
+
+def _own_copy(t_raw: str | None, hl: str | None) -> bool:
+    """EXCH_FINLINK_V1e: the company's own release, same headline once the PDF noise is gone, same deal step."""
+    a, b = _clean_pdf_headline(t_raw), _clean_pdf_headline(hl)
+    if _stage_conflict(a, b):
+        return False
+    na, nb = norm(a), norm(b)
+    short, long_ = sorted((na, nb), key=len)
+    if len(short) >= 15 and short in long_:
+        return True
+    ta, tb = set(re.findall(r"[a-z0-9]+", a.lower())), set(re.findall(r"[a-z0-9]+", b.lower()))
+    m = min(len(ta), len(tb))
+    return m >= 4 and len(ta & tb) / m >= 0.85
+
+
 def find_match(pcon: sqlite3.Connection, rel: dict,
-               title: str | None = None) -> tuple[str | None, str | None]:
+               title: str | None = None, body: str | None = None) -> tuple[str | None, str | None]:
     """(event_id, ticker_it_was_filed_under). Looks for this release among the
     events MNT already has — first under the right ticker, then under any.
 
@@ -584,15 +733,21 @@ def find_match(pcon: sqlite3.Connection, rel: dict,
         # is what V1 did and why it called 587 covered releases missing.
         return None, None
 
-    def scan(rows):
+    def scan(rows, other_ticker=False):
         for eid, hl, tk in rows:
             n2 = norm(hl)
             if not n2:
                 continue
-            if n1[:40] == n2[:40] or (len(n1) >= 30 and n1[:30] in n2) or \
+            strong = len(n1) >= 40 and n1[:40] == n2[:40]
+            if strong or (len(n1) >= 30 and n1[:30] in n2) or \
                (len(n2) >= 30 and n2[:30] in n1) or \
                _dv16_same(t_raw, hl):   # DATEDUP_V1.6: the shared duplicate rule's headline test too
-                return eid, tk
+                if _accept(pcon, t_raw, hl, eid, body, other_ticker, strong):   # EXCH_FINLINK_V1
+                    return eid, tk
+        if not other_ticker:                                            # EXCH_FINLINK_V1e
+            for eid, hl, tk in rows:
+                if _own_copy(t_raw, hl):
+                    return eid, tk
         return None, None
 
     _w = _win(d, 3, 3)
@@ -625,7 +780,8 @@ def find_match(pcon: sqlite3.Connection, rel: dict,
             "WHERE +review_status IN ('auto_approved', 'approved', 'duplicate_of_wire') AND date(published_at) BETWEEN date(?,'-2 day') AND date(?,'+2 day')",
             (d, d),
         ).fetchall()
-    eid, tk = scan(other)
+    other = [r for r in other if bare(r[2] or "") != rel["bare"]]   # EXCH_FINLINK_V1: own ticker was scanned above
+    eid, tk = scan(other, other_ticker=True)
     if eid:
         return eid, tk           # found, but filed under the wrong company
     return None, None
@@ -647,7 +803,15 @@ def covered_by_count(pcon: sqlite3.Connection, rels: list[dict]) -> set:
     a wire and vice versa.
 
     Returns the uids that need no further work.
+
+    EXCH_FINLINK_V1 (2026-10-12): OFF unless MNT_EXCH_COUNT_COVER=1. Any visible event for the company within a
+    day counted as coverage, including sponsored commentary the wires file under a ticker ("Copper Hit a Record
+    High...", "This Gold Miner's Margin Per Ounce..."): Salazar's 2026-09-17 and Cerrado's 2026-08-24 releases were
+    marked covered by those and never collected. Every TMX release is now opened and matched in stage 2 instead
+    (about 10-15 documents a run).
     """
+    if os.environ.get("MNT_EXCH_COUNT_COVER", "0") != "1":
+        return set()
     by_day = {}
     for r in rels:
         by_day.setdefault((r["bare"], r["published_date"]), []).append(r)
@@ -676,8 +840,7 @@ def covered_by_count(pcon: sqlite3.Connection, rels: list[dict]) -> set:
             ).fetchone()[0]
         if have >= len(group):
             for r in group:
-                out.add(uid_for(r["source"], r["ticker"], r["published_date"],
-                                r["title"]))
+                out.add(rel_uid(r))
     return out
 
 
@@ -714,7 +877,9 @@ def _pdf_reader():
             "/opt/mnt/app/.venv/bin/python — use that, or pip install pypdf.")
 
 
-def pdf_text(data: bytes, max_pages: int = 8) -> str:
+# INGEST_FIX3_V1 (2026-10-12): 40 pages, was 8. Results tables often sit at the end of a release; 12 of the 20 newest
+# TMX/CSE releases with a drill result but no From-To ran past page 8, 9 of them with the table after it.
+def pdf_text(data: bytes, max_pages: int = 40) -> str:
     PdfReader = _pdf_reader()
     try:
         rd = PdfReader(io.BytesIO(data))
@@ -989,6 +1154,217 @@ def _lh_body(rel, body):
         return body
 
 
+# EXCH_FINLINK_V1f/V1g: HEADLINE_GUARD. headline_from() sometimes returns a line that is not the headline: a contact line
+# ("Nicholas Mead - VP Investor Relations ..."), a source tag ("Source: Kirkland Lake Discoveries Corp."), a PDF glyph
+# run ("/1/2/3/4/5/i255/..."), a mid-sentence fragment (") is pleased to announce", "FROG) (OTCQB: BFROF)") or the
+# distribution legend. headline_tidy() first takes rule lines and a trailing legend off; a headline that still fails
+# is re-read without its first line, and if that fails too the release is not published: recorded 'skipped' with the
+# reason, for a later pass.
+_HG_RULES = [
+    ("source tag", re.compile(r"^\s*(source|contact|for further information|media contact)\s*:", re.I)),
+    ("glyph run", re.compile(r"(/\d+){4,}|/i255|\(cid:\d+\)|(uni[0-9A-Fa-f]{4}/){2,}")),
+    ("phone line", re.compile(r"^.{0,40}\b1?[.\- ]?\(?\d{3}\)?[.\- ]\d{3}[.\- ]\d{4}\b")),
+    ("fragment", re.compile(r"^\W*[\"”’')\]]|^[A-Z]{2,6}\),?\s|^\W*(is|are|has|have|was|and|or|the company)\b", re.I)),
+    ("legend", re.compile(r"^\W*(this news release is|not for (distribution|dissemination)|(for )?(distribution|dissemination)\b)", re.I)),
+    ("address", re.compile(r"^\W*#?\d{1,5}(\s*[-–]\s*\d{1,5})?\s+\w+(\s+\w+)?\s+(street|st|avenue|ave|road|rd|drive|dr|blvd|boulevard|way|georgia|hastings|place|suite)\b", re.I)),
+    ("contact line", re.compile(r"^[A-Z][a-z]+(\s[A-Z]\.)?\s[A-Z][A-Za-z'\-]+\s*[–—\-]\s*(vp|vice[- ]president|manager|director|head)\b,?\s+(of\s+)?(investor|corporate|communications|business)", re.I)),
+]
+# only near the start: a run-on headline ("BAYHORSE GRANTS STOCK OPTIONS Bayhorse Silver Inc. ... (the "Company")") is
+# still a headline; a fragment that *begins* with the body's first sentence is not.
+_HG_FRAGMENT_HEAD = re.compile(r"\bis pleased to (announce|report|provide)\b|\(the\s+[\"“]?company|\s[\"”]\)", re.I)
+_HG_RULE_LINE = re.compile(r"\s*[_=*~—–-]{4,}\s*")
+_HG_LEGEND_TAIL = re.compile(r"\s*/?\s*\b(this news release is (intended|not)|not for (distribution|dissemination)|for (distribution|dissemination) (in|to) the united|neither (the )?tsx venture exchange)\b.*$", re.I)
+_HG_FIR = re.compile(r"^\W*f?or immediate release\W*", re.I)
+# EXCH_FINLINK_V1j/V1l/V1m/V1n/V1o/V1p: more furniture around a real headline (batches 2, 4, 5)
+_HG_LEAD_JUNK = re.compile(r"^\W*(\d{1,2}\s+[\w-]+\.(com|ca)|(\d{4}\s+)?tsxv?\s*:\s*[A-Z]{2,5}|.{0,80}?\bviolation of (u\.?s\.?|united states) securities laws?\.?|canada(\s+canada)+|u\.?s\.? securities laws\.?|on \w+day\s+[\d ,/]+(at\s+[\d:]+\s*[ap]\.?m\.?(\s*et)?)?)\s+", re.I)
+_HG_LEAD_US = re.compile(r"^\W*(IN(TO)? )?(THE )?UNITED STATES( OF AMERICA)?\.?\s+(?=[A-Z][a-z])")   # V1l, case-sensitive: legend tail
+_HG_TAIL_JUNK = re.compile(r"\s*[\"“]?\s*this press release,? required by applicable.*$|\s+[\"“”]?\w+[\"”]\)\s*-?\s*\(.*$|\s+\d{1,2}/\d{1,2}/\d{4}\s+trading symbol\b.*$|\s+the base shelf prospectus\b.*$|\s+(toronto|vancouver|montreal|calgary),\s*(canada|ontario|british columbia|b\.?c\.?|quebec|alberta)\b(\.{2,}|…|\s[-–—])\s*.*$|\s*[,\"”]+\s*$", re.I)
+# EXCH_FINLINK_V1g: more PDF furniture in front of a real headline, and headlines that are only a label
+_HG_LIGATURE = re.compile(r"(?<=[a-z])[?�4](?=[a-z])")      # V1i: "Vo4ng" -> "Voting" too
+_HG_PAGE_MARK = re.compile(r"^\W*(page\s+)?\d{1,2}\s+of\s+\d{1,2}\b\W*", re.I)
+_HG_CONFIDENTIAL = re.compile(r"^\W*((commercial\s+in\s+confidence|confidential)\W*)+", re.I)
+_HG_ANN_LABEL = re.compile(r"^\W*(asx|tsx|tsxv|cse)\s+(company\s+)?(announcement|release)\W+", re.I)
+_HG_GENERIC = re.compile(r"^\W*((asx|tsx|tsxv|cse|company|market)\s+)?(news\s+release|press\s+release|announcement|release|other|update)\W*$|"
+                         r"^\W*toronto stock exchange\b|^\W*(neither (the )?tsx|hong kong exchanges|the stock exchange of hong kong)\b|^.{0,40}\(a company incorporated\b|^\W*list of top performing companies\W*$", re.I)
+_HG_SHORT_OK = set("of to in at on by an a up as or is it be no vs us uk ai ag au cu zn pb ni co li mo fe pt pd sn w u "
+                   "m km mt oz kt g t nr ii iv vi de la le el do go we bc nl qc nb ns on nu yt nt ab sk mb pe nf ny nv az "
+                   "id mt ut wy ak ca mx pc jv ip ir em ma di gt eq ft ha lb mw kw cm mm dd rc hq nq ac se sw ne nw pp".split())
+_HG_LISTING = re.compile(r"\b(otcq\w*|tsx-?v?|cse|asx|nyse|frankfurt|fse)\s*:\s*[A-Z]{2,6}\b", re.I)
+
+
+def headline_tidy(h: str | None) -> str:
+    """EXCH_FINLINK_V1f: rule lines ("____"), a leading "FOR IMMEDIATE RELEASE" and a trailing U.S.-distribution legend
+    off an otherwise good headline."""
+    h = _HG_RULE_LINE.sub(" ", h or "")
+    h = _HG_FIR.sub("", h)
+    for rx in (_HG_LEAD_JUNK, _HG_LEAD_US, _HG_TAIL_JUNK):   # V1j, V1l
+        t = rx.sub("", h)
+        if len(t.strip()) >= 25:
+            h = t
+    h = _HG_LIGATURE.sub("ti", h)                       # V1g: "Genera?on" -> "Generation" (lost ti ligature)
+    for rx in (_HG_PAGE_MARK, _HG_CONFIDENTIAL, _HG_ANN_LABEL):
+        t = rx.sub("", h)
+        if len(t.strip()) >= 25:
+            h = t
+    t = _HG_LEGEND_TAIL.sub("", h)
+    if len(t.strip()) >= 25:
+        h = t
+    return re.sub(r"\s+", " ", h).strip()
+
+
+def headline_problem(h: str | None) -> str:
+    """'' when the headline looks like a headline, else the reason it does not."""
+    h = (h or "").strip()
+    if len(h) < 12:
+        return "too short"
+    letters = sum(c.isalpha() for c in h)
+    if letters < 0.35 * len(h.replace(" ", "")):
+        return "mostly symbols"
+    for why, rx in _HG_RULES:
+        if rx.search(h):
+            return why
+    if _HG_FRAGMENT_HEAD.search(h[:45]):
+        return "fragment"
+    words = re.findall(r"\S+", h)
+    if _HG_GENERIC.search(h):
+        return "label only"                             # V1g: "TSX Announcement", "Neither TSX Venture Exchange ..."
+    if len(words) < 2:
+        return "too short"
+    rest = [w for w in re.findall(r"[A-Za-z][\w'.&-]*", _HG_LISTING.sub(" ", re.sub(r"\([^)]*\)", " ", h)))
+            if not re.fullmatch(r"(?i)otc\w*|tsx-?v?|cse|asx|nyse|frankfurt|fse|symbol|trading", w)]
+    if _HG_LISTING.search(h) and len(rest) <= 3:
+        return "listing line"                           # V1g: "AZIMUT OTCQxX: AZMTF EXPLORATION"
+    odd = [w for w in words[:10] if 0 < len(re.sub(r"[^A-Za-z]", "", w)) <= 2 and not re.search(r"\d", w)
+           and re.sub(r"[^A-Za-z]", "", w).lower() not in _HG_SHORT_OK]
+    if len(odd) >= 3:
+        return "garbled"                                # V1g: OCR "ASX Announcement Cc 'S GN US o METALS"
+    if re.match(r"^[A-Za-z]\s+[\"“]", h):
+        return "fragment"                               # V1g: 'S "At Home in North America"'
+    return ""
+
+
+# EXCH_FINLINK_V1h/V1i: positive headline test (HEADLINE_SHAPE). A TMX headline taken from a PDF must look like a headline (a reporting verb
+# or a typical release noun) and must not look like body text, a form header or a legal legend.
+_HL_VERB = re.compile(r"\b(announc\w*|report\w*|clos\w*|complet\w*|provid\w*|files?|filed|receiv\w*|grant\w*|appoint\w*|intersect\w*|"
+    r"drill\w*|commenc\w*|enter\w*|sign\w*|acquir\w*|launch\w*|expand\w*|extend\w*|confirm\w*|identif\w*|secur\w*|increas\w*|"
+    r"upsiz\w*|arrang\w*|begin\w*|starts?|achiev\w*|deliver\w*|discover\w*|returns?|outlin\w*|releas\w*|publish\w*|issu\w*|"
+    r"declar\w*|approv\w*|adopt\w*|amend\w*|terminat\w*|engag\w*|retain\w*|names?|welcom\w*|joins?|updat\w*|highlight\w*|"
+    r"continu\w*|advanc\w*|initiat\w*|mobiliz\w*|hits?|cuts?|encounter\w*|samples?|stak\w*|sells?|sold|purchas\w*|agre\w*|"
+    r"execut\w*|obtain\w*|submit\w*|wins?|resum\w*|ships?|produc\w*|posts?|elect\w*|exercis\w*|consolidat\w*|chang\w*|"
+    r"clarif\w*|respond\w*|comment\w*|celebrat\w*|attend\w*|participat\w*|present\w*|host\w*|raises?|rais\w*|selects?|"
+    r"accelerat\w*|reaches?|exceeds?|doubles?|grows?|unveil\w*|plans?|proposes?|seeks?|welcomes?|transitions?|resigns?|"
+    r"retires?|steps?|completes?|delays?|postpones?|reschedul\w*|cancels?|withdraw\w*|settles?|signs?|awards?|wins?|"
+    r"strengthens?|appoints?|adds?|bolsters?|defines?|demonstrates?|shows?|yields?|assays?|maps?|outlines?|tests?|"
+    r"accepts?|qualif\w*|lists?|uplists?|graduates?|trades?|resumes?|halts?|reinstat\w*|converts?|redeems?|repays?|"
+    r"draws?|funds?|invests?|backs?|partners?|teams?|collaborat\w*|pursues?|evaluat\w*|assess\w*|explores?|targets?|"
+    r"resign\w*|investigat\w*|exhibit\w*|ramp\w*|replac\w*|hires?|hired|dismiss\w*|forges?|pays?|sues?|wins?|"
+    r"intends?|expects?|reviews?|tables?|tabled|conduct\w*|notes?|opens?|receives?)\b", re.I)
+_HL_NOUN = re.compile(r"\b(private placement|placement|financing|offering|results?|update|appointment|agreement|drill\w*|assays?|"
+    r"resource|reserves?|study|pea|feasibility|dividend|meeting|agm|acquisition|option|consolidation|warrants?|options?|"
+    r"loan|royalty|stream|merger|transaction|listing|shares?|report|guidance|production|presentation|program|programme|"
+    r"permit\w*|licen[cs]e|project|property|claims?|exploration|discovery|intercept|incident|notice|circular|proxy|"
+    r"statements?|md&a|quarter|q[1-4]|fy\d\d|annual|interim|half[- ]year|webinar|conference|forum|summit|investor|"
+    r"nsr|joint venture|jv|spin[- ]?out|name change|rollback|split|buy-?back|bid|nci[bp]|mineraliz\w*|grade|g/t|ounces|"
+    r"tonnes|lbs|metres|meters|copper|gold|silver|uranium|lithium|nickel|zinc|antimony|tungsten|graphite|rare earth\w*|"
+    r"partnership|sales?|lawsuit|law suit|litigation|defendant|death|passing|fees?|take-?over|spin-?off|letter|shareholders?|"
+    r"symbol|trading|director|board|ceo|cfo|president|chair\w*|diamonds?|potash|coal|iron|platinum|palladium|cobalt|vanadium)\b", re.I)
+_HL_BODY = re.compile(r"^\W*(in the|in connection with|the early warning|(mr|ms|mrs|dr)\.\s+\w+ (is|was|has)|the offering|the company|each|pursuant|further to|as previously|on (jan|feb|mar|apr|may|jun|jul|aug|"
+    r"sep|oct|nov|dec)\w*\s+\d|this news release|the (first|second|final) (tranche|closing))\b|"
+    r"securities and exchange commission|form 8-k|form 6-k|current report pursuant to|^\W*\d{1,2}\.\s+[A-Z]|"
+    r"^\W*the (other|remaining) terms\b|^\W*the project (aims|is|will)\b|"     # V1k
+    r"\bincorporated in\b|registration number|violation of (u\.?s\.?|united states) securities|^\W*(each )?warrants? (will )?entitles?\b|\bpage \d+ of \d+\b|\b(commented|stated|said)\s*:\s*[\"“]|^\W*\$[\d.,]+ per (unit|share)\b|\bis an annual ranking\b|^\W*directors and officers of the company\b|^\W*until such a time\b|\(together, the\b|\(figures? \d[^)]*\)\.\s*$|^\W*as outlined in\b|\(\s*[\"“]\s*[\w .&-]+$|"
+    r"\bnsw \d{4}\b|\babn\s*\d|\bacn\s*\d|\bcdp \d{5}", re.I)
+_HL_CASED = re.compile(r"^[a-z][a-z'\-]*\b|\b[A-Z]\d[A-Z] ?\d[A-Z]\d\b")  # starts mid-sentence (not "enCore"); postal code
+_HL_BODY_ANY = re.compile(r"\bthe company (issued|has|will|is|was|intends|announces)\b|\(the [\"“]|"
+                          r"\bor the [\"“]?company[\"”]?\)|^\w+, (and|or)\b", re.I)   # V1i: '"SX2" or the "Company")', 'Gold, and Copper'
+_HL_SENTENCE = re.compile(r"\b(have|has|is|are|was|were|will be|shall)\b.*\.\s*$", re.I)        # V1i: "Warrants have an exercise price of $0.10."
+
+def headline_shape(h: str | None) -> str:
+    """'' when h has the shape of a headline, else why not."""
+    h = (h or "").strip()
+    if _HL_BODY.search(h) or _HL_BODY_ANY.search(h[:80]) or _HL_CASED.search(h) or _HL_SENTENCE.search(h):
+        return "body text"
+    if not (_HL_VERB.search(h) or _HL_NOUN.search(h)):
+        return "no headline words"
+    return ""
+
+# EXCH_FINLINK_V1q (2026-10-19, Justin "Read it from the PDF"): the CSE feed's title is used as the headline, and a few
+# are not headlines: "Press Release", "PR", "News Release dated October 7, 2026", "26-08-17 NXU NR $0.01 Private
+# Placement Close", "October 19, 2026 - Purecore Closes ...". For those the headline is read from the release's text
+# (same reader and guard as TMX); failing that, the date/"News Release" prefix is stripped if what is left reads as a
+# headline; otherwise the feed title stays.
+_CSE_MON = r"(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?"
+_CSE_DATE = (r"(?:\d{4}[-/.]\d{1,2}[-/.]\d{1,2}|\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4}|" + _CSE_MON + r"\s*\d{1,2}(?:st|nd|rd|th)?(?:\s*[,-]\s*|\s+)\d{4}|"
+             + _CSE_MON + r"\s+\d{4}|\d{1,2}\s+" + _CSE_MON + r"\s+\d{4})")
+_CSE_REL = r"(?:(?:news|press|new\s*s?)\s*release|nr|pr)\b"
+_CSE_LEAD = re.compile(
+    r"^\W*(?:"
+    r"(?:(?-i:[A-Z]{2,5})\b\s*(?:[-|:]\s*)?)?(?:" + _CSE_REL + r")(?:\s*\(?" + _CSE_DATE + r"\)?)?(?:\s+dated\s+" + _CSE_DATE + r")?(?:\s+re\b)?|"
+    + _CSE_DATE + r"(?:\s+(?-i:[A-Z]{2,5})\b)?(?:\s+(?:" + _CSE_REL + r"))?"
+    r")\s*(?:[-|:–—]+\s*|\s+)", re.I)
+_CSE_HOLLOW = re.compile(r"^\W*(?:(?:" + _CSE_REL + r"|update|corporate update|announcement|press|news)\W*|" + _CSE_DATE
+                         + r"\W*|(?-i:[A-Z]{2,5})\b\W*)*$", re.I)
+_CSE_TAIL = re.compile(r"\b(?:news|press)\s*releases?\W*(?:\(?" + _CSE_DATE + r"\)?\W*)?$", re.I)
+
+
+def cse_title_needs_fix(t: str | None) -> bool:
+    t = t or ""
+    return bool(_CSE_LEAD.match(t) or _CSE_HOLLOW.match(t) or _CSE_TAIL.search(t) or len(re.findall(r"[A-Za-z]{2,}", t)) <= 2)
+
+
+def cse_title_strip(t: str | None) -> str:
+    s = t or ""
+    for _ in range(3):
+        s2 = _CSE_LEAD.sub("", s, count=1)
+        if s2 == s:
+            break
+        s = s2
+    return s.strip(" -|:–—")
+
+
+def _cse_good(h: str, words: int) -> bool:
+    return bool(h) and not headline_problem(h) and not headline_shape(h) and len(re.findall(r"[A-Za-z]{2,}", h)) >= words
+
+
+def _guarded_headline(rel: dict, body: str) -> tuple[str, str]:
+    """EXCH_FINLINK_V1f: headline_from(), and when its answer fails headline_problem(), drop the line it started on and
+    read again (up to 4 times): a contact block or "Source:" line above the real headline. Returns (headline, problem);
+    problem is '' when the headline passed."""
+    b = _lh_body(rel, body)
+    h = headline_from(b, rel["title"])
+    if rel.get("source") != "tmx":
+        if rel.get("source") == "cse" and cse_title_needs_fix(h):          # EXCH_FINLINK_V1q
+            try:
+                ph = headline_tidy(headline_from(b, "News release")) if len(b or "") >= 200 else ""
+            except Exception:                                              # noqa: BLE001
+                ph = ""
+            if _cse_good(ph, 4):
+                return ph[:300], ""
+            st = headline_tidy(cse_title_strip(h))
+            if _cse_good(st, 5):
+                return st[:300], ""
+        return h, ""
+    h = headline_tidy(h) or h
+    why = headline_problem(h) or headline_shape(h)     # V1h: must also look like a headline
+    for _ in range(4):
+        if not why:
+            return h, ""
+        norm = lambda x: re.sub(r"\s+", " ", x).strip()
+        hn, lines, out, dropped = norm(h), b.split("\n"), [], False
+        for l in lines:
+            ln = norm(l)
+            if not dropped and len(ln) >= 4 and (hn.startswith(ln) or ln.startswith(hn[:60])):
+                dropped = True
+                continue
+            out.append(l)
+        if not dropped:
+            break
+        b = "\n".join(out)
+        h = headline_tidy(headline_from(b, rel["title"]))
+        why = headline_problem(h) or headline_shape(h)
+    return h, why
+
+
 def fetch_release(rel: dict) -> tuple[str, str, str]:
     """(body, headline, error). Fetches the PDF and reads it; publishes nothing.
 
@@ -1004,7 +1380,7 @@ def fetch_release(rel: dict) -> tuple[str, str, str]:
         body = docx_text(data)
         if len(body) < 200:
             return "", "", f"docx text too short ({len(body)} chars)"
-        return body, headline_from(_lh_body(rel, body), rel["title"]), ""   # LETTERHEAD_V1
+        return body, _guarded_headline(rel, body)[0], ""   # LETTERHEAD_V1, EXCH_FINLINK_V1f
     if not data[:5].startswith(b"%PDF"):
         return "", "", f"not a pdf ({data[:8]!r})"
     try:
@@ -1012,8 +1388,39 @@ def fetch_release(rel: dict) -> tuple[str, str, str]:
     except NoPdfExtractor as e:
         return "", "", f"NO EXTRACTOR: {e}"
     if len(body) < 200:
-        return "", "", f"pdf text too short ({len(body)} chars)"
-    return body, headline_from(_lh_body(rel, body), rel["title"]), ""   # LETTERHEAD_V1
+        ocr = ocr_pdf(data)                          # EXCH_FINLINK_V1: scanned, image-only releases
+        if len(ocr) >= 200:
+            return ocr, _guarded_headline(rel, ocr)[0], ""   # EXCH_FINLINK_V1f
+        return "", "", f"pdf text too short ({len(body)} chars; ocr {len(ocr)})"
+    return body, _guarded_headline(rel, body)[0], ""   # LETTERHEAD_V1, EXCH_FINLINK_V1f
+
+
+def ocr_pdf(data: bytes, pages: int = 2, timeout: int = 180) -> str:
+    """EXCH_FINLINK_V1 (2026-10-12): text of an image-only PDF, read with pdftoppm + tesseract (both installed).
+    Kirkland Lake Discoveries' 2026-09-21/22 releases were parked as "pdf text too short (0 chars)"; ~40 in 90 days.
+    Off with MNT_EXCH_OCR=0. Returns "" on any failure."""
+    if os.environ.get("MNT_EXCH_OCR", "1") == "0":
+        return ""
+    import shutil
+    import subprocess
+    import tempfile
+    if not (shutil.which("pdftoppm") and shutil.which("tesseract")):
+        return ""
+    try:
+        with tempfile.TemporaryDirectory(prefix="exch-ocr-") as d:
+            src = os.path.join(d, "in.pdf")
+            with open(src, "wb") as f:
+                f.write(data)
+            subprocess.run(["pdftoppm", "-r", "150", "-gray", "-l", str(pages), "-png", src, os.path.join(d, "p")],
+                           check=True, timeout=timeout, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            out = []
+            for name in sorted(n for n in os.listdir(d) if n.endswith(".png")):
+                r = subprocess.run(["tesseract", os.path.join(d, name), "stdout", "-l", "eng", "--psm", "4"],
+                                   timeout=timeout, capture_output=True)
+                out.append(r.stdout.decode("utf-8", "replace"))
+            return re.sub(r"\n{3,}", "\n\n", "\n".join(out)).strip()
+    except Exception:                                # noqa: BLE001
+        return ""
 
 
 def _datedup_published(rel: dict, body: str) -> str:
@@ -1081,6 +1488,12 @@ def main() -> int:
                     help="do not re-file releases the exchange attributes elsewhere")
     ap.add_argument("--max-correct", type=int, default=25)
     ap.add_argument("--undo-corrections", action="store_true")
+    ap.add_argument("--max-open", type=int, default=120,
+                    help="EXCH_FINLINK_V1: documents opened per run; --max-ingest still caps what is published")
+    ap.add_argument("--recheck", default="",
+                    help="EXCH_FINLINK_V1: comma-separated statuses (covered,matched,error,skipped) whose TMX "
+                         "releases in the window are looked at again with the current rules; 'suspect' = matched "
+                         "rows filed under another company or more than a day from their event")
     args = ap.parse_args()
 
     con = db()
@@ -1131,7 +1544,7 @@ def main() -> int:
             log(f"ABORT: {e}")
             return 4
 
-    log(f"EXCHANGE_NEWS_V5c ({'APPLY' if args.apply else 'DRY RUN'}) "
+    log(f"EXCHANGE_NEWS_V5c+EXCH_FINLINK_V1 ({'APPLY' if args.apply else 'DRY RUN'}) "
         f"{'FAST/cse-lead' if args.fast else args.source} "
         f"window={args.days}d since {cutoff}")
     log(f"universe: {len(cse_u)} CSE, {len(tsx_u)} TSX/TSXV")
@@ -1150,6 +1563,34 @@ def main() -> int:
 
     pcon = sqlite3.connect(f"file:{PORTAL_DB}?mode=ro", uri=True)
     now = dt.datetime.utcnow().isoformat()
+    n_doc = assign_uids(con, releases)               # EXCH_FINLINK_V1
+    if n_doc:
+        log(f"{n_doc} same-day TMX documents have their own uid (EXCH_FINLINK_V1)")
+    recheck = {x.strip() for x in (args.recheck or "").split(",") if x.strip()}
+    recheck_uids = set()
+    if recheck:
+        plain = sorted(recheck - {"suspect"})
+        if plain:
+            recheck_uids = {r[0] for r in con.execute(
+                "SELECT uid FROM releases WHERE source = 'tmx' AND published_date >= ? AND status IN (%s)"
+                % ",".join("?" * len(plain)), [cutoff] + plain)}
+        if "suspect" in recheck:
+            # a match that looks wrong: filed under another company, or an event more than a day from the release
+            for uid, d, ev, wrong in con.execute(
+                    "SELECT uid, published_date, matched_event, wrong_ticker FROM releases "
+                    "WHERE source = 'tmx' AND status = 'matched' AND published_date >= ?", (cutoff,)):
+                if wrong:
+                    recheck_uids.add(uid)
+                    continue
+                r = pcon.execute("SELECT substr(COALESCE(published_at, ''), 1, 10) FROM events WHERE event_id = ?",
+                                 (ev,)).fetchone() if ev else None
+                try:
+                    far = (not r) or abs((dt.date.fromisoformat(r[0]) - dt.date.fromisoformat(d[:10])).days) > 1
+                except ValueError:
+                    far = True
+                if far:
+                    recheck_uids.add(uid)
+        log(f"recheck: {len(recheck_uids)} TMX releases with status {sorted(recheck)} are looked at again")
 
     # Anything already settled in a previous run is left alone. An unreadable
     # PDF is held back for three days too: without that, a handful of
@@ -1164,16 +1605,15 @@ def main() -> int:
         # holding them back for three days (Sep 25 and 28 lost 43 releases that way); unreadable PDFs still wait.
         "AND COALESCE(note,'') NOT LIKE 'fetch: HTTPError HTTP Error 5%' "
         "AND COALESCE(note,'') NOT LIKE 'post -1: timed out%')")}
-    fresh = [r for r in releases
-             if uid_for(r["source"], r["ticker"], r["published_date"], r["title"])
-             not in settled]
+    settled -= recheck_uids
+    fresh = [r for r in releases if rel_uid(r) not in settled]
     log(f"{len(releases) - len(fresh)} were settled by an earlier run; "
         f"{len(fresh)} to look at")
 
     def record(rel, status, **kw):
         if not args.apply:
             return
-        uid = uid_for(rel["source"], rel["ticker"], rel["published_date"], rel["title"])
+        uid = rel_uid(rel)
         con.execute(
             "INSERT INTO releases (uid,ticker,bare,exchange,source,published_date,"
             "title,url,status,matched_event,wrong_ticker,note,acted_at) "
@@ -1184,6 +1624,7 @@ def main() -> int:
             (uid, rel["ticker"], rel["bare"], rel["exchange"], rel["source"],
              rel["published_date"], rel["title"], rel["url"], status,
              kw.get("event"), kw.get("wrong"), kw.get("note"), now))
+        con.commit()                                 # EXCH_FINLINK_V1d: one release per transaction
 
     # ---- stage 1 ---------------------------------------------------------
     # TMX by count (it has no headline to match on); CSE by its real title.
@@ -1209,7 +1650,7 @@ def main() -> int:
 
     candidates = []
     for rel in fresh:
-        uid = uid_for(rel["source"], rel["ticker"], rel["published_date"], rel["title"])
+        uid = rel_uid(rel)
         if rel["source"] == "tmx":
             if uid in cov:
                 n_covered += 1
@@ -1239,15 +1680,22 @@ def main() -> int:
     # Open the document, take the real headline, and only then decide. Bounded
     # in both modes: a dry run confirms a sample so its number is measured.
     cap = args.max_ingest
-    n_late = n_late_wrong = n_ing = n_fail = n_gap = 0
-    for rel in candidates[:cap]:
+    n_late = n_late_wrong = n_ing = n_fail = n_gap = n_held = 0
+    max_open = max(cap, args.max_open)               # EXCH_FINLINK_V1: open more, publish at most --max-ingest
+    opened = 0
+    for rel in candidates[:max_open]:
+        if n_ing >= cap or (not args.apply and n_gap >= cap):
+            break
+        opened += 1
+        if args.apply and opened % 20 == 0:
+            con.commit()                             # EXCH_FINLINK_V1c: a long --recheck run must not hold the ledger
         body, headline, err = fetch_release(rel)
         if err:
             n_fail += 1
             record(rel, "error", note=err)
             log(f"   UNREADABLE {rel['bare']:<7} {rel['published_date']} {err[:60]}")
             continue
-        eid, wrong = find_match(pcon, rel, title=headline)
+        eid, wrong = find_match(pcon, rel, title=headline, body=body)   # EXCH_FINLINK_V1: and the text
         if eid:
             n_late += 1
             if wrong:
@@ -1260,6 +1708,12 @@ def main() -> int:
                 f"{'[WRONG TICKER: ' + wrong + '] ' if wrong else ''}{headline[:60]}")
             continue
         n_gap += 1
+        why = (headline_problem(headline) or headline_shape(headline)) if rel["source"] == "tmx" else ""   # EXCH_FINLINK_V1f/V1h: HEADLINE_GUARD
+        if why and args.apply and not args.no_ingest:
+            n_held += 1
+            record(rel, "skipped", note=f"HEADLINE_GUARD: {why}: {headline[:120]}")
+            log(f"   HELD       {rel['bare']:<7} {rel['published_date']} [{why}] {headline[:50]}")
+            continue
         if args.apply and not args.no_ingest:
             ok, note = publish(rel, body, headline)
             if ok:
@@ -1274,7 +1728,7 @@ def main() -> int:
             record(rel, "pending", note="confirmed gap, not published")
             log(f"   GAP        {rel['bare']:<7} {rel['published_date']} {headline[:60]}")
 
-    checked = min(len(candidates), cap)
+    checked = opened
     if checked:
         log(f"stage 2 — opened {checked} of {len(candidates)} candidates: "
             f"{n_late} were already on the site after all "
@@ -1284,9 +1738,9 @@ def main() -> int:
         log(f"          on that sample, {rate:.0%} of candidates are genuine gaps "
             f"-> roughly {round(len(candidates) * rate)} of {len(candidates)} "
             f"over the {args.days}-day window")
-    if len(candidates) > cap:
-        log(f"          {len(candidates) - cap} candidates left for the next run "
-            f"(--max-ingest {cap})")
+    if len(candidates) > checked:
+        log(f"          {len(candidates) - checked} candidates left for the next run "
+            f"(--max-open {max_open}, --max-ingest {cap})")
 
     if n_corr:
         log(f"attribution: {n_corr.get('refiled', 0)} re-filed under the ticker the "
@@ -1307,7 +1761,7 @@ def main() -> int:
     log(f"done in {time.monotonic() - t0:.0f}s — seen={len(releases)} "
         f"covered={n_covered} matched={n_matched + n_late} "
         f"wrong_ticker={n_wrong + n_late_wrong} confirmed_gaps={n_gap} "
-        f"ingested={n_ing} failed={n_fail}")
+        f"ingested={n_ing} failed={n_fail} held_bad_headline={n_held}")
     con.close()
     return 0
 

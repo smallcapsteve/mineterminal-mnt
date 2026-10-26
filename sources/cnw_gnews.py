@@ -154,7 +154,9 @@ def _extract_body_html(real_url: str, client: httpx.Client) -> tuple[str, str]:
     if r.status_code != 200:
         return "", ""
     from bs4 import BeautifulSoup
-    soup = BeautifulSoup(r.text, "html.parser")
+    soup = BeautifulSoup(r.text, "html5lib")   # INGEST_FIX3_V1 (2026-10-12): html5lib, as sync_newswire_ca.py. The page markup is broken around the image
+    # gallery; html.parser and lxml close section.release-body there and kept ~1,000 characters of the release
+    # (dateline, first paragraph, figure captions). html5lib reads it the way a browser does: the whole release.
     _h1 = soup.select_one("h1")
     _LAST_TITLE = _h1.get_text(" ", strip=True) if _h1 else ""
     for tag in soup(["script", "style", "nav", "header", "footer", "aside",
