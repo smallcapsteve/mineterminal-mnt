@@ -232,3 +232,13 @@ try:
 except Exception:  # pragma: no cover
     import logging
     logging.getLogger(__name__).exception("aireader_review register failed")
+
+
+# MNT_WCH_AI_PREVIEW_V1 (2026-10-26): /warrant-expiries-preview - Mine Terminal Pro's warrant-expiry events today vs with
+# the AI-reader hybrid for Warrants, read from the AI harness's preview file. Not linked, not indexed. Guarded like the others.
+try:
+    from portal import wch_preview_page
+    wch_preview_page.register(app, templates)
+except Exception:  # pragma: no cover
+    import logging
+    logging.getLogger(__name__).exception("wch_preview_page register failed")

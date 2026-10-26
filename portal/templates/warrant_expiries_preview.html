@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Warrant expiries (AI preview) — MiningNewsTerminal{% endblock %}
+{% block content %}
+  <style>
+    .we-table td { vertical-align: top; }
+    .we-sub { display: block; font-size: .8em; opacity: .7; }
+    .we-date { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+    .we-st { display: inline-block; padding: 0 .4em; border-radius: 3px; font-size: .72em; border: 1px solid currentColor;
+             opacity: .85; white-space: nowrap; margin-left: .3em; }
+    .we-gone { opacity: .6; font-style: italic; }
+    .we-ai { display: inline-block; margin-left: .35em; padding: 0 .35em; border-radius: 3px; font-size: .7em;
+             background: #7a3fb0; color: #fff; white-space: nowrap; vertical-align: middle; }
+    .we-out { font-size: .8em; font-weight: 600; }
+    .we-out-same { opacity: .55; font-weight: 400; }
+    .we-preview { border: 1px dashed currentColor; padding: .5em .8em; margin: .4em 0 .8em; font-size: .9em; }
+    .we-counts { display: flex; flex-wrap: wrap; gap: .4em .9em; font-size: .85em; margin: .3em 0 .7em; }
+  </style>
+
+  <h2 class="page-title">Warrant expiries <span class="muted">— AI preview</span></h2>
+  <div class="we-preview"><strong>Preview, not live.</strong> Mine Terminal Pro dates each financing's warrant expiry from
+    its closing date and term, then moves, reprices or retires it when a later release reports an extension, acceleration,
+    repricing or full exercise that matches that financing. This page shows those events <strong>today</strong> (rules
+    reader) next to what they would be <strong>with the AI reader</strong> working alongside it. Changes both readers
+    found carry no badge; changes only the AI found are marked <span class="we-ai">AI-read</span>; changes where the two
+    readers disagree on a date, price or status are held for review and move nothing. The same financing check as the
+    live site decides which changes may move an event.
+    {% if built_at %}Built {{ built_at[:16].replace('T', ' ') }} UTC.{% endif %}</div>
+
+  {% if counts %}
+  <div class="we-counts">
+    {% for k, l in outcomes.items() %}{% if counts.get(k) %}<span><a href="/warrant-expiries-preview?show=all&outcome={{ k }}">{{ l }}</a>: <strong>{{ counts.get(k) }}</strong></span>{% endif %}{% endfor %}
+    <span class="muted">(upcoming events within MTP's 6-year window)</span>
+  </div>
+  {% endif %}
+
+  <section class="filters fin-filters">
+    <form method="get" action="/warrant-expiries-preview">
+      <label for="ticker">Company:</label>
+      <select name="ticker" id="ticker" onchange="this.form.submit()">
+        <option value="">All companies</option>
+        {% for t in tickers %}<option value="{{ t }}" {% if t == selected_ticker %}selected{% endif %}>{{ t }}</option>{% endfor %}
+      </select>
+      <label for="show">Show:</label>
+      <select name="show" id="show" onchange="this.form.submit()">
+        {% for v, l in [('changed', 'Only events that would change'), ('all', 'Every event a warrant notice touches')] %}
+          <option value="{{ v }}" {% if v == show %}selected{% endif %}>{{ l }}</option>
+        {% endfor %}
+      </select>
+      <label for="outcome">What changes:</label>
+      <select name="outcome" id="outcome" onchange="this.form.submit()">
+        <option value="">Any</option>
+        {% for v, l in outcomes.items() %}<option value="{{ v }}" {% if v == outcome %}selected{% endif %}>{{ l }}</option>{% endfor %}
+      </select>
+      <label for="label">Source:</label>
+      <select name="label" id="label" onchange="this.form.submit()">
+        {% for v, l in [('', 'All'), ('agreed', 'Both readers agree'), ('AI-read', 'AI-read only')] %}
+          <option value="{{ v }}" {% if v == label %}selected{% endif %}>{{ l }}</option>
+        {% endfor %}
+      </select>
+      {% if selected_ticker or show != 'changed' or outcome or label %}<a class="cat-clear" href="/warrant-expiries-preview">Reset</a>{% endif %}
+      <span class="muted">{{ total_filtered }} matching</span>
+    </form>
+  </section>
+
+  {% if not rows %}
+    <p class="empty">{% if built_at %}No warrant-expiry events match.{% else %}The preview has not been built yet.{% endif %}</p>
+  {% else %}
+    <div class="table-scroll">
+    <table class="fin-table we-table">
+      <colgroup>
+        <col style="width: 7%"><col style="width: 14%"><col style="width: 21%"><col style="width: 19%">
+        <col style="width: 21%"><col style="width: 11%"><col style="width: 7%">
+      </colgroup>
+      <thead>
+        <tr><th>Ticker</th><th>Company</th><th>Financing</th><th>On MTP today</th><th>With the AI reader</th><th>Difference</th><th>Notice</th></tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr>
+            <td class="fin-ticker">{{ r.ticker }}</td>
+            <td>{{ r.company_name }}</td>
+            <td>{{ r.fin_txt }}{% if r.fin_url %} <a href="{{ r.fin_url }}" target="_blank" rel="noopener">↗</a>{% endif %}</td>
+            <td>
+              {% if r.live_retired %}<span class="we-gone">Retired: all exercised</span>
+              {% elif not r.in_window_live %}<span class="we-gone">Not shown ({{ r.live_date }}, outside the window)</span>
+              {% else %}<span class="we-date">{{ r.live_date }}</span><span class="we-st">{{ r.live_status }}</span>{% endif %}
+              {% if r.live_note %}<span class="we-sub">{{ r.live_note }}</span>{% endif %}
+            </td>
+            <td>
+              {% if r.ai_retired %}<span class="we-gone">Retired: all exercised</span>
+              {% elif not r.in_window_ai %}<span class="we-gone">Not shown ({{ r.ai_date }}, outside the window)</span>
+              {% else %}<span class="we-date">{{ r.ai_date }}</span><span class="we-st">{{ r.ai_status }}</span>{% endif %}
+              {%- if r.ai_label == 'AI-read' and r.ai_changes %}<span class="we-ai" title="Only the AI reader found this change">AI-read</span>{% endif %}
+              {% if r.ai_note %}<span class="we-sub">{{ r.ai_note }}</span>{% endif %}
+            </td>
+            <td><span class="we-out {% if r.outcome == 'same' %}we-out-same{% endif %}">{{ r.outcome_label }}</span></td>
+            <td>{% if r.ai_url %}<a href="{{ r.ai_url }}" title="{{ r.ai_headline or '' }}">View ↗</a>{% endif %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  {% endif %}
+  {% include "_pager.html" %}
+{% endblock %}
