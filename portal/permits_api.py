@@ -150,6 +150,15 @@ def _conn() -> sqlite3.Connection:
     return c
 
 
+def _rows_ai_cols(conn) -> str:
+    """MNT_ROWS_AI_LIVE_V1 (2026-10-26): ', ai_label' when the connection is the AI reader's hybrid file."""
+    try:
+        from portal import rows_source
+        return rows_source.ai_cols(conn, "permits")
+    except Exception:  # noqa: BLE001
+        return ""
+
+
 def _headers(max_age: int = 300) -> dict:
     return {
         "Access-Control-Allow-Origin": "*",
@@ -258,6 +267,7 @@ def build_permits(rows, names: dict) -> list[dict]:
             "first_reported": _s(rs[0]["published_at"])[:10], "releases": len(stages),
             "headline": _title(_s(last["raw_headline"])),
             "release_url": release_url(t, last["slug"], last["event_id"]),
+            "ai_label": (last["ai_label"] if "ai_label" in last.keys() else "") or "",   # MNT_ROWS_AI_LIVE_V1
             "stages": stages[::-1],
         })
     out.sort(key=lambda x: (x["published_at"], x["row_id"]), reverse=True)
@@ -423,7 +433,7 @@ def _refresh_bg(dbfile, row_factory, sql, args, names, build, table, key, lock):
 
 
 def query_permits(conn, p: dict, names: dict, universe: Optional[frozenset]) -> dict:
-    sql = "SELECT " + _COLS + " FROM permits WHERE status IS NOT NULL"
+    sql = "SELECT " + _COLS + _rows_ai_cols(conn) + " FROM permits WHERE status IS NOT NULL"
     args: list = []
     t = p.get("ticker")
     if t:
@@ -476,12 +486,18 @@ def register(app) -> None:
         uni = None
         if p["universe"] == "mtp":
             uni = _universe.get() or None
-        with closing(_conn()) as conn:
+        try:   # MNT_ROWS_AI_LIVE_V1: the AI reader's hybrid file while this reader is switched to it
+            from portal import rows_source as _rsrc
+            _aic = _rsrc.ai_conn("permits")
+        except Exception:  # noqa: BLE001
+            _aic = None
+        with closing(_aic or _conn()) as conn:
             have = conn.execute("SELECT 1 FROM sqlite_master WHERE name='permits'").fetchone()
             if not have:
                 return JSONResponse({"ok": True, "api_version": API_VERSION, "total": 0, "page": 1, "pages": 0,
                                      "limit": p["limit"], "scope": p["scope"], "items": []}, headers=_headers())
             out = query_permits(conn, p, _names.get(), uni)
+        out["reader"] = "hybrid" if _aic is not None else "rules"   # MNT_ROWS_AI_LIVE_V1
         return JSONResponse(out, headers=_headers())
 
 

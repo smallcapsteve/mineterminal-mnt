@@ -311,6 +311,7 @@ def build_deals(rows, names: dict) -> list[dict]:
             "headline": _title(last["raw_headline"] or ""),
             "release_url": release_url(t, last["slug"], last["event_id"]),
             "all_releases": releases[::-1],
+            "_events": [r["event_id"] for r in rs],   # ROYTERMS_V1
             "_issuers": {bare(r["ticker"]) for r in rs if r["ticker"]},
         })
     out.sort(key=lambda x: (x["published_at"], x["deal_id"]), reverse=True)
@@ -420,11 +421,38 @@ def _side(ra, d, r, kind, act, typ):
     return "unclear", ""
 
 
-def query_deals(conn, p: dict, names: dict, universe: Optional[frozenset]) -> dict:
-    kinds = tuple(p.get("kinds") or ("deal",))   # ROY11: deals only by default; MNT_ROY_API_KINDS_V1: include=
+# MNT_ROY_BUILT_V1 (2026-10-14): building the deal list is ~92% of a request (profiled on SSRM include=all: build_deals
+# vs select + per-company filter), and it was redone for every company, so a first visit to a company's Royalties &
+# Streams tab on MTP took 1-5 s under load and sometimes passed MTP's 10 s proxy limit (13 of 48 x 502 on 2026-10-14).
+# The built list is now kept per worker and per set of kinds, rebuilt when royalty_deals gains or loses rows (count,
+# max rd_id) or the names file changes, and at most every _BUILT_TTL seconds for edits made in place. Each request gets
+# its own copies of the deal dicts, because the steps below add and remove keys. Pattern: exploration_api._BUILT_CACHE.
+_BUILT_CACHE: dict = {}
+_BUILT_TTL = 300.0
+_BUILT_MAX = 6
+_BUILT_LOCK = threading.Lock()
+
+
+def _built_deals(conn, kinds: tuple, names: dict) -> list:
+    fp = tuple(conn.execute("SELECT COUNT(*), MAX(rd_id) FROM royalty_deals").fetchone())
+    key = tuple(sorted(kinds))
+    with _BUILT_LOCK:
+        hit = _BUILT_CACHE.get(key)
+    if hit is not None and hit[1] == fp and hit[2] is names and time.monotonic() - hit[0] < _BUILT_TTL:
+        return hit[3]
     rows = conn.execute("SELECT " + _COLS + " FROM royalty_deals WHERE type IS NOT NULL AND COALESCE(kind, 'deal') IN ("
                         + ",".join("?" * len(kinds)) + ") ORDER BY published_at, event_id, ordinal", kinds).fetchall()
     deals = build_deals(rows, names)
+    with _BUILT_LOCK:
+        _BUILT_CACHE[key] = (time.monotonic(), fp, names, deals)
+        while len(_BUILT_CACHE) > _BUILT_MAX:
+            _BUILT_CACHE.pop(min(_BUILT_CACHE, key=lambda k: _BUILT_CACHE[k][0]), None)
+    return deals
+
+
+def query_deals(conn, p: dict, names: dict, universe: Optional[frozenset]) -> dict:
+    kinds = tuple(p.get("kinds") or ("deal",))   # ROY11: deals only by default; MNT_ROY_API_KINDS_V1: include=
+    deals = [dict(d) for d in _built_deals(conn, kinds, names)]   # MNT_ROY_BUILT_V1: copies of the kept list
     t = p.get("ticker")
     if t:
         company = ""
@@ -461,8 +489,79 @@ def query_deals(conn, p: dict, names: dict, universe: Optional[frozenset]) -> di
         "sides": ({k: sum(1 for d in deals if d.get("side") == k) for k in ("held", "owed", "unclear")}
                   if t else {}),   # ROY_SIDE_V1
         "universe": p["universe"], "universe_applied": bool(universe) and not t,
-        "items": deals[(page - 1) * limit: page * limit],
+        "items": _attach_terms(conn, deals[(page - 1) * limit: page * limit]),   # ROYTERMS_V1
     }
+
+
+# --------------------------------------------------------------------------- ROYTERMS_V1
+# Each royalty's terms (C8 step 3): buyback / buy-down rights, step-downs, stream delivery, caps, minimum payments,
+# area of interest, and what was paid for it, read by portal/royterms_reader.py into royalty_terms (one row per
+# release, royterms_job.py). Justin 2026-10-12 chose the rules reader as it is (blind check: payments P 54 / R 30,
+# terms P 81 / R 44), so `terms` can be missing or incomplete; `note` says they are read automatically.
+def _terms_docs(conn, events):
+    """MNT_ROYOPS_AI_LIVE_V1 (2026-10-26): while royalty terms are switched to the AI reader, the records come from its
+    hybrid file (portal/royops_source.py); otherwise from portal.db as before."""
+    try:
+        from portal import royops_source as _ros
+        _ai = _ros.ai_conn("royalty_terms")
+    except Exception:  # noqa: BLE001
+        _ai = None
+    if _ai is None:
+        return _terms_docs_rules(conn, events)
+    try:
+        return _terms_docs_rules(_ai, events)
+    finally:
+        _ai.close()
+
+
+def _terms_docs_rules(conn, events):
+    docs = {}
+    evs = [e for e in events if e]
+    if not evs:
+        return docs
+    try:
+        if not conn.execute("SELECT 1 FROM sqlite_master WHERE name='royalty_terms'").fetchone():
+            return docs
+        for i in range(0, len(evs), 400):
+            chunk = evs[i:i + 400]
+            for r in conn.execute("SELECT event_id, doc FROM royalty_terms WHERE event_id IN (%s) AND doc IS NOT NULL"
+                                  % ",".join("?" * len(chunk)), chunk):
+                try:
+                    docs[r[0]] = json.loads(r[1])
+                except ValueError:
+                    pass
+    except sqlite3.Error:
+        return {}
+    return docs
+
+
+def _attach_terms(conn, items):
+    try:
+        from portal import royterms_fmt as _rtf
+    except Exception:
+        try:
+            import royterms_fmt as _rtf
+        except Exception:
+            _rtf = None
+    docs = _terms_docs(conn, {e for d in items for e in d.get("_events", [])}) if _rtf else {}
+    for d in items:
+        evl = d.pop("_events", [])
+        d["terms"] = None
+        if not _rtf:
+            continue
+        seen = set()
+        for e in reversed(evl):                # newest release first
+            if e in seen or e not in docs:
+                continue
+            seen.add(e)
+            try:
+                s = _rtf.for_row(docs[e], d.get("type"), d.get("rate_pct"), d.get("property"))
+            except Exception:
+                s = None
+            if s:
+                d["terms"] = s
+                break
+    return items
 
 
 # --------------------------------------------------------------------------- web
@@ -491,6 +590,20 @@ def register(app) -> None:
                                      "limit": p["limit"], "items": []}, headers=_headers())
             out = query_deals(conn, p, _names.get(), uni)
         return JSONResponse(out, headers=_headers())
+
+    @app.get("/api/v1/royalty-terms")   # ROYTERMS_V1: every interest of each release, in words
+    def royalty_terms(events: Optional[str] = None):
+        evs = [e.strip() for e in (events or "").split(",") if re.match(r"^[0-9a-f]{8,64}$", e.strip() or "-")][:100]
+        if not evs:
+            return _err("events: give up to 100 release ids, comma separated", 400)
+        try:
+            from portal import royterms_fmt as _rtf
+        except Exception:
+            import royterms_fmt as _rtf
+        with closing(_conn()) as conn:
+            docs = _terms_docs(conn, evs)
+        return JSONResponse({"ok": True, "api_version": API_VERSION, "note": _rtf.NOTE,
+                             "items": {e: _rtf.all_interests(d) for e, d in docs.items()}}, headers=_headers())
 
 
 # --------------------------------------------------------------------------- self-tests

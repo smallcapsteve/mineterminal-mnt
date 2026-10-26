@@ -153,6 +153,15 @@ def _conn() -> sqlite3.Connection:
     return c
 
 
+def _rows_ai_cols(conn) -> str:
+    """MNT_ROWS_AI_LIVE_V1 (2026-10-26): ', ai_label' when the connection is the AI reader's hybrid file."""
+    try:
+        from portal import rows_source
+        return rows_source.ai_cols(conn, "sampling_results")
+    except Exception:  # noqa: BLE001
+        return ""
+
+
 def _headers(max_age: int = 300) -> dict:
     return {
         "Access-Control-Allow-Origin": "*",
@@ -310,7 +319,9 @@ def _result(r) -> dict:
             "survey_type": sv, "survey_label": SURVEY_LABELS.get(sv, sv) if st == "geophysics" else "",
             "project": _s(r["project"]), "historical": str(r["historical"]) == "1",
             "grade": g, "grade_unit": _s(r["grade_unit"]), "grade_metal": _s(r["grade_metal"]), "width_m": w,
-            "grade_text": grade_text(st, g, _s(r["grade_unit"]), _s(r["grade_metal"]), w), **_early(r)}
+            "grade_text": grade_text(st, g, _s(r["grade_unit"]), _s(r["grade_metal"]), w),
+            "ai_label": (r["ai_label"] if "ai_label" in r.keys() else "") or "",   # MNT_ROWS_AI_LIVE_V1
+            **_early(r)}
 
 
 def build_releases(rows, names: dict, p: dict) -> list[dict]:
@@ -347,7 +358,7 @@ def build_releases(rows, names: dict, p: dict) -> list[dict]:
 
 
 def query_releases(conn, p: dict, names: dict, universe: Optional[frozenset]) -> dict:
-    sql = "SELECT " + _COLS + " FROM sampling_results WHERE sample_type IS NOT NULL"
+    sql = "SELECT " + _COLS + _rows_ai_cols(conn) + " FROM sampling_results WHERE sample_type IS NOT NULL"
     args: list = []
     t = p.get("ticker")
     if t:
@@ -392,13 +403,19 @@ def register(app) -> None:
         uni = None
         if p["universe"] == "mtp":
             uni = _universe.get() or None
-        with closing(_conn()) as conn:
+        try:   # MNT_ROWS_AI_LIVE_V1: the AI reader's hybrid file while this reader is switched to it
+            from portal import rows_source as _rsrc
+            _aic = _rsrc.ai_conn("sampling_results")
+        except Exception:  # noqa: BLE001
+            _aic = None
+        with closing(_aic or _conn()) as conn:
             have = conn.execute("SELECT 1 FROM sqlite_master WHERE name='sampling_results'").fetchone()
             if not have:
                 return JSONResponse({"ok": True, "api_version": API_VERSION, "total": 0, "results": 0, "page": 1,
                                      "pages": 0, "limit": p["limit"], "scope": p["scope"], "items": []},
                                     headers=_headers())
             out = query_releases(conn, p, _names.get(), uni)
+        out["reader"] = "hybrid" if _aic is not None else "rules"   # MNT_ROWS_AI_LIVE_V1
         return JSONResponse(out, headers=_headers())
 
 

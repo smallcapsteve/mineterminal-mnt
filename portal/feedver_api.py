@@ -19,7 +19,18 @@ _LOCK = threading.Lock()
 def read_versions(db_path: str = DB_PATH) -> dict:
     with closing(sqlite3.connect("file:%s?mode=ro" % db_path, uri=True, timeout=10)) as c:
         rows = c.execute("SELECT tbl, v, changed_at FROM feed_versions").fetchall()
-    return {r[0]: {"v": r[1], "changed_at": r[2]} for r in rows}
+    out = {r[0]: {"v": r[1], "changed_at": r[2]} for r in rows}
+    try:   # MNT_DEV_AI_LIVE_V1 (2026-10-26): mine_dev_events also changes when the AI reader's live file is rebuilt
+        from portal import mine_dev_source
+        out = mine_dev_source.fold_version(out)
+    except Exception:  # noqa: BLE001
+        pass
+    try:   # MNT_ROWS_AI_LIVE_V1 (2026-10-26): permits, exploration_programs and sampling_results change with the hybrid file
+        from portal import rows_source
+        out = rows_source.fold_version(out)
+    except Exception:  # noqa: BLE001
+        pass
+    return out
 
 
 def register(app) -> None:

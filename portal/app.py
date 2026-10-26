@@ -1792,11 +1792,27 @@ def drills_intervals_fragment(request: Request, event_id: str):
     conn = db.get_conn()
     det = []
     try:
+        # DRILL fix B (2026-10-11): each interval says what it is -- an earlier, historical, partner or cut-off figure, or
+        # one row of a sample-by-sample table -- when the publisher has stored label and kind
+        _ivc = {r[1] for r in conn.execute("PRAGMA table_info(drill_intervals)")}
+        _lk = ", label, kind" if {"label", "kind"} <= _ivc else ""
+        _lk += ", depth_note" if "depth_note" in _ivc else ""   # DRILL_OCR_V1 (2026-10-13)
         for iv in conn.execute(
-                "SELECT event_id, seq, hole_id, from_m, to_m, length_m, summary, including, is_best, reported_before "
+                "SELECT event_id, seq, hole_id, from_m, to_m, length_m, summary, including, is_best, reported_before" + _lk + " "
                 "FROM drill_intervals WHERE event_id = ? ORDER BY seq", (event_id,)):
             ivd = dict(iv)
-            ivd["note"] = "best" if ivd["is_best"] else ("reported earlier" if ivd["reported_before"] else "")
+            _lab = {"previously_reported": "previously reported", "historical": "historical", "third_party": "third party",
+                    "cutoff": "cut-off"}.get(ivd.get("label") or "")
+            _notes = ["best"] if ivd["is_best"] else []
+            if _lab:
+                _notes.append(_lab)
+            elif ivd["reported_before"] and not ivd["is_best"]:
+                _notes.append("reported earlier")
+            if ivd.get("kind") == "sample":
+                _notes.append("single sample")
+            if ivd.get("depth_note") == "ocr":   # DRILL_OCR_V1: From-To read from the release's table picture
+                _notes.append("depths from table image")
+            ivd["note"] = (" %s " % chr(183)).join(_notes)
             det.append(ivd)
     except _sqlite3_co.OperationalError:
         det = []
@@ -2130,6 +2146,7 @@ _MD_STATUSES = ("achieved", "underway", "planned")
 
 from portal.mine_dev_publish import (TYPE_LABELS as _MD_TYPES, GROUP_LABELS as _MD_GROUPS,  # noqa: E402
                                      STATUS_LABELS as _MD_STATUS_LABELS)
+from portal import mine_dev_source as _md_source  # noqa: E402  MNT_DEV_AI_LIVE_V1 (2026-10-26)
 
 
 @app.get("/mine-development", response_class=HTMLResponse)
@@ -2153,6 +2170,12 @@ def mine_development_page(
            "days": days, "group": group, "etype": etype, "status": status, "show": show,
            "group_options": list(_MD_GROUPS.items()), "type_options": list(_MD_TYPES.items()),
            "total_filtered": 0, "pages": 1, "page_no": 1, "pager_url": "/mine-development", "pager_qs": ""}
+    # MNT_DEV_AI_LIVE_V1 (2026-10-26): while Mine Development is switched to the AI reader, the rows come from the
+    # harness's live file (same table name and columns, plus ai_label); otherwise from portal.db as before.
+    _md_ai = _md_source.ai_conn()
+    if _md_ai is not None:
+        conn = _md_ai
+    ctx["ai_live"] = _md_ai is not None
     have = conn.execute("SELECT 1 FROM sqlite_master WHERE name='mine_dev_events'").fetchone()
     if not have:
         # before the first publish there is nothing to show, and the page still answers 200
@@ -2183,7 +2206,7 @@ def mine_development_page(
     pages, page_no, _off = _paginate(total_filtered, page)
     rows = list(conn.execute(
         "SELECT event_id, ordinal, ticker, slug, raw_headline, published_at, event_type, event_group, mine, status, "
-        "       incident_kind, n_rows "
+        "       incident_kind, n_rows" + (", ai_label " if _md_ai is not None else " ") +
         "FROM mine_dev_events md WHERE " + clause +
         " ORDER BY published_at DESC, event_id, ordinal LIMIT ? OFFSET ?", args + [_PAGE_SIZE, _off]))
 
@@ -2272,6 +2295,12 @@ def sampling_geoscience_page(
            "days": days, "group": group, "stype": stype, "hist": hist, "show": show,
            "group_options": list(_SMP_GROUPS.items()), "type_options": list(_SMP_TYPES.items()),
            "total_filtered": 0, "pages": 1, "page_no": 1, "pager_url": "/sampling-geoscience", "pager_qs": ""}
+    # MNT_ROWS_AI_LIVE_V1 (2026-10-26): while this reader is switched to the AI reader, rows come from the hybrid file
+    from portal import rows_source as _rsrc
+    _rows_ai = _rsrc.ai_conn("sampling_results")
+    if _rows_ai is not None:
+        conn = _rows_ai
+    ctx["ai_live"] = _rows_ai is not None
     have = conn.execute("SELECT 1 FROM sqlite_master WHERE name='sampling_results'").fetchone()
     if not have:
         # before the first publish there is nothing to show, and the page still answers 200
@@ -2303,7 +2332,7 @@ def sampling_geoscience_page(
     pages, page_no, _off = _paginate(total_filtered, page)
     rows = list(conn.execute(
         "SELECT event_id, ordinal, ticker, slug, raw_headline, published_at, sample_type, survey_type, project, "
-        "       historical, grade, grade_unit, grade_metal, width_m, n_rows "
+        "       historical, grade, grade_unit, grade_metal, width_m, n_rows" + (", ai_label " if _rows_ai is not None else " ") +
         "FROM sampling_results sr WHERE " + clause +
         " ORDER BY published_at DESC, event_id, ordinal LIMIT ? OFFSET ?", args + [_PAGE_SIZE, _off]))
 
@@ -2488,6 +2517,12 @@ def exploration_programs_page(
            "rows": [], "total": 0, "releases": 0, "tickers": [], "selected_ticker": ticker or "",
            "days": days, "ptype": ptype, "status": status, "work": work, "show": show, "total_filtered": 0,
            "pages": 1, "page_no": 1, "pager_url": "/exploration-programs", "pager_qs": ""}
+    # MNT_ROWS_AI_LIVE_V1 (2026-10-26): while this reader is switched to the AI reader, rows come from the hybrid file
+    from portal import rows_source as _rsrc
+    _rows_ai = _rsrc.ai_conn("exploration_programs")
+    if _rows_ai is not None:
+        conn = _rows_ai
+    ctx["ai_live"] = _rows_ai is not None
     have = conn.execute("SELECT 1 FROM sqlite_master WHERE name='exploration_programs'").fetchone()
     if not have:
         # before the first publish there is nothing to show, and the page still answers 200
@@ -2522,7 +2557,8 @@ def exploration_programs_page(
     rows = list(conn.execute(
         "SELECT event_id, ordinal, ticker, slug, raw_headline, published_at, program_type, project, status, metres, "
         "       holes, line_km, season, phase, historical, operator, drill_method, survey_type, budget, currency, "
-        "       target_metal, contractor, rigs, program_releases, first_reported, is_latest, n_rows, tag_confirmed "
+        "       target_metal, contractor, rigs, program_releases, first_reported, is_latest, n_rows, tag_confirmed" +
+        (", ai_label " if _rows_ai is not None else " ") +
         "FROM exploration_programs ep WHERE " + clause +
         " ORDER BY published_at DESC, event_id, ordinal LIMIT ? OFFSET ?", args + [_PAGE_SIZE, _off]))
 
@@ -2733,6 +2769,12 @@ def permits_approvals_page(
            "pages": 1, "page_no": 1, "pager_url": "/permits-approvals", "pager_qs": "",
            "type_options": [("", "All permits")] + [(k, _PM_TYPE_LABELS[k]) for k in _PM_TYPES],
            "status_options": [("", "Any stage")] + [(k, _PM_STATUS_LABELS[k]) for k in _PM_STATUS]}
+    # MNT_ROWS_AI_LIVE_V1 (2026-10-26): while this reader is switched to the AI reader, rows come from the hybrid file
+    from portal import rows_source as _rsrc
+    _rows_ai = _rsrc.ai_conn("permits")
+    if _rows_ai is not None:
+        conn = _rows_ai
+    ctx["ai_live"] = _rows_ai is not None
     have = conn.execute("SELECT 1 FROM sqlite_master WHERE name='permits'").fetchone()
     if not have:
         # before the first publish there is nothing to show, and the page still answers 200
@@ -2766,7 +2808,7 @@ def permits_approvals_page(
     rows = list(conn.execute(
         "SELECT event_id, ordinal, ticker, slug, raw_headline, published_at, permit_type, project, status, authority, "
         "       date, permit_name, permit_id, term, expiry, jurisdiction, metal, chain_items, first_reported, latest, "
-        "       n_rows, tag_confirmed, scope, holder "   # PERMIT_V2 page: "allows ..." / "held by ..."
+        "       n_rows, tag_confirmed, scope, holder" + (", ai_label " if _rows_ai is not None else " ") +   # PERMIT_V2 page; MNT_ROWS_AI_LIVE_V1
         "FROM permits pm WHERE " + clause +
         " ORDER BY published_at DESC, event_id, ordinal LIMIT ? OFFSET ?", args + [_PAGE_SIZE, _off]))
 

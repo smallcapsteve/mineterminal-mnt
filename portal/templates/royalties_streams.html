@@ -76,6 +76,21 @@
     </form>
   </section>
 
+
+  <style>
+    /* ROYTERMS_V1 (2026-10-12): each royalty's terms, read automatically from the release */
+    .rd-terms { margin-top: .25em; font-size: .82em; }
+    .rd-terms summary { cursor: pointer; color: #b7791f; }
+    .rd-terms ul { margin: .25em 0 .2em 1.1em; padding: 0; }
+    .rd-terms li { margin: .1em 0; }
+    .rd-terms-name { opacity: .75; margin-top: .2em; }
+    .rd-terms-note { opacity: .6; font-size: .9em; }
+    .rd-terms, .rd-terms * { white-space: normal; overflow-wrap: anywhere; }   /* ROYTERMS_V1.2 */
+    .rd-terms { min-width: 200px; max-width: 100%; }
+    /* MNT_ROYOPS_AI_LIVE_V1 (2026-10-26): royalties only the AI reader found */
+    .rd-ai { display: inline-block; margin-left: .35em; padding: 0 .35em; border-radius: 3px; font-size: .85em;
+             background: #7a3fb0; color: #fff; white-space: nowrap; }
+  </style>
   {% if selected_ticker %}
   {# ROY_SIDE_V1 (2026-10-10): with a company chosen, its royalties split into held and owed, from /api/v1/royalties #}
   <style>
@@ -99,6 +114,13 @@
     function rate(x) { return x.rate_pct != null ? (Math.round(x.rate_pct * 1000) / 1000) + '% ' : ''; }
     function badge(x) { var s = String(x.type || '').toLowerCase() === 'stream';
       return '<span class="rd-rs ' + (s ? 'rd-rs-str' : 'rd-rs-roy') + '">' + (s ? 'Stream' : 'Royalty') + '</span>'; }
+    function termsHtml(tm) {   /* ROYTERMS_V1 */
+      if (!tm || !((tm.lines || []).length || (tm.paid || []).length)) return '';
+      var li = (tm.lines || []).map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') +
+               (tm.paid || []).map(function (s) { return '<li><b>Paid:</b> ' + esc(s) + '</li>'; }).join('');
+      return '<details class="rd-terms"><summary>Terms' + (tm.ai_label === 'AI-read' ? '<span class="rd-ai" title="Only the AI reader found this royalty in the release; the rules reader did not">AI-read</span>' : '') + '</summary>' + (tm.name ? '<div class="rd-terms-name">' + esc(tm.name) + '</div>' : '') +
+             '<ul>' + li + '</ul><div class="rd-terms-note">' + esc(tm.note || '') + '</div></details>';
+    }
     function row(x, side) {
       var v = x.kind === 'vendor';   /* ROY_SIDE_V1.1 */
       var other = side === 'held' ? (x.seller ? (v ? 'granted by ' : 'from ') + x.seller : '') : (x.buyer ? (v ? 'held by ' : 'to ') + x.buyer : '');
@@ -107,7 +129,7 @@
         '<td>' + esc(x.property || '—') + (x.operator ? '<span class="rd-sub">' + esc(x.operator) + '</span>' : '') + '</td>' +
         '<td>' + esc(other || '—') + '</td>' +
         '<td><span class="rd-kind">' + esc(x.action_label || '') + '</span>' + (x.kind && x.kind !== 'deal' ? '<span class="rd-sub">' + esc((x.kind_label || '').toLowerCase()) + '</span>' : '') +
-          (x.side_note ? '<span class="rd-note">' + esc(x.side_note) + '</span>' : '') + '</td>' +
+          (x.side_note ? '<span class="rd-note">' + esc(x.side_note) + '</span>' : '') + termsHtml(x.terms) + '</td>' +
         '<td>' + (x.release_url ? '<a href="' + esc(x.release_url.replace('https://miningnewsterminal.com', '')) + '">View &#8599;</a>' : '') + '</td></tr>';
     }
     var SIDES = [['held', 'Royalties held', 'Royalties and streams ' + t + ' holds: bought, kept when it sold or optioned a property, or reported as held.', 'Other party'],
@@ -178,7 +200,7 @@
             <td class="{% if not r['first_of_release'] %}rd-quiet{% endif %}">{% if r['first_of_release'] %}{{ r["company_name"] }}{% endif %}</td>
             <td class="fin-date {% if not r['first_of_release'] %}rd-quiet{% endif %}">{% if r['first_of_release'] %}{{ (r["published_at"] or "")[:10] }}{% endif %}</td>
             {% if r["type"] %}
-              <td>
+              <td{% if r['event_id'] %} data-rt-ev="{{ r['event_id'] }}" data-rt-type="{{ r['type'] }}" data-rt-rate="{{ r['rate_pct'] if r['rate_pct'] is not none else '' }}"{% endif %}>
                 {%- if (r["type"] | lower) == "stream" %}<span class="rd-rs rd-rs-str" title="Stream: a contract with the operating company to buy a share of one mine's metal at a fixed price; the company's obligation">Stream</span>{% else %}<span class="rd-rs rd-rs-roy" title="Royalty: a share of the property's production or revenue, registered against the claim; it stays with the property when it is sold">Royalty</span>{% endif %}
                 {{ r["rate_pct"] | rd_rate }} {{ r["type"] | rd_type }}
                 {%- if r["metal"] %}<span class="rd-sub">{{ r["metal"] }}</span>{% endif -%}
@@ -194,6 +216,7 @@
                 {%- if r["kind"] == "vendor" %}<span class="rd-sub" title="A royalty the seller or optionor keeps, or is granted, in a property deal">vendor royalty</span>{% elif r["kind"] == "held" %}<span class="rd-sub" title="A royalty the company already holds, in a release about it">held royalty</span>{% endif -%}
                 {%- if r["status"] %}<span class="rd-sub">{{ r["status"] }}</span>{% endif -%}
                 {%- if r["deal_releases"] and r["deal_releases"] > 1 %}<span class="rd-sub" title="Releases about this deal">{{ r["deal_releases"] }} releases since {{ r["first_reported"] }}</span>{% endif -%}
+                <span class="rd-terms-slot"></span>
               </td>
             {% else %}
               <td colspan="5" class="rd-none">Reports no royalty or stream deal</td>
@@ -207,5 +230,50 @@
     </table>
     </div>
   {% endif %}
+
+  <script>
+  /* ROYTERMS_V1 (2026-10-12): terms for the rows on this page, from /api/v1/royalty-terms */
+  (function () {
+    var cells = Array.prototype.slice.call(document.querySelectorAll('td[data-rt-ev]'));
+    if (!cells.length) return;
+    function esc(s) { return (s == null ? '' : String(s)).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    function fam(t) { t = String(t || '').toLowerCase();
+      return ({ nsr: 'NSR', grr: 'GRR', gmr: 'GRR', gvr: 'GRR', gor: 'GRR', npi: 'NPI', stream: 'stream' })[t] || 'other'; }
+    function num(v) { var n = parseFloat(v); return isNaN(n) ? null : n; }
+    function pick(list, type, rate) {
+      if (!list || !list.length) return null;
+      var f = fam(type), r = num(rate);
+      function sc(i) { var s = 0; if (i.family === f) s += 4;
+        if (r != null && i.rate != null && Math.abs(i.rate - r) <= 0.011) s += 4; else if (r == null && i.rate == null) s += 1; return s; }
+      var best = null, bs = -1;
+      list.forEach(function (i) { var s = sc(i); if (s > bs) { bs = s; best = i; } });
+      var sameFam = list.filter(function (i) { return i.family === f; }).length;
+      if (bs >= 8 || (bs >= 4 && sameFam === 1)) return best;
+      if (list.length === 1 && (bs >= 4 || r == null)) return best;
+      return null;
+    }
+    function termsHtml(tm) {   /* ROYTERMS_V1 */
+      if (!tm || !((tm.lines || []).length || (tm.paid || []).length)) return '';
+      var li = (tm.lines || []).map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') +
+               (tm.paid || []).map(function (s) { return '<li><b>Paid:</b> ' + esc(s) + '</li>'; }).join('');
+      return '<details class="rd-terms"><summary>Terms' + (tm.ai_label === 'AI-read' ? '<span class="rd-ai" title="Only the AI reader found this royalty in the release; the rules reader did not">AI-read</span>' : '') + '</summary>' + (tm.name ? '<div class="rd-terms-name">' + esc(tm.name) + '</div>' : '') +
+             '<ul>' + li + '</ul><div class="rd-terms-note">' + esc(tm.note || '') + '</div></details>';
+    }
+    var evs = [];
+    cells.forEach(function (c) { var e = c.getAttribute('data-rt-ev'); if (e && evs.indexOf(e) < 0) evs.push(e); });
+    fetch('/api/v1/royalty-terms?events=' + encodeURIComponent(evs.slice(0, 100).join(',')), { headers: { Accept: 'application/json' } })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (d) {
+        var items = (d && d.items) || {};
+        cells.forEach(function (c) {
+          var tm = pick(items[c.getAttribute('data-rt-ev')], c.getAttribute('data-rt-type'), c.getAttribute('data-rt-rate'));
+          var slot = c.parentNode && c.parentNode.querySelector('.rd-terms-slot');
+          if (tm && slot) { tm.note = tm.note || d.note; slot.innerHTML = termsHtml(tm); }
+        });
+      })
+      .catch(function () { /* terms are extra; the table stands without them */ });
+  })();
+  </script>
   {% include "_pager.html" %}
 {% endblock %}
