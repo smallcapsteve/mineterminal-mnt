@@ -23,6 +23,7 @@ from __future__ import annotations
 import datetime as dt
 import hashlib
 import re
+import os  # NFCP_OFF_V1
 from typing import Iterator
 from urllib.parse import urljoin
 
@@ -190,6 +191,12 @@ def _sanitize_release_html(root, page_url: str = "") -> str:
 
 def list_recent(cfg: dict, limit: int = 25) -> Iterator[dict]:
     """Yield recent release summaries for the configured Newsfile company_id."""
+    # NFCP_OFF_V1 (2026-10-27): company-page reads switched off by a flag file; sync_newsfile_direct covers
+    # Newsfile from its feeds instead (claude/NEWSFILE_BLOCK_FINDINGS_2026-10-27.md). Delete the file to undo.
+    _off = os.environ.get("NEWSFILE_COMPANY_PAGES_OFF", "/opt/mnt/app/data/newsfile_company_pages.off")
+    if os.path.exists(_off):
+        print(f"[newsfile] company-page reads off ({_off}); {cfg.get('ticker')} left to sync_newsfile_direct")
+        return
     params = cfg.get("source_params") or {}
     company_id = params.get("company_id")
     if company_id is None:
