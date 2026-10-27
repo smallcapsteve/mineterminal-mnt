@@ -1,5 +1,24 @@
 #!/usr/bin/env python3
-"""sync_newsfile_direct.py - direct Newsfile (TMX Newsfile) mining collector. NFDIRECT_V3, 2026-10-27.
+"""sync_newsfile_direct.py - direct Newsfile (TMX Newsfile) mining collector. NFDIRECT_V4, 2026-10-27.
+
+V4 (NFSTUB_V1; Justin 11:58 Toronto: "Yes build step 1 & 2"):
+  Step 1, short version. While Newsfile's website blocks us, a new release seen in the feeds is published at once as a
+  short version: headline, ticker, Newsfile's time, the feed's ~500-character opening and a link to the full release
+  on Newsfile. Its own event id (stub_event_id), classifier_model 'newsfile_feed_stub_v1'. The rules readers are told
+  to skip it (an 'ok', 0-record fx_runs row per active reader version, error 'NFSTUB_V1 ...'), so data pages only ever
+  read full text. On only while data/newsfile_stubs.on exists.
+  Step 2, full text takes over. Checked every run, cheapest first:
+    a. a copy already on MNT from another source (same ticker, within 2 days, >= FILL_OVERLAP of the opening's 8-word
+       phrases found in its text) -> that copy is kept;
+    b. a TSX/CSE (or other) copy the duplicate guard held back because the short version was there
+       (dup_guard_log 'skipped_new', kept_id = the stub) -> that copy is put back, as the guard's own restore does;
+    c. Newsfile's page reads again -> the full release is stored under its normal id (event_id_for(url)).
+  In each case the short version is removed: logged in dup_guard_log ('stub_replaced', full row), its reader rows
+  deleted, the row deleted, and its address forwarded to the kept release (event_slug_aliases, source NFSTUB_V1) when
+  the address differs. For c the stub is removed first (MNT's older headline matcher ignores review_status, so even a
+  hidden stub would make it refuse the full release) and put back from its logged row if the full release is not
+  stored ('stub_restored').
+  A short version is never made when the release is already on MNT, has no Canadian ticker, or looks non-mining.
 
 History
   V1/V2 2026-10-16 (claude/NFDIRECT_FINDINGS_2026-10-16.md): metals RSS feeds, then the release page for the text.
@@ -40,6 +59,8 @@ Run:
   python3 sync_newsfile_direct.py --no-pages ...        never touch the website (feeds and MNT only)
   python3 sync_newsfile_direct.py --test-urls URL [URL ...]
   python3 sync_newsfile_direct.py --self-test           offline tests
+  ... --stubs                                           V4: make (or, with --dry-run, preview) short versions even
+                                                        without data/newsfile_stubs.on
 Source-name: newsfile. classifier_model newsfile_direct_v1 (unchanged, so V1-V3 rows are found the same way).
 """
 from __future__ import annotations
@@ -59,7 +80,12 @@ from xml.etree import ElementTree as ET
 
 sys.path.insert(0, "/opt/mnt/app")
 
-VERSION = "NFDIRECT_V3"
+VERSION = "NFDIRECT_V4"
+STUB_MODEL = "newsfile_feed_stub_v1"
+STUBS_FLAG = Path(os.environ.get("NFDIRECT_STUBS_FLAG", "/opt/mnt/app/data/newsfile_stubs.on"))
+STUB_MAX_AGE_DAYS = 4         # no short version for a release older than this
+FILL_DAYS = 2                 # a copy within this many days of the release can replace its short version
+FILL_OVERLAP = 0.5            # share of the opening's 8-word phrases that must be found in the copy
 FEEDS = [
     "https://feeds.newsfilecorp.com/industry/mining-metals",
     "https://feeds.newsfilecorp.com/industry/precious-metals",
@@ -258,8 +284,9 @@ def already_on_mnt(ticker, headline, body, published, rid):
     t1 = NW._nw_toks((body or "")[:2500])
     for eid, h2, b2, url2, st in _ro().execute(
             "SELECT event_id, raw_headline, substr(COALESCE(raw_body,''),1,2500), COALESCE(source_url,''), review_status "
-            "FROM events WHERE (ticker = ? OR ticker LIKE ?) AND published_at >= ? AND published_at < ?",
-            (base, base + ".%", lo, hi)):
+            "FROM events WHERE (ticker = ? OR ticker LIKE ?) AND published_at >= ? AND published_at < ? "
+            "AND COALESCE(classifier_model,'') != ?",
+            (base, base + ".%", lo, hi, STUB_MODEL)):
         if rid and f"/release/{rid}/" in url2 + "/":
             return eid, "same Newsfile release (%s)" % st
         if st in ("auto_approved", "pending_review") and NW.same_release(headline, t1, h2 or "", NW._nw_toks(b2)):
@@ -277,7 +304,8 @@ def on_mnt_by_rid(rid: str, ticker_hint: str, published: str):
     hi = (d + timedelta(days=2)).strftime("%Y-%m-%d")
     for (eid,) in _ro().execute(
             "SELECT event_id FROM events WHERE (ticker = ? OR ticker LIKE ?) AND published_at >= ? AND published_at < ? "
-            "AND source_url LIKE ?", (base, base + ".%", lo, hi, f"%/release/{rid}/%")):
+            "AND source_url LIKE ? AND COALESCE(classifier_model,'') != ?",
+            (base, base + ".%", lo, hi, f"%/release/{rid}/%", STUB_MODEL)):
         return eid
     return None
 
@@ -308,6 +336,293 @@ def read_release(item: dict) -> dict:
 
 def event_id_for(url: str) -> str:
     return hashlib.sha256(("newsfile:" + url).encode("utf-8")).hexdigest()
+
+
+# ------------------------------------------------------------------ V4: short versions (NFSTUB_V1)
+def stub_event_id(url: str) -> str:
+    return hashlib.sha256(("newsfile-stub:" + url).encode("utf-8")).hexdigest()
+
+
+def stubs_on() -> bool:
+    return STUBS_FLAG.exists()
+
+
+def clean_teaser(t: str) -> str:
+    """The feed's opening, without a trailing '...' and cut back to the last full sentence when one ends late enough."""
+    t = re.sub(r"\s+", " ", (t or "")).strip()
+    t = re.sub(r"\s*(\.\.\.|…)\s*$", "", t)
+    t = re.sub(r"([a-z)][.!?][\"”]?)([A-Z])", r"\1 \2", t)   # the feed drops the gap between paragraphs
+    m = list(re.finditer(r"[.!?](?=\s|$)", t))
+    if m and m[-1].end() >= 0.6 * len(t):
+        t = t[:m[-1].end()]
+    return t
+
+
+def stub_html(teaser: str, url: str) -> str:
+    esc = _html.escape
+    return ('<p>%s</p>\n<p class="nf-stub-note"><em>This is the opening of the release. The full text will appear '
+            'here as soon as it is available; meanwhile, <a href="%s">read the full release on Newsfile</a>.</em></p>'
+            % (esc(teaser), esc(url, quote=True)))
+
+
+def stub_envelope(item: dict, tk: str) -> dict:
+    t = clean_teaser(item.get("teaser") or "")
+    return {
+        "event_id": stub_event_id(item["url"]),
+        "event_type": "news_release",
+        "ticker": tk,
+        "source_name": "newsfile",
+        "source_url": item["url"],
+        "raw_headline": item["headline"][:500],
+        "raw_excerpt": t[:1500],
+        "raw_body": t,
+        "raw_html": stub_html(t, item["url"]),
+        "published_at": item["published_at"],
+        "review_status": "auto_approved",
+        "classifier_model": STUB_MODEL,
+        "classifier_confidence": 0.5,
+    }
+
+
+_rw_con = None
+
+
+def _rw():
+    global _rw_con
+    if _rw_con is None:
+        _rw_con = sqlite3.connect(PORTAL_DB, timeout=60)
+        _rw_con.execute("PRAGMA busy_timeout=30000")
+    return _rw_con
+
+
+def get_stub(url: str):
+    """The stored short version of this release (any status), as a dict of dupguard.EVENT_COLS, else None."""
+    from portal import dupguard as G
+    r = _ro().execute("SELECT %s FROM events WHERE event_id = ?" % ",".join(G.EVENT_COLS),
+                      (stub_event_id(url),)).fetchone()
+    return dict(zip(G.EVENT_COLS, tuple(r))) if r else None
+
+
+def copy_on_mnt(ticker: str, opening: str, published: str, exclude=()):
+    """A visible release of the same company within FILL_DAYS whose text holds the opening (8-word phrases), else None.
+    Short versions never count."""
+    from portal import dupguard as G
+    base = (ticker or "").split(".")[0].upper()
+    if not base or not published or len((opening or "").split()) < 25:
+        return None
+    d = datetime.fromisoformat(published[:10])
+    lo = (d - timedelta(days=FILL_DAYS)).strftime("%Y-%m-%d")
+    hi = (d + timedelta(days=FILL_DAYS + 1)).strftime("%Y-%m-%d")
+    best = None
+    for row in _ro().execute(
+            "SELECT %s FROM events WHERE (ticker = ? OR ticker LIKE ?) AND published_at >= ? AND published_at < ? "
+            "AND review_status IN ('auto_approved','approved') AND COALESCE(classifier_model,'') != ?"
+            % ",".join(G.EVENT_COLS), (base, base + ".%", lo, hi, STUB_MODEL)):
+        r = dict(zip(G.EVENT_COLS, tuple(row)))
+        if r["event_id"] in exclude:
+            continue
+        ov = G.body_overlap(opening, r.get("raw_body") or re.sub(r"<[^>]+>", " ", r.get("raw_html") or ""))
+        if ov >= FILL_OVERLAP and (best is None or ov > best[0]):
+            best = (ov, r)
+    return best[1] if best else None
+
+
+def held_back_copy(stub_id: str):
+    """The newest copy the duplicate guard held back because the short version was there (full row), else None."""
+    r = _ro().execute("SELECT row_json FROM dup_guard_log WHERE action='skipped_new' AND kept_id=? AND row_json IS NOT NULL "
+                      "ORDER BY id DESC LIMIT 1", (stub_id,)).fetchone()
+    if not r:
+        return None
+    try:
+        row = json.loads(r[0])
+    except ValueError:
+        return None
+    if _ro().execute("SELECT 1 FROM events WHERE event_id=?", (row.get("event_id"),)).fetchone():
+        return None
+    return row
+
+
+def block_readers(conn, eid: str) -> int:
+    """The rules readers skip the short version: one 'ok', 0-record run per active reader version."""
+    n = 0
+    for ext, ver in conn.execute("SELECT extractor, version FROM fx_extractor_versions WHERE status='active'").fetchall():
+        n += conn.execute("INSERT OR IGNORE INTO fx_runs(event_id, extractor, version, tag_confirmed, n_records, status, "
+                          "error, body_sha1) VALUES (?,?,?,0,0,'ok','NFSTUB_V1: short version, not read',NULL)",
+                          (eid, ext, ver)).rowcount
+    return n
+
+
+def remove_stub(conn, stub: dict, kept: dict, action: str = "stub_replaced") -> None:
+    """Log the short version in full, delete it and everything read from it, forward its address to `kept`."""
+    from portal import dupguard as G
+    sid = stub["event_id"]
+    G.ensure_log(conn)                 # executescript commits, so it must run before the savepoint
+    conn.execute("SAVEPOINT nfstub")
+    try:
+        G.log(conn, action, stub, kept, True)
+        conn.execute("DELETE FROM fx_facts WHERE record_id IN (SELECT record_id FROM fx_records WHERE event_id=?)", (sid,))
+        conn.execute("DELETE FROM fx_record_events WHERE record_id IN (SELECT record_id FROM fx_records WHERE event_id=?)",
+                     (sid,))
+        conn.execute("DELETE FROM fx_record_events WHERE event_id=?", (sid,))
+        conn.execute("DELETE FROM fx_records WHERE event_id=?", (sid,))
+        conn.execute("DELETE FROM fx_runs WHERE event_id=?", (sid,))
+        conn.execute("DELETE FROM reader_tags WHERE event_id=?", (sid,))
+        conn.execute("DELETE FROM events WHERE event_id=?", (sid,))
+        if stub.get("slug") and stub.get("ticker") and \
+                (stub["slug"] != kept.get("slug") or (stub["ticker"] or "").upper() != (kept.get("ticker") or "").upper()):
+            conn.execute("INSERT OR IGNORE INTO event_slug_aliases (ticker, old_slug, event_id, source) VALUES (?,?,?,?)",
+                         (stub["ticker"].lower(), stub["slug"].lower(), kept["event_id"], "NFSTUB_V1"))
+        conn.execute("RELEASE nfstub")
+        conn.commit()
+    except Exception:
+        conn.execute("ROLLBACK TO nfstub")
+        conn.execute("RELEASE nfstub")
+        raise
+
+
+def make_stub(item: dict, apply: bool, seen: dict, counts: dict) -> str:
+    """Step 1. Returns 'made', 'exists', 'on_mnt' (the release is already there: seen updated) or a skip reason."""
+    import sync_newswire_ca as NW
+    url, rid = item["url"], item["rid"]
+    if not item.get("published_at") or item["published_at"] < _iso(_now() - timedelta(days=STUB_MAX_AGE_DAYS)):
+        return "too_old"
+    if get_stub(url):
+        return "exists"
+    if NW.NON_MINING_HINTS.search(item["headline"]):
+        return "non_mining"
+    tk = extract_ticker(item.get("teaser") or "")[0] or item.get("ticker_hint")
+    if not tk:
+        counts["stub_no_ticker"] += 1
+        return "no_ticker"
+    opening = clean_teaser(item.get("teaser") or "")
+    tag = f"{rid} {item['headline'][:60]}"
+    try:
+        eid = on_mnt_by_rid(rid, tk, item["published_at"])
+        twin = None
+        if not eid:
+            twin, _why = already_on_mnt(tk, item["headline"], opening, item["published_at"], rid)
+        if not eid and not twin:
+            c = copy_on_mnt(tk, opening, item["published_at"])
+            twin = c["event_id"] if c else None
+    except Exception as e:  # noqa: BLE001 - if the check fails, make nothing this run
+        print(f"  ! stub check failed ({type(e).__name__}: {e})  {tag}", flush=True)
+        return "check_failed"
+    if eid or twin:
+        counts["already_on_mnt"] += 1
+        seen[rid] = {"st": "on_mnt", "event": (eid or twin)[:12]}
+        print(f"  = {tk:10s} already on MNT as {(eid or twin)[:12]} (no short version, no page read)  {tag}", flush=True)
+        return "on_mnt"
+    env = stub_envelope(item, tk)
+    if not apply:
+        counts["would_stub"] += 1
+        print(f"  ~ WOULD PUBLISH SHORT VERSION {tk:10s} {item['published_at']}  {len(opening)} chars  {tag}", flush=True)
+        print(f"      opening: {opening[:300]}{'…' if len(opening) > 300 else ''}", flush=True)
+        return "would"
+    code = NW.post_to_ingest(env)
+    if code not in (200, 201, 202):
+        counts["post_failed"] += 1
+        print(f"  X short version HTTP {code}  {tag}", flush=True)
+        return "post_failed"
+    conn = _rw()
+    row = conn.execute("SELECT review_status FROM events WHERE event_id=?", (env["event_id"],)).fetchone()
+    if not row:
+        counts["stub_refused"] += 1
+        print(f"  - short version not stored (duplicate guard or gate)  {tk:10s} {tag}", flush=True)
+        return "refused"
+    block_readers(conn, env["event_id"])
+    conn.commit()
+    counts["stubbed"] += 1
+    print(f"  ~ short version published {tk:10s} {item['published_at']} ({row[0]})  {tag}", flush=True)
+    return "made"
+
+
+def fill_stubs(apply: bool, counts: dict) -> None:
+    """Step 2, a and b: a full copy already on MNT, or one the duplicate guard held back, takes over each short version.
+    Also puts back a short version left hidden by an interrupted page take-over."""
+    from portal import dupguard as G
+    since = _iso(_now() - timedelta(days=STUB_MAX_AGE_DAYS + FILL_DAYS + 1))
+    stubs = [dict(zip(G.EVENT_COLS, tuple(r))) for r in _ro().execute(
+        "SELECT %s FROM events WHERE classifier_model=? AND published_at >= ?" % ",".join(G.EVENT_COLS),
+        (STUB_MODEL, since)).fetchall()]
+    counts["stubs_live"] = sum(1 for s in stubs if s["review_status"] in ("auto_approved", "pending_review"))
+    for s in stubs:
+        tag = f"{s['ticker']:10s} {(s['raw_headline'] or '')[:60]}"
+        if s["review_status"] == "superseded_stub":
+            full = _ro().execute("SELECT event_id, slug, ticker, source_name FROM events WHERE event_id=?",
+                                 (event_id_for(s["source_url"]),)).fetchone()
+            if apply:
+                conn = _rw()
+                if full:
+                    remove_stub(conn, s, dict(zip(("event_id", "slug", "ticker", "source_name"), full)))
+                else:
+                    conn.execute("UPDATE events SET review_status='auto_approved' WHERE event_id=?", (s["event_id"],))
+                    conn.commit()
+            print(f"  ! interrupted take-over tidied ({'full release kept' if full else 'short version shown again'})  {tag}",
+                  flush=True)
+            continue
+        kept, how = copy_on_mnt(s["ticker"], s["raw_body"], s["published_at"], exclude=(s["event_id"],)), "copy on MNT"
+        if not kept:
+            row = held_back_copy(s["event_id"])
+            if row:
+                kept, how = row, "held-back %s copy" % (row.get("source_name") or "?")
+        if not kept:
+            continue
+        counts["filled"] += 1
+        if not apply:
+            print(f"  ^ WOULD REPLACE short version by {how} {kept['event_id'][:12]}  {tag}", flush=True)
+            continue
+        conn = _rw()
+        if how.startswith("held-back"):
+            from portal import db as PDB
+            kept = dict(kept)
+            kept["slug"] = kept.get("slug") or PDB._auto_slug(kept.get("raw_headline") or "")
+            kept["categories"] = kept.get("categories") or PDB._auto_categorize(kept)
+            G.restore_row(conn, kept)
+            G.log(conn, "restored", kept, s, False)
+            conn.commit()
+            if not conn.execute("SELECT 1 FROM events WHERE event_id=?", (kept["event_id"],)).fetchone():
+                print(f"  ! could not put back the held-back copy; short version stays  {tag}", flush=True)
+                continue
+        remove_stub(conn, s, kept)
+        print(f"  ^ short version replaced by {how} {kept['event_id'][:12]}  {tag}", flush=True)
+
+
+def take_over_from_page(item: dict, env: dict, apply: bool, counts: dict):
+    """Step 2c, around the normal post: remove the short version (logged in full), post the full release, and put the
+    short version back if the full release was not stored. Removing first matters: MNT's older headline matcher
+    (_find_fuzzy_dupe) ignores review_status, so even a hidden short version would make it refuse the full release.
+    Returns the HTTP code, or None when there is no short version (the caller posts as before)."""
+    import sync_newswire_ca as NW
+    from portal import dupguard as G
+    stub = get_stub(item["url"])
+    if not stub:
+        return None
+    if not apply:
+        counts["would_take_over"] += 1
+        print(f"  ^ WOULD REPLACE short version {stub['event_id'][:12]} with the full release", flush=True)
+        return 200
+    conn = _rw()
+    remove_stub(conn, stub, {"event_id": env["event_id"], "slug": stub.get("slug"), "ticker": stub.get("ticker"),
+                             "source_name": "newsfile"})            # same slug passed: no address forward yet
+    try:
+        code = NW.post_to_ingest(env)
+    except Exception as e:  # noqa: BLE001
+        code = "%s: %s" % (type(e).__name__, e)
+    full = conn.execute("SELECT event_id, slug, ticker FROM events WHERE event_id=?", (env["event_id"],)).fetchone()
+    if code in (200, 201, 202) and full:
+        if stub.get("slug") and stub.get("ticker") and full[1] and full[1] != stub["slug"]:
+            conn.execute("INSERT OR IGNORE INTO event_slug_aliases (ticker, old_slug, event_id, source) VALUES (?,?,?,?)",
+                         (stub["ticker"].lower(), stub["slug"].lower(), full[0], "NFSTUB_V1"))
+            conn.commit()
+        counts["taken_over"] += 1
+        print(f"  ^ full release replaced its short version {stub['event_id'][:12]}", flush=True)
+    else:
+        G.restore_row(conn, stub)
+        block_readers(conn, stub["event_id"])
+        G.log(conn, "stub_restored", stub, None, False)
+        conn.commit()
+        print(f"  ! full release not stored (HTTP {code}); short version put back", flush=True)
+    return code
 
 
 # ------------------------------------------------------------------ one release
@@ -374,8 +689,11 @@ def handle(item: dict, apply: bool, seen: dict, counts: dict) -> str:
     if not apply:
         counts["would_ingest"] += 1
         print(f"  + WOULD INGEST {tk:10s} {item['published_at']}  body {len(body)} chars  {tag}", flush=True)
+        take_over_from_page(item, env, False, counts)
         return ""
-    code = NW.post_to_ingest(env)
+    code = take_over_from_page(item, env, True, counts)      # V4: replaces the short version when there is one
+    if code is None:
+        code = NW.post_to_ingest(env)
     if code in (200, 201, 202):
         counts["ingested"] += 1
         seen[rid] = {"st": "ingested", "code": code}
@@ -389,7 +707,7 @@ def handle(item: dict, apply: bool, seen: dict, counts: dict) -> str:
 
 
 # ------------------------------------------------------------------ the queue (shared by feeds and backstop)
-def work_queue(items, apply: bool, pages: bool, seen: dict, state: dict, counts: dict) -> None:
+def work_queue(items, apply: bool, pages: bool, seen: dict, state: dict, counts: dict, stubs: bool = False) -> None:
     cutoff = _iso(_now() - timedelta(days=MAX_AGE_DAYS))
     todo = []
     for it in items:
@@ -401,6 +719,12 @@ def work_queue(items, apply: bool, pages: bool, seen: dict, state: dict, counts:
             continue
         todo.append(it)
     counts["new"] += len(todo)
+    if stubs and todo:                          # V4 step 1: short versions first; needs no website request
+        keep = []
+        for it in queue_order(todo, seen):
+            if make_stub(it, apply, seen, counts) != "on_mnt":
+                keep.append(it)
+        todo = keep
     if not todo:
         return
     if not pages:
@@ -451,7 +775,9 @@ def work_queue(items, apply: bool, pages: bool, seen: dict, state: dict, counts:
 def _counts():
     return {k: 0 for k in ("feed_items", "new", "ingested", "would_ingest", "already_on_mnt", "no_ticker",
                            "non_mining", "page_unreadable", "pages_ok", "check_failed", "post_failed", "too_old",
-                           "feed_errors", "pages_read", "left_for_next_run", "overflow", "backoff_skip")}
+                           "feed_errors", "pages_read", "left_for_next_run", "overflow", "backoff_skip",
+                           "would_stub", "stubbed", "stub_refused", "stub_no_ticker", "stubs_live", "filled",
+                           "would_take_over", "taken_over")}
 
 
 def _finish(apply, seen, state, counts, label) -> None:
@@ -463,7 +789,8 @@ def _finish(apply, seen, state, counts, label) -> None:
 
 
 # ------------------------------------------------------------------ feeds run (timer, every 2 min)
-def run(apply: bool, pages: bool = True, items=None) -> int:
+def run(apply: bool, pages: bool = True, items=None, stubs=None) -> int:
+    stubs = stubs_on() if stubs is None else stubs
     seen, state, counts = load_seen(), _load_json(STATE_FILE), _counts()
     if items is None:
         items, ids = [], set()
@@ -488,17 +815,22 @@ def run(apply: bool, pages: bool = True, items=None) -> int:
                     ids.add(it["rid"])
                     items.append(it)
     counts["feed_items"] = len(items)
-    work_queue(items, apply, pages, seen, state, counts)
+    work_queue(items, apply, pages, seen, state, counts, stubs=stubs)
+    try:                                        # V4 step 2a/2b: copies that take over short versions
+        fill_stubs(apply, counts)
+    except Exception as e:  # noqa: BLE001 - never let the take-over stop collection
+        print(f"[newsfile_direct] fill_stubs failed: {type(e).__name__}: {e}", flush=True)
     state["last_run"] = _iso(_now())
     _finish(apply, seen, state, counts, VERSION)
     if apply and state.get("backstop_due"):
         print("[newsfile_direct] running the company-feed backstop after an overflow", flush=True)
-        return backstop(apply, pages)
+        return backstop(apply, pages, stubs=stubs)
     return 0
 
 
 # ------------------------------------------------------------------ backstop (twice a day, or after an overflow)
-def backstop(apply: bool, pages: bool = True, limit: int = 0) -> int:
+def backstop(apply: bool, pages: bool = True, limit: int = 0, stubs=None) -> int:
+    stubs = stubs_on() if stubs is None else stubs
     seen, state, counts = load_seen(), _load_json(STATE_FILE), _counts()
     try:
         rows = json.loads(TICKERS_JSON.read_text())
@@ -541,7 +873,7 @@ def backstop(apply: bool, pages: bool = True, limit: int = 0) -> int:
     print(f"[newsfile_direct] BACKSTOP feeds ok={feeds_ok} failed={feeds_bad}; releases in the last "
           f"{MAX_AGE_DAYS} days={recent}; not yet handled={len(found)}", flush=True)
     counts["feed_items"] = len(found)
-    work_queue(found, apply, pages, seen, state, counts)
+    work_queue(found, apply, pages, seen, state, counts, stubs=stubs)
     state["backstop_due"] = False
     state["last_backstop"] = _iso(_now())
     _finish(apply, seen, state, counts, VERSION + " BACKSTOP")
@@ -634,6 +966,103 @@ def _self_test() -> int:
     work_queue([{"rid": "9", "url": "u", "headline": "h", "published_at": "2020-01-01T00:00:00Z", "teaser": ""}],
                False, True, {}, {}, c)
     ok("too old", (c["new"], c["too_old"]), (0, 1))
+    # V4: short versions
+    ok("teaser cut", clean_teaser("Vancouver - Acme (TSXV: ACM) is pleased to report drilling. Hole 1 cut 2 m of 5 g/t gold. More..."),
+       "Vancouver - Acme (TSXV: ACM) is pleased to report drilling. Hole 1 cut 2 m of 5 g/t gold.")
+    ok("teaser paragraph gap", clean_teaser("to focus on other business opportunities.The Company thanks them. In U.S. dollars."),
+       "to focus on other business opportunities. The Company thanks them. In U.S. dollars.")
+    ok("teaser keep", clean_teaser("Short one. Then a very long trailing fragment that goes on and on without any end at all ..."),
+       "Short one. Then a very long trailing fragment that goes on and on without any end at all")
+    u = "https://www.newsfilecorp.com/release/321076/Sankamap-Discovers"
+    ok("stub id differs", stub_event_id(u) != event_id_for(u), True)
+    ok("stub html escaped", "&lt;b&gt;" in stub_html("<b>x</b>", u) and 'href="' + u + '"' in stub_html("x", u), True)
+    env = stub_envelope({"url": u, "headline": "Sankamap Discovers Gold", "published_at": "2026-10-27T12:00:00Z",
+                         "teaser": "Toronto - Sankamap (CSE: SCU) discovers gold. ..."}, "SCU.CN")
+    ok("stub env", (env["event_id"], env["classifier_model"], env["ticker"], env["raw_body"]),
+       (stub_event_id(u), STUB_MODEL, "SCU.CN", "Toronto - Sankamap (CSE: SCU) discovers gold."))
+    try:                                         # DB pieces: need portal.dupguard (on the server, or a clone on the path)
+        from portal import dupguard as G
+    except ImportError:
+        G = None
+        print("self-test: portal not importable here; DB tests skipped")
+    if G:
+        con = sqlite3.connect(":memory:")
+        con.execute("CREATE TABLE events (%s, PRIMARY KEY(event_id))" % ",".join(G.EVENT_COLS))
+        con.executescript("""CREATE TABLE fx_extractor_versions (extractor TEXT, version TEXT, status TEXT);
+            CREATE TABLE fx_runs (event_id TEXT, extractor TEXT, version TEXT, tag_confirmed INT, n_records INT,
+              status TEXT CHECK (status IN ('ok','error')), error TEXT, body_sha1 TEXT, ran_at TEXT DEFAULT (datetime('now')),
+              PRIMARY KEY (extractor, version, event_id));
+            CREATE TABLE fx_records (record_id INTEGER PRIMARY KEY, event_id TEXT);
+            CREATE TABLE fx_facts (record_id INT, field TEXT);
+            CREATE TABLE fx_record_events (record_id INT, event_id TEXT);
+            CREATE TABLE reader_tags (event_id TEXT, tag TEXT);
+            CREATE TABLE event_slug_aliases (ticker TEXT, old_slug TEXT, event_id TEXT, source TEXT, PRIMARY KEY(ticker, old_slug));
+            INSERT INTO fx_extractor_versions VALUES ('drill_results','1.1.4','active'),('permits','1.0.13','active'),
+              ('permits','1.0.12','retired');""")
+        sid = stub_event_id(u)
+        con.execute("INSERT INTO events (event_id, ticker, slug, source_name, raw_headline, classifier_model) VALUES (?,?,?,?,?,?)",
+                    (sid, "SCU.CN", "sankamap-discovers-gold", "newsfile", "Sankamap Discovers Gold", STUB_MODEL))
+        ok("block readers", block_readers(con, sid), 2)
+        con.execute("INSERT INTO fx_records (record_id, event_id) VALUES (7, ?)", (sid,))
+        con.execute("INSERT INTO fx_facts VALUES (7, 'x')")
+        con.execute("INSERT INTO reader_tags VALUES (?, 'Drill Results')", (sid,))
+        stub = dict(zip(G.EVENT_COLS, con.execute("SELECT %s FROM events" % ",".join(G.EVENT_COLS)).fetchone()))
+        remove_stub(con, stub, {"event_id": "cse123", "slug": "scu-news-release", "ticker": "SCU.CN", "source_name": "cse"})
+        left = [con.execute(q, (sid,)).fetchone()[0] for q in (
+            "SELECT COUNT(*) FROM events WHERE event_id=?", "SELECT COUNT(*) FROM fx_runs WHERE event_id=?",
+            "SELECT COUNT(*) FROM fx_records WHERE event_id=?", "SELECT COUNT(*) FROM reader_tags WHERE event_id=?")]
+        left.append(con.execute("SELECT COUNT(*) FROM fx_facts").fetchone()[0])
+        ok("stub removed cleanly", left, [0, 0, 0, 0, 0])
+        ok("address forwarded", con.execute("SELECT event_id, source FROM event_slug_aliases WHERE old_slug='sankamap-discovers-gold'")
+           .fetchone(), ("cse123", "NFSTUB_V1"))
+        lg = con.execute("SELECT action, event_id, kept_id, row_json IS NOT NULL FROM dup_guard_log").fetchone()
+        ok("stub logged in full", lg, ("stub_replaced", sid, "cse123", 1))
+        # take-over from the page, both outcomes, with a stand-in for the portal's /ingest
+        import types
+        g = globals()
+        saved = (g["_ro"], g["_rw"], sys.modules.get("sync_newswire_ca"))
+        g["_ro"] = g["_rw"] = lambda: con
+        fake = types.ModuleType("sync_newswire_ca")
+        sys.modules["sync_newswire_ca"] = fake
+        try:
+            con.execute("DELETE FROM event_slug_aliases")          # the remove_stub test above filed one for this slug
+            item = {"url": u, "rid": "321076", "headline": "Sankamap Discovers Gold"}
+            full_env = {"event_id": event_id_for(u)}
+            for outcome in ("refused", "stored"):
+                con.execute("INSERT INTO events (event_id, ticker, slug, source_name, raw_headline, classifier_model) "
+                            "VALUES (?,?,?,?,?,?)", (sid, "SCU.CN", "sankamap-discovers-gold", "newsfile",
+                                                     "Sankamap Discovers Gold", STUB_MODEL))
+                con.commit()
+
+                def post(env, _o=outcome):
+                    if _o == "stored":
+                        con.execute("INSERT INTO events (event_id, ticker, slug, source_name) VALUES (?,?,?,?)",
+                                    (env["event_id"], "SCU.CN", "sankamap-discovers-gold-2", "newsfile"))
+                        return 200
+                    return 500
+                fake.post_to_ingest = post
+                cc = _counts()
+                take_over_from_page(item, full_env, True, cc)
+                has_stub = con.execute("SELECT COUNT(*) FROM events WHERE event_id=?", (sid,)).fetchone()[0]
+                has_full = con.execute("SELECT COUNT(*) FROM events WHERE event_id=?", (full_env["event_id"],)).fetchone()[0]
+                if outcome == "refused":
+                    ok("take-over refused: short version put back, readers still blocked",
+                       (has_stub, has_full, con.execute("SELECT COUNT(*) FROM fx_runs WHERE event_id=?", (sid,)).fetchone()[0]),
+                       (1, 0, 2))
+                    con.execute("DELETE FROM events WHERE event_id=?", (sid,))
+                    con.execute("DELETE FROM fx_runs WHERE event_id=?", (sid,))
+                else:
+                    ok("take-over stored: short version gone, full kept, address forwarded",
+                       (has_stub, has_full, cc["taken_over"], con.execute(
+                           "SELECT event_id FROM event_slug_aliases WHERE ticker='scu.cn' AND old_slug='sankamap-discovers-gold'"
+                           " AND source='NFSTUB_V1' ORDER BY rowid DESC").fetchone()[0]),
+                       (0, 1, 1, full_env["event_id"]))
+        finally:
+            g["_ro"], g["_rw"] = saved[0], saved[1]
+            if saved[2] is None:
+                sys.modules.pop("sync_newswire_ca", None)
+            else:
+                sys.modules["sync_newswire_ca"] = saved[2]
     print(f"self-test: {'all ok' if not bad else str(bad) + ' FAILED'}")
     return 1 if bad else 0
 
@@ -646,10 +1075,11 @@ def main() -> int:
         return _test_urls(a[1:])
     apply = "--dry-run" not in a
     pages = "--no-pages" not in a
+    stubs = True if "--stubs" in a else None     # V4: preview or force short versions regardless of the flag file
     if "--backstop" in a:
         lim = int(a[a.index("--limit") + 1]) if "--limit" in a else 0
-        return backstop(apply, pages, lim)
-    return run(apply, pages)
+        return backstop(apply, pages, lim, stubs=stubs)
+    return run(apply, pages, stubs=stubs)
 
 
 if __name__ == "__main__":
