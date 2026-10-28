@@ -41,6 +41,11 @@ def _con():
         if not os.path.exists(RELEASE_HTML_DB):
             return None
         c = sqlite3.connect(f"file:{RELEASE_HTML_DB}?mode=ro", uri=True, check_same_thread=False)
+        try:   # MNTLEAK_V1 (2026-10-28): close the connections of threads that have ended (portal/conn_reaper.py)
+            from portal.conn_reaper import adopt as _mntleak_adopt
+            _mntleak_adopt(c, "release_html.db")
+        except Exception:  # noqa: BLE001
+            pass
         _LOCAL.con = c
     return c
 
@@ -63,7 +68,7 @@ def pdf_html_for(event_id) -> str:
 
 # ------------------------------------------------------------------ 2. reflow
 
-_BUL = re.compile(r"^\s*([•●▪■‣⁃∙◦➢·\-–\*]|o(?=\s))\s+")
+_BUL = re.compile(r"^\s*([•●▪■‣⁃∙◦➢·\-–\*]|o(?=\s))\s+")
 _NUM_ITEM = re.compile(r"^\s*(\(?\d{1,2}[.)]|\(?[a-h][.)]|\(?[ivx]{1,4}[.)])\s+\S")
 _ENDS = re.compile(r"([.!?]|[.!?][\"”’)])\s*$")
 _NUMTOK = re.compile(r"^[($€£<>~±+\-–]*\d[\d.,]*[%)*]*$")
