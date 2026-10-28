@@ -66,6 +66,14 @@ def get_conn() -> sqlite3.Connection:
         conn.execute("PRAGMA journal_mode=WAL")
         conn.execute("PRAGMA busy_timeout=30000")
         conn.execute("PRAGMA foreign_keys=ON")
+        # MNTLEAK_V1 (2026-10-28): close the connections of threads that have ended (portal/conn_reaper.py). Without
+        # this every retired pool thread left its connection open until a rare full GC: 74-80 per worker, growing
+        # workers to 1.1 GB. Undo: delete this block.
+        try:
+            from portal.conn_reaper import adopt as _mntleak_adopt
+            _mntleak_adopt(conn, "portal.db")
+        except Exception:  # noqa: BLE001 - never stop a page over bookkeeping
+            pass
         _LOCAL.conn = conn
     return conn
 
