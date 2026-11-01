@@ -31,6 +31,58 @@ CATEGORIES = [
     "https://www.newswire.ca/news-releases/heavy-industry-manufacturing-latest-news/precious-metals-list/",
 ]
 
+# NWORGS_V1 (2026-11-01): company pages on newswire.ca for companies whose releases the mining categories miss
+# (data/newswire_ca_orgs.json: {"orgs": {ticker: "https://www.newswire.ca/news/<org>/"}}). Releases older than
+# ORG_MAX_AGE_DAYS on those pages are ignored, so adding a company never backfills its history.
+ORGS_FILE = Path(os.environ.get("NEWSWIRE_CA_ORGS", "/opt/mnt/app/data/newswire_ca_orgs.json"))
+ORG_MAX_AGE_DAYS = 4
+
+
+def org_pages() -> list:
+    try:
+        d = json.loads(ORGS_FILE.read_text())
+    except Exception:  # noqa: BLE001 - no file, no company pages
+        return []
+    return [u for u in sorted(set((d.get("orgs") or {}).values()))
+            if isinstance(u, str) and u.startswith("https://www.newswire.ca/news/")]
+
+
+def recent_only(articles: list, days: int = ORG_MAX_AGE_DAYS) -> list:
+    """Org-page items from the last `days` days. Older items carry a date ("Jun 12, 2026, 08:00 ET ..."); today's
+    show only a time, which list_articles strips, so an item without a date is today's and is kept."""
+    cut = (datetime.now(timezone.utc) - _nw_td(days=days)).astimezone(_ET).replace(tzinfo=None)
+    out = []
+    for a in articles:
+        v = _date_text(a.get("headline", "")[:40])
+        if v is None or datetime.fromisoformat(v) >= cut:
+            out.append(a)
+    return out
+
+
+def orgs_dry_run() -> int:
+    seen = load_seen()
+    for org in org_pages():
+        time.sleep(1.0)
+        arts = list_articles(org)
+        rec = recent_only(arts)
+        print(f"[sync_newswire_ca] ORG {org} -> {len(arts)} listed, {len(rec)} from the last {ORG_MAX_AGE_DAYS} days",
+              flush=True)
+        for a in rec:
+            if a["url"] in seen:
+                print(f"    seen     {a['headline'][:90]}", flush=True)
+                continue
+            time.sleep(0.4)
+            det = parse_article(a["url"])
+            if not det or not det.get("ticker"):
+                print(f"    no ticker {a['url'][-70:]}", flush=True)
+                continue
+            tw = visible_twin(_ro(), det["ticker"], det["headline"], det["body_text"], det["published_at"] or _now_utc())
+            print(f"    {'twin ' + tw[:12] if tw else 'WOULD INGEST'} {det['ticker']:9s} {det['published_at']} "
+                  f"{det['headline'][:70]}", flush=True)
+    print("[sync_newswire_ca] ORGS DRY RUN (nothing posted, nothing written)", flush=True)
+    return 0
+
+
 USER_AGENT = "Mozilla/5.0 (compatible; MNT-newswire-ca/1.0; +https://miningnewsterminal.com)"
 INGEST_URL = os.environ.get("PORTAL_INGEST_URL", "http://127.0.0.1:8001/ingest").rstrip("/")
 HMAC_SECRET = os.environ.get("MNT_HMAC_SECRET", "")
@@ -43,6 +95,45 @@ TICKER_RE = re.compile(
     r"\(\s*(TSXV?|TSX-?V|CSE|CNQ|NEO|TSXM|TSX|OTC[A-Z]*|NYSE[A-Z]*|NASDAQ)\s*[:\-]?\s*([A-Z][A-Z0-9.\-]{0,5})\s*\)",
     re.IGNORECASE,
 )
+
+# NWTICK_V1 (2026-11-01): a Canadian listing anywhere in the opening, e.g. "(NYSE: AEM, TSX: AEM)" or
+# "(NYSE American: DNN) (TSX: DML)"; tried before TICKER_RE.
+CAN_TICKER_RE = re.compile(
+    r"[(,;]\s*(TSX[\s\-]?V(?:enture)?(?:\s+Exchange)?|TSX|CSE|CNQ|NEO)\s*[:\-]\s*([A-Z][A-Z0-9]{0,5}(?:\.[A-Z]{1,2})?)\b",
+    re.IGNORECASE,
+)
+# "Stock Symbol: AEM (NYSE and TSX)" (Agnico Eagle's format)
+SYMBOL_LINE_RE = re.compile(r"Symbols?\s*:\s*([A-Z][A-Z0-9.]{0,6})\s*\(([^)]{2,40})\)")
+
+
+def _symbol_line_exchange(s):
+    s = (s or "").upper()
+    if re.search(r"TSX[\s\-]?V|VENTURE", s):
+        return "TSXV"
+    if re.search(r"\bTSX\b", s):
+        return "TSX"
+    if re.search(r"\bCSE\b", s):
+        return "CSE"
+    return None
+
+
+_CSS_RULE_RE = re.compile(r"[^{}\n]{0,200}\{[^{}]{0,2000}\}")
+
+
+def _nocss_text(el) -> str:
+    """NWTICK_V1c: the element's text without <style>/<script> contents or CSS rules left in the text."""
+    if el is None:
+        return ""
+    try:
+        import copy as _copy
+        c = _copy.copy(el)
+        for t in c.find_all(["style", "script"]):
+            t.decompose()
+        txt = c.get_text(" ", strip=True)
+    except Exception:  # noqa: BLE001
+        txt = el.get_text(" ", strip=True)
+    return re.sub(r"\s+", " ", _CSS_RULE_RE.sub(" ", txt)).strip()
+
 
 EXCHANGE_TO_SUFFIX = {
     "TSXV": ".V",
@@ -336,10 +427,16 @@ def parse_article(url: str) -> Optional[Dict]:
     # Ticker — search the FIRST paragraph which usually has the company-name + ticker
     ticker = None
     exchange = None
-    head_blob = body_text[:1500]
-    m = TICKER_RE.search(head_blob)
+    head_blob = (_nocss_text(body_el) or body_text)[:1500]   # NWTICK_V1c
+    m = CAN_TICKER_RE.search(head_blob) or TICKER_RE.search(head_blob)   # NWTICK_V1
+    if not m:
+        m = CAN_TICKER_RE.search(body_text[:5000])   # NWTICK_V1b: CSS can come before the text
+        m2 = None if m else (SYMBOL_LINE_RE.search(head_blob) or SYMBOL_LINE_RE.search(body_text[:5000]))
+        ex2 = _symbol_line_exchange(m2.group(2)) if m2 else None
+        if ex2:
+            m = CAN_TICKER_RE.search(f"({ex2}: {m2.group(1)})")
     if m:
-        ex_raw = m.group(1).upper().replace("-", "")
+        ex_raw = re.sub(r"\s+EXCHANGE$", "", m.group(1).upper().replace("-", ""))
         if ex_raw == "TSXV":
             ex = "TSXV"
         elif ex_raw == "TSXV":
@@ -410,6 +507,8 @@ def main() -> int:
         return _self_test()
     if len(sys.argv) > 1 and sys.argv[1] == "--test-urls":
         return _test_urls(sys.argv[2:])
+    if len(sys.argv) > 1 and sys.argv[1] == "--orgs-dry-run":
+        return orgs_dry_run()
     if len(sys.argv) > 1 and sys.argv[1] == "--sweep-dry-run":
         sweep_duplicates(apply=False, days=int(sys.argv[2]) if len(sys.argv) > 2 else SWEEP_DAYS)
         return 0
@@ -421,8 +520,13 @@ def main() -> int:
     ingested_err = 0
     n_twin = 0
 
-    for cat in CATEGORIES:
+    orgs = org_pages()                          # NWORGS_V1
+    for cat in CATEGORIES + orgs:
+        if cat in orgs:
+            time.sleep(1.0)
         articles = list_articles(cat)
+        if cat in orgs:
+            articles = recent_only(articles)
         print(f"[sync_newswire_ca] {cat} -> {len(articles)} articles", flush=True)
         for art in articles:
             url = art["url"]
