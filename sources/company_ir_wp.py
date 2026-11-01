@@ -299,6 +299,7 @@ def list_recent(cfg: dict, limit: int = 25) -> Iterator[dict]:
         return
 
     ticker = cfg.get("ticker", "")
+    since = str(params.get("since") or "")[:10]   # CSITE_WP_V1
     feed_url = f"{website}/feed/"
     try:
         xml = _fetch(feed_url)
@@ -325,6 +326,8 @@ def list_recent(cfg: dict, limit: int = 25) -> Iterator[dict]:
         if not headline or len(headline) < 4:
             continue
         pub = _parse_date(it.get("pubDate") or "")
+        if since and (not pub or pub[:10] < since):   # CSITE_WP_V1: newly added sites start from "since"
+            continue
 
         yield {
             "source_url": href,
