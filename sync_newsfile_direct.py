@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 """sync_newsfile_direct.py - direct Newsfile (TMX Newsfile) mining collector. NFDIRECT_V4, 2026-10-27.
 
+V5 (NFIDS_V1, 2026-11-01; Justin: "#2 ... install if dry run passes"): the backstop also reads the company feeds of
+  companies listed in data/newsfile_company_ids.json ({"ids": {ticker: company_id}}; ids found in MNT's own stored
+  Newsfile releases and confirmed against each feed's own releases), in rotating slices of NFDIRECT_BACKSTOP_SLICE
+  feeds a run (cursor in the state file), and pauses itself 2 h on a 403/429 or 5 feed failures in a row. Without the
+  ids file and with SLICE 0 it behaves exactly as V4.
 V4 (NFSTUB_V1; Justin 11:58 Toronto: "Yes build step 1 & 2"):
   Step 1, short version. While Newsfile's website blocks us, a new release seen in the feeds is published at once as a
   short version: headline, ticker, Newsfile's time, the feed's ~500-character opening and a link to the full release
@@ -80,7 +85,7 @@ from xml.etree import ElementTree as ET
 
 sys.path.insert(0, "/opt/mnt/app")
 
-VERSION = "NFDIRECT_V4"
+VERSION = "NFDIRECT_V5"
 STUB_MODEL = "newsfile_feed_stub_v1"
 STUBS_FLAG = Path(os.environ.get("NFDIRECT_STUBS_FLAG", "/opt/mnt/app/data/newsfile_stubs.on"))
 STUB_MAX_AGE_DAYS = 4         # no short version for a release older than this
@@ -104,6 +109,10 @@ PAGE_GAP = float(os.environ.get("NFDIRECT_PAGE_GAP", "20"))       # seconds betw
 BACKOFF_START = int(os.environ.get("NFDIRECT_BACKOFF_START", "1800"))   # 30 min after the first challenge
 BACKOFF_MAX = int(os.environ.get("NFDIRECT_BACKOFF_MAX", "14400"))      # doubling, capped at 4 h
 BACKSTOP_GAP = float(os.environ.get("NFDIRECT_BACKSTOP_GAP", "3"))      # seconds between company-feed reads
+# V5 (NFIDS_V1, 2026-11-01): more companies for the backstop, read in rotating slices so no run holds the lock long.
+EXTRA_IDS = Path(os.environ.get("NFDIRECT_EXTRA_IDS", str(APP / "data" / "newsfile_company_ids.json")))
+BACKSTOP_SLICE = int(os.environ.get("NFDIRECT_BACKSTOP_SLICE", "0"))   # company feeds per backstop run; 0 = all
+BACKSTOP_PAUSE_S = 7200          # a 403/429 or 5 failures in a row from the feed server pauses the backstop 2 h
 FEED_SIZE = 10        # Newsfile industry feeds hold the last 10 releases
 TWIN_DAYS = 3
 MAX_AGE_DAYS = 4      # ignore feed items older than this; the TSX/CSE copy covers anything older
@@ -234,6 +243,31 @@ def company_feed_targets(rows):
         seen_c.add(str(cid))
         out.append((str(cid), r.get("ticker") or ""))
     return out
+
+
+def extra_feed_targets(rows, have, extra):
+    """V5: [(cid, ticker)] from data/newsfile_company_ids.json ({ticker: cid}) for companies still in tickers.json and
+    not excluded, skipping company ids the tickers.json rows already carry."""
+    live = {}
+    for r in rows or []:
+        if isinstance(r, dict) and r.get("ticker") and not (r.get("exclude_auto") or r.get("excluded")):
+            live[r["ticker"]] = r
+    out, seen_c = [], set(have)
+    for tk, cid in sorted((extra or {}).items()):
+        cid = str(cid)
+        if tk not in live or not cid.isdigit() or cid in seen_c:
+            continue
+        seen_c.add(cid)
+        out.append((cid, tk))
+    return out
+
+
+def rotate(targets, cursor: int, n: int):
+    """V5: the next n targets from cursor (wrapping) and the new cursor; n <= 0 or n >= len -> all of them."""
+    if n <= 0 or n >= len(targets):
+        return list(targets), 0
+    c = cursor % len(targets)
+    return [targets[(c + i) % len(targets)] for i in range(n)], (c + n) % len(targets)
 
 
 # ------------------------------------------------------------------ state files
@@ -840,9 +874,24 @@ def backstop(apply: bool, pages: bool = True, limit: int = 0, stubs=None) -> int
     if isinstance(rows, dict):
         rows = rows.get("tickers") or list(rows.values())
     targets = company_feed_targets(rows)
+    base = len(targets)
+    extra = _load_json(EXTRA_IDS)
+    targets += extra_feed_targets(rows, {c for c, _ in targets}, extra.get("ids", extra) if isinstance(extra, dict) else {})
+    pause = state.get("backstop_pause_until") or ""
+    if pause and pause > _iso(_now()):
+        print(f"[newsfile_direct] BACKSTOP paused until {pause} (feed server refused us); skipping", flush=True)
+        state["backstop_due"] = False
+        _finish(apply, seen, state, counts, VERSION + " BACKSTOP")
+        return 0
+    total = len(targets)
     if limit:
         targets = targets[:limit]
-    print(f"[newsfile_direct] BACKSTOP {len(targets)} company feeds, {BACKSTOP_GAP:.0f} s apart", flush=True)
+    else:
+        targets, nxt = rotate(targets, int(state.get("backstop_cursor") or 0), BACKSTOP_SLICE)
+        state["backstop_cursor"] = nxt
+    print(f"[newsfile_direct] BACKSTOP {len(targets)} of {total} company feeds ({base} from tickers.json, "
+          f"{total - base} from {EXTRA_IDS.name}), {BACKSTOP_GAP:g} s apart", flush=True)
+    run_bad = 0
     cutoff = _iso(_now() - timedelta(days=MAX_AGE_DAYS))
     found, ids, feeds_ok, feeds_bad, recent = [], set(), 0, 0, 0
     for n, (cid, tk) in enumerate(targets):
@@ -851,12 +900,17 @@ def backstop(apply: bool, pages: bool = True, limit: int = 0, stubs=None) -> int
         try:
             got = parse_feed(fetch_feed(COMPANY_FEED.format(cid=cid)))
             feeds_ok += 1
+            run_bad = 0
         except Exception as e:  # noqa: BLE001
             feeds_bad += 1
+            run_bad += 1
             counts["feed_errors"] += 1
             print(f"  ! company feed {cid} ({tk}): {type(e).__name__}: {str(e)[:80]}", flush=True)
-            if feeds_bad >= 5 and feeds_ok == 0:
-                print("[newsfile_direct] BACKSTOP: first 5 company feeds all failed; stopping", flush=True)
+            code = getattr(getattr(e, "response", None), "status_code", None)
+            if code in (403, 429) or run_bad >= 5:
+                state["backstop_pause_until"] = _iso(_now() + timedelta(seconds=BACKSTOP_PAUSE_S))
+                print(f"[newsfile_direct] BACKSTOP: feed server refused us ({code or str(run_bad) + ' failures in a row'})"
+                      f"; stopping, paused until {state['backstop_pause_until']}", flush=True)
                 break
             continue
         for it in got:
@@ -956,6 +1010,15 @@ def _self_test() -> int:
             {"ticker": "Z.V", "source": "newsfile", "source_params": {}},
             {"ticker": "ACDX2.CN", "source": "newsfile", "source_params": {"company_id": 8445}}]
     ok("company targets", company_feed_targets(rows), [("8445", "ACDX.CN"), ("123", "X.V")])
+    # V5 (NFIDS_V1): extra ids file and rotation
+    ok("extra targets", extra_feed_targets(rows + [{"ticker": "NEW.V", "source": "newsfile_gnews"},
+                                                   {"ticker": "OLD.V", "source": "newsfile_gnews", "excluded": True}],
+                                           {"8445", "123"}, {"NEW.V": 77, "OLD.V": 78, "GONE.V": 79, "X.V": "123",
+                                                             "BAD.V": "x1"}),
+       [("77", "NEW.V")])
+    ok("rotate slice", rotate([1, 2, 3, 4, 5], 3, 3), ([4, 5, 1], 1))
+    ok("rotate all", rotate([1, 2, 3], 2, 0), ([1, 2, 3], 0))
+    ok("rotate bigger", rotate([1, 2], 1, 5), ([1, 2], 0))
     # V3: work_queue honours the back-off without touching the network
     st = {"backoff_until": _iso(_now() + timedelta(minutes=10)), "backoff_s": 1800}
     c = _counts()
