@@ -191,6 +191,8 @@ def list_recent(cfg: dict, limit: int = 25) -> Iterator[dict]:
         return
 
     ticker = cfg.get("ticker", "")
+    since = str(params.get("since") or "")[:10]          # CSITE_GEN_V1
+    old = _old_urls() if since else set()
     pattern = params["article_link_pattern"]
     exclude = params.get("link_exclude")
     site_name = params["site_name"]
@@ -228,6 +230,8 @@ def list_recent(cfg: dict, limit: int = 25) -> Iterator[dict]:
         canon = re.sub(r"[?#].*$", "", abs_href)
         if canon in seen_hrefs:
             continue
+        if since and canon in old:                       # CSITE_GEN_V1: already found older than since
+            continue
 
         headline = _clean(a.get_text())
         if not headline or len(headline) < 10:
@@ -250,6 +254,8 @@ def list_recent(cfg: dict, limit: int = 25) -> Iterator[dict]:
             # hands summaries back to fetch_body without cfg, so we have to
             # carry parser config along on the summary itself.
             "_params": {
+                "since":            since,
+                "name_hint":        params.get("name_hint") or "",
                 "article_selector": params["article_selector"],
                 "title_selector":   params["title_selector"],
                 "date_selector":    params["date_selector"],
@@ -338,12 +344,78 @@ def fetch_body(summary: dict) -> dict:
     # Build a short excerpt — first ~400 chars of text
     excerpt = raw_text[:400].rsplit(" ", 1)[0] if len(raw_text) > 400 else raw_text
 
+    since = str(cfg_params.get("since") or "")[:10]      # CSITE_GEN_V1
+    if since and (not pub or pub[:10] < since):
+        _mark_old(url)
+        summary["raw_body"] = ""
+        summary["raw_excerpt"] = ""
+        summary["fetch_error"] = f"older than since {since} ({(pub or 'no date')[:10]})"
+        return summary
+    if since:                                            # CSITE_GEN_V1: new configs take release pages only
+        why = _not_release(summary.get("raw_headline") or "", cfg_params.get("name_hint") or "", pub, raw_text)
+        if why:
+            _mark_old(url)
+            summary["raw_body"] = ""
+            summary["raw_excerpt"] = ""
+            summary["fetch_error"] = f"not a release page: {why}"
+            return summary
+
     summary["raw_body"] = raw_text
     summary["raw_excerpt"] = excerpt
     summary["raw_html"] = raw_html
     if pub:
         summary["published_at"] = pub
     return summary
+
+
+_OLD_FILE = __import__("pathlib").Path(__file__).resolve().parent.parent / "data" / "companysite_old.json"
+
+
+def _old_urls() -> set:
+    """CSITE_GEN_V1: addresses already found older than a company's since date."""
+    try:
+        import json as _json
+        return set(_json.loads(_OLD_FILE.read_text()))
+    except Exception:
+        return set()
+
+
+_NAV = re.compile(r"^\W*(latest\s+)?(news|news\s*(releases?|room|&\s*media|and\s+media|\d{4})|press(\s+releases?)?|media|in the media|"
+                  r"newsletters?|blog|events?|presentations?|why invest|investors?|archives?|\d{4}( news)?|"
+                  r"[a-z]+ news releases|[a-z]+ \d{1,2},? \d{4})\W*$", re.I)
+_RELEASE = re.compile(r"\b(announc|drill|intersect|assay|results?|placement|financing|closes?|grants?|options|acquir|"
+                      r"agreement|exploration|program|samples?|g/t|resource|appoint|update|commenc|complet|provides|"
+                      r"reports?|claims?|property|project|warrants?|shares?|listing|signs?|receives?|extends?|"
+                      r"expands?|stak|discover|files?|technical|feasibility|pea|production|quarter|q[1-4]|meeting)\w*\b", re.I)
+
+
+def _not_release(title: str, hint: str, pub: str | None, text: str) -> str:
+    """CSITE_GEN_V1: why a page found under a news index is not one of the company's releases ('' if it is)."""
+    t = _clean(title)
+    if len(t) < 25 or len(t) > 300 or _NAV.match(t):
+        return "title %r" % t[:40]
+    if not (_RELEASE.search(t) or (hint and hint.lower() in t.lower())):
+        return "title not a release %r" % t[:40]
+    if len(text or "") < 300:
+        return "short body"
+    if pub and pub[:10] > (dt.date.today() + dt.timedelta(days=2)).isoformat():
+        return "future date %s" % pub[:10]
+    return ""
+
+
+def _mark_old(url: str) -> None:
+    try:
+        import json as _json, os as _os
+        s = _old_urls()
+        if url in s:
+            return
+        s.add(url)
+        tmp = str(_OLD_FILE) + ".tmp"
+        with open(tmp, "w") as f:
+            f.write(_json.dumps(sorted(s)[-20000:]))
+        _os.replace(tmp, _OLD_FILE)
+    except Exception:
+        pass
 
 
 def event_id_for(url: str, date: str | None) -> str:
