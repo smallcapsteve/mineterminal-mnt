@@ -65,6 +65,59 @@ def find_fuzzy_dupe(conn: sqlite3.Connection, ticker: str, headline: str,
     return None
 
 
+# AW_BODYTICK_V1: fallback ticker from the exchange tag in the release body.
+_EX_TAG = re.compile(r"\b(TSX[\s\-]?V(?:enture)?(?:\s+Exchange)?|TSXV|TSX|CSE|CNSX)\s*[:\-]\s*([A-Z][A-Z0-9]{0,5}(?:\.[A-Z])?)\b")
+_SUF = {"TSXV": ".V", "TSX": ".TO", "CSE": ".CN", "CNSX": ".CN"}
+_STOPW = {"the", "inc", "corp", "corporation", "ltd", "limited", "resources", "mining", "minerals", "gold", "silver",
+          "metals", "exploration", "energy", "copper", "company", "group", "plc", "capital", "ventures", "royalties",
+          "royalty", "lithium", "uranium"}
+
+
+def _name_word(name: str) -> str:
+    ws = [w for w in re.findall(r"[A-Za-z0-9]+", name or "") if len(w) >= 3 and w.lower() not in _STOPW]
+    return ws[0].lower() if ws else ""
+
+
+def body_ticker(headline: str, body: str, names: dict) -> str | None:
+    """AW_BODYTICK_V1: {ticker: name} from tickers.json -> the issuer's ticker from the FIRST exchange tag in the
+    body, if it is a known company whose name word appears in the headline or in the 150 characters before the tag."""
+    text = (body or "")[:1500]
+    m = _EX_TAG.search(text)
+    if not m:
+        return None
+    up = m.group(1).upper()
+    ex = "CSE" if up in ("CSE", "CNSX") else ("TSXV" if "V" in up[3:] else "TSX")
+    t = m.group(2).upper() + _SUF.get(ex, "")
+    if t not in names:
+        return None
+    w = _name_word(names[t])
+    near = ((headline or "") + " " + text[max(0, m.start() - 150):m.start()]).lower()
+    return t if w and w in near else None
+
+
+NOTICK_FILE = "/opt/mnt/app/data/accesswire_noticker.json"   # AW_NOTICK_MEMO_V1
+NOTICK_TTL_S = 3 * 86400
+
+
+def _notick_load() -> dict:
+    try:
+        d = json.load(open(NOTICK_FILE))
+        now = time.time()
+        return {u: t for u, t in d.items() if now - float(t) < NOTICK_TTL_S}
+    except Exception:
+        return {}
+
+
+def _notick_save(d: dict) -> None:
+    try:
+        import os as _os
+        tmp = NOTICK_FILE + ".tmp"
+        json.dump(d, open(tmp, "w"))
+        _os.replace(tmp, NOTICK_FILE)
+    except Exception as e:
+        print(f"[accesswire] no-ticker memo not saved: {e}")
+
+
 def _known_urls(conn: sqlite3.Connection) -> set[str]:
     return {r[0] for r in conn.execute(
         "SELECT source_url FROM events WHERE source_name LIKE '%access%' AND source_url IS NOT NULL"
@@ -77,6 +130,7 @@ def run_rendered(days: int, dry_run: bool, limit: int, pages: int) -> int:
     tickers = json.load(open(TICKERS_PATH))
     name_index = anw.build_company_index(tickers)
     print(f"[accesswire] company-name index: {len(name_index)} entries")
+    tick_names = {r.get("ticker"): r.get("name") or "" for r in tickers if isinstance(r, dict) and r.get("ticker")}  # AW_BODYTICK_V1
 
     try:
         items = aw.list_sector_recent(pages=pages, limit=limit)
@@ -89,6 +143,8 @@ def run_rendered(days: int, dry_run: bool, limit: int, pages: int) -> int:
 
     conn = pdb.get_conn()
     seen_urls = _known_urls(conn)
+    notick = _notick_load()                              # AW_NOTICK_MEMO_V1
+    n_memo = 0
 
     # Every stage counts what it dropped. The old collector counted only what it
     # ingested, which is why an 87% loss went unnoticed for months.
@@ -101,6 +157,9 @@ def run_rendered(days: int, dry_run: bool, limit: int, pages: int) -> int:
         url = it["source_url"]
         if url in seen_urls:
             n_known += 1
+            continue
+        if url in notick:                                # AW_NOTICK_MEMO_V1
+            n_memo += 1
             continue
         try:
             ev = aw.fetch_body(dict(it))
@@ -115,9 +174,14 @@ def run_rendered(days: int, dry_run: bool, limit: int, pages: int) -> int:
 
         headline = ev.get("raw_headline") or ""
         ticker = anw.resolve_ticker(headline, name_index)
+        if not ticker:                                   # AW_BODYTICK_V1
+            ticker = body_ticker(headline, ev.get("raw_body") or "", tick_names)
+            if ticker:
+                print(f"  ~ ticker from body tag {ticker}: {headline[:60]}")
         if not ticker:
             n_no_ticker += 1
             print(f"  - no ticker: {headline[:80]}")
+            notick[url] = time.time()                    # AW_NOTICK_MEMO_V1
             continue
 
         published = ev.get("published_at") or ""
@@ -150,6 +214,9 @@ def run_rendered(days: int, dry_run: bool, limit: int, pages: int) -> int:
             n_err += 1
             print(f"  X {ticker}: {e}")
 
+    if not dry_run:                                      # AW_NOTICK_MEMO_V1
+        _notick_save(notick)
+    print(f"[accesswire] no-ticker memo: {len(notick)} remembered, {n_memo} skipped this run")
     print(f"[accesswire] RENDERED DONE  ingested={n_ingested} already_held={n_known} "
           f"no_ticker={n_no_ticker} no_body={n_body_fail} dupe={n_dupe} errors={n_err} "
           f"elapsed={time.time() - started:.0f}s")

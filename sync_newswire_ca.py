@@ -38,13 +38,38 @@ ORGS_FILE = Path(os.environ.get("NEWSWIRE_CA_ORGS", "/opt/mnt/app/data/newswire_
 ORG_MAX_AGE_DAYS = 4
 
 
-def org_pages() -> list:
+ORGS_CURSOR = Path(os.environ.get("NEWSWIRE_CA_ORGS_CURSOR", "/opt/mnt/app/data/newswire_ca_orgs_cursor.json"))
+
+
+def _org_urls(m) -> list:
+    return [u for u in sorted(set((m or {}).values())) if isinstance(u, str) and u.startswith("https://www.newswire.ca/news/")]
+
+
+def org_pages(advance: bool = False, every: bool = False) -> list:
+    """NWORGS_V2: the "orgs" pages every run, plus the next rotate_per_run pages of "orgs_rotate" (all with every=True).
+    advance=True moves the cursor (the hourly run only)."""
     try:
         d = json.loads(ORGS_FILE.read_text())
     except Exception:  # noqa: BLE001 - no file, no company pages
         return []
-    return [u for u in sorted(set((d.get("orgs") or {}).values()))
-            if isinstance(u, str) and u.startswith("https://www.newswire.ca/news/")]
+    fixed = _org_urls(d.get("orgs"))
+    rot = [u for u in _org_urls(d.get("orgs_rotate")) if u not in fixed]
+    n = int(d.get("rotate_per_run") or 0)
+    if every or not rot or n <= 0 or n >= len(rot):
+        return fixed + rot
+    try:
+        c = int(json.loads(ORGS_CURSOR.read_text()).get("c", 0)) % len(rot)
+    except Exception:  # noqa: BLE001
+        c = 0
+    pick = [rot[(c + i) % len(rot)] for i in range(n)]
+    if advance:
+        try:
+            tmp = ORGS_CURSOR.with_suffix(".json.tmp")
+            tmp.write_text(json.dumps({"c": (c + n) % len(rot), "n": len(rot), "at": _now_utc()}))
+            os.replace(tmp, ORGS_CURSOR)
+        except Exception as e:  # noqa: BLE001
+            print(f"[sync_newswire_ca] org cursor not saved: {e}", flush=True)
+    return fixed + pick
 
 
 def recent_only(articles: list, days: int = ORG_MAX_AGE_DAYS) -> list:
@@ -61,7 +86,7 @@ def recent_only(articles: list, days: int = ORG_MAX_AGE_DAYS) -> list:
 
 def orgs_dry_run() -> int:
     seen = load_seen()
-    for org in org_pages():
+    for org in org_pages(every=True):           # NWORGS_V2
         time.sleep(1.0)
         arts = list_articles(org)
         rec = recent_only(arts)
@@ -520,7 +545,7 @@ def main() -> int:
     ingested_err = 0
     n_twin = 0
 
-    orgs = org_pages()                          # NWORGS_V1
+    orgs = org_pages(advance=True)              # NWORGS_V1 / V2 rotation
     for cat in CATEGORIES + orgs:
         if cat in orgs:
             time.sleep(1.0)
