@@ -24,6 +24,8 @@ from typing import List, Dict, Optional
 
 import requests
 from bs4 import BeautifulSoup
+sys.path.insert(0, "/opt/mnt/app")
+import latewire as _LW  # noqa: E402  LATEWIRE_V1
 
 CATEGORIES = [
     "https://www.newswire.ca/news-releases/energy-latest-news/mining-list/",
@@ -102,6 +104,10 @@ def orgs_dry_run() -> int:
                 print(f"    no ticker {a['url'][-70:]}", flush=True)
                 continue
             tw = visible_twin(_ro(), det["ticker"], det["headline"], det["body_text"], det["published_at"] or _now_utc())
+            if tw and _LW.takes_over(_ro(), {"event_id": event_id_for(a["url"]), "ticker": det["ticker"],
+                                             "raw_headline": det["headline"], "raw_body": det["body_text"],
+                                             "published_at": det["published_at"] or _now_utc()}, tw, "newswire_ca"):
+                tw = None                                # LATEWIRE_V1
             print(f"    {'twin ' + tw[:12] if tw else 'WOULD INGEST'} {det['ticker']:9s} {det['published_at']} "
                   f"{det['headline'][:70]}", flush=True)
     print("[sync_newswire_ca] ORGS DRY RUN (nothing posted, nothing written)", flush=True)
@@ -585,6 +591,11 @@ def main() -> int:
             try:
                 twin = visible_twin(_ro(), detail["ticker"], detail["headline"], detail["body_text"],
                                     detail["published_at"] or _now_utc())
+                if twin and _LW.takes_over(_ro(), {"event_id": event_id_for(url), "ticker": detail["ticker"],
+                                                   "raw_headline": detail["headline"], "raw_body": detail["body_text"],
+                                                   "published_at": detail["published_at"] or _now_utc()},
+                                           twin, "newswire_ca"):
+                    twin = None                          # LATEWIRE_V1: the wire copy replaces the exchange copy
             except Exception as e:  # noqa: BLE001
                 print(f"  ! twin check failed ({e}); parked for review", flush=True)
                 twin, status = None, "pending_review"
