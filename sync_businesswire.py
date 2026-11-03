@@ -23,6 +23,7 @@ sys.path.insert(0, "/opt/mnt/app")
 
 from sources import businesswire_gnews as bwg  # noqa: E402
 from portal import db as pdb  # noqa: E402
+import latewire as _LW                          # noqa: E402  LATEWIRE_V1
 from portal.quality import reason_to_skip  # noqa: E402
 
 TICKERS_PATH = "/opt/mnt/app/tickers.json"
@@ -136,6 +137,8 @@ def main(days: int = 7) -> int:
 
         # 3. Fuzzy dedup against existing events (cross-source first-source-wins)
         dupe = find_fuzzy_dupe(conn, ticker, ev["raw_headline"], ev["published_at"])
+        if dupe and _LW.takes_over(conn, dict(ev, ticker=ticker), dupe, ev.get("source_name") or "businesswire"):
+            dupe = None                                  # LATEWIRE_V1: replaces the exchange copy
         if dupe:
             dup_skip += 1
             continue

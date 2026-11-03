@@ -20,6 +20,7 @@ sys.path.insert(0, "/opt/mnt/app")
 
 from sources import thenewswire_wire as wire  # noqa: E402
 from portal import db as pdb  # noqa: E402
+import latewire as _LW                          # noqa: E402  LATEWIRE_V1
 from portal.quality import reason_to_skip  # noqa: E402
 
 TICKERS_PATH = "/opt/mnt/app/tickers.json"
@@ -112,7 +113,11 @@ def main() -> int:
                       "accesswire", "thenewswire", "wp_feed"}
     known_mining = {
         t for t, cfg in idx.items()
-        if (cfg.get("source") or "") in mining_sources
+        # TNW_TIER1_V1 (2026-11-03): every company on the coverage list is a mining company. Before, only
+        # rows whose news source was one of the wires above counted, so exchange-only, Newsfile-via-Google,
+        # website and other companies needed >= 4 mining keywords in the release (option grants,
+        # financings and AGM notices failed and were never collected from TheNewswire).
+        if not (cfg.get("exclude_auto") or cfg.get("excluded"))
     }
     print(f"[sync_wire] known tickers: {len(idx)}, mining-tagged: {len(known_mining)}")
 
@@ -141,6 +146,8 @@ def main() -> int:
 
         # 3. Fuzzy dedup against existing events
         dupe = find_fuzzy_dupe(conn, ticker, ev["raw_headline"], ev["published_at"])
+        if dupe and _LW.takes_over(conn, dict(ev, ticker=ticker), dupe, ev.get("source_name") or "thenewswire"):
+            dupe = None                                  # LATEWIRE_V1: replaces the exchange copy
         if dupe:
             dup_skip += 1
             continue
