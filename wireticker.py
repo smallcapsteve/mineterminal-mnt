@@ -1,4 +1,4 @@
-"""wireticker.py — WIRETICK_V1 (2026-11-03, Justin: "Majors and big misses").
+"""wireticker.py — WIRETICK_V1.1 (2026-11-03; V1.1: the listed share class when a dateline names two, Justin: "Majors and big misses").
 
 Shared helpers for the Google-News-based wire collectors (GlobeNewswire, Business Wire, PR Newswire, CNW):
 
@@ -28,14 +28,43 @@ def _suffix(exch: str):
     return _SUF.get(e, ("TO", "TSX"))
 
 
+_CLS = re.compile(r"(?:,|&|\band\b)\s*([A-Z][A-Z0-9]{0,6}\.[A-Z]{1,2})(?=\s*[,;|/)]|\s+and\b|\s*$)")
+_COV = {"t": 0, "s": set()}
+
+
+def _covered(path: str = "/opt/mnt/app/tickers.json") -> set:
+    """WIRETICK_V1.1: coverage-list tickers without the exchange suffix ("TECK.B"); reloaded every 10 minutes."""
+    if time.time() - _COV["t"] < 600 and _COV["s"]:
+        return _COV["s"]
+    try:
+        s = {r["ticker"].rsplit(".", 1)[0].upper() for r in json.load(open(path)) if isinstance(r, dict) and r.get("ticker")}
+    except Exception:
+        return _COV["s"]
+    _COV.update(t=time.time(), s=s)
+    return s
+
+
 def extract_ticker_relaxed(text: str):
-    """First parenthesised group (in the first 4,000 characters) that carries a Canadian exchange tag."""
+    """First parenthesised group (in the first 4,000 characters) that carries a Canadian exchange tag.
+    WIRETICK_V1.1: "(TSX: TECK.A and TECK.B, NYSE: TECK)" names two share classes; take the one on the coverage list."""
     head = (text or "")[:4000]
     for m in _PAREN.finditer(head):
-        t = _TAG.search(m.group(1))
+        g = m.group(1)
+        t = _TAG.search(g)
         if t:
             suf, ex = _suffix(t.group(1))
-            return f"{t.group(2).upper()}.{suf}", ex
+            tick = t.group(2).upper()
+            if "." in tick:
+                try:
+                    cov = _covered()
+                    if cov and tick not in cov:
+                        for alt in _CLS.findall(g[t.end():]):
+                            if alt.upper() in cov:
+                                tick = alt.upper()
+                                break
+                except Exception:
+                    pass
+            return f"{tick}.{suf}", ex
     return None, None
 
 
@@ -43,7 +72,8 @@ _GEN = set(("first new north northern south southern west western east eastern a
             "golden gold silver copper metals minerals mining resources energy lithium uranium nickel black blue green red "
             "white grey gray united international pacific atlantic central star big rock stone mountain river lake bay "
             "the a sierra rio san santa st premier prime alpha nova fortune power total china form man group market "
-            "battery liquid rare world national digital smart advanced enhanced standard general capital").split())
+            "battery liquid rare world national digital smart advanced enhanced standard general capital "
+            "true high life core link next open data home post fire iron zinc lead best city park news form").split())
 _SUFX = re.compile(r"\b(inc|corp|corporation|ltd|limited|plc|co|company|s\.a\.|sa|ag|nl|llc|lp)\b\.?", re.I)
 _CACHE = {"t": 0, "keys": {}}
 
@@ -64,8 +94,8 @@ def _keys(path: str = "/opt/mnt/app/tickers.json") -> dict:
         w = nm.split()
         if not w:
             continue
-        key = w[0] if (len(w[0]) >= 5 and w[0].lower() not in _GEN) else " ".join(w[:2])
-        if len(key) < 5 or key.lower() in _GEN or all(x.lower() in _GEN for x in key.split()):
+        key = w[0] if (len(w[0]) >= 4 and w[0].lower() not in _GEN) else " ".join(w[:2])   # V1.1: 4 letters (Teck)
+        if len(key) < 4 or key.lower() in _GEN or all(x.lower() in _GEN for x in key.split()):
             continue
         keys.setdefault(key.lower(), set()).add(r["ticker"].split(".")[0].upper())
     _CACHE.update(t=time.time(), keys=keys)
