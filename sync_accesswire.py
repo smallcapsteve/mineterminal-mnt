@@ -25,6 +25,7 @@ sys.path.insert(0, "/opt/mnt/app")
 from sources import accesswire as aw            # noqa: E402
 from sources import accesswire_gnews as anw     # noqa: E402
 from portal import db as pdb                    # noqa: E402
+import latewire as _LW                          # noqa: E402  LATEWIRE_V1
 
 TICKERS_PATH = "/opt/mnt/app/tickers.json"
 TIME_BUDGET_S = 480          # a run must not outlast its hourly timer
@@ -185,7 +186,12 @@ def run_rendered(days: int, dry_run: bool, limit: int, pages: int) -> int:
             continue
 
         published = ev.get("published_at") or ""
-        if find_fuzzy_dupe(conn, ticker, headline, published):
+        _dupe = find_fuzzy_dupe(conn, ticker, headline, published)
+        if _dupe and _LW.takes_over(conn, {"event_id": aw.event_id_for(url, published), "ticker": ticker,
+                                          "raw_headline": headline, "raw_body": ev.get("raw_body", ""),
+                                          "published_at": published}, _dupe, "accessnewswire"):
+            _dupe = None                                 # LATEWIRE_V1: replaces the exchange copy
+        if _dupe:
             n_dupe += 1
             continue
 
