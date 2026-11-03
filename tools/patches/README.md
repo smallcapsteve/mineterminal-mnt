@@ -8,7 +8,7 @@ then delete the script.
 |---|---|---|---|---|
 | `nffeeds_v1.py` | `sync_newsfile_direct.py` | `d8fdc9a3c9ccad22` | `8103f2c34918f3ce` | 2026-11-03 14:57 |
 | `nfstubloop_v1.py` (run after `nffeeds_v1.py`) | `sync_newsfile_direct.py` | `8103f2c34918f3ce` | `aa9011c31083a9cc` | 2026-11-03 17:06 |
-| `wiretick_v1.py` (needs `wireticker.py` beside it; the repo root copy is the live file, `3bd6fccc92bf6d50`) | `sources/globenewswire_gnews.py` | `3e0bedacc9ffe072` | `d9fe99ea4493ab2c` | 2026-11-03 18:08 |
+| `wiretick_v1.py` (needs `wireticker.py` beside it; the repo root copy is the live file, V1.1 `f900c2aa2ee3f439` since 18:49 UTC) | `sources/globenewswire_gnews.py` | `3e0bedacc9ffe072` | `d9fe99ea4493ab2c` | 2026-11-03 18:08 |
 | | `sources/businesswire_gnews.py` | `e9adaa110f04e144` | `3adfb31b2fbd968a` | |
 | | `sources/prnewswire_gnews.py` | `42d8e8ab244a24e2` | `f65cebc40700445f` | |
 | | `sources/cnw_gnews.py` | `1c927c8081ace7e5` | `bf7f17e1f067460a` | |
