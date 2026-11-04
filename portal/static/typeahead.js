@@ -1,6 +1,6 @@
 /* TYPEAHEAD_V1 (2026-09-14)
    Type-ahead dropdown for the nav search box on MiningNewsTerminal and
-   SEDITracker. Ported from MineTerminalPro's MTP_SEARCH_V1 so all three sites
+   the sister site. Ported from MineTerminalPro's MTP_SEARCH_V1 so all three sites
    behave the same way when you start typing a ticker or a company name.
 
    One file serves both sites: /opt/sedi/app/portal/static is a symlink to
@@ -16,7 +16,7 @@
    1. Nothing is highlighted until the reader arrows into the list. MTP's box
       has no destination other than a suggestion, so it can highlight the first
       row and let Enter follow it. These two boxes ALSO run the site's own text
-      search — news on MNT, insider names on SediTracker — so a bare Enter must
+      search — news on MNT, insider names on the sister site — so a bare Enter must
       keep submitting the form exactly as it did before this file existed.
       Arrow down first and Enter follows the highlighted row.
 

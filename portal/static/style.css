@@ -1074,7 +1074,7 @@ main {
 /* end top utility ribbon */
 
 
-/* SediTracker tagline (also harmless on MNT — element doesn't exist there) */
+/* the sister site tagline (also harmless on MNT — element doesn't exist there) */
 .masthead-tagline {
   font: 500 0.85rem/1 Roboto, system-ui, sans-serif;
   color: #666;
@@ -1082,12 +1082,12 @@ main {
   letter-spacing: 0.04em;
 }
 
-/* SEDITracker wordmark — Option E: SEDI red+heavy, Tracker dark+medium */
+/* the sister site wordmark — Option E: SEDI red+heavy, Tracker dark+medium */
 .brand-wordmark .brand-sedi    { color: var(--brand-red); font-weight: 900; }
 .brand-wordmark .brand-tracker { color: #1a1a1a;          font-weight: 500; }
 
 
-/* MineTerminalPro: 'Pro' in brand red, like SEDITracker treatment */
+/* MineTerminalPro: 'Pro' in brand red, like the sister site treatment */
 .brand-wordmark .brand-pro { color: var(--brand-red); font-weight: 900; }
 
 /* MineTerminalPro coming-soon hero */

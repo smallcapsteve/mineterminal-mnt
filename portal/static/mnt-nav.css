@@ -1,5 +1,5 @@
 /* MNT_NAV_V2 + DATA_PAGE_V1 (2026-09-16). Loaded only by MNT's base.html.
-   Kept out of style.css, which SediTracker also serves; new class names only,
+   Kept out of style.css, which the sister site also serves; new class names only,
    so nothing here can restyle an existing element. Remove the <link> in
    base.html and this file is inert. */
 

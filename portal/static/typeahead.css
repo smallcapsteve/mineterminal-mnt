@@ -1,8 +1,8 @@
 /* TYPEAHEAD_V1_BEGIN (2026-09-14)
-   Dropdown for the nav search box on MiningNewsTerminal and SEDITracker.
+   Dropdown for the nav search box on MiningNewsTerminal and the sister site.
 
    One file serves both sites: /opt/sedi/app/portal/static is a symlink to
-   /opt/mnt/app/portal/static, so SediTracker loads this same stylesheet.
+   /opt/mnt/app/portal/static, so the sister site loads this same stylesheet.
 
    Ported from MineTerminalPro's MTP_SEARCH_V1 panel so the three sites look
    alike when you type. Deliberately styles ONLY the dropdown, never the input
