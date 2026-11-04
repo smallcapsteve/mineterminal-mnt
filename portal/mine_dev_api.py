@@ -42,11 +42,11 @@ SITE_BASE = "https://miningnewsterminal.com"
 API_VERSION = "1"
 MAX_LIMIT = 200
 DEFAULT_LIMIT = 50
+NOAI_NOTE = "Source: company news releases · every row links to its release."   # NOAILABEL_V1 (2026-11-03)
 AI_NOTE = ("Read from each release by two readers side by side, the rules reader and an AI reader "   # MNT_DEV_AI_LIVE_V1
            "(claude-haiku-5-5). ai_label: agreed = both found the event; AI-read = only the AI found it; "
            "rules = not read by the AI yet. Events the readers disagree on are held back for review.")
-EARLY_NOTE = ("Early version: read by rules from the release headline; about 4 in 5 rows were right on a fresh "
-              "sample (2026-09-28).")
+EARLY_NOTE = ("Source: company news releases · every row links to its release.")
 
 # the publisher's labels and groups, copied so this module imports nothing from the reader
 TYPE_LABELS = {"construction_decision": "Construction decision", "construction_start": "Construction start",
@@ -344,7 +344,7 @@ def query_events(conn, p: dict, names: dict, universe: Optional[frozenset]) -> d
         items = [x for x in items if x["bare_ticker"] in universe]
     total, limit, page = len(items), p["limit"], p["page"]
     return {
-        "ok": True, "api_version": API_VERSION, "early_version": True, "note": AI_NOTE if _ai else EARLY_NOTE,
+        "ok": True, "api_version": API_VERSION, "early_version": True, "note": NOAI_NOTE if _ai else EARLY_NOTE,
         "reader": "hybrid" if _ai else "rules",
         "total": total, "page": page, "pages": max(1, math.ceil(total / limit)) if total else 0, "limit": limit,
         "filters": {k: p[k] for k in ("ticker", "type", "group", "status", "since") if p.get(k)},
@@ -430,7 +430,7 @@ def _selftest() -> int:
        "incident_kind": "fatality"}) == {"capex": 1.2e9, "capex_high": None, "capex_currency": "USD", "capex_basis": "budget",
        "pct_complete": None, "incident_kind": "fatality", "figures": [{"metric": "throughput", "value": 5000.0, "unit": "tpd"}]}
        and _early({"capex": 5e12})["capex"] is None)
-    ok("early-version note", r["early_version"] is True and "Early version" in r["note"])
+    ok("early-version note", r["early_version"] is True and "Source:" in r["note"])
     ok("exact listing wins over a namesake", query_events(conn, P(ticker="ABC.V"), names, None)["total"] == 3)
     ok("bare ticker matches both", query_events(conn, P(ticker="ABC"), names, None)["total"] == 4)
     ok("type / group / status", query_events(conn, P(type="offtake"), names, None)["total"] == 1

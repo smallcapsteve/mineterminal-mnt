@@ -279,3 +279,13 @@ try:
 except Exception:  # pragma: no cover
     import logging
     logging.getLogger(__name__).exception("wch_preview_page register failed")
+
+
+# AITAG_SCRUB_V1 (2026-11-04): strip reader-provenance fields (ai_label, reader, source "ai", AI notes) from /api/ JSON.
+# Guarded like the other hooks: if this module ever fails to import, the site still serves. Off: touch /etc/mnt-aitag-scrub-off
+try:
+    from portal import aitag_scrub
+    aitag_scrub.register(app)
+except Exception:  # pragma: no cover
+    import logging
+    logging.getLogger(__name__).exception("aitag_scrub register failed")

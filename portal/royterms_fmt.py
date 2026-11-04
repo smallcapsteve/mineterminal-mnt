@@ -15,7 +15,7 @@ import re
 
 FAM = {"nsr": "NSR", "grr": "GRR", "gmr": "GRR", "gvr": "GRR", "gor": "GRR", "npi": "NPI", "stream": "stream"}
 CUR = {"USD": "US$", "CAD": "C$", "AUD": "A$", "GBP": "£", "EUR": "€"}
-NOTE = "Terms read automatically from the release; some may be missing."
+NOTE = "Source: company news releases."
 
 
 def fam(t):

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Sampling & Geoscience Results — MiningNewsTerminal{% endblock %}
-{% block meta_description %}Surface sampling and geoscience results from CSE, TSXV and TSX mining companies: grab, chip, channel and trench assays, soil, till and sediment geochemistry, geophysical surveys, bulk and brine samples, read from their news releases.{% endblock %}
+{% block meta_description %}Surface sampling and geoscience results from CSE, TSXV and TSX mining companies: grab, chip, channel and trench assays, soil, till and sediment geochemistry, geophysical surveys, bulk and brine samples, from their news releases.{% endblock %}
 {% block content %}
   <style>
     .smp-table td { vertical-align: top; }
@@ -19,11 +19,7 @@
   {# MNT_ROWS_AI_LIVE_V1 (2026-10-26): badge and note while the AI reader is switched on #}
 
   <h2 class="page-title">Sampling &amp; Geoscience Results</h2>
-  {% if ai_live %}<p class="ai-note">Each release is read by two readers side by side: the rules reader and an AI
-    reader. Rows both found carry no badge; rows only the AI reader found are marked <span class="ai-badge">AI-read</span>.
-    Where the two disagree on what was found, the row is held back for review. Every row links to its release.</p>{% endif %}
-  <p class="smp-note">Early version: each row is read automatically from a release tagged Sampling &amp; Geoscience
-    Results, one row per sample type, and some rows or grades are wrong. Every row links to its release.</p>
+  <p class="smp-note">Source: company news releases · every row links to its release.</p>
 
   <section class="filters fin-filters">
     <form method="get" action="/sampling-geoscience">
@@ -120,14 +116,14 @@
             {% if r["sample_type"] %}
               <td>
                 <span class="smp-kind">{{ r["sample_type"] | smp_type }}</span>
-                {%- if r["ai_label"] == "AI-read" %}<span class="ai-badge" title="Only the AI reader found this row; the rules reader did not">AI-read</span>{% endif -%}
+                {%- if false %}{% endif -%}
                 {%- if r["historical"] %}<span class="smp-hist">historical</span>{% endif -%}
                 {%- if r["sample_type"] == "geophysics" and r["survey_type"] %}<span class="smp-sub">{{ r["survey_type"] | smp_survey }}</span>{% endif -%}
               </td>
               <td>{{ r["project"] or "—" }}</td>
               <td class="smp-grade">{{ r["grade_text"] or "—" }}</td>
             {% else %}
-              <td colspan="3" class="smp-none">No result read from the release</td>
+              <td colspan="3" class="smp-none">No result in the release</td>
             {% endif %}
             <td>{% if r['first_of_release'] %}{{ r["raw_headline"] or "" }}{% endif %}</td>
             <td>

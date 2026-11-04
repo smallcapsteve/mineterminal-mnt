@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Royalties & Streams — MiningNewsTerminal{% endblock %}
-{% block meta_description %}Royalty and stream deals from CSE, TSXV and TSX mining companies: NSRs, gross revenue royalties and metal streams bought, sold, granted, bought back or amended, with rate, property, parties and price, read from their news releases.{% endblock %}
+{% block meta_description %}Royalty and stream deals from CSE, TSXV and TSX mining companies: NSRs, gross revenue royalties and metal streams bought, sold, granted, bought back or amended, with rate, property, parties and price, from their news releases.{% endblock %}
 {% block content %}
   <style>
     .rd-table td { vertical-align: top; }
@@ -118,8 +118,8 @@
       if (!tm || !((tm.lines || []).length || (tm.paid || []).length)) return '';
       var li = (tm.lines || []).map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') +
                (tm.paid || []).map(function (s) { return '<li><b>Paid:</b> ' + esc(s) + '</li>'; }).join('');
-      return '<details class="rd-terms"><summary>Terms' + (tm.ai_label === 'AI-read' ? '<span class="rd-ai" title="Only the AI reader found this royalty in the release; the rules reader did not">AI-read</span>' : '') + '</summary>' + (tm.name ? '<div class="rd-terms-name">' + esc(tm.name) + '</div>' : '') +
-             '<ul>' + li + '</ul><div class="rd-terms-note">' + esc(tm.note || '') + '</div></details>';
+      return '<details class="rd-terms"><summary>Terms' + '' + '</summary>' + (tm.name ? '<div class="rd-terms-name">' + esc(tm.name) + '</div>' : '') +
+             '<ul>' + li + '</ul><div class="rd-terms-note">' + esc((/AI reader|Claude|automatically|may be missing/.test(tm.note || '') ? '' : tm.note) || '') + '</div></details>';
     }
     function row(x, side) {
       var v = x.kind === 'vendor';   /* ROY_SIDE_V1.1 */
@@ -257,8 +257,8 @@
       if (!tm || !((tm.lines || []).length || (tm.paid || []).length)) return '';
       var li = (tm.lines || []).map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') +
                (tm.paid || []).map(function (s) { return '<li><b>Paid:</b> ' + esc(s) + '</li>'; }).join('');
-      return '<details class="rd-terms"><summary>Terms' + (tm.ai_label === 'AI-read' ? '<span class="rd-ai" title="Only the AI reader found this royalty in the release; the rules reader did not">AI-read</span>' : '') + '</summary>' + (tm.name ? '<div class="rd-terms-name">' + esc(tm.name) + '</div>' : '') +
-             '<ul>' + li + '</ul><div class="rd-terms-note">' + esc(tm.note || '') + '</div></details>';
+      return '<details class="rd-terms"><summary>Terms' + '' + '</summary>' + (tm.name ? '<div class="rd-terms-name">' + esc(tm.name) + '</div>' : '') +
+             '<ul>' + li + '</ul><div class="rd-terms-note">' + esc((/AI reader|Claude|automatically|may be missing/.test(tm.note || '') ? '' : tm.note) || '') + '</div></details>';
     }
     var evs = [];
     cells.forEach(function (c) { var e = c.getAttribute('data-rt-ev'); if (e && evs.indexOf(e) < 0) evs.push(e); });

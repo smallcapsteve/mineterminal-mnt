@@ -118,7 +118,7 @@ PAGE_SPECS = {
         title="Drill Results",
         tag="Drill Results",
         describe=("The best new assay intercept from each news release tagged Drill Results. "
-                  "Open a row for every interval the release reports; figures are read from the release text."),
+                  "Open a row for every interval the release reports; figures come from the release text."),
         empty_text="No drill results in this window.",
         table_class="drill-table",
         windows=[(0, "All time"), (7, "Last 7 days"), (30, "Last 30 days"),
