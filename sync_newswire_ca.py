@@ -390,6 +390,10 @@ def _self_test() -> int:
 def fetch(url: str) -> str:
     r = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=TIMEOUT)
     r.raise_for_status()
+    # NWCHARSET_V1 (2026-11-05): newswire.ca sends "text/html" with no charset, so requests assumed Latin-1
+    # and accented names came out as "VicuÃ±a". Decode as UTF-8 unless the header names something else.
+    if not r.encoding or r.encoding.lower() in ("iso-8859-1", "latin-1", "latin1"):
+        r.encoding = "utf-8"
     return r.text
 
 

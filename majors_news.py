@@ -103,6 +103,33 @@ def looks_like_menu(text):
     return short >= 0.7 * len(lines) and menu >= 3
 
 
+def trim_chrome(text, title):
+    """DATA5_KINROSS_V1 (2026-11-05): a release page read as a whole page starts with the site menu ("Skip to main
+    content", then the navigation) and ends with the footer (the navigation again, "Back to Top"). Keep the text from the
+    release's own headline line to the start of the footer. Pages without a "skip to content" link are left alone."""
+    t = text or ""
+    sk = re.search(r"(?i)skip to (?:main )?content", t[:4000])
+    h = re.sub(r"\s+", " ", title or "").strip()[:40]
+    if not sk or len(h) < 12:
+        return t
+    hits = [m.start() for m in re.finditer(re.escape(h), t)]
+    start = next((i for i in hits if i > sk.end()), None)
+    if start is None or start > 15000:
+        return t
+    menu = [l.strip() for l in t[sk.end():start].split("\n") if l.strip()]
+    body = t[start:]
+    cut = None
+    if menu:
+        m = re.search(r"\n\s*" + re.escape(menu[0]) + r"\s*\n", body)
+        if m and m.start() > 0.3 * len(body):
+            cut = m.start()
+    if cut is None:
+        m = re.search(r"\n\s*Back to Top\s*$", body)
+        if m:
+            cut = m.start()
+    return (body[:cut] if cut else body).strip()
+
+
 def page_text(url):
     """The release page's text, when the feed carries no body. Q4 release pages keep the release in
     .module_body / .module-details_body, WordPress pages in <article> or .entry-content; else the whole page."""
@@ -283,6 +310,7 @@ def main():
                 except Exception as e:  # noqa: BLE001
                     body = ""
                     note = f"fetch: {type(e).__name__} {str(e)[:60]}"
+            body = trim_chrome(body, x["title"])   # DATA5_KINROSS_V1
             if len(body) < 200:
                 n_fail += 1
                 record(rel, "error", note=note or f"text too short ({len(body)} chars)")

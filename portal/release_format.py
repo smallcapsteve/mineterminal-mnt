@@ -29,6 +29,8 @@ import re
 import sqlite3
 import threading
 
+from . import bulletfix as _bf  # BULLETFIX_V1 (2026-11-05)
+
 RELEASE_HTML_DB = os.environ.get("MNT_RELEASE_HTML_DB", "/opt/mnt/app/data/release_html.db")
 _LOCAL = threading.local()
 
@@ -41,6 +43,11 @@ def _con():
         if not os.path.exists(RELEASE_HTML_DB):
             return None
         c = sqlite3.connect(f"file:{RELEASE_HTML_DB}?mode=ro", uri=True, check_same_thread=False)
+        try:   # MNTLEAK_V1 (2026-10-28): close the connections of threads that have ended (portal/conn_reaper.py)
+            from portal.conn_reaper import adopt as _mntleak_adopt
+            _mntleak_adopt(c, "release_html.db")
+        except Exception:  # noqa: BLE001
+            pass
         _LOCAL.con = c
     return c
 
@@ -56,7 +63,11 @@ def pdf_html_for(event_id) -> str:
         if not r or not r[0]:
             return ""
         from .html_sanitize import sanitize_release_html  # second line of defence; stored copy is already clean
-        return sanitize_release_html(r[0])
+        h = sanitize_release_html(r[0])
+        try:  # BULLETFIX_V1: '<p>●</p><p>item</p>' -> list item
+            return _bf.fix_html(h)
+        except Exception:  # noqa: BLE001
+            return h
     except Exception:  # noqa: BLE001 - a missing/locked side store must never break a page
         return ""
 
@@ -85,6 +96,10 @@ def _norm(s: str) -> str:
 def reflow_text_html(text: str, headline: str = "") -> str:
     if not text:
         return ""
+    try:  # BULLETFIX_V1: a bullet glyph on its own line belongs to the next line
+        text = _bf.prep_text(text)
+    except Exception:  # noqa: BLE001
+        pass
     lines = [l.rstrip() for l in text.replace("\r\n", "\n").replace("\r", "\n").split("\n")]
     lens = sorted(len(l.strip()) for l in lines if len(l.strip()) > 20)
     width = lens[int(len(lens) * 0.9)] if lens else 80
@@ -202,6 +217,15 @@ _TD_OPEN = re.compile(r"<td\b([^>]*)>", re.I)
 def polish_tables(h: str) -> str:
     """Add class="num" to <td> whose whole text is a figure, unless the source
     already aligns the cell (align= or a text-align style)."""
+    try:  # MNT_FMTFIX_V1: website furniture (prev/next blocks, escaped tags) out of scraped releases
+        h = _bf.strip_site_junk(h)
+    except Exception:  # noqa: BLE001
+        pass
+    try:  # MNT_FMTFIX2_V1: EDGAR-style tables, blank paragraphs, inline bullets
+        from portal import secfix as _sf
+        h = _sf.tidy_blocks(_sf.compact_tables(h))
+    except Exception:  # noqa: BLE001
+        pass
     if not h or "<td" not in h.lower():
         return h
     out, pos = [], 0

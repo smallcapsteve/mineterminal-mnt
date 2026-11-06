@@ -25,7 +25,8 @@ from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 
 from portal.text_helpers import clean_release_html, smart_title
-from portal.release_format import pdf_html_for as _rf_pdf_html, reflow_text_html as _rf_reflow  # RELFMT_V1
+from portal.release_format import pdf_html_for as _rf_pdf_html, reflow_text_html as _rf_reflow, polish_tables as _rf_polish  # RELFMT_V1 (+polish: MNT_FMTFIX_V1)
+from portal import headfix as _hf  # HEADFIX_V1
 
 DB_PATH = "/opt/mnt/app/portal/portal.db"
 SITE_BASE = "https://miningnewsterminal.com"
@@ -87,6 +88,17 @@ def _extra_tickers(raw: Optional[str]) -> list[str]:
     return [t for t in (raw or "").strip("|").split("|") if t]
 
 
+def _hf_headline(row) -> str:   # HEADFIX_V1 (2026-11-05): display headline for PDF/page-read releases
+    raw = row["raw_headline"] or ""
+    try:
+        keys = row.keys()
+        src = row["source_name"] if "source_name" in keys else ""
+        ex = row["raw_excerpt"] if "raw_excerpt" in keys else ""
+        return smart_title(_hf.clean_headline(raw, src or "", ex or ""))
+    except Exception:  # noqa: BLE001
+        return smart_title(raw)
+
+
 def _row_to_card(row: sqlite3.Row) -> dict[str, Any]:
     """Light-weight article card (for list views)."""
     ticker = (row["ticker"] or "").strip()
@@ -101,7 +113,7 @@ def _row_to_card(row: sqlite3.Row) -> dict[str, Any]:
         # Additive. A consumer asking for RRI.V can get a release whose primary
         # ticker is QQQ.CN — this says why.
         "additional_tickers": extra,
-        "headline": smart_title(row["raw_headline"] or "") if row["raw_headline"] else "",
+        "headline": _hf_headline(row) if row["raw_headline"] else "",   # HEADFIX_V1
         "source_name": row["source_name"] or "",
         "source_url": row["source_url"] or "",
         "published_at": row["published_at"] or row["classified_at"] or "",
@@ -119,7 +131,7 @@ def _row_to_full(row: sqlite3.Row) -> dict[str, Any]:
     body = ""
     if row["raw_html"]:
         try:
-            body = clean_release_html(row["raw_html"], row["source_url"] or "")
+            body = _rf_polish(clean_release_html(row["raw_html"], row["source_url"] or ""))   # MNT_FMTFIX_V1
         except Exception:
             body = row["raw_html"]
     elif row["raw_body"]:

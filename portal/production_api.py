@@ -247,11 +247,59 @@ def _key(r) -> tuple:
     return (bare(r["ticker"]), kind, r["period"] or "", (r["metal"] or "").lower(), (r["unit"] or "").lower(), asset)
 
 
+# ---- DATA5_V1 (2026-11-05): hand corrections (data/datafix.json), checked against the release and applied when served,
+# because the readers rebuild this table (a row edit would not last). Re-read whenever the file changes.
+_D5_FILE = "/opt/mnt/app/data/datafix.json"
+_D5 = {"m": None, "d": {}}
+
+
+def _d5() -> dict:
+    try:
+        m = os.path.getmtime(_D5_FILE)
+        if m != _D5["m"]:
+            with open(_D5_FILE, encoding="utf-8") as f:
+                _D5["d"] = json.load(f)
+            _D5["m"] = m
+    except Exception:  # noqa: BLE001 - a missing or broken file means no corrections
+        pass
+    return _D5["d"] or {}
+
+
+def _d5_get(r, k):
+    try:
+        return r[k]
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _d5_hidden(r) -> bool:
+    """DATA5_V1: a row matching every field of a production_hide entry (numbers compared as numbers)."""
+    try:
+        for h in _d5().get("production_hide") or []:
+            ok = True
+            for k, v in h.items():
+                if k.startswith("_"):
+                    continue
+                x = _d5_get(r, k)
+                if isinstance(v, (int, float)):
+                    ok = _num(x) is not None and float(_num(x)) == float(v)
+                else:
+                    ok = str(x or "").strip().lower() == str(v).strip().lower()
+                if not ok:
+                    break
+            if ok:
+                return True
+    except Exception:  # noqa: BLE001
+        return False
+    return False
+
+
 _FILL = ("sold", "aisc", "guided_low", "guided_high", "basis")
 
 
 def build_items(rows, names: dict) -> list[dict]:
     """rows in (published_at, event_id, ordinal) order -> items, newest period first."""
+    rows = [r for r in rows if not _d5_hidden(r)]   # DATA5_V1: data/datafix.json production_hide
     groups: dict[tuple, dict] = {}
     for r in rows:
         if not r["kind"]:
@@ -335,6 +383,215 @@ def build_items(rows, names: dict) -> list[dict]:
     return out
 
 
+# --------------------------------------------------------------------------- MNT_PROD_API_AI_V1 (2026-10-29)
+# Justin, 2026-10-29: Sonnet-read production figures (Leaderboards job, /var/lib/mtp-lb/prodai.db) shown "everywhere
+# via MNT", tagged AI-read, never overwriting a figure the PROD reader has. Rows only for (ticker, kind, period, metal)
+# the reader has none of; AISC filled only where the reader's figure has none. Off switch: touch /etc/mnt-prodai-off.
+AI_DB = "/var/lib/mtp-lb/prodai.db"
+AI_OFF = "/etc/mnt-prodai-off"
+_AI_Q = re.compile(r"\bQ([1-4])\s*(FY)?\s*(\d{4})\b", re.I)
+_AI_HY = re.compile(r"^\s*(H[12]|9M)\s*(?:FY)?\s*(\d{4})\s*$", re.I)
+_AI_FY = re.compile(r"^\s*(?:FY|F|year|full[- ]year)?\s*(\d{4})\s*$", re.I)
+_AI_METAL = (("gold", "gold"), ("silver", "silver"), ("geo", "AuEq"), ("ageq", "AgEq"))
+_ai_cache = {"mtime": None, "rows": []}
+_ai_lock = threading.Lock()
+
+
+def _ai_mult(unit):
+    u = re.sub(r"(gold|silver)[ -]?equivalent|\b(au|ag)\s*eq\b|aueq|ageq|\bgeos?\b|troy|[.,()]", " ", (unit or "oz").lower())
+    u = " ".join(u.split())
+    if re.search(r"\bmoz\b|million", u):
+        return 1e6
+    if re.search(r"\bkoz\b|thousand|\b000\b|\bk\b", u):
+        return 1e3
+    if re.search(r"\bkgs?\b|kilogram", u):
+        return 32.1507
+    if re.search(r"\b(t|tonnes?)\b", u):
+        return 32150.7
+    if u in ("", "oz", "ozs", "ounce", "ounces") or re.fullmatch(r"(oz|ounces?)( produced| sold)?", u):
+        return 1.0
+    return None
+
+
+def _ai_period(label):
+    s = label or ""
+    m = _AI_Q.search(s)
+    if m:
+        return ("Q%s FY%s" % (m.group(1), m.group(3))) if (m.group(2) or "FY" in s.upper()) else ("Q%s %s" % (m.group(1), m.group(3)))
+    m = _AI_HY.match(s)
+    if m:
+        return "%s %s" % (m.group(1).upper(), m.group(2))
+    m = _AI_FY.match(s)
+    if m:
+        return "FY %s" % m.group(1)
+    return None
+
+
+_QEND = {"1": "03-31", "2": "06-30", "3": "09-30", "4": "12-31", "H1": "06-30", "H2": "12-31", "9M": "09-30"}
+
+
+def _ai_pend(per, given):
+    """period_end as given, else the calendar end for calendar quarters, halves and years (sorts the item right)."""
+    if given:
+        return given
+    m = re.match(r"^Q([1-4]) (\d{4})$", per or "") or re.match(r"^(H1|H2|9M) (\d{4})$", per or "")
+    if m:
+        return "%s-%s" % (m.group(2), _QEND[m.group(1)])
+    m = re.match(r"^FY (\d{4})$", per or "")
+    return "%s-12-31" % m.group(1) if m else None
+
+
+def _ai_canon(metal):
+    m = (metal or "").strip().lower()
+    return "aueq" if m in ("aueq", "geo", "geos") else m
+
+
+def ai_rows_from(recs) -> list[dict]:
+    """(event_id, ticker_symbol, published, headline, url, out_json) -> production_results-shaped dict rows, pure."""
+    rows, n = [], 0
+    for ev, sym, pub, head, url, out in recs:
+        try:
+            o = json.loads(out or "{}")
+        except Exception:
+            continue
+        sym = (sym or "").strip()
+        if not sym:
+            continue
+        u = (url or "").rstrip("/")
+        slug = u.rsplit("/", 1)[-1] if "/news/" in u else ""
+        base = {"event_id": "ai:" + str(ev), "ticker": sym, "slug": slug, "raw_headline": head or "",
+                "published_at": (pub or "")[:10] + "T00:00:00", "milestone": None, "asset": None, "approx": 0,
+                "sold": None, "guided_low": None, "guided_high": None, "low": None, "high": None, "aisc": None}
+        for p in o.get("periods") or []:
+            if (p.get("scope") or "company") == "mines_only":
+                continue
+            per = _ai_period(p.get("period"))
+            if not per:
+                continue
+            cur = (p.get("aisc_currency") or "USD").upper()
+            aisc = p.get("aisc") if cur in ("USD", "US$", "US") else None
+            am = (p.get("aisc_metal") or "").lower()
+            for fld, metal in _AI_METAL:
+                q, mult = p.get(fld + "_produced"), _ai_mult(p.get(fld + "_unit"))
+                if not q or mult is None:
+                    continue
+                a = aisc if aisc and ((metal in ("gold", "AuEq") and am in ("gold", "geo", "")) or
+                                      (metal in ("silver", "AgEq") and am in ("silver", "ageq"))) else None
+                n += 1
+                r = dict(base, pr_id=-n, ordinal=n, kind="actual", period=per, period_end=_ai_pend(per, p.get("period_end")),
+                         metal=metal, unit="oz", qty=round(q * mult, 2), aisc=a,
+                         basis="sold" if (p.get("basis") or "").lower() == "sold" else None)
+                rows.append(r)
+        for g in o.get("guidance") or []:
+            y = re.search(r"(20\d\d)", g.get("year") or "")
+            metal = (g.get("metal") or "").lower()
+            mult = _ai_mult(g.get("unit"))
+            if not y or metal not in ("gold", "silver") or mult is None or not (g.get("low") or g.get("high")):
+                continue
+            n += 1
+            lo, hi = g.get("low"), g.get("high")
+            rows.append(dict(base, pr_id=-n, ordinal=n, kind="guidance", period="FY %s" % y.group(1), period_end="%s-12-31" % y.group(1),
+                             metal=metal, unit="oz", qty=None, basis=None,
+                             low=round(lo * mult, 2) if lo else None, high=round(hi * mult, 2) if hi else None))
+    return rows
+
+
+def _ai_all() -> list[dict]:
+    if os.path.exists(AI_OFF) or "--selftest" in sys.argv:   # self-tests run on their own in-memory rows only
+        return []
+    try:
+        mt = os.path.getmtime(AI_DB)
+    except OSError:
+        return []
+    with _ai_lock:
+        if _ai_cache["mtime"] != mt:
+            try:
+                with closing(sqlite3.connect("file:%s?mode=ro" % AI_DB, uri=True, timeout=10)) as c:
+                    recs = c.execute("SELECT r.event_id, c.symbol, c.published, c.headline, c.url, r.out FROM reads r "
+                                     "JOIN cand c USING (event_id) WHERE r.status='ok' AND r.out IS NOT NULL").fetchall()
+                _ai_cache["rows"] = ai_rows_from(recs)
+            except Exception:
+                _ai_cache["rows"] = []
+            _ai_cache["mtime"] = mt
+        return _ai_cache["rows"]
+
+
+def ai_merge(rows, p: dict, universe, ai_rows=None):
+    """Reader rows + AI rows for figures the reader lacks. Returns (rows, ai_keys, aisc_fill)."""
+    rows = list(rows)
+    ai = _ai_all() if ai_rows is None else ai_rows
+    if not ai:
+        return rows, set(), {}
+    inc = p.get("include") or []
+    have = {(bare(r["ticker"]), r["kind"], r["period"] or "", _ai_canon(r["metal"])) for r in rows if r["kind"]}
+    near: dict = {}   # (ticker, kind, metal) -> [(release date, fiscal label?)]: spots one release labelled two ways
+    for r in rows:
+        if r["kind"] in ("actual", "guidance"):
+            near.setdefault((bare(r["ticker"]), r["kind"], _ai_canon(r["metal"])), []).append(
+                ((r["published_at"] or "")[:10], "FY2" in (r["period"] or "").replace(" ", "")[:6] and (r["period"] or "").startswith("Q")))
+    last_q: dict = {}   # the reader's latest quantity per figure (rows are in release order)
+    for r in rows:
+        if r["kind"] == "actual" and r["qty"] is not None:
+            last_q[(bare(r["ticker"]), r["kind"], r["period"] or "", _ai_canon(r["metal"]))] = float(r["qty"])
+    t = p.get("ticker")
+    add, keys, fill, over = [], set(), {}, {}
+    for r in ai:
+        if t and bare(r["ticker"]) != bare(t):
+            continue
+        if p.get("kind") and r["kind"] != p["kind"]:
+            continue
+        if p.get("metal") and (r["metal"] or "").lower() != p["metal"]:
+            continue
+        if "ytd" not in inc and r["period"].startswith("9M "):
+            continue
+        if universe and bare(r["ticker"]) not in universe:
+            continue
+        k = (bare(r["ticker"]), r["kind"], r["period"], _ai_canon(r["metal"]))
+        if k in have:
+            rq = last_q.get(k)
+            if r["kind"] == "actual" and rq and r.get("qty") and abs(r["qty"] / rq - 1) > 0.10:
+                # Justin, 2026-10-29: readers more than 10% apart -> Sonnet's figure is shown (AI-read)
+                if k not in over or r["published_at"] >= over[k]["published_at"]:
+                    over[k] = r
+                continue
+            if r["kind"] == "actual" and r.get("aisc"):
+                fill.setdefault(k, (r["aisc"], r["published_at"]))
+            continue
+        d0, fis = r["published_at"][:10], r["period"].startswith("Q") and "FY" in r["period"]
+        if any(f != fis and abs((_dt.date.fromisoformat(d0) - _dt.date.fromisoformat(d)).days) <= 10
+               for d, f in near.get((k[0], k[1], k[3]), []) if len(d) == 10 and len(d0) == 10):
+            continue   # the reader has this release under its fiscal (or calendar) label; do not show it twice
+        add.append(r)
+        keys.add(k)
+    if over:
+        rows = [r for r in rows if (bare(r["ticker"]), r["kind"], r["period"] or "", _ai_canon(r["metal"])) not in over]
+        for k, r in over.items():
+            add.append(r)
+            keys.add(k)
+            fill[("rq",) + k] = last_q.get(k)
+    rows += add
+    rows.sort(key=lambda r: ((r["published_at"] or ""), str(r["event_id"]), r["ordinal"]))
+    return rows, keys, fill
+
+
+def ai_mark(items, keys, fill):
+    for i in items:
+        k = (bare(i["ticker"]), i["kind"], i["period"] or "", _ai_canon(i["metal"]))
+        if k in keys:
+            i["source"] = "ai"
+            i["ai_fields"] = ["all"]
+            if fill.get(("rq",) + k) is not None:
+                i["reader_qty"] = fill[("rq",) + k]   # the reader's figure Sonnet's replaced (>10% apart)
+            if "/event/ai:" in (i.get("release_url") or ""):
+                i["release_url"] = ""   # an MD&A read: no MNT release page to link
+        else:
+            i["source"] = "reader"
+            if i["kind"] == "actual" and i.get("aisc") is None and k in fill:
+                i["aisc"] = fill[k][0]
+                i["ai_fields"] = ["aisc"]
+    return items
+
+
 def query_items(conn, p: dict, names: dict, universe: Optional[frozenset]) -> dict:
     inc = p.get("include") or []   # MNT_PROD_API_INCLUDE_V1: include=ytd / recovered brings them back
     where = ["kind IS NOT NULL"] + ([] if "recovered" in inc else ["kind != 'recovered'"]) + \
@@ -356,7 +613,8 @@ def query_items(conn, p: dict, names: dict, universe: Optional[frozenset]) -> di
         args.append(json.dumps(sorted(universe)))
     rows = conn.execute("SELECT " + _COLS + " FROM production_results WHERE " + " AND ".join(where) +
                         " ORDER BY published_at, event_id, ordinal", args).fetchall()
-    items = build_items(rows, names)
+    rows, ai_keys, ai_fill = ai_merge(rows, p, universe)   # MNT_PROD_API_AI_V1
+    items = ai_mark(build_items(rows, names), ai_keys, ai_fill)
     if p.get("sort") == "date":   # MNT_PROD_API_SORT_V1
         items.sort(key=lambda i: (i.get("published_at") or "", str(i.get("item_id") or "")), reverse=True)
     if p.get("since"):

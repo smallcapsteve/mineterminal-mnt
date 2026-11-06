@@ -64,7 +64,36 @@ def bare(ticker: Optional[str]) -> str:
     return (ticker or "").strip().upper().split(".")[0]
 
 
-_NOT_A_NAME = re.compile(r"\b(PEA|PFS|FS|feasibility|study|economic|outlines?|operationali[sz]ed)\b", re.I)
+_NOT_A_NAME = re.compile(r"\b(PEA|PFS|FS|feasibility|study|economic|outlines?|operationali[sz]ed|IRR|NPV)\b", re.I)   # DATA5_V1: + IRR, NPV
+
+
+# ---- DATA5_V1 (2026-11-05): hand corrections (data/datafix.json), checked against the release and applied when served,
+# because the readers rebuild this table (a row edit would not last). Re-read whenever the file changes.
+_D5_FILE = "/opt/mnt/app/data/datafix.json"
+_D5 = {"m": None, "d": {}}
+
+
+def _d5() -> dict:
+    try:
+        m = os.path.getmtime(_D5_FILE)
+        if m != _D5["m"]:
+            with open(_D5_FILE, encoding="utf-8") as f:
+                _D5["d"] = json.load(f)
+            _D5["m"] = m
+    except Exception:  # noqa: BLE001 - a missing or broken file means no corrections
+        pass
+    return _D5["d"] or {}
+
+
+def _d5_base_first(sc: list) -> list:
+    """DATA5_V1 (2026-11-05): show the base case first when the release has one with an NPV (WRLG listed its spot
+    case first, so the page showed C$1B for a C$764M study). Display order only: studies are still matched as before."""
+    i = next((k for k, x in enumerate(sc or []) if re.search(r"\bbase\b", x.get("scenario") or "", re.I)
+              and (x.get("npv_after_tax") is not None or x.get("npv_pre_tax") is not None)), 0)
+    if i:
+        sc = list(sc)
+        sc.insert(0, sc.pop(i))
+    return sc
 
 
 def clean_project(p: Optional[str]) -> str:
@@ -426,7 +455,7 @@ def build_studies(rows, names: dict) -> list[dict]:
             "company": company_name(t, names),
             "study_type": st["type"] or "",
             "other_labels": sorted(st["labels"] - {st["type"]}),
-            "project": rel["project"] or st["project"] or "",
+            "project": (_d5().get("economics_project") or {}).get(rel["event_id"]) or rel["project"] or st["project"] or "",   # DATA5_V1
             "source": "announced" if rel["announced"] else "restated",
             "date": rel["published_at"][:10],
             "published_at": rel["published_at"],
@@ -436,7 +465,7 @@ def build_studies(rows, names: dict) -> list[dict]:
             "restated": st["n"] - 1,
             "headline": _title(rel["headline"] or ""),
             "release_url": release_url(t, rel["slug"], rel["event_id"]),
-            "scenarios": _filled(rel, st["rels"]),
+            "scenarios": _d5_base_first(_filled(rel, st["rels"])),   # DATA5_V1
         })
     out.sort(key=lambda s: (s["published_at"], s["study_id"]), reverse=True)
     return out

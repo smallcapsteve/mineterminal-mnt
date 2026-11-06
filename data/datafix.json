@@ -1,0 +1,15 @@
+{
+  "_about": "DATA5_V1 (2026-11-05): hand corrections, each checked against its release; applied by the MNT APIs when served (the tables are rebuilt by the readers). Edit this file to add one; no restart needed.",
+  "economics_project": {
+    "29e42159c3bc6055bc60f819b84bd4f5205ccf5d": "IBW (Iberian Belt West)"
+  },
+  "production_hide": [
+    {
+      "ticker": "FVI.TO",
+      "kind": "guidance",
+      "period": "FY 2026",
+      "metal": "gold",
+      "_why": "No company-wide FY 2026 gold guidance exists (Fortuna guides GEO and silver). Rows read: Nov 5 2025 'Seguela ... 2026 production of 160,000-180,000 ounces' (one mine), and Oct 7 / Nov 5 2026 'an annual gold production target of over 200,000 ounces from the second half of 2028' (Seguela expansion). Checked against both releases 2026-11-05."
+    }
+  ]
+}
