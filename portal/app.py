@@ -1593,7 +1593,7 @@ def admin_event_tickers_form(request: Request, event_id: str, back: str | None =
         "is_admin": True,
         "event": row,
         "additional_tickers": addtl,
-        "back": back or "/admin",
+        "back": back if (isinstance(back, str) and back.startswith("/") and not back.startswith("//") and "\\" not in back) else "/admin",   # SECSWEEP5_BACK_V1: only a path on this site
         "saved": False,
     })
 
@@ -1606,6 +1606,8 @@ async def admin_event_tickers_save(request: Request, event_id: str):
     form = await request.form()
     raw_addtl = form.get("additional_tickers") or ""
     back = form.get("back") or "/admin"
+    if not (isinstance(back, str) and back.startswith("/") and not back.startswith("//") and "\\" not in back):
+        back = "/admin"   # SECSWEEP_SMALL_V1: only a path on this site
     parts = [p.strip().upper() for p in re.split(r"[,\s]+", raw_addtl) if p.strip()]
     primary = (form.get("ticker") or "").strip().upper()
     parts = [p for p in dict.fromkeys(parts) if p and p != primary]
@@ -1895,6 +1897,32 @@ def resources_page(
         "SELECT DISTINCT ticker FROM resource_estimates "
         "WHERE ticker IS NOT NULL ORDER BY ticker"
     ))
+    # C19_HIST_V1: mark background figures the release itself calls a historical estimate
+    try:
+        from portal import c19_hist as _c19
+        for _d in decorated:
+            _d["historical_estimate"] = _d.get("context") == "background" and _c19.is_hist(_d.get("event_id"), _d.get("ordinal"))
+    except Exception:
+        pass
+    # C19_DATES_V1: the date a restated estimate is from (amber at 3+ years before the release)
+    try:
+        from portal import c19_dates as _c19d
+        for _d in decorated:
+            _dd = _c19d.get(_d.get("event_id"), _d.get("ordinal")) if _d.get("context") == "background" else None
+            _d["estimate_date"] = _dd["d"] if _dd else None
+            _d["estimate_date_why"] = _dd["w"] if _dd else ""
+            _d["estimate_old"] = bool(_dd and _dd["old"])
+    except Exception:
+        pass
+    # C19_QP_V1: who prepared the estimate, according to the release (firm, QP names in the hover)
+    try:
+        from portal import c19_qp as _c19q
+        for _d in decorated:
+            _q = _c19q.get(_d.get("event_id"), _d.get("ordinal"))
+            _d["prepared_by"] = _q["label"] if _q else None
+            _d["prepared_by_hover"] = ("QP: " + ", ".join(_q["qps"]) + ". " if _q and _q["qps"] else "") + ((_q or {}).get("why") or "")
+    except Exception:
+        pass
     return templates.TemplateResponse(request, "resources.html", {
         "request": request,
         "is_admin": auth.is_logged_in(request),
