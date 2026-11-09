@@ -302,12 +302,28 @@ def late_copy(a: dict, b: dict, gap: int, body) -> bool:
     return headline_match(ha, hb) == 2 and body_overlap(ta, tb) >= LATE_OVERLAP_NO_DATELINE
 
 
+# SWEEP1109_FR_TWIN (2026-11-09): Newsfile files a French translation beside the English release. A French
+# headline and an English one for the same company, published within an hour on the same day, are one release.
+_FR_WORDS = re.compile(r"\b(annonce|recoupe|nomme|embauche|remporte|entame|résultats|forage|assemblée|actionnaires|une|des|les|du|sur|dans|pour|avec|aux|de la|le|la)\b", re.I)
+_EN_WORDS = re.compile(r"\b(the|and|of|announces|appoints|drills|intersects|results|with|for|from|in|to)\b", re.I)
+
+
+def is_french(h: str | None) -> bool:
+    h = h or ""
+    return len(_FR_WORDS.findall(h)) >= 2 and not _EN_WORDS.search(h)
+
+
 def pair_is_copy(a: dict, b: dict, gap: int, body) -> bool:
     """Same company's release twice? gap = days apart (>= 0); body(e) returns e's raw body and is only called
     when a body is needed. Within 3 days: the V1-V1.6 headline rule, then the V1.7 body-first test (different
     kinds of source, within a day). Then, 2-30 days apart, the V1.8 late-copy test."""
     if gap > LATE_MAX_DAYS:
         return False
+    ta, tb = str(a.get("published_at") or ""), str(b.get("published_at") or "")
+    if gap == 0 and len(ta) >= 16 and len(tb) >= 16 and \
+            is_french(a.get("raw_headline")) != is_french(b.get("raw_headline")) and \
+            abs((dt.datetime.fromisoformat(ta[:16]) - dt.datetime.fromisoformat(tb[:16])).total_seconds()) <= 3600:
+        return True  # SWEEP1109_FR_TWIN
     if gap <= MAX_GAP_DAYS:
         m = headline_match(a.get("raw_headline"), b.get("raw_headline"))
         if m:
@@ -333,6 +349,7 @@ def is_copy(a: dict, b: dict) -> bool:
 def keep_rank(e: dict) -> tuple:
     """Lower sorts first = the copy to keep, among copies dated within a day of each other."""
     return (
+        1 if is_french(e.get("raw_headline")) else 0,  # SWEEP1109_FR_TWIN: the English copy stays
         source_rank(e.get("source_name")),     # V1.7: wire, then company site, then exchange
         0 if (e.get("review_status") in VISIBLE) else 1,
         e.get("ingested_at") or "9999",
