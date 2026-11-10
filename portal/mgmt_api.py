@@ -47,6 +47,9 @@ _COLS = ("mgmt_id, event_id, ordinal, ticker, action, person, role, role_canon, 
          "raw_headline, published_at, extractor_version")
 
 
+from portal import usx_key as _usxk   # USX_FEEDKEY_V1
+
+
 def bare(ticker: Optional[str]) -> str:
     return (ticker or "").strip().upper().split(".")[0]
 
@@ -101,7 +104,7 @@ def _parse_names(data) -> dict:
 def _parse_universe(data) -> frozenset:
     if not isinstance(data, dict):
         return frozenset()
-    return frozenset(bare(t) for t in (data.get("tickers") or []) if bare(t))
+    return _usxk.universe(frozenset(bare(t) for t in (data.get("tickers") or []) if bare(t)))   # USX_FEEDKEY_V1.1
 
 
 _names = _FileCache(TICKERS_PATH, _parse_names)
@@ -220,9 +223,12 @@ def query_rows(conn, p: dict, names: dict, universe: Optional[frozenset]) -> dic
     where = ["COALESCE(person, '') <> ''", "COALESCE(action, '') <> ''"]
     args: list = []
     t = p.get("ticker")
+    t, _usx = _usxk.norm(t)   # USX_FEEDKEY_V1: "-US" form; a symbol listed both in the US and elsewhere
     if t:
         where.append("(upper(ticker) = ? OR upper(ticker) LIKE ?)")
         args += [t, bare(t) + ".%"]
+        if _usx:
+            where.append(_usx % "ticker")
     if p.get("actions"):
         where.append("lower(action) IN (%s)" % ",".join("?" * len(p["actions"])))
         args += p["actions"]

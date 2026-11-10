@@ -121,6 +121,9 @@ def interval_value(grade, unit, metal, length_m) -> Optional[float]:
     return round(v, 6) if math.isfinite(v) else None
 
 
+from portal import usx_key as _usxk   # USX_FEEDKEY_V1
+
+
 def bare(ticker: Optional[str]) -> str:
     return (ticker or "").strip().upper().split(".")[0]
 
@@ -239,7 +242,7 @@ def _parse_names(data) -> dict:
 def _parse_universe(data) -> frozenset:
     if not isinstance(data, dict):
         return frozenset()
-    return frozenset(bare(t) for t in (data.get("tickers") or []) if bare(t))
+    return _usxk.universe(frozenset(bare(t) for t in (data.get("tickers") or []) if bare(t)))   # USX_FEEDKEY_V1.1
 
 
 _names = _FileCache(TICKERS_PATH, _parse_names)
@@ -314,6 +317,7 @@ def _metals_in_family(conn, fam: str) -> list[str]:
 def _where(p: dict, universe: Optional[frozenset]) -> tuple[list[str], list]:
     where, args = [_VISIBLE], []
     t = p.get("ticker")
+    t, _usx = _usxk.norm(t)   # USX_FEEDKEY_V1: "-US" form; a symbol listed both in the US and elsewhere
     if t:
         b = bare(t)
         where.append(
@@ -321,6 +325,8 @@ def _where(p: dict, universe: Optional[frozenset]) -> tuple[list[str], list]:
             " OR ('|' || upper(COALESCE(e.additional_tickers, '')) || '|') LIKE ? "
             " OR ('|' || upper(COALESCE(e.additional_tickers, '')) || '|') LIKE ?)")
         args += [t, b + ".%", "%|" + t + "|%", "%|" + b + ".%|%"]
+        if _usx:
+            where.append(_usx % "d.ticker")
         # SPEEDFIX_DRILLS_TICKER_V1 (2026-10-07): narrow to this company's candidate rows first. The set is a
         # superset of the test above (same symbol, symbol.*, or any release with extra tickers), so results are
         # unchanged; SQLite then reads events only for these rows instead of all ~11.6k drill releases.

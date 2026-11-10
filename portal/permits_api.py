@@ -64,6 +64,9 @@ _COLS = ("pm_id, event_id, ordinal, ticker, slug, permit_type, project, status, 
 
 # --------------------------------------------------------------------------- helpers (pure)
 
+from portal import usx_key as _usxk   # USX_FEEDKEY_V1
+
+
 def bare(ticker: Optional[str]) -> str:
     return (ticker or "").strip().upper().split(".")[0]
 
@@ -118,7 +121,7 @@ def _parse_names(data) -> dict:
 def _parse_universe(data) -> frozenset:
     if not isinstance(data, dict):
         return frozenset()
-    return frozenset(bare(t) for t in (data.get("tickers") or []) if bare(t))
+    return _usxk.universe(frozenset(bare(t) for t in (data.get("tickers") or []) if bare(t)))   # USX_FEEDKEY_V1.1
 
 
 _names = _FileCache(TICKERS_PATH, _parse_names)
@@ -436,10 +439,13 @@ def query_permits(conn, p: dict, names: dict, universe: Optional[frozenset]) -> 
     sql = "SELECT " + _COLS + _rows_ai_cols(conn) + " FROM permits WHERE status IS NOT NULL"
     args: list = []
     t = p.get("ticker")
+    t, _usx = _usxk.norm(t)   # USX_FEEDKEY_V1: "-US" form; a symbol listed both in the US and elsewhere
     if t:
         b = bare(t)
         sql += " AND (UPPER(ticker) = ? OR UPPER(ticker) = ? OR UPPER(ticker) LIKE ?)"
         args += [t, b, b + ".%"]
+        if _usx:
+            sql += " AND " + _usx % "ticker"
     if not t:
         pms = _built_all(conn, sql, args, names, build_permits, "permits")    # MNT_SPEED_V2
     else:

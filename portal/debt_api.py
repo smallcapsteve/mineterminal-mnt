@@ -67,6 +67,9 @@ _COLS = ("dd_id, event_id, ordinal, ticker, slug, instrument, stage, side, princ
 
 # --------------------------------------------------------------------------- helpers (pure)
 
+from portal import usx_key as _usxk   # USX_FEEDKEY_V1
+
+
 def bare(ticker: Optional[str]) -> str:
     return (ticker or "").strip().upper().split(".")[0]
 
@@ -121,7 +124,7 @@ def _parse_names(data) -> dict:
 def _parse_universe(data) -> frozenset:
     if not isinstance(data, dict):
         return frozenset()
-    return frozenset(bare(t) for t in (data.get("tickers") or []) if bare(t))
+    return _usxk.universe(frozenset(bare(t) for t in (data.get("tickers") or []) if bare(t)))   # USX_FEEDKEY_V1.1
 
 
 _names = _FileCache(TICKERS_PATH, _parse_names)
@@ -296,10 +299,13 @@ def query_debts(conn, p: dict, names: dict, universe: Optional[frozenset]) -> di
     sql = "SELECT " + _COLS + " FROM debt_deals WHERE instrument IS NOT NULL"
     args: list = []
     t = p.get("ticker")
+    t, _usx = _usxk.norm(t)   # USX_FEEDKEY_V1: "-US" form; a symbol listed both in the US and elsewhere
     if t:
         b = bare(t)
         sql += " AND (UPPER(ticker) = ? OR UPPER(ticker) = ? OR UPPER(ticker) LIKE ?)"
         args += [t, b, b + ".%"]
+        if _usx:
+            sql += " AND " + _usx % "ticker"
     rows = conn.execute(sql + " ORDER BY published_at, event_id, ordinal", args).fetchall()
     if t and "." in t and any(_s(r["ticker"]).upper() == t for r in rows):
         rows = [r for r in rows if _s(r["ticker"]).upper() == t]    # the listing asked for, not a namesake

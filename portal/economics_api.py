@@ -60,6 +60,9 @@ _COLS = ("event_id, ordinal, ticker, slug, raw_headline, published_at, project, 
 
 # --------------------------------------------------------------------------- helpers (pure)
 
+from portal import usx_key as _usxk   # USX_FEEDKEY_V1
+
+
 def bare(ticker: Optional[str]) -> str:
     return (ticker or "").strip().upper().split(".")[0]
 
@@ -221,7 +224,7 @@ def _parse_names(data) -> dict:
 def _parse_universe(data) -> frozenset:
     if not isinstance(data, dict):
         return frozenset()
-    return frozenset(bare(t) for t in (data.get("tickers") or []) if bare(t))
+    return _usxk.universe(frozenset(bare(t) for t in (data.get("tickers") or []) if bare(t)))   # USX_FEEDKEY_V1.1
 
 
 _names = _FileCache(TICKERS_PATH, _parse_names)
@@ -475,9 +478,12 @@ def query_studies(conn, p: dict, names: dict, universe: Optional[frozenset]) -> 
     where = ["scenario IS NOT NULL", "(other_owner IS NULL OR other_owner = '')"]
     args: list = []
     t = p.get("ticker")
+    t, _usx = _usxk.norm(t)   # USX_FEEDKEY_V1: "-US" form; a symbol listed both in the US and elsewhere
     if t:
         where.append("(upper(ticker) = ? OR upper(ticker) LIKE ?)")
         args += [t, bare(t) + ".%"]
+        if _usx:
+            where.append(_usx % "ticker")
     if universe:
         where.append("(CASE WHEN instr(ticker, '.') > 0 THEN upper(substr(ticker, 1, instr(ticker, '.') - 1)) "
                      "ELSE upper(ticker) END) IN (SELECT value FROM json_each(?))")

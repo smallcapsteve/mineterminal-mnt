@@ -56,6 +56,9 @@ _COLS = ("wc_id, event_id, ordinal, ticker, slug, change, status, n_warrants, st
          "matched_by, publish, hold_reason, tag_confirmed, raw_headline, published_at")
 
 
+from portal import usx_key as _usxk   # USX_FEEDKEY_V1
+
+
 def bare(ticker: Optional[str]) -> str:
     return (ticker or "").strip().upper().split(".")[0]
 
@@ -240,10 +243,13 @@ def query(conn, p: dict, names: dict, extra: str = "") -> dict:
     elif p["gate"] == "review":
         sql += " AND affects = 1 AND publish = 0"
     t = p.get("ticker")
+    t, _usx = _usxk.norm(t)   # USX_FEEDKEY_V1: "-US" form; a symbol listed both in the US and elsewhere
     if t:
         b = bare(t)
         sql += " AND (UPPER(ticker) = ? OR UPPER(ticker) = ? OR UPPER(ticker) LIKE ?)"
         args += [t, b, b + ".%"]
+        if _usx:
+            sql += " AND " + _usx % "ticker"
     for k, col in (("change", "change"), ("status", "status"), ("financing", "financing_id")):
         if p.get(k):
             sql += " AND %s = ?" % col

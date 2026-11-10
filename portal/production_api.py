@@ -63,6 +63,9 @@ _COLS = ("pr_id, event_id, ordinal, ticker, slug, kind, period, period_end, meta
 
 # --------------------------------------------------------------------------- helpers (pure)
 
+from portal import usx_key as _usxk   # USX_FEEDKEY_V1
+
+
 def bare(ticker: Optional[str]) -> str:
     return (ticker or "").strip().upper().split(".")[0]
 
@@ -119,7 +122,7 @@ def _parse_names(data) -> dict:
 def _parse_universe(data) -> frozenset:
     if not isinstance(data, dict):
         return frozenset()
-    return frozenset(bare(t) for t in (data.get("tickers") or []) if bare(t))
+    return _usxk.universe(frozenset(bare(t) for t in (data.get("tickers") or []) if bare(t)))   # USX_FEEDKEY_V1.1
 
 
 _names = _FileCache(TICKERS_PATH, _parse_names)
@@ -471,6 +474,16 @@ def ai_rows_from(recs) -> list[dict]:
             cur = (p.get("aisc_currency") or "USD").upper()
             aisc = p.get("aisc") if cur in ("USD", "US$", "US") else None
             am = (p.get("aisc_metal") or "").lower()
+            # SWEEP1109_AI_PERIOD (2026-11-09): the publisher's period rules for AI rows too -- a period ending after the
+            # release is the company's own fiscal period (dated by the release); one that ended long before it is a comparison
+            pend = _ai_pend(per, p.get("period_end"))
+            day = (pub or "")[:10]
+            if pend and len(day) == 10:
+                tot = int(day[:4]) * 12 + int(day[5:7]) - 1 - (15 if per.startswith("FY") else 7)
+                if pend < "%04d-%02d-01" % (tot // 12, tot % 12 + 1):
+                    continue
+                if pend > day:
+                    pend = None
             for fld, metal in _AI_METAL:
                 q, mult = p.get(fld + "_produced"), _ai_mult(p.get(fld + "_unit"))
                 if not q or mult is None:
@@ -478,7 +491,7 @@ def ai_rows_from(recs) -> list[dict]:
                 a = aisc if aisc and ((metal in ("gold", "AuEq") and am in ("gold", "geo", "")) or
                                       (metal in ("silver", "AgEq") and am in ("silver", "ageq"))) else None
                 n += 1
-                r = dict(base, pr_id=-n, ordinal=n, kind="actual", period=per, period_end=_ai_pend(per, p.get("period_end")),
+                r = dict(base, pr_id=-n, ordinal=n, kind="actual", period=per, period_end=pend,
                          metal=metal, unit="oz", qty=round(q * mult, 2), aisc=a,
                          basis="sold" if (p.get("basis") or "").lower() == "sold" else None)
                 rows.append(r)
@@ -534,9 +547,10 @@ def ai_merge(rows, p: dict, universe, ai_rows=None):
         if r["kind"] == "actual" and r["qty"] is not None:
             last_q[(bare(r["ticker"]), r["kind"], r["period"] or "", _ai_canon(r["metal"]))] = float(r["qty"])
     t = p.get("ticker")
+    t, _usx = _usxk.norm(t)   # USX_FEEDKEY_V1: "-US" form; a symbol listed both in the US and elsewhere
     add, keys, fill, over = [], set(), {}, {}
     for r in ai:
-        if t and bare(r["ticker"]) != bare(t):
+        if t and (bare(r["ticker"]) != bare(t) or not _usxk.keeps(r["ticker"], _usx)):
             continue
         if p.get("kind") and r["kind"] != p["kind"]:
             continue
@@ -598,9 +612,12 @@ def query_items(conn, p: dict, names: dict, universe: Optional[frozenset]) -> di
             ([] if "ytd" in inc else ["COALESCE(period, '') NOT LIKE '9M %'"])   # PROD13: MTP unchanged by default
     args: list = []
     t = p.get("ticker")
+    t, _usx = _usxk.norm(t)   # USX_FEEDKEY_V1: "-US" form; a symbol listed both in the US and elsewhere
     if t:
         where.append("(upper(ticker) = ? OR upper(ticker) LIKE ?)")
         args += [t, bare(t) + ".%"]
+        if _usx:
+            where.append(_usx % "ticker")
     if p.get("kind"):
         where.append("kind = ?")
         args.append(p["kind"])

@@ -68,6 +68,9 @@ _COLS = ("rd_id, event_id, ordinal, ticker, slug, type, rate_pct, metal, propert
 
 # --------------------------------------------------------------------------- helpers (pure)
 
+from portal import usx_key as _usxk   # USX_FEEDKEY_V1
+
+
 def bare(ticker: Optional[str]) -> str:
     return (ticker or "").strip().upper().split(".")[0]
 
@@ -124,7 +127,7 @@ def _parse_names(data) -> dict:
 def _parse_universe(data) -> frozenset:
     if not isinstance(data, dict):
         return frozenset()
-    return frozenset(bare(t) for t in (data.get("tickers") or []) if bare(t))
+    return _usxk.universe(frozenset(bare(t) for t in (data.get("tickers") or []) if bare(t)))   # USX_FEEDKEY_V1.1
 
 
 _names = _FileCache(TICKERS_PATH, _parse_names)
@@ -454,10 +457,11 @@ def query_deals(conn, p: dict, names: dict, universe: Optional[frozenset]) -> di
     kinds = tuple(p.get("kinds") or ("deal",))   # ROY11: deals only by default; MNT_ROY_API_KINDS_V1: include=
     deals = [dict(d) for d in _built_deals(conn, kinds, names)]   # MNT_ROY_BUILT_V1: copies of the kept list
     t = p.get("ticker")
+    t, _usx = _usxk.norm(t)   # USX_FEEDKEY_V1: "-US" form; a symbol listed both in the US and elsewhere
     if t:
         company = ""
         for k, v in names.items():
-            if k.upper() == t or bare(k) == bare(t):
+            if k.upper() == t or (bare(k) == bare(t) and _usxk.keeps(k, _usx)):   # USX_FEEDKEY_V1.1
                 company = v
                 if k.upper() == t:
                     break

@@ -59,6 +59,9 @@ _COLS = ("res_id, event_id, ordinal, ticker, slug, deposit, project, category, t
          "published_at, extractor_version")
 
 
+from portal import usx_key as _usxk   # USX_FEEDKEY_V1
+
+
 def bare(ticker: Optional[str]) -> str:
     return (ticker or "").strip().upper().split(".")[0]
 
@@ -113,7 +116,7 @@ def _parse_names(data) -> dict:
 def _parse_universe(data) -> frozenset:
     if not isinstance(data, dict):
         return frozenset()
-    return frozenset(bare(t) for t in (data.get("tickers") or []) if bare(t))
+    return _usxk.universe(frozenset(bare(t) for t in (data.get("tickers") or []) if bare(t)))   # USX_FEEDKEY_V1.1
 
 
 _names = _FileCache(TICKERS_PATH, _parse_names)
@@ -234,6 +237,37 @@ def is_historic(r) -> bool:
     return (r["context"] or "").strip().lower() == "background"
 
 
+def _c19_qp(r, f):
+    """C19_QP_V1: who prepared this estimate according to the release: "label" (lead firm, or QP names), "firms",
+    "qps", "why" (quoted words). None when the release does not say or the reader was not sure."""
+    try:
+        from portal import c19_qp
+        o = c19_qp.get(r["event_id"], r["ordinal"])
+        return o[f] if o else None
+    except Exception:
+        return None
+
+
+def _c19_date(r, f):
+    """C19_DATES_V1: date a restated estimate is from ("d"), the words it came from ("w"), or "old" (3+ years before
+    the release). None when unknown."""
+    try:
+        from portal import c19_dates
+        o = c19_dates.get(r["event_id"], r["ordinal"])
+        return o[f] if o else None
+    except Exception:
+        return None
+
+
+def _c19_is_hist(r) -> bool:
+    """C19_HIST_V1: True when the release calls this background figure a historical estimate (not current)."""
+    try:
+        from portal import c19_hist
+        return bool(c19_hist.is_hist(r["event_id"], r["ordinal"]))
+    except Exception:
+        return False
+
+
 def to_item(r, names: dict) -> dict:
     t = (r["ticker"] or "").strip()
     return {
@@ -244,6 +278,14 @@ def to_item(r, names: dict) -> dict:
         "tonnes": _num(r["tonnes"]), "grades": _js(r["grades_json"]), "contained": _js(r["contained_json"]),
         "cut_off": r["cut_off"] or "", "context": r["context"] or "", "estimate_type": r["mre_type"] or "",
         "historic": is_historic(r),
+        "historical_estimate": _c19_is_hist(r) if is_historic(r) else False,  # C19_HIST_V1
+        "estimate_date": _c19_date(r, "d") if is_historic(r) else None,  # C19_DATES_V1
+        "estimate_date_source": _c19_date(r, "w") if is_historic(r) else None,
+        "estimate_old": bool(_c19_date(r, "old")) if is_historic(r) else False,
+        "prepared_by": _c19_qp(r, "label"),  # C19_QP_V1
+        "prepared_by_firms": _c19_qp(r, "firms") or [],
+        "prepared_by_qps": _c19_qp(r, "qps") or [],
+        "prepared_by_source": _c19_qp(r, "why"),
         "metal_focus": r["metal_focus"] or "", "headline_oz_au": _num(r["headline_oz_au"]),
         "headline_t_metal": _num(r["headline_t_metal"]), "summary": r["summary"] or "",
         "date": (r["published_at"] or "")[:10], "published_at": r["published_at"] or "",
@@ -257,9 +299,12 @@ def query_rows(conn, p: dict, names: dict, universe: Optional[frozenset]) -> dic
     where = ["category IS NOT NULL"]
     args: list = []
     t = p.get("ticker")
+    t, _usx = _usxk.norm(t)   # USX_FEEDKEY_V1: "-US" form; a symbol listed both in the US and elsewhere
     if t:
         where.append("(upper(ticker) = ? OR upper(ticker) LIKE ?)")
         args += [t, bare(t) + ".%"]
+        if _usx:
+            where.append(_usx % "ticker")
     if p.get("categories"):
         where.append("category IN (%s)" % ",".join("?" * len(p["categories"])))
         args += p["categories"]

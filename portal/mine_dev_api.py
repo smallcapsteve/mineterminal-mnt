@@ -75,6 +75,9 @@ _COLS = ("md_id, event_id, ordinal, ticker, slug, event_type, event_group, mine,
          "incident_kind")
 
 
+from portal import usx_key as _usxk   # USX_FEEDKEY_V1
+
+
 def bare(ticker: Optional[str]) -> str:
     return (ticker or "").strip().upper().split(".")[0]
 
@@ -129,7 +132,7 @@ def _parse_names(data) -> dict:
 def _parse_universe(data) -> frozenset:
     if not isinstance(data, dict):
         return frozenset()
-    return frozenset(bare(t) for t in (data.get("tickers") or []) if bare(t))
+    return _usxk.universe(frozenset(bare(t) for t in (data.get("tickers") or []) if bare(t)))   # USX_FEEDKEY_V1.1
 
 
 _names = _FileCache(TICKERS_PATH, _parse_names)
@@ -321,10 +324,13 @@ def query_events(conn, p: dict, names: dict, universe: Optional[frozenset]) -> d
     sql = "SELECT " + _COLS + _ai + " FROM mine_dev_events WHERE event_type IS NOT NULL AND tag_confirmed = 1"
     args: list = []
     t = p.get("ticker")
+    t, _usx = _usxk.norm(t)   # USX_FEEDKEY_V1: "-US" form; a symbol listed both in the US and elsewhere
     if t:
         b = bare(t)
         sql += " AND (UPPER(ticker) = ? OR UPPER(ticker) = ? OR UPPER(ticker) LIKE ?)"
         args += [t, b, b + ".%"]
+        if _usx:
+            sql += " AND " + _usx % "ticker"
     if p.get("type"):
         sql += " AND event_type = ?"
         args.append(p["type"])

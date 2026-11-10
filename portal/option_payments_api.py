@@ -49,6 +49,9 @@ _COLS = ("ldi_id, event_id, ordinal, seq, ticker, slug, chain_key, deal_type, st
          "raw_headline, published_at")
 
 
+from portal import usx_key as _usxk   # USX_FEEDKEY_V1
+
+
 def bare(ticker: Optional[str]) -> str:
     return (ticker or "").strip().upper().split(".")[0]
 
@@ -211,10 +214,13 @@ def query(conn, p: dict, names: dict) -> dict:
         sql += " AND kind = ?"
         args.append(p["kind"])
     t = p.get("ticker")
+    t, _usx = _usxk.norm(t)   # USX_FEEDKEY_V1: "-US" form; a symbol listed both in the US and elsewhere
     if t:
         b = bare(t)
         sql += " AND (UPPER(ticker) = ? OR UPPER(ticker) = ? OR UPPER(ticker) LIKE ?)"
         args += [t, b, b + ".%"]
+        if _usx:
+            sql += " AND " + _usx % "ticker"
     order = " ORDER BY due_date, ticker, event_id, ordinal, seq" if p["scope"] != "all" else \
         " ORDER BY published_at DESC, event_id, ordinal, seq"
     rows = conn.execute(sql + order, args).fetchall()

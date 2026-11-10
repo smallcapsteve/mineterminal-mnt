@@ -79,6 +79,9 @@ _STATUS_RE = re.compile(r"^[a-z_]{3,24}$")
 
 # --------------------------------------------------------------------------- helpers (pure)
 
+from portal import usx_key as _usxk   # USX_FEEDKEY_V1
+
+
 def bare(ticker: Optional[str]) -> str:
     return (ticker or "").strip().upper().split(".")[0]
 
@@ -280,7 +283,7 @@ def _parse_names(data) -> dict:
 def _parse_universe(data) -> frozenset:
     if not isinstance(data, dict):
         return frozenset()
-    return frozenset(bare(t) for t in (data.get("tickers") or []) if bare(t))
+    return _usxk.universe(frozenset(bare(t) for t in (data.get("tickers") or []) if bare(t)))   # USX_FEEDKEY_V1.1
 
 
 _names = _FileCache(TICKERS_PATH, _parse_names)
@@ -349,9 +352,12 @@ def _prices(s) -> list[float]:
 def _where(p: dict, universe: Optional[frozenset]) -> tuple[list[str], list]:
     where, args = [], []
     t = p.get("ticker")
+    t, _usx = _usxk.norm(t)   # USX_FEEDKEY_V1: "-US" form; a symbol listed both in the US and elsewhere
     if t:
         where.append("(upper(f.ticker) = ? OR upper(f.ticker) LIKE ?)")
         args += [t, bare(t) + ".%"]
+        if _usx:
+            where.append(_usx % "f.ticker")
     if p.get("status"):
         where.append("lower(COALESCE(f.status, '')) = ?")
         args.append(p["status"])
