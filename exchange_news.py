@@ -771,6 +771,8 @@ def find_match(pcon: sqlite3.Connection, rel: dict,
     # EXCOV_V1b (2026-10-07): '+review_status' so SQLite keeps using the date index (1.17 s -> ms per release).
     # DATEDUP_V1.6c (2026-10-12): a hidden 'duplicate_of_wire' copy still counts - sync_newswire_ca hides it because the
     # wire copy is on the site, sometimes weeks apart; approved (hand-reviewed) releases count too.
+    # NFSTUB_EXCH_V1 (2026-11-10): a Newsfile short version (classifier_model newsfile_feed_stub_v1) is not a copy of
+    # the release. Counting it as one left the exchange's full text uncollected (57 of 81 short versions in 4 days).
     d = rel["published_date"]
     n1 = norm(title if title is not None else rel["title"])
     t_raw = title if title is not None else rel["title"]   # DATEDUP_V1.6
@@ -800,13 +802,13 @@ def find_match(pcon: sqlite3.Connection, rel: dict,
     if _w:
         own = pcon.execute(
             "SELECT event_id, raw_headline, ticker FROM events "
-            "WHERE +review_status IN ('auto_approved', 'approved', 'duplicate_of_wire') AND (ticker = ? OR ticker LIKE ?) AND published_at >= ? AND published_at < ?",
+            "WHERE +review_status IN ('auto_approved', 'approved', 'duplicate_of_wire') AND COALESCE(classifier_model,'') != 'newsfile_feed_stub_v1' AND (ticker = ? OR ticker LIKE ?) AND published_at >= ? AND published_at < ?",
             (rel["bare"], rel["bare"] + ".%", _w[0], _w[1]),
         ).fetchall()
     else:
         own = pcon.execute(
             "SELECT event_id, raw_headline, ticker FROM events "
-            "WHERE +review_status IN ('auto_approved', 'approved', 'duplicate_of_wire') AND (ticker = ? OR ticker LIKE ?) AND date(published_at) BETWEEN date(?,'-3 day') AND date(?,'+3 day')",
+            "WHERE +review_status IN ('auto_approved', 'approved', 'duplicate_of_wire') AND COALESCE(classifier_model,'') != 'newsfile_feed_stub_v1' AND (ticker = ? OR ticker LIKE ?) AND date(published_at) BETWEEN date(?,'-3 day') AND date(?,'+3 day')",
             (rel["bare"], rel["bare"] + ".%", d, d),
         ).fetchall()
     eid, tk = scan(own)
@@ -817,13 +819,13 @@ def find_match(pcon: sqlite3.Connection, rel: dict,
     if _w:
         other = pcon.execute(
             "SELECT event_id, raw_headline, ticker FROM events "
-            "WHERE +review_status IN ('auto_approved', 'approved', 'duplicate_of_wire') AND published_at >= ? AND published_at < ?",
+            "WHERE +review_status IN ('auto_approved', 'approved', 'duplicate_of_wire') AND COALESCE(classifier_model,'') != 'newsfile_feed_stub_v1' AND published_at >= ? AND published_at < ?",
             (_w[0], _w[1]),
         ).fetchall()
     else:
         other = pcon.execute(
             "SELECT event_id, raw_headline, ticker FROM events "
-            "WHERE +review_status IN ('auto_approved', 'approved', 'duplicate_of_wire') AND date(published_at) BETWEEN date(?,'-2 day') AND date(?,'+2 day')",
+            "WHERE +review_status IN ('auto_approved', 'approved', 'duplicate_of_wire') AND COALESCE(classifier_model,'') != 'newsfile_feed_stub_v1' AND date(published_at) BETWEEN date(?,'-2 day') AND date(?,'+2 day')",
             (d, d),
         ).fetchall()
     other = [r for r in other if bare(r[2] or "") != rel["bare"]]   # EXCH_FINLINK_V1: own ticker was scanned above
@@ -1256,6 +1258,26 @@ def headline_tidy(h: str | None) -> str:
     if len(t.strip()) >= 25:
         h = t
     return re.sub(r"\s+", " ", h).strip()
+
+
+# AUDIT1110_HLTRIM (2026-11-10): a headline read from a PDF sometimes runs on into the release's first sentence or its
+# "Highlights" list. Cut it where that body line starts (found in the document's own lines, so the cut is at a line break).
+_HLTRIM_BODY = re.compile(r"\((?:ASX|TSX|TSXV|TSX-V|TSX\.V|NYSE|CSE|OTC\w*|NASDAQ|FSE)\s*:[^)]{1,60}\)[^\n]{0,90}\b(?:is pleased to|announces|announced|reports|reported|provides|today)\b", re.I)
+
+
+def _hl_trim(headline: str, body: str) -> str:
+    hn = re.sub(r"\s+", " ", headline or "").strip()
+    lines = [re.sub(r"\s+", " ", l).strip() for l in (body or "").split("\n")[:60]]
+    lines = [l for l in lines if l]
+    for j, l in enumerate(lines):
+        hi = re.fullmatch(r"(?i)highlights:?", l) is not None
+        if not (hi or (len(l) >= 30 and _HLTRIM_BODY.search(l))):
+            continue
+        key = (" " + l + " " + (lines[j + 1][:15] if j + 1 < len(lines) else "")) if hi else l[:25]
+        i = hn.find(key.rstrip()) if hi else hn.find(key)
+        if i >= 20:
+            return hn[:i].rstrip(" -\u2013\u2014:;,")
+    return headline
 
 
 def headline_problem(h: str | None) -> str:
@@ -1792,6 +1814,7 @@ def main() -> int:
             record(rel, "error", note=err)
             log(f"   UNREADABLE {rel['bare']:<7} {rel['published_date']} {err[:60]}")
             continue
+        headline = _hl_trim(headline, body) if rel["source"] == "tmx" else headline   # AUDIT1110_HLTRIM
         eid, wrong = find_match(pcon, rel, title=headline, body=body)   # EXCH_FINLINK_V1: and the text
         if eid:
             n_late += 1

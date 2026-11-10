@@ -3884,6 +3884,28 @@ templates.env.filters["tidy_release"] = _tidyrel.tidy
 templates.env.filters["et_time"] = _et_time
 
 
+# AUDIT1110_SEARCH_CO (2026-11-10): companies whose name holds every word of the search (or whose ticker is the
+# search), for the links above the search results. Only when the search names at most five companies.
+def _company_matches(q):
+    q = (q or "").strip().lower()
+    if len(q) < 3:
+        return []
+    _ticker_to_name("AEM.TO")                      # builds the name index on first use
+    idx = _TICKERS_NAME_INDEX or {}
+    words = q.split()
+    hits = [(t, n) for t, n in idx.items() if n and all(w in n.lower() for w in words)]
+    hits = hits or [(t, n) for t, n in idx.items() if n and t.split(".")[0].lower() == q]
+    seen, out = set(), []
+    for t, n in hits:
+        if n not in seen:
+            seen.add(n)
+            out.append((t, n))
+    return sorted(out, key=lambda x: len(x[1])) if len(out) <= 5 else []
+
+
+templates.env.filters["company_matches"] = _company_matches
+
+
 # UNKTICKER_V1 (FU3_V1, 2026-11-09, Justin's popup "MNT unknown ticker = 404"). /company/{ticker} used to forward any
 # value to /?ticker=<value>: a bare ticker (ABX) landed on an empty page although ABX.TO has news, and a made-up ticker got
 # a normal page with status 200. Returns the ticker to forward to, or None for "not found" (the route raises 404, which

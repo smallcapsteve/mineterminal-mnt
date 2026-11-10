@@ -1085,3 +1085,34 @@ _v6_prev_clean = clean_release_html
 def clean_release_html(html_str, source_url=""):  # noqa: F811
     return _v6_sanitize(_v6_prev_clean(html_str, source_url))
 # END QUALITY_V6_SECURITY_PATCH
+
+
+# AUDIT1110_CLEANCACHE (2026-11-10, Justin: "Keep the cleaned copy now"). Cleaning parses a release four times (the
+# six layers above); on a 400 KB release that is about 2 s every view. The cleaned text of large releases is kept
+# here per worker, keyed by the stored HTML itself, so nothing stale can be served: a changed release has a new key.
+import hashlib as _ac_hashlib
+import threading as _ac_threading
+from collections import OrderedDict as _ac_OD
+
+_ac_prev_clean = clean_release_html
+_ac_cache = _ac_OD()
+_ac_lock = _ac_threading.Lock()
+_AC_MIN, _AC_KEEP = 20000, 24
+
+
+def clean_release_html(html_str, source_url=""):  # noqa: F811
+    if not html_str or len(html_str) < _AC_MIN:
+        return _ac_prev_clean(html_str, source_url)
+    key = (_ac_hashlib.sha1(html_str.encode("utf-8", "surrogatepass")).digest(), source_url)
+    with _ac_lock:
+        hit = _ac_cache.get(key)
+        if hit is not None:
+            _ac_cache.move_to_end(key)
+            return hit
+    out = _ac_prev_clean(html_str, source_url)
+    with _ac_lock:
+        _ac_cache[key] = out
+        while len(_ac_cache) > _AC_KEEP:
+            _ac_cache.popitem(last=False)
+    return out
+# END AUDIT1110_CLEANCACHE

@@ -583,6 +583,22 @@ def make_stub(item: dict, apply: bool, seen: dict, counts: dict) -> str:
     return "made"
 
 
+def _hl_carry(conn, stub: dict, kept: dict) -> None:
+    """NFSTUB_EXCH_V1.1 (2026-11-10): an exchange copy's headline is read out of a PDF and can run on into the sub-heading
+    or start mid-headline; the short version carried Newsfile's own title. When the two overlap, the kept release takes
+    the feed's title."""
+    a = (stub.get("raw_headline") or "").strip()
+    r = conn.execute("SELECT raw_headline, source_name FROM events WHERE event_id=?", (kept.get("event_id"),)).fetchone()
+    if not r or (r[1] or "") not in ("tmx", "cse") or len(a) < 20:
+        return
+    n = lambda s: re.sub(r"[^a-z0-9]+", "", (s or "").lower())
+    na, nk = n(a), n(r[0])
+    if na != nk and nk and (na[:30] in nk or nk[:20] in na):
+        conn.execute("UPDATE events SET raw_headline=? WHERE event_id=?", (a, kept["event_id"]))
+        conn.commit()
+        print(f"  ^ kept release takes the feed's title: {a[:70]}", flush=True)
+
+
 def fill_stubs(apply: bool, counts: dict) -> None:
     """Step 2, a and b: a full copy already on MNT, or one the duplicate guard held back, takes over each short version.
     Also puts back a short version left hidden by an interrupted page take-over."""
@@ -631,6 +647,7 @@ def fill_stubs(apply: bool, counts: dict) -> None:
                 print(f"  ! could not put back the held-back copy; short version stays  {tag}", flush=True)
                 continue
         remove_stub(conn, s, kept)
+        _hl_carry(conn, s, kept)   # NFSTUB_EXCH_V1.1
         print(f"  ^ short version replaced by {how} {kept['event_id'][:12]}  {tag}", flush=True)
 
 

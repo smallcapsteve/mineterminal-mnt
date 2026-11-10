@@ -7,6 +7,8 @@
     {% if q %}<span class="search-q-pill">{{ q }}</span>{% endif %}
   </h2>
 
+  {% set _cos = q | company_matches %}{# AUDIT1110_SEARCH_CO #}
+  {% if _cos %}<p class="muted" style="margin-bottom:.8rem;">Companies: {% for t, n in _cos %}<a href="/company/{{ t.lower() }}">{{ n }} ({{ t }})</a>{% if not loop.last %} &middot; {% endif %}{% endfor %}</p>{% endif %}
   {% if not q %}
     <p class="empty">Enter a search term in the bar at the top.</p>
   {% elif not events %}
