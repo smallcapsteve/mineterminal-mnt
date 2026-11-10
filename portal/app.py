@@ -137,7 +137,7 @@ request: Request, event_id: str):
             _c, _eid = db.get_conn(), event_id
             for _ in range(3):
                 _k = _c.execute("SELECT kept_id FROM dup_guard_log WHERE event_id = ? AND kept_id IS NOT NULL "
-                                "AND action IN ('replaced_exchange','deleted_history','skipped_new') "
+                                "AND action IN ('replaced_exchange','deleted_history','skipped_new','stub_replaced') "   # NFSTUB_FWD_V1.1
                                 "ORDER BY id DESC LIMIT 1", (_eid,)).fetchone()
                 if not _k:
                     break

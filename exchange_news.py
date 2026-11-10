@@ -539,6 +539,7 @@ def correct_attribution(con, pdb_rw, eid: str, want: str, headline: str,
             "UPDATE events SET ticker=?, company_id=?, additional_tickers=? "
             "WHERE event_id=?",
             (new_primary, new_primary.split(".")[0], jv.pipe(have), eid))
+        pdb_rw.commit()   # AUDIT1110_PDBCOMMIT: release MNT's write lock now; it was held until the end of the run, so every later post to /ingest timed out
         con.execute(
             "INSERT INTO corrections (event_id,from_ticker,to_ticker,kind,dropped,"
             "headline,source) VALUES (?,?,?,?,?,?,?) ON CONFLICT(event_id) DO NOTHING",

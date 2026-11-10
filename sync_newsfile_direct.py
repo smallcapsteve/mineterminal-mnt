@@ -604,6 +604,25 @@ def _hl_carry(conn, stub: dict, kept: dict) -> None:
         print(f"  ^ kept release takes the feed's title: {a[:70]}", flush=True)
 
 
+def _twin_blocks(stub: dict, kept: dict) -> bool:
+    """NFSTUB_ONE_V1 (2026-11-10): True when `kept` is dated another day than the short version and a second short
+    version of the same company with the same headline exists, or was already replaced by `kept`, on `kept`'s own day.
+    Two same-titled releases on consecutive days (Orosur's "Director Purchase of Shares", Nov 5 and 6) share nearly
+    all their wording, and one full copy replaced both short versions."""
+    sd, kd = (stub.get("published_at") or "")[:10], (kept.get("published_at") or "")[:10]
+    if not sd or not kd or sd == kd:
+        return False
+    norm = lambda h: re.sub(r"\W+", " ", (h or "").lower()).strip()[:60]
+    head = norm(stub.get("raw_headline"))
+    if not head:
+        return False
+    rows = _ro().execute("SELECT raw_headline, published_at FROM events WHERE ticker=? AND classifier_model=? AND event_id<>?",
+                         (stub.get("ticker"), STUB_MODEL, stub["event_id"])).fetchall()
+    rows += _ro().execute("SELECT headline, published_at FROM dup_guard_log WHERE action='stub_replaced' AND ticker=? "
+                          "AND kept_id=? AND event_id<>?", (stub.get("ticker"), kept["event_id"], stub["event_id"])).fetchall()
+    return any((p or "")[:10] == kd and norm(h) == head for h, p in rows)
+
+
 def fill_stubs(apply: bool, counts: dict) -> None:
     """Step 2, a and b: a full copy already on MNT, or one the duplicate guard held back, takes over each short version.
     Also puts back a short version left hidden by an interrupted page take-over."""
@@ -635,6 +654,9 @@ def fill_stubs(apply: bool, counts: dict) -> None:
                 kept, how = row, "held-back %s copy" % (row.get("source_name") or "?")
         if not kept:
             continue
+        if _twin_blocks(s, kept):   # NFSTUB_ONE_V1
+            print(f"  = short version stays: the full copy found is a same-titled release of another day  {tag}", flush=True)
+            continue
         counts["filled"] += 1
         if not apply:
             print(f"  ^ WOULD REPLACE short version by {how} {kept['event_id'][:12]}  {tag}", flush=True)
@@ -654,6 +676,12 @@ def fill_stubs(apply: bool, counts: dict) -> None:
             _sl = conn.execute("SELECT slug FROM events WHERE event_id=?", (kept["event_id"],)).fetchone()   # NFSTUB_FWD_V1
             if _sl and _sl[0]:
                 kept["slug"] = _sl[0]   # the address it was really stored under, so the short version's address is forwarded to it
+            if conn.execute("SELECT 1 FROM events WHERE event_id=? AND review_status='duplicate_of_wire'", (kept["event_id"],)).fetchone():   # NFSTUB_FWD_V1.2
+                # stored hidden as a copy of the short version itself; no other copy is shown (copy_on_mnt found none above),
+                # so with the short version removed nothing would show this release
+                conn.execute("UPDATE events SET review_status='auto_approved' WHERE event_id=?", (kept["event_id"],))
+                conn.commit()
+                print(f"  ^ hidden full copy made visible {kept['event_id'][:12]}  {tag}", flush=True)
         remove_stub(conn, s, kept)
         _hl_carry(conn, s, kept)   # NFSTUB_EXCH_V1.1
         print(f"  ^ short version replaced by {how} {kept['event_id'][:12]}  {tag}", flush=True)
