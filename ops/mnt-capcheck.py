@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""MNT_CAPCHECK_V3 (2026-11-10, round 7). V2 plus one more kind of first catch:
+"""MNT_CAPCHECK_V4 (2026-11-10, round 10: exact pairing with the guard's row, see mkcap4.py). Was: MNT_CAPCHECK_V3 (2026-11-10, round 7). V2 plus one more kind of first catch:
   * unmatched: a wire/site copy was on MNT first, the exchange path did not recognise it (the TSXV title is only
     "News release" and the PDF headline it read was body text or a footnote), posted its own copy, and the duplicate
     guard dropped that copy against the wire/site copy (dup_guard_log 'skipped_new', exchange source, kept = a
@@ -44,6 +44,7 @@ def src_of(eid):
 # dup_guard_log since a few days before the window: find the first id by binary search on the rowid
 fwd, rev, repl, logsrc = C.defaultdict(list), C.defaultdict(list), C.defaultdict(list), {}
 skips = C.defaultdict(list)                         # V3: TICKER -> [at, kept_id, kept_source, used]
+skip_eid, skip_day = {}, C.defaultdict(list)        # V4: the same rows by the skipped copy's id, and by (TICKER, release date)
 try:
     hi = pt.execute("SELECT max(id) FROM dup_guard_log").fetchone()[0] or 0
     lo, bound = 1, (today - dt.timedelta(days=days + 3)).isoformat()
@@ -56,7 +57,9 @@ try:
             "SELECT action, event_id, kept_id, ticker, source_name, published_at, at, kept_source FROM dup_guard_log "
             "WHERE id >= ?", (lo,)):
         if action == "skipped_new" and is_exch(s) and ks and not is_exch(ks) and ts(at):
-            skips[(tk or "").upper()].append([ts(at), kept, ks, False])
+            _row = [ts(at), kept, ks, False]; skips[(tk or "").upper()].append(_row)
+            if eid: skip_eid[eid] = _row
+            skip_day[((tk or "").upper(), (pub or "")[:10])].append(_row)
         if not eid: continue
         logsrc.setdefault(eid, s)
         if kept: fwd[eid].append(kept)
@@ -118,7 +121,10 @@ for uid, d, st, me, src, tk, title, fs in ex.execute(
     if late:
         p["late"] += 1; p["late_by"][late.split(":")[0]] += 1; p["late_how"][how] += 1; continue
     t0 = ts(fs); best = None                      # V3: the guard dropped the exchange copy against a wire/site copy
-    if t0 and st == "ingested":
+    if st == "ingested":                          # V4: exact pairing first (the copy's id, then ticker + release date)
+        for _r in [skip_eid.get(c) for c in (me, uid_for(src or "", tk or "", d, title)) if c] + skip_day.get(((tk or "").upper(), d[:10]), []):
+            if _r and not _r[3]: best = (0, _r); break
+    if best is None and t0 and st == "ingested":
         for row in skips.get((tk or "").upper(), []):
             gap = abs((row[0] - t0).total_seconds())
             if not row[3] and gap <= PAIR_S and (best is None or gap < best[0]): best = (gap, row)
@@ -143,7 +149,7 @@ tot_r = sum(r["releases"] for r in judged); tot_w = sum(r["on_wire"] for r in ju
 tot_u = sum(r["unmatched"] for r in judged)
 pc = lambda x: round(100.0 * x / tot_r, 1) if tot_r else None
 pct3 = pc(tot_w + tot_l + tot_u)
-res = {"version": "MNT_CAPCHECK_V3", "generated_at": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+res = {"version": "MNT_CAPCHECK_V4", "generated_at": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
        "threshold_pct": THRESH, "judged_days": [r["date"] for r in judged], "pct_3day": pct3,
        "pct_3day_v2": pc(tot_w + tot_l), "pct_3day_first": pc(tot_w),
        "alert": bool(pct3 is not None and pct3 < THRESH), "log_read": log_ok, "days": rows}

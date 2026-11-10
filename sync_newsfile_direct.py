@@ -651,6 +651,9 @@ def fill_stubs(apply: bool, counts: dict) -> None:
             if not conn.execute("SELECT 1 FROM events WHERE event_id=?", (kept["event_id"],)).fetchone():
                 print(f"  ! could not put back the held-back copy; short version stays  {tag}", flush=True)
                 continue
+            _sl = conn.execute("SELECT slug FROM events WHERE event_id=?", (kept["event_id"],)).fetchone()   # NFSTUB_FWD_V1
+            if _sl and _sl[0]:
+                kept["slug"] = _sl[0]   # the address it was really stored under, so the short version's address is forwarded to it
         remove_stub(conn, s, kept)
         _hl_carry(conn, s, kept)   # NFSTUB_EXCH_V1.1
         print(f"  ^ short version replaced by {how} {kept['event_id'][:12]}  {tag}", flush=True)
