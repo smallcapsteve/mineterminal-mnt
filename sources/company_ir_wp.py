@@ -536,3 +536,26 @@ def list_recent_for_ticker(ticker: str, limit: int = 25):
         "company_ir_wp.list_recent_for_ticker not supported — "
         "call list_recent(cfg, limit) with source_params.website set"
     )
+
+
+# ---- WPFEEDBODY_V1 (2026-11-10): when the page gives far less text than the feed carried, use the feed's text ----
+_wpfb_prev_fetch_body = fetch_body
+
+
+def fetch_body(summary: dict) -> dict:  # noqa: F811
+    feed = summary.get("_feed_content_html") or ""
+    out = _wpfb_prev_fetch_body(summary)
+    try:
+        if feed and len(feed) >= 800:
+            sub = {"_rest_inline_body": feed}
+            if _fetch_body_from_rest(sub):
+                ft = sub.get("raw_body") or ""
+                if len(ft) >= 800 and len(ft) >= 3 * len(out.get("raw_body") or ""):
+                    out["raw_body"] = ft
+                    out["raw_html"] = sub.get("raw_html") or ""
+                    out["raw_excerpt"] = re.sub(r"\s+", " ", ft).strip()[:1500]
+                    out["_wpfb"] = True
+    except Exception:  # noqa: BLE001 - fails open: the page's text stands
+        pass
+    return out
+# ---- end WPFEEDBODY_V1 ----
