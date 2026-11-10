@@ -262,7 +262,7 @@ COVER_6K = re.compile(
     r"^united states$|securities and exchange commission|^form 6-k$|^\(?registrant\)?$|^yes\b.{0,12}\bno\b|^_+$")
 USX_SKIP = re.compile(     # lines that are never the headline
     r"(?i)^\S+@\S+\.\w+(\s+[\d(). +-]{7,})?$|^((media|investors?|ir)\s+)?(relations\s+)?contacts?\s*:?$|"
-    r"^investor relations\s*:?$|^\(?incorporated in\b|^\(?registration (number|no)\b|^\(?reg\. no|^isin\b|"
+    r"^investor relations\s*:?.{0,40}$|^(?:\S{1,2}\s){10,}|^(cnr|corner)\b|\b(office park|business park|private bag|p\.?\s?o\.? box)\b|^\(?incorporated in\b|^\(?registration (number|no)\b|^\(?reg\. no|^isin\b|"
     r"share code\s*:|trading symbol\s*:|^\(.{0,80}\b(company|group)\W{0,3}\)$|^free translation")
 
 
@@ -273,7 +273,9 @@ SENS_CO = re.compile(r"(?i)harmony gold|gold fields|anglogold|drdgold|sibanye|^(
 SENS_MARK = re.compile(r"(?i)share code\s*:|\b(operational|operating|production|trading) (update|statement|results)\b|"
                        r"earnings release|results for the (quarter|year|three|six|nine)|statement by (the )?ceo")
 SENS_NOT = re.compile(r"(?i)operating statistics|dealings? in securities|investor presentation|"
-                      r"notice of (the )?(electronic )?(annual )?general meeting|publishes its (suite of )?(annual |integrated )?reports?")
+                      r"notice of (the )?(electronic )?(annual )?general meeting|publishes its (\d{4} )?(suite of )?(annual |integrated )?reports?|"
+                      r"major shareholder notification|award of share options|acquisition of (a )?beneficial interest in securities|"
+                      r"announces date for (the |its )?(annual )?general meeting|(?:\b[a-z] ){6,}")   # USX_EDGAR_V4 (+V4.1: a letter-spaced slide title)
 _ENC = [None]      # the "Enclosure: <title>" of the 6-K cover just read
 
 
@@ -333,8 +335,30 @@ def strip_6k_cover(body):
     return "\n".join(rest).strip()
 
 
+_SENS_FOOT = re.compile(r"(?:Reg(?:istration)?\.? ?)?(?:(?:No|number)\.? ?)?\(?\d{4}/\d{6}/\d{2}\)? Incorporated in the Republic of South Africa\)?"
+                        r".{0,90}?ISIN(?: Code)?: ?[A-Z]{2}[A-Z0-9]{10}")
+_SENS_DEBRIS = re.compile(r"(?:(?<![\w$%])(?:[A-Za-z]{1,2}|[.,:;|])(?![\w%])\s*){7,}")
+
+
+def _sens_debris(m):
+    toks = m.group(0).split()
+    return " " if sum(1 for t in toks if len(t) == 1) >= 0.6 * len(toks) else m.group(0)
+_SENS_PAGEHEAD = re.compile(r"^(?:\d{1,3}\s+)?(?:[A-Z][\w'\u2019&/-]*(?: [\w'\u2019&/-]+){0,8} continued\s+)?"
+                            r"(?:(?:[A-Z][A-Z&.'-]+\s){3,8}[A-Z][a-z][^.]{0,90}?20\d\d\s+)?")
+_SENS_HEADTAIL = re.compile(r"(?<=[\d%)])\s([A-Z][a-z]+(?:\s[A-Za-z&'\u2019-]+){0,5})$")
+SENS_TABLE_NOTE = "Tables are not shown here; they are in the full filing at the SEC."
+
+
+def _sens_tabular(p):
+    toks = p.split()
+    if len(p) < 150 or not toks:
+        return False
+    nums = sum(1 for t in toks if re.fullmatch(r"[($\u2013-]*\d[\d,.]*[%)x]*", t))
+    return sum(c.isdigit() for c in p) > 0.22 * len(p) or nums > 0.40 * len(toks)
+
+
 def sens_reflow(body):
-    """USX_EDGAR_V3: SEC wrapper lines off; a page-per-line document becomes headline + paragraphs, table pages dropped."""
+    """USX_EDGAR_V3/V5: SEC wrapper lines off; a page-per-line document becomes headline + clean paragraphs."""
     ls = body.split("\n")
     k = 0
     while k < len(ls) and k < 10 and (not ls[k].strip() or re.match(r"(?i)^(6-k|ex-99(\.\d+)?|\d{1,2}|\S+\.html?)$", ls[k].strip())):
@@ -342,14 +366,21 @@ def sens_reflow(body):
     ls = ls[k:]
     if max([len(l) for l in ls] or [0]) <= 1500:
         return "\n".join(ls)
-    out = []
+    out, dropped, first = [], 0, True
     for l in ls:
         l = re.sub(r"\s+", " ", l).strip()
         if not l:
             continue
         if len(l) > 800 and sum(c.isdigit() for c in l) > 0.20 * len(l):
+            dropped += 1
             continue                                  # a page of tables read as one line
-        if not out:                                   # first page: SENS preamble, then the headline
+        l = _SENS_FOOT.sub(" ", l)                    # V5: page furniture
+        l = re.sub(r"\bExhibit 99\.\d\b", " ", l)
+        l = re.sub(r"\s+", " ", _SENS_DEBRIS.sub(_sens_debris, l)).strip()
+        if not l:
+            continue
+        if first:                                     # first page: SENS preamble, then the headline
+            first = False
             l = re.sub(r"(?i)^.{0,500}?\(\s*[\u201c\"][^)]{0,90}\b(company|group)\b[\u201d\"]?\s*\)\s*", "", l)
             m = re.match(r"((?:[A-Z0-9][A-Z0-9&'\u2019,:;%$/().\u2013-]*\s+){3,18}?[A-Z0-9][A-Z0-9&'\u2019,:;%$/().\u2013-]*)"
                          r"(?=\s+(?:[A-Z][a-z]|[a-z(\u2022\uf0b7]))", l)
@@ -359,35 +390,60 @@ def sens_reflow(body):
                 c = re.search(r"\s+\(|\s+vs\.?\s|\s[\u2022\uf0b7]\s", l[:260])
                 cut = c.start() if c and c.start() >= 20 else len(l[:110].rsplit(" ", 1)[0])
                 hd, tail = l[:cut].strip(), l[cut:].strip()
-            if re.match(r"(?i)^(statement by|message from|highlights|overview)\b", hd):
+            if re.match(r"(?i)^(statement by|message from|highlights|overview)\b", hd) or re.match(r"[A-Z][A-Za-z .]+, \d{1,2} [A-Z][a-z]+ 20\d\d", hd):   # V4.1: nor a dateline
                 m2 = re.search(r"(?i)\b((?:operational|operating|production|trading) (?:update|results|statement)|results) for the "
                                r"(?:quarter|three months|six months|nine months|year) ended \d{1,2} [A-Za-z]+ 20\d\d", " ".join(ls))
                 if m2:
                     hd, tail = m2.group(0)[0].upper() + m2.group(0)[1:], hd + " " + tail
             out += [hd, ""]
             l = tail
+        else:
+            l = _SENS_PAGEHEAD.sub("", l, count=1).strip()     # V5: running header of a later page
+            prev = next((i for i in range(len(out) - 1, -1, -1) if out[i]), None)
+            if l and prev is not None and prev > 0 and re.match(r"[a-z]", l) and not re.search(r"[.!?:;\u201d)]$", out[prev]) \
+                    and not out[prev].startswith("\u2022") and len(out[prev]) > 60:
+                cut = re.search(r"(?<=[a-z0-9)%\u201d])\.\s+(?=[A-Z])", l)      # V5: a sentence that runs over the page break
+                head = l[:cut.end()].strip() if cut else l
+                out[prev] = out[prev] + " " + head
+                l = l[len(head):].strip() if cut else ""
         l = re.sub(r"\s*[\u2022\uf0b7]\s+", "\n\u2022 ", l)
         for para in l.split("\n"):
             para = para.strip()
             if not para:
                 continue
-            if len(para) <= 700:
+            extra = None
+            if para.startswith("\u2022"):
+                mh = _SENS_HEADTAIL.search(para)       # V5: a heading stuck to the end of a bullet
+                if mh and not re.search(r"\d|\.", mh.group(1)) and not re.match(
+                        r"(January|February|March|April|May|June|July|August|September|October|November|December)\b", mh.group(1)):
+                    para, extra = para[:mh.start()].strip(), mh.group(1)
+            if _sens_tabular(para):
+                dropped += 1
+            elif len(para) <= 700:
                 out += [para, ""]
-                continue
-            cur = ""
-            for s_ in re.split(r"(?<=[a-z0-9)%\u201d])\.\s+(?=[A-Z])", para):
-                s_ = s_.strip()
-                if not s_:
-                    continue
-                if not s_.endswith("."):
-                    s_ += "."
-                if cur and len(cur) + len(s_) > 600:
+            else:
+                cur = ""
+                parts = re.split(r"(?<=[a-z0-9)%\u201d])\.\s+(?=[A-Z])", para)
+                for n_, s_ in enumerate(parts):
+                    s_ = s_.strip()
+                    if not s_:
+                        continue
+                    if n_ < len(parts) - 1 and not s_.endswith("."):
+                        s_ += "."
+                    if _sens_tabular(s_):
+                        dropped += 1
+                        continue
+                    if cur and len(cur) + len(s_) > 600:
+                        out += [cur, ""]
+                        cur = s_
+                    else:
+                        cur = (cur + " " + s_).strip()
+                if cur:
                     out += [cur, ""]
-                    cur = s_
-                else:
-                    cur = (cur + " " + s_).strip()
-            if cur:
-                out += [cur, ""]
+            if extra:
+                out += [extra, ""]
+    if dropped:
+        out += [SENS_TABLE_NOTE, ""]
     return "\n".join(out).strip()
 
 
@@ -430,12 +486,17 @@ def read_release(url, filed, coname):
             pub = d.isoformat()
             break
     title = None
+    name_line = None   # USX_EDGAR_V4
     cn = nname(coname)
     lines = body.split("\n")[:60]
     for i, l in enumerate(lines):
         l = l.strip(" -–—*·")
+        if l and nname(l) == cn:
+            name_line = name_line or l   # USX_EDGAR_V4.1: also when the name line is short ("Newmont")
         if len(l) < 12 or SKIP_LINE.search(l) or LETTERHEAD.search(l) or USX_SKIP.search(l):   # USX_EDGAR_V2
             continue
+        if nname(l) == cn:
+            name_line = name_line or l   # USX_EDGAR_V4
         if nname(l) == cn or (len(l) < 60 and IS_RELEASE.search(l)) or DL_PARA.search(l):
             continue
         parts = [l]                     # a headline wraps over several lines until the first blank one
@@ -455,12 +516,27 @@ def read_release(url, filed, coname):
             title, k = (title + " " + nx[0][1])[:250], nx[0][0] + 1
         title = re.split(r"\s[\uf0b7\u2022\u25cf]\s", title)[0]   # USX_EDGAR_V2: stop at a bullet mark; drop page numbers
         title = re.sub(r"(?<=\d{4}) \d{1,2}$", "", re.sub(r"^\d{1,2}\s+(?=[A-Z][a-z])", "", title)).strip()
+        title = re.sub(r"^\d{1,2}\s+(?=[A-Z]{2})", "", title)                     # USX_EDGAR_V4: "1 FCX Announces"
+        title = re.sub(r"^[^\w\"\u201c(]+\s*", "", title)                        # a leading bullet mark
+        mdl = re.search(r"\s(?:[A-Z]{3,}(?: [A-Z]{3,})?|[A-Z][a-z]+(?: [A-Z][a-z]+)?), [A-Z][A-Za-z.]+,? (?:%s)" % MONTHS, title)   # a dateline run on to the headline
+        if mdl and mdl.start() >= 25:
+            title = title[:mdl.start()].strip()
+        cn_full = re.sub(r"\s+", " ", (coname or "").strip())
+        if cn_full and len(title) > len(cn_full) + 25 and title.lower().endswith(" " + cn_full.lower()):   # the company name repeated at the end
+            title = title[:-len(cn_full)].strip()
+        if name_line and re.match(r"(?:and|[Aa]nnounces|[Rr]eports|[Pp]rovides|[Cc]ompletes|[Dd]eclares)\b|[a-z]", title):   # first line was the company name alone
+            title = (name_line + " " + title)[:250]
+        elif sens and cn_full and re.match(r"[a-z]", title):
+            title = (cn_full + " " + title)[:250]
         if len(title) < 20:
             title = None
             continue
         break
     if sens and _ENC[0] and len(_ENC[0]) >= 20:       # USX_EDGAR_V3: the cover names what it encloses
         title = _ENC[0]
+        _cn = re.sub(r"\s+", " ", (coname or "").strip())   # USX_EDGAR_V4.1: the company name repeated at the end
+        if _cn and len(title) > len(_cn) + 25 and title.lower().endswith(" " + _cn.lower()):
+            title = title[:-len(_cn)].strip()
     if not title:
         return None, None, None, "no headline found"
     return title, body, pub, None
