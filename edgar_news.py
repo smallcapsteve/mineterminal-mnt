@@ -266,27 +266,129 @@ USX_SKIP = re.compile(     # lines that are never the headline
     r"share code\s*:|trading symbol\s*:|^\(.{0,80}\b(company|group)\W{0,3}\)$|^free translation")
 
 
+# USX_EDGAR_V3 (2026-11-10): JSE-listed filers file their SENS announcements as 6-Ks in three shapes the reader turned
+# away: a cover written with soft hyphens, a cover with blank lines and an "Enclosure:" title, and documents where every
+# page is one long line.
+SENS_CO = re.compile(r"(?i)harmony gold|gold fields|anglogold|drdgold|sibanye|^(HMY|GFI|AU-US|AU|DRD|SBSW)(\.US)?$")
+SENS_MARK = re.compile(r"(?i)share code\s*:|\b(operational|operating|production|trading) (update|statement|results)\b|"
+                       r"earnings release|results for the (quarter|year|three|six|nine)|statement by (the )?ceo")
+SENS_NOT = re.compile(r"(?i)operating statistics|dealings? in securities|investor presentation|"
+                      r"notice of (the )?(electronic )?(annual )?general meeting|publishes its (suite of )?(annual |integrated )?reports?")
+_ENC = [None]      # the "Enclosure: <title>" of the 6-K cover just read
+
+
+def _n(s):
+    return s.replace("\u00ad", "-")
+
+
 def strip_6k_cover(body):
+    _ENC[0] = None
     ls = body.split("\n")
-    head = " ".join(ls[:25]).lower()
+    head = _n(" ".join(ls[:40])).lower()
     if "form 6-k" not in head or "securities and exchange commission" not in head:
         return body
-    last = -1
-    for i, l in enumerate(ls[:90]):
-        if COVER_6K.search(l.strip()):
-            last = i
-        elif last >= 0 and i - last > 12:
-            break
+    if max(len(l) for l in ls[:40]) > 1500:           # V3: every page is one long line
+        out = []
+        for l in ls:
+            n = _n(l).lower()
+            if len(out) < 12 and "securities and exchange commission" in n and "form 6-k" in n:
+                continue
+            m = re.search(r"SIGNATURES?\s+Pursuant to the requirements", l)
+            if m:
+                if l[:m.start()].strip():
+                    out.append(l[:m.start()])
+                break
+            out.append(l)
+        return "\n".join(out).strip()
+    last, gap = -1, 0
+    for i, l in enumerate(ls[:260]):
+        t = _n(l.strip())
+        if not t:
+            continue                                  # V3: blank lines do not count toward the gap
+        if COVER_6K.search(t):
+            last, gap = i, 0
+        elif last >= 0:
+            gap += 1
+            if gap > 12:
+                break
     rest = ls[last + 1:]
     for i, l in enumerate(rest[:80]):     # cover, exhibit list, signature page, then "Exhibit 99.1" and the release
         if re.match(r"(?i)^exhibit\s+99(\.\d+)?$", l.strip()):
             rest = rest[i + 1:]
+            break
+    nb = [i for i, l in enumerate(rest[:30]) if l.strip()][:6]        # V3: "Enclosure: <title of what follows>"
+    for a, i in enumerate(nb):
+        m = re.match(r"(?i)^enclosures?\s*:\s*(.{12,})$", rest[i].strip())
+        if m:
+            t, end = m.group(1).strip(), i
+            if not re.search(r"20\d\d$", t) and a + 1 < len(nb) and len(rest[nb[a + 1]].strip()) < 40:
+                t, end = t + " " + rest[nb[a + 1]].strip(), nb[a + 1]
+            _ENC[0] = re.sub(r"\s+", " ", t)[:250]
+            rest = rest[end + 1:]
             break
     for i, l in enumerate(rest):
         if i > 3 and re.match(r"(?i)^signatures?$", l.strip()):
             rest = rest[:i]
             break
     return "\n".join(rest).strip()
+
+
+def sens_reflow(body):
+    """USX_EDGAR_V3: SEC wrapper lines off; a page-per-line document becomes headline + paragraphs, table pages dropped."""
+    ls = body.split("\n")
+    k = 0
+    while k < len(ls) and k < 10 and (not ls[k].strip() or re.match(r"(?i)^(6-k|ex-99(\.\d+)?|\d{1,2}|\S+\.html?)$", ls[k].strip())):
+        k += 1
+    ls = ls[k:]
+    if max([len(l) for l in ls] or [0]) <= 1500:
+        return "\n".join(ls)
+    out = []
+    for l in ls:
+        l = re.sub(r"\s+", " ", l).strip()
+        if not l:
+            continue
+        if len(l) > 800 and sum(c.isdigit() for c in l) > 0.20 * len(l):
+            continue                                  # a page of tables read as one line
+        if not out:                                   # first page: SENS preamble, then the headline
+            l = re.sub(r"(?i)^.{0,500}?\(\s*[\u201c\"][^)]{0,90}\b(company|group)\b[\u201d\"]?\s*\)\s*", "", l)
+            m = re.match(r"((?:[A-Z0-9][A-Z0-9&'\u2019,:;%$/().\u2013-]*\s+){3,18}?[A-Z0-9][A-Z0-9&'\u2019,:;%$/().\u2013-]*)"
+                         r"(?=\s+(?:[A-Z][a-z]|[a-z(\u2022\uf0b7]))", l)
+            if m:
+                hd, tail = m.group(1), l[m.end():].strip()
+            else:
+                c = re.search(r"\s+\(|\s+vs\.?\s|\s[\u2022\uf0b7]\s", l[:260])
+                cut = c.start() if c and c.start() >= 20 else len(l[:110].rsplit(" ", 1)[0])
+                hd, tail = l[:cut].strip(), l[cut:].strip()
+            if re.match(r"(?i)^(statement by|message from|highlights|overview)\b", hd):
+                m2 = re.search(r"(?i)\b((?:operational|operating|production|trading) (?:update|results|statement)|results) for the "
+                               r"(?:quarter|three months|six months|nine months|year) ended \d{1,2} [A-Za-z]+ 20\d\d", " ".join(ls))
+                if m2:
+                    hd, tail = m2.group(0)[0].upper() + m2.group(0)[1:], hd + " " + tail
+            out += [hd, ""]
+            l = tail
+        l = re.sub(r"\s*[\u2022\uf0b7]\s+", "\n\u2022 ", l)
+        for para in l.split("\n"):
+            para = para.strip()
+            if not para:
+                continue
+            if len(para) <= 700:
+                out += [para, ""]
+                continue
+            cur = ""
+            for s_ in re.split(r"(?<=[a-z0-9)%\u201d])\.\s+(?=[A-Z])", para):
+                s_ = s_.strip()
+                if not s_:
+                    continue
+                if not s_.endswith("."):
+                    s_ += "."
+                if cur and len(cur) + len(s_) > 600:
+                    out += [cur, ""]
+                    cur = s_
+                else:
+                    cur = (cur + " " + s_).strip()
+            if cur:
+                out += [cur, ""]
+    return "\n".join(out).strip()
 
 
 def read_release(url, filed, coname):
@@ -297,6 +399,10 @@ def read_release(url, filed, coname):
     _LAST_RAW[url] = raw   # SECFMT_V1
     body = html_text(raw) if re.search(r"(?i)\.htm", url) else raw
     body = strip_6k_cover(body)   # USX_EDGAR_V2
+    sens = bool(SENS_CO.search((coname or "").strip()))   # USX_EDGAR_V3
+    sens_head = body[:1500]
+    if sens:
+        body = sens_reflow(body)
     if len(body) < 600:
         return None, None, None, "too short (%d chars)" % len(body)
     head = body[:1500]
@@ -304,11 +410,14 @@ def read_release(url, filed, coname):
     while ls and (SKIP_LINE.search(ls[0]) or USX_SKIP.search(ls[0]) or len(ls[0]) < 4):   # USX_EDGAR_V2
         ls.pop(0)
     top = re.sub(r"\s+", " ", " ".join(ls)[:300])
-    m0 = NOT_RELEASE.search(top) or (WEAK_NOT.search(top) if not IS_RELEASE.search(head) else None)
+    m0 = NOT_RELEASE.search(top) or (WEAK_NOT.search(top) if not (IS_RELEASE.search(head) or (sens and SENS_MARK.search(sens_head))) else None)   # USX_EDGAR_V3
+    if sens and not m0:
+        m0 = SENS_NOT.search(_n(top + " " + (_ENC[0] or "")))
     if m0:
         return None, None, None, "not a release: " + m0.group(0)[:40]
     dl = DATELINE.search(head)
-    if not (IS_RELEASE.search(head) or (dl and ACTION.search(head))):
+    if not (IS_RELEASE.search(head) or (dl and ACTION.search(head))
+            or (sens and SENS_MARK.search(sens_head + " " + head + " " + (_ENC[0] or "")))):   # USX_EDGAR_V3
         return None, None, None, "no release markers"
     fd = dt.date.fromisoformat(filed)
     pub = filed
@@ -350,6 +459,8 @@ def read_release(url, filed, coname):
             title = None
             continue
         break
+    if sens and _ENC[0] and len(_ENC[0]) >= 20:       # USX_EDGAR_V3: the cover names what it encloses
+        title = _ENC[0]
     if not title:
         return None, None, None, "no headline found"
     return title, body, pub, None
