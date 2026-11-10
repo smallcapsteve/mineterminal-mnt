@@ -555,6 +555,8 @@ def fetch_body(summary: dict) -> dict:  # noqa: F811
                     out["raw_html"] = sub.get("raw_html") or ""
                     out["raw_excerpt"] = re.sub(r"\s+", " ", ft).strip()[:1500]
                     out["_wpfb"] = True
+        if out.get("fetch_error") and feed and len(out.get("raw_body") or "") >= 800:   # WPFEEDBODY_V2
+            out["_page_error"] = out.pop("fetch_error")
     except Exception:  # noqa: BLE001 - fails open: the page's text stands
         pass
     return out
