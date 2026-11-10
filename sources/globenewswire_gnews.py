@@ -23,6 +23,10 @@ from typing import Iterator
 from xml.etree import ElementTree as ET
 
 import httpx
+try:
+    import wireticker as _WT                           # WIRETICK_V1
+except Exception:
+    _WT = None
 
 UA = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_2) AppleWebKit/605.1.15 "
@@ -79,7 +83,10 @@ def extract_ticker(text: str) -> tuple[str | None, str | None]:
             t = m.group(1).upper()
             ex = {"CN": "CSE", "V": "TSXV", "TO": "TSX"}[suffix]
             return f"{t}.{suffix}", ex
-    return None, None
+    try:                                                # WIRETICK_V1: dual-listed datelines
+        return _WT.extract_ticker_relaxed(text) if _WT else (None, None)
+    except Exception:
+        return None, None
 
 
 # ---------- GNews query + body fetch ----------
@@ -120,8 +127,85 @@ def _clean_title(t: str) -> str:
     return _TITLE_SUFFIX.sub("", _html.unescape(t).strip()).strip()
 
 
+# GNWSPLIT_V1 (2026-11-10): the single search above returns Google's 100-item cap even over 2 days; these narrower
+# searches are merged with it. Links already read are remembered (10 days) and not decoded or opened again;
+# at most GNW_MAX_NEW release pages a run, newest first.
+import os as _os, time as _time, json as _json
+GNW_SPLIT = [
+    '"TSX-V" OR "TSXV" OR "TSX Venture"',
+    '"TSX:"',
+    '"CSE:"',
+    'gold',
+    '(silver OR copper OR zinc OR nickel OR uranium OR lithium)',
+    '("Mines" OR "Mining" OR "Resources" OR "Metals" OR "Minerals")',
+]
+GNW_SPLIT_DAYS = 2
+GNW_MAX_NEW = int(_os.environ.get("GNW_MAX_NEW", "40"))
+GNW_SEEN = _os.environ.get("GNW_SEEN", "/opt/mnt/app/data/gnw_gnews_seen.json")
+GNW_SEEN_DAYS = 10
+_GNW_BUDGET = [GNW_MAX_NEW]
+
+
+def _split_query_url(terms: str, days: int) -> str:
+    q = f"site:globenewswire.com {terms} when:{days}d"
+    return "https://news.google.com/rss/search?" + f"q={urllib.parse.quote(q)}&hl=en-CA&gl=CA&ceid=CA:en"
+
+
+def _seen_load() -> dict:
+    try:
+        d = _json.load(open(GNW_SEEN))
+    except Exception:  # noqa: BLE001
+        return {}
+    cut = _time.time() - GNW_SEEN_DAYS * 86400
+    return {k: v for k, v in d.items() if isinstance(v, dict) and v.get("t", 0) >= cut}
+
+
+def _seen_done(seen: dict, k: str) -> bool:
+    v = seen.get(k) or {}
+    return bool(v.get("ok")) or int(v.get("n", 0)) >= 3
+
+
+def _seen_mark(seen: dict, k: str, ok: bool) -> None:
+    if not k:
+        return
+    v = seen.get(k) or {"n": 0}
+    seen[k] = {"t": _time.time(), "ok": bool(ok) or bool(v.get("ok")), "n": int(v.get("n", 0)) + 1}
+    try:
+        tmp = GNW_SEEN + ".tmp"
+        with open(tmp, "w") as fh:
+            _json.dump(seen, fh)
+        _os.replace(tmp, GNW_SEEN)
+    except Exception as e:  # noqa: BLE001
+        print(f"[globenewswire_gnews] seen file not saved: {e}", flush=True)
+
+
 def fetch_gnews_items(days: int = 7) -> list[dict]:
-    url = gnews_query_url(days)
+    """GNWSPLIT_V1: the original search plus the narrower ones, merged (first copy of each link wins)."""
+    urls = [gnews_query_url(days)] + [_split_query_url(t, GNW_SPLIT_DAYS) for t in GNW_SPLIT]
+    keys, out, fails = set(), [], 0
+    for i, u in enumerate(urls):
+        if i:
+            _time.sleep(1.5)
+        try:
+            got = _fetch_gnews_url(u)
+        except Exception as e:  # noqa: BLE001
+            if i == 0:
+                raise
+            fails += 1
+            print(f"[globenewswire_gnews] search {i} failed: {e}", flush=True)
+            continue
+        for it in got:
+            k = it.get("gnews_url") or it.get("title")
+            if k in keys:
+                continue
+            keys.add(k)
+            out.append(it)
+    print(f"[globenewswire_gnews] GNWSPLIT_V1: {len(urls)} searches, {len(out)} distinct items, {fails} failed",
+          flush=True)
+    return out
+
+
+def _fetch_gnews_url(url: str) -> list[dict]:
     with httpx.Client(headers={"User-Agent": UA}, timeout=30) as c:
         r = c.get(url)
         r.raise_for_status()
@@ -206,11 +290,27 @@ def list_mining_events(days: int = 7) -> Iterator[dict]:
         gnewsdecoder = None
 
     items = fetch_gnews_items(days)
+    _seen = _seen_load()                                    # GNWSPLIT_V1: read each link once
+    _n0 = len(items)
+    items = [it for it in items if not _seen_done(_seen, it.get("gnews_url") or "")]
+    items.sort(key=lambda it: _parse_pubdate(it.get("pub", "")) or "", reverse=True)
+    _GNW_BUDGET[0] = GNW_MAX_NEW
+    print(f"[globenewswire_gnews] GNWSPLIT_V1: {_n0 - len(items)} already read, {len(items)} to check", flush=True)
     with httpx.Client(headers={"User-Agent": UA}, timeout=25) as client:
         for raw in items:
             title = raw["title"]
+            _wt_bares = set()                           # WIRETICK_V1
             if not is_mining_headline(title):
+                try:
+                    _wt_bares = _WT.names_company(title) if _WT else set()
+                except Exception:
+                    _wt_bares = set()
+                if not _wt_bares:
+                    continue
+            if _GNW_BUDGET[0] <= 0:                    # GNWSPLIT_V1: page-read cap, rest next run
                 continue
+            _GNW_BUDGET[0] -= 1
+            _time.sleep(0.5)
             real_url = raw["gnews_url"]
             if gnewsdecoder and "news.google.com" in real_url:
                 try:
@@ -220,9 +320,12 @@ def list_mining_events(days: int = 7) -> Iterator[dict]:
                 except Exception:
                     pass
             body_text, body_html = _extract_body_html(real_url, client)
+            _seen_mark(_seen, raw.get("gnews_url") or "", bool(body_text))   # GNWSPLIT_V1
             if not body_text:
                 continue
             ticker, exch = extract_ticker(body_text)
+            if ticker and _wt_bares and not _WT.company_matches(ticker, _wt_bares):
+                continue                                # WIRETICK_V1: headline names another company
             if not ticker:
                 continue  # need a Canadian ticker
             title = _full_title(title, _LAST_TITLE)       # MNT_FIX_20261003

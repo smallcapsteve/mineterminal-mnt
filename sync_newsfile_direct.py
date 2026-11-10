@@ -96,6 +96,12 @@ FEEDS = [
     "https://feeds.newsfilecorp.com/industry/precious-metals",
     "https://feeds.newsfilecorp.com/industry/non-ferrous-metals",
 ]
+# NFFEEDS_V1 (2026-11-03): more industry feeds; only releases from companies on the coverage list are kept.
+EXTRA_FEEDS = [
+    "https://feeds.newsfilecorp.com/industry/energy-metals",
+    "https://feeds.newsfilecorp.com/industry/rare-earths",
+    "https://feeds.newsfilecorp.com/industry/energy",
+]
 COMPANY_FEED = "https://feeds.newsfilecorp.com/company/{cid}"
 UA = "Mozilla/5.0 (compatible; MNT-newsfile-direct/1.0; +https://miningnewsterminal.com)"
 APP = Path(os.environ.get("MNT_APP", "/opt/mnt/app"))
@@ -471,6 +477,8 @@ def held_back_copy(stub_id: str):
         row = json.loads(r[0])
     except ValueError:
         return None
+    if row.get("classifier_model") == STUB_MODEL:     # NFSTUBLOOP_V1: never swap one short version for another
+        return None
     if _ro().execute("SELECT 1 FROM events WHERE event_id=?", (row.get("event_id"),)).fetchone():
         return None
     return row
@@ -480,6 +488,10 @@ def block_readers(conn, eid: str) -> int:
     """The rules readers skip the short version: one 'ok', 0-record run per active reader version."""
     n = 0
     for ext, ver in conn.execute("SELECT extractor, version FROM fx_extractor_versions WHERE status='active'").fetchall():
+        if ext == "drill_results":   # SWEEP1109_STUB_DRILL (2026-11-09): the drill reader reads the headline and opening
+            continue
+        if ext == "financings":   # LBFIX1110_STUB_FIN (2026-11-10): so does the financings reader
+            continue
         n += conn.execute("INSERT OR IGNORE INTO fx_runs(event_id, extractor, version, tag_confirmed, n_records, status, "
                           "error, body_sha1) VALUES (?,?,?,0,0,'ok','NFSTUB_V1: short version, not read',NULL)",
                           (eid, ext, ver)).rowcount
@@ -562,6 +574,7 @@ def make_stub(item: dict, apply: bool, seen: dict, counts: dict) -> str:
     if not row:
         counts["stub_refused"] += 1
         print(f"  - short version not stored (duplicate guard or gate)  {tk:10s} {tag}", flush=True)
+        seen[rid] = {"st": "stub_refused"}             # NFSTUBLOOP_V1: do not re-post it every run
         return "refused"
     block_readers(conn, env["event_id"])
     conn.commit()
@@ -822,6 +835,17 @@ def _finish(apply, seen, state, counts, label) -> None:
                                            "  ".join(f"{k}={v}" for k, v in counts.items())), flush=True)
 
 
+def _covered_bares() -> set:
+    """NFFEEDS_V1: bare tickers of the coverage list (tickers.json, not excluded); empty set if unreadable."""
+    try:
+        rows = json.loads(TICKERS_JSON.read_text())
+        rows = rows.get("tickers") or list(rows.values()) if isinstance(rows, dict) else rows
+        return {str(r.get("ticker") or "").split(".")[0].upper() for r in rows
+                if isinstance(r, dict) and r.get("ticker") and not (r.get("exclude_auto") or r.get("excluded"))}
+    except (OSError, ValueError):
+        return set()
+
+
 # ------------------------------------------------------------------ feeds run (timer, every 2 min)
 def run(apply: bool, pages: bool = True, items=None, stubs=None) -> int:
     stubs = stubs_on() if stubs is None else stubs
@@ -829,15 +853,19 @@ def run(apply: bool, pages: bool = True, items=None, stubs=None) -> int:
     if items is None:
         items, ids = [], set()
         last = state.setdefault("last_feed_rids", {})
-        for f in FEEDS:
+        covered = _covered_bares()                       # NFFEEDS_V1
+        for f in FEEDS + EXTRA_FEEDS:
             try:
                 got = parse_feed(fetch_feed(f))
+                if f in EXTRA_FEEDS:                       # NFFEEDS_V1: coverage-list companies only
+                    got = [g for g in got if (extract_ticker(g.get("teaser") or "")[0] or "").split(".")[0].upper()
+                           in covered]
             except Exception as e:  # noqa: BLE001
                 counts["feed_errors"] += 1
                 print(f"[newsfile_direct] FEED FAIL {f}: {type(e).__name__}: {e}", flush=True)
                 continue
             rids = [g["rid"] for g in got]
-            if feed_overflowed(last.get(f), rids):
+            if f not in EXTRA_FEEDS and feed_overflowed(last.get(f), rids):
                 counts["overflow"] += 1
                 state["backstop_due"] = True
                 print(f"[newsfile_direct] OVERFLOW {f}: none of the previous {len(last.get(f) or [])} releases is "

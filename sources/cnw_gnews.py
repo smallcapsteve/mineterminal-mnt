@@ -17,6 +17,10 @@ from typing import Iterator
 from xml.etree import ElementTree as ET
 
 import httpx
+try:
+    import wireticker as _WT                           # WIRETICK_V1
+except Exception:
+    _WT = None
 
 UA = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_2) AppleWebKit/605.1.15 "
@@ -69,7 +73,10 @@ def extract_ticker(text: str) -> tuple[str | None, str | None]:
             t = m.group(1).upper()
             ex = {"CN": "CSE", "V": "TSXV", "TO": "TSX"}[suffix]
             return f"{t}.{suffix}", ex
-    return None, None
+    try:                                                # WIRETICK_V1: dual-listed datelines
+        return _WT.extract_ticker_relaxed(text) if _WT else (None, None)
+    except Exception:
+        return None, None
 
 
 def gnews_query_url(days: int = 7) -> str:
@@ -83,6 +90,42 @@ def gnews_query_url(days: int = 7) -> str:
         "https://news.google.com/rss/search?"
         f"q={urllib.parse.quote(q)}&hl=en-CA&gl=CA&ceid=CA:en"
     )
+
+
+import os  # NWBACKOFF_V1
+
+
+# NWBACKOFF_V1 (2026-11-10): share sync_newswire_ca's newswire.ca pause (403 to this server since Nov 5).
+_NW_PAUSE_FILE = os.environ.get("NEWSWIRE_CA_PAUSE", "/opt/mnt/app/data/newswire_ca_pause.json")
+
+
+def nw_paused() -> str:
+    import json as _j, datetime as _d
+    try:
+        u = (_j.load(open(_NW_PAUSE_FILE)).get("until") or "")
+    except Exception:  # noqa: BLE001
+        return ""
+    return u if u > _d.datetime.now(_d.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ") else ""
+
+
+def nw_block(code: int, url: str, hours: int = 6) -> None:
+    import json as _j, datetime as _d
+    try:
+        d = _j.load(open(_NW_PAUSE_FILE))
+    except Exception:  # noqa: BLE001
+        d = {}
+    now = _d.datetime.now(_d.timezone.utc)
+    d.update({"until": (now + _d.timedelta(hours=hours)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+              "last_block": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "last_code": int(code),
+              "last_url": (url or "")[:200], "blocks": int(d.get("blocks") or 0) + 1, "open": False,
+              "by": "sync_cnw"})
+    try:
+        tmp = _NW_PAUSE_FILE + ".tmp"
+        open(tmp, "w").write(_j.dumps(d, sort_keys=True))
+        os.replace(tmp, _NW_PAUSE_FILE)
+    except Exception as e:  # noqa: BLE001
+        print(f"[cnw_gnews] pause state not saved: {e}", flush=True)
+    print(f"[cnw_gnews] {code} from newswire.ca; paused {hours} h until {d['until']}", flush=True)
 
 
 def _parse_pubdate(s: str) -> str | None:
@@ -150,7 +193,11 @@ def _extract_body_html(real_url: str, client: httpx.Client) -> tuple[str, str]:
     """
     global _LAST_TITLE
     _LAST_TITLE = ""
+    if "newswire.ca" in (real_url or "") and nw_paused():          # NWBACKOFF_V1
+        return "", ""
     r = client.get(real_url, follow_redirects=True, timeout=20)
+    if r.status_code in (403, 429) and "newswire.ca" in str(r.url):  # NWBACKOFF_V1
+        nw_block(r.status_code, str(r.url))
     if r.status_code != 200:
         return "", ""
     from bs4 import BeautifulSoup
@@ -195,8 +242,14 @@ def list_mining_events(days: int = 7) -> Iterator[dict]:
     with httpx.Client(headers={"User-Agent": UA}, timeout=25) as client:
         for raw in items:
             title = raw["title"]
+            _wt_bares = set()                           # WIRETICK_V1
             if not is_mining_headline(title):
-                continue
+                try:
+                    _wt_bares = _WT.names_company(title) if _WT else set()
+                except Exception:
+                    _wt_bares = set()
+                if not _wt_bares:
+                    continue
             real_url = raw["gnews_url"]
             if gnewsdecoder and "news.google.com" in real_url:
                 try:
@@ -209,6 +262,8 @@ def list_mining_events(days: int = 7) -> Iterator[dict]:
             if not body_text:
                 continue
             ticker, exch = extract_ticker(body_text)
+            if ticker and _wt_bares and not _WT.company_matches(ticker, _wt_bares):
+                continue                                # WIRETICK_V1: headline names another company
             if not ticker:
                 continue
             title = _full_title(title, _LAST_TITLE)       # MNT_FIX_20261003

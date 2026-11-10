@@ -105,6 +105,10 @@ def auto_onboard(ticker: str, name: str | None, exchange: str | None,
 def main(days: int = 7) -> int:
     started = datetime.utcnow().isoformat()
     print(f"[sync_cnw] start {started}  days={days}")
+    _nwp = cng.nw_paused()                                   # NWBACKOFF_V1
+    if _nwp:
+        print(f"[sync_cnw] paused after a newswire.ca block until {_nwp}; no requests this run")
+        return 0
 
     tickers = load_tickers()
     idx = known_tickers_index(tickers)

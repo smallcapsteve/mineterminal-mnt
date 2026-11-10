@@ -146,7 +146,8 @@ sys.path.insert(0, APP_ROOT)
 
 import universe_client  # noqa: E402
 
-DB_PATH = os.environ.get("EXCHANGE_NEWS_DB", f"{APP_ROOT}/data/exchange_news.db")
+# LEDGERPATH_V1 (2026-11-08): default to the live ledger; data/exchange_news.db is the copy retired on 2026-09-15.
+DB_PATH = os.environ.get("EXCHANGE_NEWS_DB", "/var/lib/mnt-exchange/exchange_news.db")
 PORTAL_DB = "/opt/mnt/app/portal/portal.db"
 # The CSE and TMX filing stores belong to the MTP collector and live under
 # /root, which is mode 700 - the `mnt` user this job runs as cannot traverse
@@ -327,6 +328,47 @@ def _unescape_title(s: str | None) -> str:
     return _html.unescape((s or "")).strip()
 
 
+
+# CSEOLD_V1 (2026-11-10): the CSE listing sometimes re-lists a company's old releases under the day it re-uploaded
+# them (Adelphi Nov 6: 2024-11-13, 2025-09-24, 2026-10-22). Skip a release whose title states its own date more
+# than CSEOLD_DAYS before the exchange date.
+CSEOLD_DAYS = 7
+_CSEOLD_MON = {m: i for i, m in enumerate(["january", "february", "march", "april", "may", "june", "july", "august",
+                                            "september", "october", "november", "december"], 1)}
+_CSEOLD_MON.update({k[:3]: v for k, v in list(_CSEOLD_MON.items())})
+_CSEOLD_N = [0]
+
+
+def _title_date(t):
+    s = (t or "")[:40]                     # only a date that starts the title (how the re-listed ones read)
+    m = re.match(r"\W*(20\d\d)-(\d\d)-(\d\d)\b", s)
+    try:
+        if m:
+            return dt.date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
+        m = re.match(r"\W*([A-Za-z]{3,9})\.?\s+(\d{1,2}),?\s+(20\d\d)\b", s)
+        if m and m.group(1).lower() in _CSEOLD_MON:
+            return dt.date(int(m.group(3)), _CSEOLD_MON[m.group(1).lower()], int(m.group(2)))
+        m = re.match(r"\W*(\d{1,2})\s+([A-Za-z]{3,9})\.?,?\s+(20\d\d)\b", s)
+        if m and m.group(2).lower() in _CSEOLD_MON:
+            return dt.date(int(m.group(3)), _CSEOLD_MON[m.group(2).lower()], int(m.group(1)))
+    except ValueError:
+        return None
+    return None
+
+
+def _cseold(title, date) -> bool:
+    d = _title_date(title)
+    try:
+        old = bool(d) and d < dt.date.fromisoformat(date[:10]) - dt.timedelta(days=CSEOLD_DAYS)
+    except ValueError:
+        return False
+    if old:
+        _CSEOLD_N[0] += 1
+        if _CSEOLD_N[0] <= 5:
+            log(f"  CSEOLD_V1: skipped re-listed old release ({d} in title, listed {date[:10]}): {(title or '')[:70]}")
+    return old
+
+
 def pull_cse(cse_universe: dict, ids: dict, cutoff: str, only: set | None) -> list[dict]:
     rows, n_err = [], 0
     targets = [(b, ids[b]) for b in sorted(cse_universe) if b in ids]
@@ -355,6 +397,8 @@ def pull_cse(cse_universe: dict, ids: dict, cutoff: str, only: set | None) -> li
             if x.get("mainSymbol"):
                 syms.add(bare(x["mainSymbol"]))
             if b not in syms:
+                continue
+            if _cseold(_unescape_title(x.get("title")), date):     # CSEOLD_V1
                 continue
             rows.append({
                 "source": "cse", "bare": b,
@@ -419,6 +463,8 @@ def pull_cse_fast(cse_universe: dict, cutoff: str, only: set | None) -> list[dic
         if b not in cse_universe:
             b = sorted(hit)[0]
         if only and b not in only:
+            continue
+        if _cseold(_unescape_title(obj.get("title")), date):       # CSEOLD_V1
             continue
         rows.append({
             "source": "cse", "bare": b,
@@ -1389,13 +1435,63 @@ def fetch_release(rel: dict) -> tuple[str, str, str]:
         return "", "", f"NO EXTRACTOR: {e}"
     if len(body) < 200:
         ocr = ocr_pdf(data)                          # EXCH_FINLINK_V1: scanned, image-only releases
+        if len(ocr) < 200 and _ocrfb_on():
+            ocr = ocr_pdf(data, dpi=300)             # EXCH_OCRFB_V1: faint scans need more resolution
         if len(ocr) >= 200:
             return ocr, _guarded_headline(rel, ocr)[0], ""   # EXCH_FINLINK_V1f
         return "", "", f"pdf text too short ({len(body)} chars; ocr {len(ocr)})"
-    return body, _guarded_headline(rel, body)[0], ""   # LETTERHEAD_V1, EXCH_FINLINK_V1f
+    h, why = _guarded_headline(rel, body)             # LETTERHEAD_V1, EXCH_FINLINK_V1f
+    if why and rel.get("source") == "tmx" and _ocrfb_on():
+        ocr = ocr_pdf(data)                          # EXCH_OCRFB_V1: unreadable text layer -> read the page image
+        if len(ocr) >= 200:
+            h2, why2 = _guarded_headline(rel, ocr)
+            h3 = _ocr_named(rel, h2) if not why2 else ""   # EXCH_OCRFB_V2: must start at the issuer's name
+            if h3:
+                log(f"   OCR FALLBACK {rel.get('bare', ''):<7} text layer gave [{why}] {h[:40]!r}; OCR gave {h3[:90]!r}")
+                return ocr, h3, ""
+            log(f"   OCR REJECTED {rel.get('bare', ''):<7} [{why2 or 'no issuer name'}] {h2[:70]!r}")
+    return body, h, ""
 
 
-def ocr_pdf(data: bytes, pages: int = 2, timeout: int = 180) -> str:
+def _ocrfb_on() -> bool:
+    """EXCH_OCRFB_V1 switch (default on)."""
+    return os.environ.get("MNT_EXCH_OCR_FALLBACK", "1") != "0"
+
+
+_OCRFB_NAMES: dict | None = None
+_OCRFB_STOP = {"the", "inc", "corp", "corporation", "ltd", "limited", "company", "co", "resources", "resource",
+               "mining", "mines", "minerals", "mineral", "gold", "silver", "metals", "metal", "exploration",
+               "ventures", "holdings", "group", "capital", "international", "canada", "canadian", "and"}
+_OCRFB_MARK = re.compile(r"\u00a9|\(c\)|\bpress\s+release\b|\bnews\s+release\b", re.I)
+
+
+def _ocr_named(rel: dict, h: str) -> str:
+    """EXCH_OCRFB_V2: the OCR headline cut to start at the issuer's own name, or '' if it cannot be anchored."""
+    global _OCRFB_NAMES
+    if _OCRFB_NAMES is None:
+        _OCRFB_NAMES = {}
+        try:
+            for c in universe_client.load():
+                b, n = bare(c.get("ticker") or "").upper(), (c.get("name") or "")
+                if b and n:
+                    _OCRFB_NAMES[b] = n
+        except Exception:                                # noqa: BLE001
+            pass
+    name = _OCRFB_NAMES.get((rel.get("bare") or "").upper(), "")
+    key = next((w for w in re.findall(r"[A-Za-z0-9]+", name) if len(w) >= 3 and w.lower() not in _OCRFB_STOP), "")
+    if not key or not h:
+        return ""
+    for m in re.finditer(r"(?<![A-Za-z0-9])" + re.escape(key), h[:100], re.I):
+        cut = h[m.start():].strip()
+        if _OCRFB_MARK.search(cut[:70]):
+            continue
+        if headline_problem(cut) or headline_shape(cut):
+            continue
+        return cut
+    return ""
+
+
+def ocr_pdf(data: bytes, pages: int = 2, timeout: int = 180, dpi: int = 150) -> str:
     """EXCH_FINLINK_V1 (2026-10-12): text of an image-only PDF, read with pdftoppm + tesseract (both installed).
     Kirkland Lake Discoveries' 2026-09-21/22 releases were parked as "pdf text too short (0 chars)"; ~40 in 90 days.
     Off with MNT_EXCH_OCR=0. Returns "" on any failure."""
@@ -1411,12 +1507,13 @@ def ocr_pdf(data: bytes, pages: int = 2, timeout: int = 180) -> str:
             src = os.path.join(d, "in.pdf")
             with open(src, "wb") as f:
                 f.write(data)
-            subprocess.run(["pdftoppm", "-r", "150", "-gray", "-l", str(pages), "-png", src, os.path.join(d, "p")],
+            subprocess.run(["pdftoppm", "-r", str(dpi), "-gray", "-l", str(pages), "-png", src, os.path.join(d, "p")],
                            check=True, timeout=timeout, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             out = []
             for name in sorted(n for n in os.listdir(d) if n.endswith(".png")):
                 r = subprocess.run(["tesseract", os.path.join(d, name), "stdout", "-l", "eng", "--psm", "4"],
-                                   timeout=timeout, capture_output=True)
+                                   timeout=timeout, capture_output=True,
+                                   env=dict(os.environ, OMP_THREAD_LIMIT="1"))   # EXCH_OCRFB_V1: one core, not all four
                 out.append(r.stdout.decode("utf-8", "replace"))
             return re.sub(r"\n{3,}", "\n\n", "\n".join(out)).strip()
     except Exception:                                # noqa: BLE001

@@ -183,6 +183,117 @@ def _event_id(url: str, published_at: str | None) -> str:
     return h.hexdigest()
 
 
+_TNWTICK_LISTED: dict = {}
+_TNWTICK_SUFFIX = {"inc", "corp", "corporation", "ltd", "limited", "plc", "co", "company", "the"}
+
+
+def _tnwtick_words(s: str) -> list:
+    return [w for w in re.findall(r"[a-z0-9]+", (s or "").lower()) if w not in _TNWTICK_SUFFIX]
+
+
+def _relaxed_ticker(title: str, body: str):
+    """TNWTICK_V1 (2026-11-10): extract_ticker() wants a lone "(CSE: ABC)". Releases that write
+    "(TSXV: NAM; OTCQX: NMTLF)" or "(CSE: CEXY | OTCQB: CEXYF)" got no ticker and were dropped although they were in the
+    feed. Read such datelines with the shared reader (wireticker, WIRETICK_V1) and keep the ticker only when that exact
+    ticker is on the coverage list and the headline starts with that same company's name (the shared name test, or the
+    first two words of that company's listed name, for names made of common words such as "Silver North"), so a release
+    is never filed under a company it merely mentions. Any error: no ticker, as before."""
+    try:
+        import json as _json
+        import wireticker as _WT
+        t, ex = _WT.extract_ticker_relaxed(body)
+        if not t:
+            return None, None
+        if not _TNWTICK_LISTED:
+            for r in _json.load(open("/opt/mnt/app/tickers.json")):
+                if isinstance(r, dict) and r.get("ticker") and not (r.get("excluded") or r.get("exclude_auto")):
+                    w = _tnwtick_words(r.get("name"))
+                    _TNWTICK_LISTED[r["ticker"].upper()] = " ".join(w[:2]) if len(w) >= 2 and len(" ".join(w[:2])) >= 8 else ""
+        if t.upper() not in _TNWTICK_LISTED:
+            return None, None
+        if _WT.company_matches(t, _WT.names_company(title)):
+            return t, ex
+        key = _TNWTICK_LISTED[t.upper()]
+        if key and (" ".join(_tnwtick_words(title)) + " ").startswith(key + " "):
+            return t, ex
+    except Exception:
+        pass
+    return None, None
+
+
+_TNWTICK_ALL: dict = {}          # ticker -> (name words without Inc/Corp/Ltd, on the coverage list?)
+_TNWTICK_SUF = re.compile(r"\(\s*([A-Z][A-Z0-9]{0,5})\.(V|TO|CN)\s*\)")
+_TNWTICK_EX = {"V": "TSXV", "TO": "TSX", "CN": "CSE"}
+
+
+def _tnwtick_names() -> dict:
+    if not _TNWTICK_ALL:
+        import json as _json
+        for r in _json.load(open("/opt/mnt/app/tickers.json")):
+            if isinstance(r, dict) and r.get("ticker"):
+                _TNWTICK_ALL[r["ticker"].upper()] = (_tnwtick_words(r.get("name")),
+                                                     not (r.get("excluded") or r.get("exclude_auto")))
+    return _TNWTICK_ALL
+
+
+def _tnwtick_starts(title: str, ticker: str) -> bool:
+    """True when the headline starts with this ticker's company name (shared name test, or its first two name words)."""
+    import wireticker as _WT
+    if _WT.company_matches(ticker, _WT.names_company(title)):
+        return True
+    w = (_tnwtick_names().get((ticker or "").upper()) or ([], False))[0]
+    key = " ".join(w[:2])
+    return len(w) >= 2 and len(key) >= 8 and (" ".join(_tnwtick_words(title)) + " ").startswith(key + " ")
+
+
+def _tnwtick_by_name(title: str, body: str):
+    """The one coverage-list company whose name starts the headline AND whose full listed name is in the opening of the
+    text (first 600 characters); else nothing."""
+    import wireticker as _WT
+    names = _tnwtick_names()
+    bares = _WT.names_company(title)
+    cands = [k for k, v in names.items() if v[1] and k.rsplit(".", 1)[0] in bares]
+    if len(cands) == 1:
+        full = " ".join(names[cands[0]][0])
+        if len(full) >= 12 and full in " ".join(_tnwtick_words((body or "")[:600])):
+            return cands[0], _TNWTICK_EX.get(cands[0].rsplit(".", 1)[1])
+    return None, None
+
+
+def _tnwtick_v2(title: str, body: str, t0, ex0):
+    """TNWTICK_V2 (2026-11-10). t0/ex0 = extract_ticker()'s result (first lone "(TSX: ABC)"), possibly None.
+    a. t0 found but the headline does not start with its company: if the shared dateline reader and the V1 name test
+       point at another coverage-list company (dateline and headline both), file the release there (Sama's release that
+       mentions "(TSX: AYA)" was filed under Aya); the same when the headline starts with exactly one coverage-list
+       company's name and its full listed name opens the text (ZincX, filed under Teck). Otherwise t0 stands.
+    b. nothing found: V1's fallback; then "(TBK.V)"; then, with no ticker anywhere, a headline that starts with exactly
+       one coverage-list company's name whose full listed name is in the opening of the text.
+    Any error: t0/ex0, as before."""
+    try:
+        names = _tnwtick_names()
+        if t0:
+            if _tnwtick_starts(title, t0):
+                return t0, ex0
+            t, ex = _relaxed_ticker(title, body)
+            if not t:
+                t, ex = _tnwtick_by_name(title, body)
+            return (t, ex) if t and t.upper() != t0.upper() else (t0, ex0)
+        t, ex = _relaxed_ticker(title, body)
+        if t:
+            return t, ex
+        m = _TNWTICK_SUF.search((body or "")[:1500])
+        if m:
+            c = m.group(1).upper() + "." + m.group(2)
+            if names.get(c, ([], False))[1] and _tnwtick_starts(title, c):
+                return c, _TNWTICK_EX[m.group(2)]
+        t, ex = _tnwtick_by_name(title, body)
+        if t:
+            return t, ex
+    except Exception:
+        pass
+    return t0, ex0
+
+
 def fetch_rss() -> list[dict]:
     """Pull master RSS, return list of raw item dicts (unfiltered)."""
     with httpx.Client(headers={"User-Agent": UA}, timeout=30, follow_redirects=True) as c:
@@ -204,6 +315,7 @@ def fetch_rss() -> list[dict]:
         raw_body = _strip_html(desc)
         published_at = _parse_rfc822(pub)
         ticker, exch = extract_ticker(raw_body)
+        ticker, exch = _tnwtick_v2(title, raw_body, ticker, exch)   # TNWTICK_V2 (2026-11-10; V1's fallback is inside)
         out.append({
             "raw_headline": title,
             "source_url":   link,

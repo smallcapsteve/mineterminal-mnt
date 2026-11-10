@@ -27,6 +27,68 @@ from bs4 import BeautifulSoup
 sys.path.insert(0, "/opt/mnt/app")
 import latewire as _LW  # noqa: E402  LATEWIRE_V1
 
+# NWBACKOFF_V1 (2026-11-10): newswire.ca answers 403 to this server since Nov 5. Company pages are off while
+# data/newswire_ca_orgs.off exists; a 403/429 from newswire.ca sets a 6-hour pause (shared with sync_cnw) and
+# ends the run; a paused run makes no requests; the first good answer after a block records reopened_at.
+NW_PAUSE = Path(os.environ.get("NEWSWIRE_CA_PAUSE", "/opt/mnt/app/data/newswire_ca_pause.json"))
+NW_ORGS_OFF = Path(os.environ.get("NEWSWIRE_CA_ORGS_OFF", "/opt/mnt/app/data/newswire_ca_orgs.off"))
+NW_PAUSE_H = 6
+_NW_OK_SEEN = False
+
+
+class NwBlocked(Exception):
+    pass
+
+
+def _nw_now() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def nw_state() -> dict:
+    try:
+        return json.loads(NW_PAUSE.read_text())
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+def nw_save(d: dict) -> None:
+    try:
+        tmp = NW_PAUSE.with_suffix(".json.tmp")
+        tmp.write_text(json.dumps(d, sort_keys=True))
+        os.replace(tmp, NW_PAUSE)
+    except Exception as e:  # noqa: BLE001
+        print(f"[sync_newswire_ca] pause state not saved: {e}", flush=True)
+
+
+def nw_paused() -> str:
+    u = nw_state().get("until") or ""
+    return u if u > _nw_now() else ""
+
+
+def nw_blocked(code: int, url: str) -> None:
+    from datetime import timedelta
+    d = nw_state()
+    d.update({"until": (datetime.now(timezone.utc) + timedelta(hours=NW_PAUSE_H)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+              "last_block": _nw_now(), "last_code": int(code), "last_url": (url or "")[:200],
+              "blocks": int(d.get("blocks") or 0) + 1, "open": False})
+    nw_save(d)
+    print(f"[sync_newswire_ca] {code} from newswire.ca ({(url or '')[:90]}); paused {NW_PAUSE_H} h until {d['until']}",
+          flush=True)
+
+
+def nw_ok() -> None:
+    global _NW_OK_SEEN
+    if _NW_OK_SEEN:
+        return
+    _NW_OK_SEEN = True
+    d = nw_state()
+    if d.get("open") is False:
+        d["reopened_at"] = _nw_now()
+        print("[sync_newswire_ca] newswire.ca answers again (block lifted)", flush=True)
+    d["open"] = True
+    d["last_ok"] = _nw_now()
+    nw_save(d)
+
 CATEGORIES = [
     "https://www.newswire.ca/news-releases/energy-latest-news/mining-list/",
     "https://www.newswire.ca/news-releases/energy-latest-news/mining-metals-list/",
@@ -50,6 +112,8 @@ def _org_urls(m) -> list:
 def org_pages(advance: bool = False, every: bool = False) -> list:
     """NWORGS_V2: the "orgs" pages every run, plus the next rotate_per_run pages of "orgs_rotate" (all with every=True).
     advance=True moves the cursor (the hourly run only)."""
+    if NW_ORGS_OFF.exists():                     # NWBACKOFF_V1: company pages off
+        return []
     try:
         d = json.loads(ORGS_FILE.read_text())
     except Exception:  # noqa: BLE001 - no file, no company pages
@@ -389,7 +453,12 @@ def _self_test() -> int:
 
 def fetch(url: str) -> str:
     r = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=TIMEOUT)
+    if r.status_code in (403, 429) and "newswire.ca" in url:   # NWBACKOFF_V1
+        nw_blocked(r.status_code, url)
+        raise NwBlocked(f"{r.status_code} from newswire.ca; paused {NW_PAUSE_H} h")
     r.raise_for_status()
+    if "newswire.ca" in url:                                   # NWBACKOFF_V1
+        nw_ok()
     # NWCHARSET_V1 (2026-11-05): newswire.ca sends "text/html" with no charset, so requests assumed Latin-1
     # and accented names came out as "VicuÃ±a". Decode as UTF-8 unless the header names something else.
     if not r.encoding or r.encoding.lower() in ("iso-8859-1", "latin-1", "latin1"):
@@ -547,6 +616,10 @@ def main() -> int:
     if len(sys.argv) > 1 and sys.argv[1] == "--sweep-dry-run":
         sweep_duplicates(apply=False, days=int(sys.argv[2]) if len(sys.argv) > 2 else SWEEP_DAYS)
         return 0
+    _nwp = nw_paused()                          # NWBACKOFF_V1
+    if _nwp:
+        print(f"[sync_newswire_ca] paused after a newswire.ca block until {_nwp}; no requests this run", flush=True)
+        return 0
     seen = load_seen()
     discovered = 0
     skipped_no_ticker = 0
@@ -557,6 +630,9 @@ def main() -> int:
 
     orgs = org_pages(advance=True)              # NWORGS_V1 / V2 rotation
     for cat in CATEGORIES + orgs:
+        if nw_paused():                          # NWBACKOFF_V1: blocked mid-run, stop
+            print("[sync_newswire_ca] stopping this run: newswire.ca block", flush=True)
+            break
         if cat in orgs:
             time.sleep(1.0)
         articles = list_articles(cat)
@@ -564,6 +640,9 @@ def main() -> int:
             articles = recent_only(articles)
         print(f"[sync_newswire_ca] {cat} -> {len(articles)} articles", flush=True)
         for art in articles:
+            if nw_paused():                          # NWBACKOFF_V1: blocked mid-run, stop
+                print("[sync_newswire_ca] stopping this run: newswire.ca block", flush=True)
+                break
             url = art["url"]
             if url in seen:
                 continue
