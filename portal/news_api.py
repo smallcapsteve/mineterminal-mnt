@@ -125,6 +125,9 @@ def _row_to_card(row: sqlite3.Row) -> dict[str, Any]:
     }
 
 
+from portal import tidyrel as _tidyrel   # AUDIT1110_TIDYREL
+
+
 def _row_to_full(row: sqlite3.Row) -> dict[str, Any]:
     """Full article including cleaned body HTML."""
     card = _row_to_card(row)
@@ -137,7 +140,7 @@ def _row_to_full(row: sqlite3.Row) -> dict[str, Any]:
     elif row["raw_body"]:
         # RELFMT_V1: rebuilt PDF HTML, else paragraphs re-joined (was raw text, unescaped)
         body = _rf_pdf_html(row["event_id"]) or _rf_reflow(row["raw_body"] or "", row["raw_headline"] or "")
-    card["body_html"] = body
+    card["body_html"] = _tidyrel.tidy(body, row["raw_headline"] or "")   # AUDIT1110_TIDYREL: display only
     return card
 
 

@@ -50,7 +50,7 @@
     <p class="event-meta">
       <strong>{{ event["ticker"] or "—" }}</strong>
       {% if is_admin %}&middot; {{ event["source_name"] | pretty_source or "" }}{% endif %}
-      &middot; <time datetime="{{ (event['published_at'] or '') }}">{# DATEDUP_V1.6: TSX/CSE releases carry a date only #}{% if (event["source_name"] or "") in ("tmx", "cse") and (event["published_at"] or "")[10:19] == "T12:00:00" %}{{ event["published_at"][:10] }}{% else %}{{ (event["published_at"] or event["classified_at"] or "")[:19].replace("T", " ") }}{% endif %}</time>
+      &middot; <time datetime="{{ (event['published_at'] or '') }}">{# DATEDUP_V1.6: TSX/CSE releases carry a date only #}{% if (event["source_name"] or "") in ("tmx", "cse") and (event["published_at"] or "")[10:19] == "T12:00:00" %}{{ event["published_at"][:10] }}{% else %}{{ (event["published_at"] or event["classified_at"] or "") | et_time }}{% endif %}</time>{# AUDIT1110_ETTIME #}
       {% if is_admin %}
         &middot; <span class="status status-{{ event['review_status'] }}">{{ event["review_status"] }}</span>
       {% endif %}
@@ -68,12 +68,12 @@
       <p><a class="sourcelink" href="{{ event['source_url'] }}" target="_blank" rel="noopener noreferrer">Original source ↗</a></p>
     {% endif %}
     {% if event["raw_html"] %}
-      <div class="body body-html">{{ event["raw_html"] | clean_html(event["source_url"] or "") | safe }}</div>
+      <div class="body body-html">{{ event["raw_html"] | clean_html(event["source_url"] or "") | tidy_release(event["raw_headline"] or "") | safe }}</div>
     {% elif event["raw_body"] %}
       {# RELFMT_V1: HTML rebuilt from the release PDF when we have it, else the text re-joined into paragraphs #}
       {% set _pdfh = event["event_id"] | pdf_html %}
-      {% if _pdfh %}<div class="body body-html body-pdf">{{ _pdfh | safe }}</div>
-      {% else %}<div class="body body-html body-text">{{ event["raw_body"] | reflow_text(event["raw_headline"] or "") | safe }}</div>{% endif %}
+      {% if _pdfh %}<div class="body body-html body-pdf">{{ _pdfh | tidy_release(event["raw_headline"] or "") | safe }}</div>
+      {% else %}<div class="body body-html body-text">{{ event["raw_body"] | reflow_text(event["raw_headline"] or "") | tidy_release(event["raw_headline"] or "") | safe }}</div>{% endif %}
     {% elif event["raw_excerpt"] %}
       <p class="excerpt">{{ event["raw_excerpt"] }}</p>
     {% else %}

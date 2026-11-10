@@ -204,6 +204,13 @@ WEAK_NOT = re.compile(r"(?i)agreement|indenture|warrant to purchase|execution (v
                       r"articles of|by-law")   # documents of these kinds, unless the top reads as a news release
 IS_RELEASE = re.compile(r"(?i)news release|press release|for immediate release|\((nyse|tsx|nasdaq|otcq)[^)]{0,40}\)|"
                         r"\b(nyse|tsx|tsxv|tsx-v|nasdaq|nyse american)\s*:\s*[a-z.]{1,6}\b")
+LETTERHEAD = re.compile(   # AUDIT1110_SEC_TITLE (2026-11-10): letterhead lines are not the headline ("8310 S. Valley Highway")
+    r"(?i)^\W*(?:\d{2,6} [\w.' -]{2,40}\b(?:street|avenue|ave|road|blvd|boulevard|highway|hwy|parkway)\.?\W*$"
+    r"|(?!(?:19|20)\d\d )\d{2,6} [\w.' -]{2,40}\b(?:st|rd|drive|dr|place|way|crescent|lane|court)\.?\W*$"
+    r"|suite \d|p\.? ?o\.? box \d|(?:phone|tel|telephone|fax|toll[ -]free|e-?mail|website)\s*[:.]"
+    r"|[A-Z][\w.' ]{1,30},\s*[A-Z]{2}\.?,? +\d{5}(?:-\d{4})?\W*$"
+    r"|[\w.' ]{2,30},\s*[\w.' ]{2,30},? +[A-Z]\d[A-Z] ?\d[A-Z]\d\W*$"
+    r"|[\w ]{0,40}\band\b[\w ]{0,40}stock exchanges\W*$)")
 SKIP_LINE = re.compile(r"(?i)^(exhibit|ex-?)\s*99[.\d]*$|^(news|press)?\s*releases?(,? dated .*)?$|^news$|^for immediate release|"
                        r"^\(?(tsx|tsxv|nyse|nasdaq|otc|asx|lse|aim|frankfurt|fse|bvl)[\w &-]*:|^stock symbols?|^trading symbols?|"
                        r"^page \d|^\d+$|^\S+\.(htm|html|txt)$|^(%s)\s+\d{1,2},\s+20\d\d$|^[\w.-]+\.(com|ca)$|^(tel|telephone|fax|email|toll free)\b|^#|"
@@ -280,7 +287,7 @@ def read_release(url, filed, coname):
     lines = body.split("\n")[:60]
     for i, l in enumerate(lines):
         l = l.strip(" -–—*·")
-        if len(l) < 12 or SKIP_LINE.search(l):
+        if len(l) < 12 or SKIP_LINE.search(l) or LETTERHEAD.search(l):
             continue
         if nname(l) == cn or (len(l) < 60 and IS_RELEASE.search(l)) or DL_PARA.search(l):
             continue

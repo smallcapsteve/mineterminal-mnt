@@ -1289,3 +1289,20 @@ main {
 .body-html table.pdf-table th { text-align: left; vertical-align: bottom; }
 .body-html .pdf-sub { margin: 1.2em 0 0.5em; }
 .body-html .txt-rows { font-variant-numeric: tabular-nums; background: #fafafa; border-left: 3px solid var(--line); padding: 6px 10px; }
+
+/* UXFIX3_V1 2026-11-09: on phones the state/filter tab rows wrap instead of pushing the page sideways */
+@media (max-width: 640px) { .fin-state-tabs { flex-wrap: wrap; row-gap: 4px; } }
+
+/* UXFIX4_V1 2026-11-09: tap-sized links on phones (news list ticker/source, Financings company links, details toggles) */
+@media (max-width: 640px) {
+  a.ticker, a.source, a.mtp-co, a.recfin-link { display: inline-block; padding-top: 7px; padding-bottom: 7px; }
+  button.dp-toggle { min-height: 32px; min-width: 32px; }
+}
+
+/* UXFIX5_V1 2026-11-09: tap-sized links in table cells on phones */
+@media (max-width: 640px) { .fin-table td a { display: inline-block; padding-top: 7px; padding-bottom: 7px; } }
+
+/* UXFIX7_V1 2026-11-09: release text from badly extracted PDFs has long runs with no spaces; let it break anywhere
+   so the page does not scroll sideways (e.g. /news/nby.v/news-release was 1,640 px wide on a phone) */
+.body-html { overflow-wrap: anywhere; }
+.body-html table { overflow-wrap: normal; word-break: normal; }   /* AUDIT1110_TBLWRAP: tables keep whole words and scroll sideways (phones broke them one letter per line) */

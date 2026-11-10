@@ -31,7 +31,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/style.css?v=v44">
+  <link rel="stylesheet" href="/static/style.css?v=v49">
   <!-- TYPEAHEAD_V1: the search dropdown only. Shared with the sister site through
        the static symlink; kept out of style.css so it can be reverted by
        deleting two lines. -->
@@ -78,8 +78,7 @@
           <form method="post" action="/admin/logout" class="inline">
             <button type="submit" class="linkbtn">Log out</button>
           </form>
-        {% else %}
-          <a class="admin-link" href="/admin/login">Admin</a>
+        {% else %}{# UXFIX1_V1: no public Admin link; /admin/login still works #}
         {% endif %}
       </div>
     </div>

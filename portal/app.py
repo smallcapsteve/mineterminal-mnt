@@ -1308,6 +1308,9 @@ _TICKERS_NAME_INDEX: dict[str, str] | None = None
 def company_page(request: Request, ticker: str):
     """Pretty per-company URL. Resolves previous tickers to canonical, then redirects."""
     canonical = _resolve_canonical_ticker(ticker.upper())
+    canonical = _unkticker_resolve(canonical)  # UNKTICKER_V1 (FU3_V1): bare ticker -> listed form; unknown -> 404
+    if canonical is None:
+        raise HTTPException(404)
     return RedirectResponse(
         f"/?ticker={canonical}",
         status_code=302,
@@ -3563,7 +3566,7 @@ def _fts_match_query(q):
     trailing * on each term is what gives word-start matching.
     """
     terms = _FTS_TERM_RE.findall(q or "")
-    return " ".join('"%s"*' % t for t in terms[:12])
+    return " ".join(('"%s"*' if len(t) > 2 else '"%s"') % t for t in terms[:12])   # AUDIT1110_SEARCH: "a"* or "1"* reads most of the index
 
 
 def _fts_rebuild():
@@ -3858,3 +3861,60 @@ def _rf_clean_html(h, source_url=""):
 templates.env.filters["clean_html"] = _rf_clean_html
 templates.env.filters["pdf_html"] = _rf_pdf_html
 templates.env.filters["reflow_text"] = _rf_reflow
+
+# AUDIT1110_TIDYREL / AUDIT1110_ETTIME (2026-11-10): display-only tidy of release bodies (portal/tidyrel.py);
+# the release time shown in Toronto time instead of a bare UTC stamp
+from portal import tidyrel as _tidyrel
+from datetime import datetime as _dt1110, timedelta as _td1110, timezone as _tz1110
+from zoneinfo import ZoneInfo as _ZI1110
+
+
+def _et_time(s):
+    m = re.match(r"(\d{4})-(\d\d)-(\d\d)[T ](\d\d):(\d\d)", s or "")
+    if not m:
+        return (s or "")[:19].replace("T", " ")
+    y, mo, d, hh, mm = map(int, m.groups())
+    if not (y >= 1 and 1 <= mo <= 12 and 1 <= d <= 31 and hh < 24 and mm < 60):
+        return (s or "")[:19].replace("T", " ")
+    t = (_dt1110(y, mo, 1, tzinfo=_tz1110.utc) + _td1110(days=d - 1, hours=hh, minutes=mm)).astimezone(_ZI1110("America/Toronto"))
+    return "%s %d, %d, %d:%02d %s ET" % (t.strftime("%b"), t.day, t.year, t.hour % 12 or 12, t.minute, "a.m." if t.hour < 12 else "p.m.")
+
+
+templates.env.filters["tidy_release"] = _tidyrel.tidy
+templates.env.filters["et_time"] = _et_time
+
+
+# UNKTICKER_V1 (FU3_V1, 2026-11-09, Justin's popup "MNT unknown ticker = 404"). /company/{ticker} used to forward any
+# value to /?ticker=<value>: a bare ticker (ABX) landed on an empty page although ABX.TO has news, and a made-up ticker got
+# a normal page with status 200. Returns the ticker to forward to, or None for "not found" (the route raises 404, which
+# browsers see as the "Page not found" page). If the list or the database can't be read, the ticker is kept as before.
+_UNK_SUFFIXES = (".TO", ".V", ".CN", ".NE")
+
+
+def _unkticker_resolve(t):
+    t = (t or "").upper()
+    try:
+        known = {(x.get("ticker") or "").upper() for x in _load_tickers_raw()}
+    except Exception:
+        return t
+    if t in known:
+        return t
+    if "." not in t:
+        cands = [k for k in known if k.split(".", 1)[0] == t and "." in k]
+        if cands:
+            cands.sort(key=lambda k: (_UNK_SUFFIXES.index("." + k.split(".", 1)[1]) if "." + k.split(".", 1)[1] in _UNK_SUFFIXES else 9, k))
+            return cands[0]
+    try:
+        import sqlite3 as _sqlite3_unk
+        con = _sqlite3_unk.connect("file:/opt/mnt/app/portal/portal.db?mode=ro", uri=True, timeout=3)
+        try:
+            if con.execute("SELECT 1 FROM events WHERE upper(ticker) = ? LIMIT 1", (t,)).fetchone():
+                return t
+            if con.execute("SELECT 1 FROM events WHERE additional_tickers IS NOT NULL AND additional_tickers <> '' "
+                           "AND ('|' || upper(additional_tickers) || '|') LIKE ? LIMIT 1", ("%|" + t + "|%",)).fetchone():
+                return t
+        finally:
+            con.close()
+    except Exception:
+        return t
+    return None
