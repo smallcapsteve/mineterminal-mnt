@@ -45,6 +45,33 @@ _CATEGORY_LABELS = {
 }
 
 
+# USX_NEWSKEY_V1 (2026-11-10): symbols listed both as .US and on another exchange are two different companies
+# (RGLD.US Royal Gold / RGLD.CN Red Lake Gold, AU.US AngloGold / AU.V); by-ticker keeps those apart.
+_USX_CLASH = {"ts": 0.0, "mt": None, "set": frozenset()}
+
+
+def _usx_clash_bases() -> frozenset:
+    import json as _j, os as _o, time as _t
+    now = _t.time()
+    if now - _USX_CLASH["ts"] < 60:
+        return _USX_CLASH["set"]
+    _USX_CLASH["ts"] = now
+    try:
+        p = "/opt/mnt/app/tickers.json"
+        mt = _o.path.getmtime(p)
+        if mt != _USX_CLASH["mt"]:
+            us, other = set(), set()
+            for x in _j.load(open(p)):
+                t = str((x or {}).get("ticker") or "").upper()
+                b, _, suf = t.partition(".")
+                if b:
+                    (us if suf == "US" else other).add(b)
+            _USX_CLASH["set"], _USX_CLASH["mt"] = frozenset(us & other), mt
+    except Exception:  # noqa: BLE001
+        pass
+    return _USX_CLASH["set"]
+
+
 def _conn() -> sqlite3.Connection:
     c = sqlite3.connect(DB_PATH)
     c.row_factory = sqlite3.Row
@@ -194,6 +221,8 @@ def register(app) -> None:
         ticker_u = (ticker or "").strip().upper()
         if not ticker_u:
             raise HTTPException(400, "ticker required")
+        if ticker_u.endswith("-US") and len(ticker_u) > 3:   # USX_NEWSKEY_V1: MTP's form of a US listing
+            ticker_u = ticker_u[:-3] + ".US"
         con = _conn()
         # Match exact ticker AND bare-symbol prefix (to handle suffix variations)
         # — and the same two shapes inside additional_tickers, which is where a
@@ -202,6 +231,12 @@ def register(app) -> None:
         # returned 2 items here and 8 there, because Riverside's joint releases
         # with Questcorp are filed primarily under QQQ.CN.
         bare = ticker_u.split(".")[0]
+        _excl = "\x00"                                    # USX_NEWSKEY_V1: a ticker no release has
+        if bare in _usx_clash_bases():
+            if ticker_u.endswith(".US"):
+                bare = ticker_u                            # this listing only (the prefix patterns match nothing)
+            else:
+                _excl = bare + ".US"                       # everything as before, minus the US company's releases
         # MNT_SPEED_V2 (2026-09-25): the OR below cannot use an index, so every call read all ~139k releases
         # (0.6 s; this is the most-called MNT feed). The same four conditions as a UNION of index lookups:
         # upper(ticker) equal, upper(ticker) in the prefix range ["BARE.", "BARE/") - what LIKE 'BARE.%' matches
@@ -218,10 +253,11 @@ def register(app) -> None:
                 "         AND ('|' || upper(additional_tickers) || '|') LIKE ?) "
                 "AND review_status IN ('auto_approved','approved') "
                 "AND coalesce(raw_headline,'') <> '' "
+                "AND upper(coalesce(ticker,'')) <> ? "
                 "ORDER BY published_at DESC, ingested_at DESC LIMIT ? OFFSET ?",
                 (ticker_u, bare + ".", bare + "/",
                  f"%|{ticker_u}|%", f"%|{bare}.%|%",
-                 limit, offset),
+                 _excl, limit, offset),
             ).fetchall()
             return _json({
                 "ok": True,
@@ -239,10 +275,11 @@ def register(app) -> None:
             "     OR ('|' || upper(coalesce(additional_tickers,'')) || '|') LIKE ? "
             "     OR ('|' || upper(coalesce(additional_tickers,'')) || '|') LIKE ? ) "
             "  AND coalesce(raw_headline,'') <> '' "
+            "  AND upper(coalesce(ticker,'')) <> ? "
             "ORDER BY published_at DESC, ingested_at DESC LIMIT ? OFFSET ?",
             (ticker_u, bare + ".%",
              f"%|{ticker_u}|%", f"%|{bare}.%|%",
-             limit, offset),
+             _excl, limit, offset),
         ).fetchall()
         return _json({
             "ok": True,

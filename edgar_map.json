@@ -1,0 +1,29 @@
+{
+ "_note": "MNT_EDGAR_NEWS_V1 hand overrides: add = universe ticker -> SEC CIK the name match misses; block = universe tickers never read from EDGAR. GORO: MinePortal's GORO record carries Goldgroup Mining's name (checklist C24), so Goldgroup's SEC filings would be posted under the wrong company.",
+ "add": {
+  "MUX": 314203,
+  "ELD": 918608,
+  "LAR": 1440972,
+  "NEM": 1164727,
+  "FCX": 831259,
+  "SCCO": 1001838,
+  "RGLD-US": 85535,
+  "HL": 719413,
+  "MP": 1801368,
+  "ALB": 915913,
+  "UEC": 1334933,
+  "AU-US": 1973832,
+  "GFI": 1172724,
+  "HMY": 1023514,
+  "SBSW": 1786909,
+  "DRD": 1023512,
+  "BVN": 1013131,
+  "SQM": 909037,
+  "FTCO": 1828377,
+  "REEMF": 1419806
+ },
+ "block": [
+  "GORO"
+ ],
+ "_note_usx": "USX 2026-11-10: the 17 US-listed pilot companies by their SEC CIK (names differ from the SEC list)"
+}

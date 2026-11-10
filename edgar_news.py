@@ -199,11 +199,13 @@ NOT_RELEASE = re.compile(      # what the document is, read from its first lines
     r"form 51-102f3|material change report|annual information form|form 52-109|certification of (interim|annual)|"
     r"form of proxy|voting instruction|report of voting results|technical report|consent of|"
     r"early warning report|form 45-106f1|code of (business )?conduct|shareholder rights plan|"
-    r"investor presentation|corporate presentation|report of foreign private issuer|securities commission")
+    r"investor presentation|corporate presentation|report of foreign private issuer|securities commission|"
+    r"dealings? in securities|director.{0,3} dealings?|b-?bbee|broad-based black economic|superintendencia del mercado")   # USX_EDGAR_V2
 WEAK_NOT = re.compile(r"(?i)agreement|indenture|warrant to purchase|execution (version|copy)|pro forma|notice of|"
                       r"articles of|by-law")   # documents of these kinds, unless the top reads as a news release
 IS_RELEASE = re.compile(r"(?i)news release|press release|for immediate release|\((nyse|tsx|nasdaq|otcq)[^)]{0,40}\)|"
-                        r"\b(nyse|tsx|tsxv|tsx-v|nasdaq|nyse american)\s*:\s*[a-z.]{1,6}\b")
+                        r"\b(nyse|tsx|tsxv|tsx-v|nasdaq|nyse american)\s*:\s*[a-z.]{1,6}\b|"
+                        r"\b(jse|nyse|asx|lse)[a-z ]{0,24}(share code|symbol|code|ticker)\s*:\s*[a-z]{2,6}\b")   # USX_EDGAR_V2
 LETTERHEAD = re.compile(   # AUDIT1110_SEC_TITLE (2026-11-10): letterhead lines are not the headline ("8310 S. Valley Highway")
     r"(?i)^\W*(?:\d{2,6} [\w.' -]{2,40}\b(?:street|avenue|ave|road|blvd|boulevard|highway|hwy|parkway)\.?\W*$"
     r"|(?!(?:19|20)\d\d )\d{2,6} [\w.' -]{2,40}\b(?:st|rd|drive|dr|place|way|crescent|lane|court)\.?\W*$"
@@ -252,6 +254,41 @@ def _sec_table_html(url):
         return ""
 
 
+# USX_EDGAR_V2 (2026-11-10): a 6-K's own document starts with the SEC cover page and ends with the signature page.
+COVER_6K = re.compile(
+    r"(?i)form 20-f|form 40-f|indicate by check mark|commission file (number|no)|principal executive offices?|"
+    r"rule 13a-16|15d-16|regulation s-t rule|translation of registrant|exact name of registrant|"
+    r"report of foreign (private )?issuer|securities exchange act of 1934|^for the month of|^washington, d\.?c\.?|"
+    r"^united states$|securities and exchange commission|^form 6-k$|^\(?registrant\)?$|^yes\b.{0,12}\bno\b|^_+$")
+USX_SKIP = re.compile(     # lines that are never the headline
+    r"(?i)^\S+@\S+\.\w+(\s+[\d(). +-]{7,})?$|^((media|investors?|ir)\s+)?(relations\s+)?contacts?\s*:?$|"
+    r"^investor relations\s*:?$|^\(?incorporated in\b|^\(?registration (number|no)\b|^\(?reg\. no|^isin\b|"
+    r"share code\s*:|trading symbol\s*:|^\(.{0,80}\b(company|group)\W{0,3}\)$|^free translation")
+
+
+def strip_6k_cover(body):
+    ls = body.split("\n")
+    head = " ".join(ls[:25]).lower()
+    if "form 6-k" not in head or "securities and exchange commission" not in head:
+        return body
+    last = -1
+    for i, l in enumerate(ls[:90]):
+        if COVER_6K.search(l.strip()):
+            last = i
+        elif last >= 0 and i - last > 12:
+            break
+    rest = ls[last + 1:]
+    for i, l in enumerate(rest[:80]):     # cover, exhibit list, signature page, then "Exhibit 99.1" and the release
+        if re.match(r"(?i)^exhibit\s+99(\.\d+)?$", l.strip()):
+            rest = rest[i + 1:]
+            break
+    for i, l in enumerate(rest):
+        if i > 3 and re.match(r"(?i)^signatures?$", l.strip()):
+            rest = rest[:i]
+            break
+    return "\n".join(rest).strip()
+
+
 def read_release(url, filed, coname):
     """(headline, body, published_date, why_not) for one exhibit."""
     if not re.search(r"(?i)\.(htm|html|txt)$", url):
@@ -259,11 +296,12 @@ def read_release(url, filed, coname):
     raw = sec_get(url, "text/html").decode("utf-8", "replace")
     _LAST_RAW[url] = raw   # SECFMT_V1
     body = html_text(raw) if re.search(r"(?i)\.htm", url) else raw
+    body = strip_6k_cover(body)   # USX_EDGAR_V2
     if len(body) < 600:
         return None, None, None, "too short (%d chars)" % len(body)
     head = body[:1500]
     ls = [l.strip() for l in body.split("\n") if l.strip()]
-    while ls and (SKIP_LINE.search(ls[0]) or len(ls[0]) < 4):
+    while ls and (SKIP_LINE.search(ls[0]) or USX_SKIP.search(ls[0]) or len(ls[0]) < 4):   # USX_EDGAR_V2
         ls.pop(0)
     top = re.sub(r"\s+", " ", " ".join(ls)[:300])
     m0 = NOT_RELEASE.search(top) or (WEAK_NOT.search(top) if not IS_RELEASE.search(head) else None)
@@ -287,7 +325,7 @@ def read_release(url, filed, coname):
     lines = body.split("\n")[:60]
     for i, l in enumerate(lines):
         l = l.strip(" -–—*·")
-        if len(l) < 12 or SKIP_LINE.search(l) or LETTERHEAD.search(l):
+        if len(l) < 12 or SKIP_LINE.search(l) or LETTERHEAD.search(l) or USX_SKIP.search(l):   # USX_EDGAR_V2
             continue
         if nname(l) == cn or (len(l) < 60 and IS_RELEASE.search(l)) or DL_PARA.search(l):
             continue
@@ -298,6 +336,16 @@ def read_release(url, filed, coname):
                 break
             parts.append(nxt)
         title = re.sub(r"\s+", " ", " ".join(parts))[:250]
+        k = i + len(parts)              # USX_EDGAR_V2: a headline broken by blank lines ("Buenaventura Announces" / "Third Quarter ...")
+        for _ in range(2):
+            if not re.search(r"(?i)\b(announces?|reports?|and|of|for|the|to|its)$|quarter 20\d\d$", title):
+                break
+            nx = [(j, x.strip()) for j, x in enumerate(lines[k:k + 3], k) if x.strip()][:1]
+            if not nx or DL_PARA.search(nx[0][1]) or SKIP_LINE.search(nx[0][1]) or len(nx[0][1]) > 120:
+                break
+            title, k = (title + " " + nx[0][1])[:250], nx[0][0] + 1
+        title = re.split(r"\s[\uf0b7\u2022\u25cf]\s", title)[0]   # USX_EDGAR_V2: stop at a bullet mark; drop page numbers
+        title = re.sub(r"(?<=\d{4}) \d{1,2}$", "", re.sub(r"^\d{1,2}\s+(?=[A-Z][a-z])", "", title)).strip()
         if len(title) < 20:
             title = None
             continue
