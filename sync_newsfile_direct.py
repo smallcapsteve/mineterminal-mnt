@@ -534,6 +534,11 @@ def make_stub(item: dict, apply: bool, seen: dict, counts: dict) -> str:
         return "too_old"
     if get_stub(url):
         return "exists"
+    _done = _ro().execute("SELECT kept_id FROM dup_guard_log WHERE action='stub_replaced' AND event_id=? ORDER BY id DESC LIMIT 1",
+                          (stub_event_id(url),)).fetchone()   # NFSTUB_EXCH_V1.2: a full copy already replaced this short version
+    if _done and _done[0] and _ro().execute("SELECT 1 FROM events WHERE event_id=?", (_done[0],)).fetchone():
+        seen[rid] = {"st": "on_mnt", "event": _done[0][:12]}
+        return "on_mnt"
     if NW.NON_MINING_HINTS.search(item["headline"]):
         return "non_mining"
     tk = extract_ticker(item.get("teaser") or "")[0] or item.get("ticker_hint")
