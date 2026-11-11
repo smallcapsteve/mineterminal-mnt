@@ -1,0 +1,139 @@
+{
+ "197810cd925df9b426a930263d19820cfd1732b8": {
+  "drop": [
+   [
+    "Q1 2026",
+    "gold"
+   ]
+  ],
+  "why": "58,000 oz is the non-managed joint ventures' output, not the group's (USX_PRODOV_V1, Justin 2026-11-11)"
+ },
+ "7be10ee368e4147d3d93ce0b36933a889c930b59": {
+  "drop": [
+   [
+    "Q1 2026",
+    "gold"
+   ],
+   [
+    "FY 2025",
+    "gold"
+   ]
+  ],
+  "why": "173 koz is Salares Norte alone; 19,000 oz is one mine's March-quarter figure (USX_PRODOV_V1, Justin 2026-11-11)"
+ },
+ "8b191cc15bfb81e35c1e6285b2dd142d4508c490": {
+  "drop": [
+   [
+    "FY 2025",
+    "gold"
+   ]
+  ],
+  "why": "1.267 Moz is the first half of 2026, not FY 2025 (USX_PRODOV_V1, Justin 2026-11-11)"
+ },
+ "a46de5778bbcce23c084c1c5ae7e3c4b814695ed": {
+  "drop": [
+   [
+    "FY 2025",
+    "gold"
+   ]
+  ],
+  "why": "80.7 koz is South Deep's Q3 2026 figure (USX_PRODOV_V1, Justin 2026-11-11)"
+ },
+ "b1614f3ab6a27b8d7f87eea3b1009dc8321d8055": {
+  "drop": [
+   [
+    "Q4 2025",
+    "gold"
+   ],
+   [
+    "Q4 2025",
+    "silver"
+   ]
+  ],
+  "why": "Greens Creek's full-year 2025 figures, not the company's fourth quarter (USX_PRODOV_V1, Justin 2026-11-11)"
+ },
+ "293dff93cf50d00431f86b7e220369030c92dde7": {
+  "drop": [
+   [
+    "Q1 2026",
+    "gold"
+   ]
+  ],
+  "why": "Greens Creek alone, not the company (USX_PRODOV_V1, Justin 2026-11-11)"
+ },
+ "2ff9a9d73d78e4f3be707aded920c363f3d2b597": {
+  "drop": [
+   [
+    "Q2 2026",
+    "gold"
+   ]
+  ],
+  "why": "Greens Creek alone, not the company (USX_PRODOV_V1, Justin 2026-11-11)"
+ },
+ "75be3822f2e776d5976c47290d030d871a4c83bb": {
+  "drop": [
+   [
+    "Q3 2026",
+    "gold"
+   ]
+  ],
+  "why": "Greens Creek alone, not the company (USX_PRODOV_V1, Justin 2026-11-11)"
+ },
+ "fbc7858187372fb615ed508975fbcbc72f16eb57": {
+  "drop": [
+   [
+    "Q3 2025",
+    "gold"
+   ]
+  ],
+  "why": "the Beatrix operation alone (USX_PRODOV_V1, Justin 2026-11-11)"
+ },
+ "ac7807c3f51becbd464e5da380636f88cb36f4f4": {
+  "drop": [
+   [
+    "FY 2025",
+    "gold"
+   ]
+  ],
+  "why": "a half-year table column read as the year (USX_PRODOV_V1, Justin 2026-11-11)"
+ },
+ "01e0a41cfb28151067aa39305e560ff71070f62b": {
+  "drop": [
+   [
+    "Q3 2026",
+    "gold"
+   ]
+  ],
+  "why": "DRDGOLD's production alone (USX_PRODOV_V1, Justin 2026-11-11)"
+ },
+ "d728dbf1193ffe8c6cadd4640a0ecd1cec310cf2": {
+  "drop": [
+   [
+    "Q1 2026",
+    "gold"
+   ],
+   [
+    "Q1 2026",
+    "copper"
+   ]
+  ],
+  "why": "Centerra's Mount Milligan production, quoted by Royal Gold (USX_PRODOV_V1, Justin 2026-11-11)"
+ },
+ "b3e5e4257a74b33a633368e29d12a7b53f8fb314": {
+  "drop": [
+   [
+    "Q2 2026",
+    "gold"
+   ],
+   [
+    "Q2 2026",
+    "copper"
+   ],
+   [
+    "FY 2025",
+    "copper"
+   ]
+  ],
+  "why": "Centerra's Mount Milligan production, quoted by Royal Gold (USX_PRODOV_V1, Justin 2026-11-11)"
+ }
+}

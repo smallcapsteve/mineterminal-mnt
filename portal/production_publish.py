@@ -49,6 +49,8 @@ import sys
 import time
 
 EXTRACTOR = "production"
+OVERRIDES = "/opt/mnt/app/portal/production_overrides.json"   # USX_PRODOV_V1
+import os
 TAG = "Production Results"
 DB = "/opt/mnt/app/portal/portal.db"
 
@@ -376,7 +378,19 @@ def load_items(conn, version):
                 " WHERE r2.extractor=? AND r2.version=? AND f2.field='is_production' AND f2.value_num=1)",
                 (EXTRACTOR, version, EXTRACTOR, version)):
             facts.setdefault(eid, {}).setdefault(ordinal, []).append((field_, seq, num, text))
-    return [(evs[e], X.parse_records(facts.get(e, {}))) for e in evs]
+    out = [(evs[e], X.parse_records(facts.get(e, {}))) for e in evs]
+    # USX_PRODOV_V1 (2026-11-11): hand corrections for rows the reader gets wrong (a mine's figure as the company's)
+    #   {"<event_id>": {"drop": [["Q1 2026", "gold"], ...], "why": "..."}}   those rows of that release are not published
+    try:
+        ov = json.load(open(OVERRIDES)) if os.path.exists(OVERRIDES) else {}
+    except Exception:
+        ov = {}
+    for ev, p in out:
+        o = ov.get(ev["event_id"]) if ov else None
+        if o and p.get("rows"):
+            drop = {(d[0], (d[1] or "").lower()) for d in (o.get("drop") or [])}
+            p["rows"] = [r for r in p["rows"] if (r.get("period"), (r.get("metal") or "").lower()) not in drop]
+    return out
 
 
 def _ensure_schema(conn):
@@ -537,7 +551,8 @@ def main(argv=None):
         print("[production_publish] no active production version; nothing to publish")
         return 0
     try:
-        publish(conn, version)
+        from portal import pub_incr   # PUB_INCR_V1 (2026-11-05): per-company publishing, portal/pub_incr_modes
+        pub_incr.run('production', conn, version, publish)
         return 0
     except Exception as exc:  # noqa: BLE001
         print("[production_publish] FAILED publishing %s: %s: %s" % (version, type(exc).__name__, exc))

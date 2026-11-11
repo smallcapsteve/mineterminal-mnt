@@ -1,0 +1,50 @@
+{
+ "a89e35889213c25e0b45eb06e53a33def2d8887a": {
+  "ticker": "CAM.V",
+  "why": "Agnico Eagle's release on its investment in Cascadia Minerals' flow-through financing; the deal is Cascadia's"
+ },
+ "bae56382c3d69a9271f33d8a4acb6055b8f696fd": {
+  "own_deal": true,
+  "why": "Adelphi Metals' IPO closing is not part of the private placement announced the same day"
+ },
+ "2f18f65ebaabd959e84d98a9a7b97a471c0a4d64": {
+  "ticker": "FFOX.V",
+  "why": "Agnico's release on investing in FireFox Gold's placement"
+ },
+ "83088e0c29f24e9a0ba47d1506b30e98acbcb797": {
+  "not_financing": true,
+  "why": "Agnico taking part in Orla Mining's financing"
+ },
+ "521b34aa17b89efd9d9c0dd42477a815d2ae3ef9": {
+  "not_financing": true,
+  "why": "Montage investing in African Gold"
+ },
+ "6714d44a31c241df8edea245eea3c82f99b158b0": {
+  "not_financing": true,
+  "why": "Montage investing in African Gold"
+ },
+ "900d0836392faafb8763eb0888ab2b8a2f9b07b1": {
+  "not_financing": true,
+  "why": "Monumental Energy investing in New Zealand Energy"
+ },
+ "3a9a98df0bd5515bf22a54f6c8af3ffab1c632b2": {
+  "not_financing": true,
+  "why": "Forty Pillars investing in CAVU Mining"
+ },
+ "e6d1223a7e7039b53de2b0b5cbf3a8a2444b75715f735a2181609de516e83b30": {
+  "not_financing": true,
+  "why": "an investment and offtake agreement still being negotiated, not a private placement (LBFIX1110, Justin 2026-11-10)"
+ },
+ "c2a2b9c84cb7daafea315aae6e0fcfe00fbe1eaf": {
+  "not_financing": true,
+  "why": "a US$1.25B project loan for Tia Maria, not a share placement (USX_FINOV_V1, Justin 2026-11-11)"
+ },
+ "7cb8eb742a6a1a67436ded080df786c37f7597bd": {
+  "not_financing": true,
+  "why": "a US$500M debt funding facility, not a share placement (USX_FINOV_V1, Justin 2026-11-11)"
+ },
+ "bbc40676464f5ea74409bc78ea9966f319f49036": {
+  "not_financing": true,
+  "why": "Southern Copper's US$1.25B notes issue (debt), not a share placement (USX_FINOV_V1, Justin 2026-11-11)"
+ }
+}
