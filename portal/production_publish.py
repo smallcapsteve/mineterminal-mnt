@@ -408,6 +408,14 @@ def publish(conn, version, log=print):
         raise ValueError("bad version %r" % (version,))
     t0 = time.time()
     rows, st = compute(load_items(conn, version))
+    # USX_SECPROD_V1 (2026-11-11): figures from US companies' own SEC filings laid over the reader's rows
+    # (portal/production_filings.py; figures in portal/production_filings.json; off: portal/production_filings_OFF)
+    try:
+        from portal import production_filings as _pf
+        _rows2, _fst = _pf.apply([dict(r) for r in rows], conn, cols=list(_COLS))
+        rows, st["filings"] = _rows2, {k: v for k, v in _fst.items() if k != "left_out"}
+    except Exception as _e:
+        st["filings"] = {"error": str(_e)[:200]}
     _ensure_schema(conn)
     # OPTD step A (2026-10-06): the same rowsync calls, run once before the write lock to work out the
     # differences; the locked pass below then only applies them (portal/rowsync.py, planning). Kill switch:
