@@ -1281,6 +1281,61 @@ def _hl_trim(headline: str, body: str) -> str:
     return headline
 
 
+# AUDIT1110_HLSUB (2026-11-11): a headline read from a PDF sometimes runs on into the release's sub-heading. The headline
+# is rebuilt from the document's own lines and cut where (a) an ALL-CAPITALS headline is followed by an ordinary-case line,
+# (b) the headline's lines sit together and the next line comes after a blank line, or (c) the next line is a bullet.
+# Never cuts after a line that ends mid-phrase or before a line that reads as a continuation. Dry run: 1,106 releases.
+_HLSUB_BUL = re.compile(r"^[•●▪◦‣·➢✓\*]\s*\S|^[−–—\-]\s+\S")
+_HLSUB_CONT_W = re.compile(r"(?i)^(and|&|with|including|for|of|in|on|at|to|from|as|plus|while|ahead|by|the|a|an|its|over|under|near|project|property|deposit|mine)\b")
+_HLSUB_CONT_C = re.compile(r"^[a-z,;&(\d]")
+_HLSUB_TAIL = re.compile(r"(?i)(\b(and|&|with|including|for|of|in|on|at|to|from|as|the|a|an|its|by|over|into|up|than)|[,;:\-–—/&(])$")
+_HLSUB_ADDR = re.compile(r"(?i)\b(suites?|level \d|floor|p\.?\s?o\.? box|box \d|street|avenue|office block)\b")
+
+
+def _hlsub_caps(s: str) -> bool:
+    L = [c for c in s if c.isalpha()]
+    return len(L) >= 8 and sum(c.isupper() for c in L) >= 0.9 * len(L)
+
+
+def _hl_subhead(headline: str, body: str) -> str:
+    try:
+        norm = lambda x: re.sub(r"\s+", " ", x or "").strip()
+        hn = norm(headline)
+        raw = [norm(l) for l in (body or "").split("\n")[:120]]
+        s = None
+        for j, l in enumerate(raw):
+            if len(l) >= 8 and hn.startswith(l):
+                out = []; rest = hn; k = j; blanks = 0
+                while k < len(raw) and rest:
+                    if not raw[k]:
+                        blanks += 1; k += 1; continue
+                    if not rest.startswith(raw[k]):
+                        break
+                    out.append((raw[k], blanks)); blanks = 0
+                    rest = rest[len(raw[k]):].lstrip(); k += 1
+                if not rest:
+                    s = out
+                    break
+        if not s or len(s) < 2:
+            return headline
+        gaps = [g for _, g in s][1:]
+        for i in range(1, len(s)):
+            head = " ".join(x for x, _ in s[:i]); nxt = s[i][0]
+            if len(head) < 25 or _HLSUB_ADDR.search(head):
+                continue
+            if _HLSUB_BUL.match(nxt):
+                return head.rstrip(" -–—:;,")
+            if _HLSUB_TAIL.search(head) or _HLSUB_CONT_W.search(nxt) or _HLSUB_CONT_C.search(nxt):
+                continue
+            if len(head) >= 40 and _hlsub_caps(head) and not _hlsub_caps(nxt) and sum(c.islower() for c in nxt) >= 8:
+                return head
+            if s[i][1] >= 1 and all(g == 0 for g in gaps[:i - 1]) and (i >= 2 or len(head) >= 45):
+                return head
+    except Exception:
+        pass
+    return headline
+
+
 def headline_problem(h: str | None) -> str:
     """'' when the headline looks like a headline, else the reason it does not."""
     h = (h or "").strip()
@@ -1816,6 +1871,7 @@ def main() -> int:
             log(f"   UNREADABLE {rel['bare']:<7} {rel['published_date']} {err[:60]}")
             continue
         headline = _hl_trim(headline, body) if rel["source"] == "tmx" else headline   # AUDIT1110_HLTRIM
+        headline = _hl_subhead(headline, body) if rel["source"] == "tmx" else headline   # AUDIT1110_HLSUB
         eid, wrong = find_match(pcon, rel, title=headline, body=body)   # EXCH_FINLINK_V1: and the text
         if eid:
             n_late += 1
