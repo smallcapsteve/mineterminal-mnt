@@ -58,6 +58,24 @@ def _must(conn):
     return d
 
 
+# USX_PRODNEAR_V1 (2026-11-12): reader rows found only on a release more than 21 days after the filing (a recast 8-K)
+# do not take the figure when a results release sits near the filing date; the figure is added there instead.
+def _all_late(hit, f):
+    fd = _day(f.get("filed"))
+    if not fd:
+        return False
+    for r in hit:
+        d = _day(r.get("published_at"))
+        if not d or (d - fd).days <= 21:
+            return False
+    return True
+
+
+def _near_release(evs, f):
+    fd = _day(f["filed"])
+    return any(-35 <= (_day(e["published_at"]) - fd).days <= 7 for e in evs)
+
+
 def apply(rows, conn, path=None, cols=None):
     st = {"figures": 0, "updated": 0, "added": 0, "same": 0, "no_release": 0, "hidden_old": 0}
     touched = set()
@@ -91,6 +109,8 @@ def apply(rows, conn, path=None, cols=None):
         nxt = {}
         for f in fl:
             hit = have.get((tk, f["period"], f["metal"].lower()))
+            if hit and _all_late(hit, f) and _near_release(evs, f):  # USX_PRODNEAR_V1
+                hit = None
             if hit:
                 for r in hit:
                     q = r.get("qty")
