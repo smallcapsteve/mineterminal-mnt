@@ -96,7 +96,7 @@ from portal import fingerprint as FP
 from portal import project_names as PN
 
 NAME = "economics"
-VERSION = "1.0.16"  # 2026-10-18 PNSRC: helper 1.0.7 (no change to this reader's own code); 2026-10-13 PNJUNK: helper 1.0.6 (no change of its own); 2026-10-06 FIX8: throughput, annual production and unit costs that cannot be right (econ_core; b: without losing the real ones written as 207koz, 149,000 ozs, more than, per year, $US892/oz1, per ton); 2026-09-30: ACC150 quick fix (sweep points, rate read as IRR, duplicate rows, context, whose study, study type); 2026-10-02: FIX4 (named cases the core misses, another company's study, other metrics read as the NPV, one price written twice, rate sweeps, PDF-split words and bullets, metres); 2026-10-04 FIX5: mine life in words or hyphenated, payback (after-tax, of initial capital, not a sweep), figures under the wrong tax basis, rounded figures stated exactly in the table, currency the release states, more PDF-split words, split or component capital, each restated study's own mine life and capital
+VERSION = "1.0.17"  # 2026-11-05 ECONFIX: a figure whose own sentence names the headline's issuer (Westhaven's) is the issuer's, whatever company the sentence before names; 1.0.16: 2026-10-18 PNSRC: helper 1.0.7 (no change to this reader's own code); 2026-10-13 PNJUNK: helper 1.0.6 (no change of its own); 2026-10-06 FIX8: throughput, annual production and unit costs that cannot be right (econ_core; b: without losing the real ones written as 207koz, 149,000 ozs, more than, per year, $US892/oz1, per ton); 2026-09-30: ACC150 quick fix (sweep points, rate read as IRR, duplicate rows, context, whose study, study type); 2026-10-02: FIX4 (named cases the core misses, another company's study, other metrics read as the NPV, one price written twice, rate sweeps, PDF-split words and bullets, metres); 2026-10-04 FIX5: mine life in words or hyphenated, payback (after-tax, of initial capital, not a sweep), figures under the wrong tax basis, rounded figures stated exactly in the table, currency the release states, more PDF-split words, split or component capital, each restated study's own mine life and capital
 KIND = "economic_study"
 TAG = "Economic Studies"
 TEXT_CAP = 20000
@@ -714,6 +714,29 @@ def _sentence_back(flat, pos, reach=350):
     return (seg[ends[-2].end():] if len(ends) >= 2 else seg), (seg[ends[-1].end():] if ends else seg)
 
 
+_GENERIC_HEAD = {"the", "a", "an", "new", "update", "updated", "positive", "results", "notice", "news", "press", "release",
+                 "announces", "announcement", "report", "reports", "corporate", "company", "corporation", "mining",
+                 "gold", "silver", "copper", "lithium", "uranium", "metals", "resources", "minerals", "exploration",
+                 "pea", "pfs", "dfs", "fs", "npv", "irr", "first", "second", "third", "q1", "q2", "q3", "q4", "annual",
+                 "interim", "preliminary", "feasibility", "economic", "assessment", "study", "studies"}
+
+
+def _names_head_issuer(own, head_name):
+    """1.0.17: the figure's own sentence names the issuer the headline names, the way a company is named: its first word
+    possessive ('Westhaven's Shovelnose PEA') or followed by the headline's next word ('Westhaven Gold')."""
+    words = (head_name or "").split()
+    if not words:
+        return False
+    first = words[0].strip(",.:;'\u2019\"()")
+    if len(first) < 4 or not first[0].isupper() or first.lower() in _GENERIC_HEAD:
+        return False
+    nxt = words[1].strip(",.:;'\u2019\"()") if len(words) > 1 else ""
+    pat = r"\b%s(?:['\u2019]s\b" % re.escape(first)
+    if nxt and nxt[0].isupper() and nxt.lower() not in ("and", "announces", "reports"):
+        pat += r"|\s+%s\b" % re.escape(nxt)
+    return re.search(pat + ")", own or "") is not None
+
+
 def _others_figure(flat, v, issuer):
     rx = _fig_rx(abs(v)) if v else None
     hits = list(rx.finditer(flat)) if rx else []
@@ -722,6 +745,8 @@ def _others_figure(flat, v, issuer):
     for m in hits:
         lead, own = _sentence_back(flat, m.start())
         if _RE_OWN_WORDS.search(lead) or any(n.lower() in own.lower() for n in issuer[:-1]):
+            return False
+        if _names_head_issuer(own, issuer[-1]):        # 1.0.17: the headline's issuer named in the figure's own sentence
             return False
         names = [g.group("name") or g.group("pname") for g in _RE_OTHER_CO.finditer(lead)
                  if not _RE_BY_CONSULTANT.search(lead[max(0, g.start() - 40):g.start()])]
