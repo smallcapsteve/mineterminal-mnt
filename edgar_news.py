@@ -152,12 +152,20 @@ def current_feed(form):
 
 def filer_list(cik, since):
     j = json.loads(sec_get("https://data.sec.gov/submissions/CIK%010d.json" % cik, "application/json"))
-    f = j["filings"]["recent"]
+    parts = [j["filings"]["recent"]]
+    if os.environ.get("USX_EDGAR_OLD") == "1":      # USX_EDGAR_OLD_V1: history runs also read the older list pages
+        for o in j["filings"].get("files") or []:
+            if (o.get("filingTo") or "9999") >= since:
+                try:
+                    parts.append(json.loads(sec_get("https://data.sec.gov/submissions/" + o["name"], "application/json")))
+                except Exception as e:
+                    log("older list %s not read: %s" % (o.get("name"), str(e)[:80]))
     out = []
-    for i in range(len(f["form"])):
-        if f["form"][i] in ("6-K", "8-K") and f["filingDate"][i] >= since:
-            out.append((cik, f["accessionNumber"][i], f["filingDate"][i], ((f.get("items") or [""] * 99999)[i] or "")
-                        .replace(",", " ")))
+    for f in parts:
+        for i in range(len(f["form"])):
+            if f["form"][i] in ("6-K", "8-K") and f["filingDate"][i] >= since:
+                out.append((cik, f["accessionNumber"][i], f["filingDate"][i], ((f.get("items") or [""] * 99999)[i] or "")
+                            .replace(",", " ")))
     return out
 
 
@@ -528,7 +536,7 @@ def usx_v5_head(body, coname, filed):
     return body
 
 
-def usx_v5_title(title, body, coname):
+def _usx_v5_title_r6(title, body, coname):
     if not _V5_ON:
         return title
     if _V5T[0]:
@@ -592,6 +600,178 @@ def usx_v5_title(title, body, coname):
                 if len(t) >= 25:
                     title = t[:200].rsplit(" ", 1)[0] if len(t) > 200 else t
     return title
+
+
+
+# ---- USX_EDGAR_V5 round 7 (2026-11-12): Harmony, Gold Fields, SQM, Buenaventura history headlines -------------------
+_V7_COVER = re.compile(r"(?i)check mark|as long as the report|is not a press release|security holders|\bregistrant\b|form 20-?\s?f|"
+                       r"form 40-?\s?f|rule 101|12g3|securities exchange act|commission file|the month of \w+,? 20\d\d|"
+                       r"www\.sec\.gov|incorporating by reference|not for (publication|release|distribution)")
+_V7_NOLINE = re.compile(r"(?i)^(yes|no)\b|^\W*$|\bedgar\b|^signatures?$|pursuant to|thereunto|\bcommission\b|directly or indirectly|in whole or in part|jurisdiction|^\(?translation of|^\(?address of|^\(?exact name")
+_V7_PER = r"(?:quarter|six months|nine months|year|half[- ]year)(?: and [a-z ]{3,25})? ended \d{1,2} [A-Za-z]+ 20\d\d"
+
+
+def _v7_frag(t):
+    if ")" in t and ("(" not in t or t.find(")") < t.find("(")):
+        return True
+    return bool(re.match(r"^([a-z]|[^\w\"'“$]|o\s|\d{1,2},\s)", t)) or len(t) < 20
+
+
+def _v7_at(ls, title):
+    k = title.strip(" -*.")[:25]
+    return next((i for i, l in enumerate(ls) if k and l.strip(" -*.").startswith(k)), None)
+
+
+def _v7_next(ls, start):
+    for l in ls[start + 1:start + 60]:
+        if 20 <= len(l) and not _V7_COVER.search(l) and not _V7_NOLINE.search(l) and not _usx_skip(l) and not SKIP_LINE.search(l):
+            return l
+    return None
+
+
+def _v7_sentence(text):
+    t = re.sub(r"\s+", " ", text).strip()
+    t = re.sub(r"^INTRODUCTION\s+", "", t)
+    t = re.sub(r"(?i)^(santiago,?\s*)?chile[.,]?\s*\w+ \d{1,2},? 20\d\d\W*", "", t)
+    t = re.sub(r"(?i)^johannesburg[.,:]?\s*(\w+day,?\s*)?\d{1,2} \w+ 20\d\d\W*", "", t)
+    t = re.sub(r"\s*\([^()]{0,90}\)", lambda m: "" if re.search(r"(?i)nyse|jse|\"|“|the company|or the |sqm|harmony|gold fields", m.group(0)) else m.group(0), t)
+    t = re.sub(r"(?i)sociedad qu[ií]mica y minera de chile,? s\.?a\.?", "SQM", t)
+    t = re.sub(r"(?i)^we hereby inform you that\s+", "", t)
+    t = re.split(r"(?<=[a-z0-9\)])\.\s", t)[0].strip().rstrip(".")
+    if len(t) > 170:
+        t = t[:170].rsplit(" ", 1)[0]
+    return t[:1].upper() + t[1:]
+
+
+def usx_v5_title(title, body, coname):
+    if not _V5_ON:
+        return title
+    cn = re.sub(r"\s+", " ", (coname or "").strip())
+    low = cn.lower()
+    ls = [x.strip() for x in body.split("\n")[:260] if x.strip()][:150]
+    flat = " ".join(ls)
+    if title and not _V5T[0] and _V7_COVER.search(title):          # the "headline" is SEC cover text: first real line after it
+        i = _v7_at(ls, title)
+        nx = _v7_next(ls, i if i is not None else -1)
+        if nx:
+            title = nx[:250]
+    t = _usx_v5_title_r6(title, body, coname)
+    if not t or _V5T[0]:
+        return t
+    t = re.sub(r"(?i)^(\?\s*(yes|no)\s*)+\?\s*", "", t)
+    t = re.sub(r"^and REPLACING\s+", "", t)
+    t = re.sub(r"^(INTRODUCTION|THE JOINT OFFER)\s+(\d\.\d\s+)?(?=[A-Z])", "", t)
+    if re.search(r"(?i)compliance with paragraphs 3\.6\d", t[:160]):
+        return ""                                                  # directors' dealings notice, not news
+    if "buenaventura" in low:
+        t = re.sub(r"(?i)^de minas buenaventura\b", "Buenaventura", t)
+        if re.match(r"(?i)^(compa\S+ de )?minas buenaventura(,? s\.?a\.?a\.?)?\W*$", t) or t.startswith("("):
+            m = next((l for l in ls if re.match(r"(?i)^(compa\S+ de minas )?buenaventura (announces|reports|provides|files|informs)\b", l)), None)
+            if m:
+                t = re.sub(r"(?i)^compa\S+ de minas ", "", m)[:250]
+    elif _v5_sqm(coname):
+        if re.search(r"(?i)registrant filed with the superintendencia|\(the .SVS.\) a report", t) or \
+                (_v7_frag(t) and re.search(r"(?i)registrant filed with the superintendencia", flat[:3000])):
+            m = re.search(r"(?i)(three|six|nine|twelve)[- ]month period ended (\w+ \d{1,2}, 20\d\d)", flat[:6000])
+            t = "SQM: Financial report filed with the Chilean securities regulator" + \
+                (" for the %s months ended %s" % (m.group(1).lower(), m.group(2)) if m else "")
+        elif _v7_frag(t) or re.match(r"(?i)(santiago|chile\b|sociedad|we hereby)", t) or _V7_COVER.search(t):
+            m = re.search(r"(?i)(sociedad qu[ií]mica y minera de chile,? s\.?a\.?.{20,400}?[a-z0-9\)]\.(?:\s|$))", flat[:8000])
+            src = t if re.match(r"(?i)we hereby", t) else (m.group(1) if m else (None if _v7_frag(t) else t))
+            if src:
+                s = _v7_sentence(src)
+                if len(s) >= 25:
+                    t = s
+    elif re.search(r"harmony gold|gold fields", low):
+        short = "Harmony" if "harmony" in low else "Gold Fields"
+        if re.match(r"(?i)johannesburg\b", t):
+            i = _v7_at(ls, t)
+            s = _v7_sentence(" ".join(ls[i:i + 4]) if i is not None else t)
+            if len(s) >= 25:
+                t = s
+        elif _v7_frag(t) or re.match(r"^(?:[A-Z] ){1,3}[A-Za-z]+.*,\s*(?:[A-Z] ){1,3}", t) or \
+                re.search(r"(?i)sandton|^exceeding targets$|^south deep mine$|operations and assets in south africa", t):
+            m = re.search(r"(?i)\b((?:results|operational update|operating update|trading statement|quarterly update|production update)\b"
+                          r"[^.|]{0,60}?\b" + _V7_PER + ")", flat[:8000])
+            m2 = m or re.search(r"(?i)\b(" + _V7_PER + ")", flat[:8000])
+            if m:
+                p = re.sub(r"\s+", " ", m.group(1))
+                t = short + ": " + p[:1].upper() + p[1:]
+            elif m2:
+                t = short + " results for the " + re.sub(r"\s+", " ", m2.group(1))
+            elif t.startswith("("):
+                t = re.sub(r"^\([^)]*\)\s*", "", t)
+                if t[:1].islower():
+                    t = short + " " + t
+    i = _v7_at(ls, t)
+    for _ in range(2):                                             # headline broken over lines ("Buenaventura Announces Second")
+        if i is None or i + 1 >= len(ls) or not re.search(r"(?i)('s|-month|\b(first|second|third|fourth|quarter|and|of|at|the|for|in))$", t):
+            break
+        nx = ls[i + 1]
+        if len(nx) > 110 or nx.endswith(".") or _V7_COVER.search(nx) or _usx_skip(nx) or DL_PARA.search(nx) \
+                or (_V5_MONTH.search(nx.lower()) and re.search(r"20\d\d", nx)):
+            break
+        t, i = t + " " + nx, i + 1
+    if len(t) > 170:
+        a = re.split(r"(?<=[a-z0-9\)])[.;]\s", t)[0]
+        t = a if len(a) >= 40 else t
+        if len(t) > 170:
+            c = t[:170]
+            k = max(c.rfind(", "), c.rfind("; "), c.rfind(" - "))
+            t = c[:k] if k >= 70 else c.rsplit(" ", 1)[0]
+    return t.strip()[:250]
+
+
+
+# ---- USX_EDGAR_R8 (2026-11-12) ------------------------------------------------------------------------------------
+def _r8_pub(pub, filed):
+    """A quarter-end date more than 10 days before the filing is the period, not the release day: use the filing date."""
+    try:
+        p, f = str(pub)[:10], str(filed)[:10]
+        if p[5:] in ("03-31", "06-30", "09-30", "12-31") and (dt.date.fromisoformat(f) - dt.date.fromisoformat(p)).days > 10:
+            return f + str(pub)[10:]
+    except Exception:
+        pass
+    return pub
+
+
+def _r8_title(title, body, coname):
+    if not title or not _V5_ON or _V5T[0]:
+        return title
+    t = title
+    cn = re.sub(r"\s+", " ", (coname or "").strip())
+    ls = [x.strip() for x in body.split("\n")[:120] if x.strip()]
+    k = t.strip(" -*.")[:25]
+    i = next((j for j, l in enumerate(ls) if k and l.strip(" -*.").startswith(k)), None)
+
+    def nxt(j):
+        for q in range(j + 1, min(len(ls), j + 25)):
+            l = ls[q]
+            if len(l) >= 20 and not DL_PARA.search(l) and not SKIP_LINE.search(l) and not _usx_skip(l) and not LETTERHEAD.search(l) \
+                    and not re.match(r"(?i)for (immediate )?release|contacts?\b|investors?\b|media\b", l) and nname(l) != nname(cn):
+                return q
+        return None
+    if re.match(r"(?i)for release\b", t) or (cn and nname(t) == nname(cn)) or re.fullmatch(r"(?i)freeport-mcmoran copper & gold inc\.?", t):
+        q = nxt(i if i is not None else -1)
+        if q is not None:
+            joined = not re.match(r"(?i)for release\b", t) and re.match(r"(?:and|Announces|Reports|Provides|Completes|Declares|Updates|To)\b|[a-z]", ls[q])
+            t, i = ((t + " " + ls[q]) if joined else ls[q])[:250], q
+    t = re.sub(r"^[A-Z][A-Za-z .,]{2,40}\W{1,4}\(BUSINESS WIRE\)\W{1,4}", "", t)
+    t = t[:1].upper() + t[1:]
+    if re.match(r"(?i)copper & gold inc\.", t) and "freeport" in cn.lower():
+        t = "Freeport-McMoRan " + t
+    for _ in range(2):
+        if i is None or i + 1 >= len(ls) or not re.search(r"(?i)(first|second|third|fourth)-quarter$", t):
+            break
+        if len(ls[i + 1]) > 110 or DL_PARA.search(ls[i + 1]):
+            break
+        w = t.rsplit(" ", 1)[-1]
+        t, i = (t + ls[i + 1][len(w):]) if ls[i + 1].lower().startswith(w.lower()) else (t + " " + ls[i + 1]), i + 1
+    t = t.rstrip(" ;,")
+    if len(t) > 200:
+        a = re.split(r"(?<=[a-z0-9\)])[.;]\s", t)[0]
+        t = a if len(a) >= 40 else t[:200].rsplit(" ", 1)[0]
+    return t if len(t) >= 15 else title
 
 
 
@@ -689,9 +869,10 @@ def read_release(url, filed, coname):
         if _cn and len(title) > len(_cn) + 25 and title.lower().endswith(" " + _cn.lower()):
             title = title[:-len(_cn)].strip()
     title = usx_v5_title(title, body, coname)   # USX_EDGAR_V5
+    title = _r8_title(title, body, coname)      # USX_EDGAR_R8
     if not title:
         return None, None, None, "no headline found"
-    return title, body, pub, None
+    return title, body, _r8_pub(pub, filed), None
 
 
 # ---------------------------------------------------------------------------------------------------------- matching
