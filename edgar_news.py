@@ -447,6 +447,154 @@ def sens_reflow(body):
     return "\n".join(out).strip()
 
 
+# USX_EDGAR_V5 (2026-11-11): what stands above the headline in older and foreign filings (see payloads/usx/edgar_v5.py).
+# Acts only with USX_EDGAR_V5=1 in the environment (history runs); without it read_release() behaves as before.
+_V5_ON = os.environ.get("USX_EDGAR_V5") == "1"
+USX_SKIP5 = re.compile(
+    r"(?i)(?-i:\b[A-Z][a-z]+,? [A-Z]{2} \d{5}\b)|^phone\b|^(tel|fax|mobile|email|t)\b[ :+(]|"
+    r"^(financial|media|investor)s? (contacts?|enquiries)\s*:?$|\(\d{3}\) \d{3}-\d{4}|\b\d{3}\.\d{3}\.\d{4}\b|\S+@\S+\.\w{2,}|"
+    r"symbol\s*[-:\u2013]\s*[a-z]{2,5}\W*$|^ex(hibit)?[- ]99|^LEI No|^ISIN\b|^CUSIP\b|^www\.|issuer code\s*:|"
+    r"^(company|corporate) secretary\b|^directors\s*:|^directors$|\(chair(man)?\)|"
+    r"^[+!=#^* ]*(british|canadian|ghanaian|australian)\b|^enquiries$|^correspondence address|"
+    r"^a company incorporated|^and registered as|^los militares|^(las )?condes\b|santiago, chile$|^el trovador|^dear\b|"
+    r"^superintenden|^avda\b|^(date|by|name|title)\s*:|/s/ |^issued by\b|^for more details contact|^corporate office|"
+    r"^(registered|postal) (address|office)|^(executive\s*:|investor relations (officer|manager))|^randfontein\b|"
+    r"south africa,? \d{4}$|^(jse|nyse|nasdaq)\s*:|(the |or )?[\"\u201c]?(company|group)[\"\u201d]?\)\W*$|"
+    r"^\([\"\u201c][^)]{0,60}[\"\u201d]\)$|\bpiso \d|\bsuite [a-z]?-?\d+|exchange act of 1934$|^edificio\b|campos eliseos|"
+    r"\(chief (executive|financial) officer\)|\breg\. ?\d{4}/\d+|\b\d{4}/\d{6}/\d{2}\b|^mining company limited$|^j\.?p\.? morgan|"
+    r"proprietary limited$|^sponsor\b|^chief (executive|financial|operating) officer$|^attached to the registrant|"
+    r"(?-i:^(Mr|Mrs|Ms|Sr)\.? [A-Z][a-z]+ [A-Z])|"
+    r"exchange act of 1934\W*$|submission in paper|form 6-k if submitted|s-t rule|^harmony gold mining company( limited| ltd)?( registration.*)?$|"
+    r"sandton,? \d{4}|a world-class gold mining|\+27\s?\(?0?\)?\s?\d\d|\b(nyx|swx|jse|nyse) code\s*:|"
+    r"\((nyse|nasdaq|jse)[^)]{0,30}:\s*[a-z]+\)$|^for immediate release|"
+    r"under the laws of the jurisdiction|home country|legally organized|\(address of principal|republic of south africa\)?$|"
+    r"registration number$|exploration company, has|^in south africa and papua|road and ward avenue|executive director$|"
+    r"(?-i:(?:\b(?:[A-Z] ){1,3}[A-Z][a-z]+.*){2})|(?-i:^(?:[A-Z] ){1,3}[A-Z][a-z]+(?: [a-z]+)? ?[A-Z]?[a-z]*,)|"
+    r"^\d{2,5} [a-z0-9][\w.]* .{0,40}\b(drive|avenue|ave|blvd|boulevard|street|road)\b")
+_V5T = [None]
+_V5H = [""]
+_V5_MARK = ("mediarelease", "pressrelease", "newsrelease", "mediastatement")
+_V5_JOIN = re.compile(r"(?i)\b(a|an|and|or|of|for|the|to|its|at|on|in|with|by|from|first|second|third|fourth|quarter|"
+                      r"release|releases|updates?|announces?|reports?|completes?|declares?|provides?|appoints?|inc\.?|corp\.?|"
+                      r"corporation|limited|ltd\.?)$|&$|'s$")
+_V5_MONTH = re.compile(r"\b(january|february|march|april|may|june|july|august|september|october|november|december)\b")
+
+
+def _usx_skip(l):
+    return USX_SKIP.search(l) or (_V5_ON and USX_SKIP5.search(l))
+
+
+def _v5_sqm(coname):
+    return bool(re.search(r"(?i)qu[i\u00ed]mica|^sqm\b", (coname or "").strip()))
+
+
+def usx_v5_head(body, coname, filed):
+    _V5T[0] = None
+    _V5H[0] = ""
+    if not _V5_ON:
+        return body
+    _V5H[0] = body[:1500] + " "
+    cn = (coname or "").lower()
+    if "mp materials" in cn and filed < "2020-11-17":
+        return None
+    ls = body.split("\n")
+    if _v5_sqm(coname):
+        m = re.search(r"(?is)\bIncludes\s+(.{20,300}?)\.(\s|$)", " ".join(x.strip() for x in ls[:40]))
+        if m:
+            d = re.sub(r"\s+", " ", m.group(1))
+            d = re.sub(r"(?i)^(the |a )?free translation of (the |a |an )?", "", d)
+            if not re.search(r"(?i)financial statements", d):
+                d = d[0].upper() + d[1:]
+                _V5T[0] = (d if d.startswith("SQM") else "SQM: " + d)[:250]
+    cut = -1
+    marked = False
+    for i, l in enumerate(ls[:110]):
+        s = l.strip()
+        if (i < 70 and re.search(r"(?i)12g3-2\(b\)|s-t rule 101\(b\)\(7\)", s)) or (i < 25 and re.search(r"(?i)or other commission filing on edgar", s)) \
+                or (i < 12 and re.search(r"(?i)thereunto duly authorized", s)):
+            cut = i
+        elif cut >= 0 and i - cut <= 14 and i < 40 and re.match(r"(?i)(title|name)\s*:", s):
+            cut = i
+        elif not marked and (i < 25 or (cut >= 0 and i - cut < 60)) and re.sub(r"\s", "", s).lower() in _V5_MARK:
+            cut, marked = i - 1, True                  # keep the marker line: the release test reads it
+    if re.search(r"(?im)^issued by harmony", "\n".join(x.strip() for x in ls[:12])):
+        for i, l in enumerate(ls[:80]):
+            if re.search(r"(?i)ISIN No|^registration number|^\d{4}/\d{6}/\d{2}$", l.strip()):
+                cut = max(cut, i)
+    if cut >= 0:
+        rest = "\n".join(ls[cut + 1:]).lstrip("\n")
+        if len(rest) >= 300:
+            body = rest
+    return body
+
+
+def usx_v5_title(title, body, coname):
+    if not _V5_ON:
+        return title
+    if _V5T[0]:
+        return _V5T[0]
+    if not title:
+        return title
+    cn = re.sub(r"\s+", " ", (coname or "").strip())
+    ls = [x.strip() for x in body.split("\n")[:90] if x.strip()]
+    if re.search(r"(?i)harmony gold|gold fields", cn):          # round 6: the headline stands directly above the dateline
+        d = next((i for i, l in enumerate(ls) if re.match(r"(?i)johannesburg\b.{0,45}\b(19|20)\d\d\b", l)), None)
+        if d:
+            up = []
+            for l in reversed(ls[max(0, d - 4):d]):
+                if _usx_skip(l) or SKIP_LINE.search(l) or len(l) > 130 or l.endswith(".") or re.fullmatch(r"\(?\d+\)?", l) \
+                        or re.sub(r"\s", "", l).lower() in _V5_MARK:
+                    break
+                up.insert(0, l)
+            t = re.sub(r"\s+", " ", " ".join(up)).strip()
+            if len(t) >= 15:
+                title = t[:250]
+    idx = next((i for i, l in enumerate(ls) if len(l.strip(" -*.")) >= 4 and title.startswith(l.strip(" -*.")[:25])), None)
+    if idx is not None and idx > 0:
+        prev = ls[idx - 1].strip(" -*.")
+        if 2 <= len(prev) <= 25 and cn and cn.lower().startswith(prev.lower()) and not title.lower().startswith(prev.lower()):
+            title = ((cn[:len(prev)] if prev.isupper() else prev) + " " + title)[:250]
+    if idx is not None and USX_SKIP5.search(title):          # the "headline" is a contact line: use the next real line
+        for k in range(idx + 1, min(len(ls), idx + 30)):
+            l = ls[k]
+            if len(l) >= 20 and not _usx_skip(l) and not SKIP_LINE.search(l) and not DL_PARA.search(l) \
+                    and not l.endswith(".") and l[:30] not in title:
+                title, idx = l[:250], k
+                break
+    if idx is not None:
+        j = idx
+        while j + 1 < len(ls) and len(ls[j + 1]) >= 4 and ls[j + 1][:30] in title:
+            j += 1
+        for _ in range(3):
+            if not _V5_JOIN.search(title) or j + 1 >= len(ls) or len(title) > 200:
+                break
+            nx = ls[j + 1]
+            if len(nx) > 110 or nx.endswith(".") or (_V5_MONTH.search(nx.lower()) and re.search(r"20\d\d", nx)) or DL_PARA.search(nx) or SKIP_LINE.search(nx) or _usx_skip(nx) \
+                    or re.fullmatch(r"\(?\d+\)?", nx):
+                break
+            title, j = (title + " " + nx)[:250], j + 1
+    if re.match(r"(?i)(%s\W*)?(report to shareholders|review of operations|group results)\b" % re.escape(cn), title) and len(title) < 60:
+        m = re.search(r"(?i)\b((?:quarter|year|six months|nine months|half[- ]year)(?: and [a-z ]{3,25})? ended \d{1,2} [A-Za-z]+ 20\d\d)", body[:5000])
+        if m:
+            per = _V5_MONTH.sub(lambda x: x.group(1).capitalize(), re.sub(r"\s+", " ", m.group(1)).lower())
+            title = ((cn + " " if cn else "") + "Report to Shareholders for the " + per)[:250]
+    if _v5_sqm(coname):
+        paras = re.split(r"\n\s*\n", body[:8000])
+        p = next((x for x in paras if re.match(r"(?i)\s*santiago,? chile.{0,40}20\d\d", x)), None)
+        if p:
+            pt, pp = body.find(title[:30]), body.find(p[:30])
+            if pt < 0 or pt >= pp:
+                t = re.sub(r"\s+", " ", p).strip()
+                t = re.sub(r"(?i)^santiago,? chile[.,]?\s*\w+ \d{1,2},? 20\d\d\W*", "", t)
+                t = re.sub(r"\s*\((?:NYSE|\"?SQM|the Company|or the)[^)]*\)", "", t)
+                t = re.sub(r"(?i)sociedad qu[i\u00ed]mica y minera de chile s\.?a\.?", "SQM", t)
+                t = re.split(r"(?<=[a-z0-9])\.\s", t)[0].strip()
+                if len(t) >= 25:
+                    title = t[:200].rsplit(" ", 1)[0] if len(t) > 200 else t
+    return title
+
+
+
 def read_release(url, filed, coname):
     """(headline, body, published_date, why_not) for one exhibit."""
     if not re.search(r"(?i)\.(htm|html|txt)$", url):
@@ -461,18 +609,21 @@ def read_release(url, filed, coname):
         body = sens_reflow(body)
     if len(body) < 600:
         return None, None, None, "too short (%d chars)" % len(body)
+    body = usx_v5_head(body, coname, filed)   # USX_EDGAR_V5
+    if body is None:
+        return None, None, None, "not a release: filed before the company existed"
     head = body[:1500]
     ls = [l.strip() for l in body.split("\n") if l.strip()]
-    while ls and (SKIP_LINE.search(ls[0]) or USX_SKIP.search(ls[0]) or len(ls[0]) < 4):   # USX_EDGAR_V2
+    while ls and (SKIP_LINE.search(ls[0]) or _usx_skip(ls[0]) or len(ls[0]) < 4):   # USX_EDGAR_V2
         ls.pop(0)
     top = re.sub(r"\s+", " ", " ".join(ls)[:300])
-    m0 = NOT_RELEASE.search(top) or (WEAK_NOT.search(top) if not (IS_RELEASE.search(head) or (sens and SENS_MARK.search(sens_head))) else None)   # USX_EDGAR_V3
+    m0 = NOT_RELEASE.search(top) or (WEAK_NOT.search(top) if not (IS_RELEASE.search(_V5H[0] + head) or (sens and SENS_MARK.search(sens_head))) else None)   # USX_EDGAR_V3
     if sens and not m0:
         m0 = SENS_NOT.search(_n(top + " " + (_ENC[0] or "")))
     if m0:
         return None, None, None, "not a release: " + m0.group(0)[:40]
     dl = DATELINE.search(head)
-    if not (IS_RELEASE.search(head) or (dl and ACTION.search(head))
+    if not (IS_RELEASE.search(_V5H[0] + head) or (dl and ACTION.search(head))
             or (sens and SENS_MARK.search(sens_head + " " + head + " " + (_ENC[0] or "")))):   # USX_EDGAR_V3
         return None, None, None, "no release markers"
     fd = dt.date.fromisoformat(filed)
@@ -493,7 +644,7 @@ def read_release(url, filed, coname):
         l = l.strip(" -–—*·")
         if l and nname(l) == cn:
             name_line = name_line or l   # USX_EDGAR_V4.1: also when the name line is short ("Newmont")
-        if len(l) < 12 or SKIP_LINE.search(l) or LETTERHEAD.search(l) or USX_SKIP.search(l):   # USX_EDGAR_V2
+        if len(l) < 12 or SKIP_LINE.search(l) or LETTERHEAD.search(l) or _usx_skip(l):   # USX_EDGAR_V2
             continue
         if nname(l) == cn:
             name_line = name_line or l   # USX_EDGAR_V4
@@ -537,6 +688,7 @@ def read_release(url, filed, coname):
         _cn = re.sub(r"\s+", " ", (coname or "").strip())   # USX_EDGAR_V4.1: the company name repeated at the end
         if _cn and len(title) > len(_cn) + 25 and title.lower().endswith(" " + _cn.lower()):
             title = title[:-len(_cn)].strip()
+    title = usx_v5_title(title, body, coname)   # USX_EDGAR_V5
     if not title:
         return None, None, None, "no headline found"
     return title, body, pub, None
