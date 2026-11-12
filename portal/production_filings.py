@@ -25,6 +25,8 @@ import sys
 
 FIGURES = "/opt/mnt/app/portal/production_filings.json"
 OFF = "/opt/mnt/app/portal/production_filings_OFF"
+SHOW_OLD = "/opt/mnt/app/portal/production_filings_SHOWOLD"   # USX_PRODHIDE_V1
+HIDE_US_BEFORE = "2025-01-01"
 _RESULTS = re.compile(r"(?i)result|quarter|\b[1-4]Q\d\d|earnings|operating update|operational update|trading update|half[- ]year|interim|six months|year ended")
 _NOT = re.compile(r"(?i)general meeting|\bAGM\b|exploration|drill|reserves?|trading statement(?! and trading update)")
 
@@ -57,7 +59,8 @@ def _must(conn):
 
 
 def apply(rows, conn, path=None, cols=None):
-    st = {"figures": 0, "updated": 0, "added": 0, "same": 0, "no_release": 0}
+    st = {"figures": 0, "updated": 0, "added": 0, "same": 0, "no_release": 0, "hidden_old": 0}
+    touched = set()
     path = path or FIGURES
     if os.path.exists(OFF) or not os.path.exists(path):
         return rows, st
@@ -95,12 +98,14 @@ def apply(rows, conn, path=None, cols=None):
                         rel = abs(float(q) - f["qty"]) / max(abs(f["qty"]), 1.0)
                         if rel < 1e-9 or (rel < 0.005 and _sig(float(q)) >= int(f.get("sig") or 99)):
                             st["same"] += 1
+                            touched.add(id(r))
                             continue
                     r["qty"] = float(f["qty"]); r["unit"] = f["unit"]; r["approx"] = must.get("approx", 0)
                     r["low"] = r["high"] = None
                     if f.get("basis"):
                         r["basis"] = f["basis"]
                     st["updated"] += 1
+                    touched.add(id(r))
                 continue
             fd = _day(f["filed"])
             best = None
@@ -127,6 +132,18 @@ def apply(rows, conn, path=None, cols=None):
                     r[k] = v
             rows.append(r)
             st["added"] += 1
+            touched.add(id(r))
+    # USX_PRODHIDE_V1 (2026-11-11): the rules reader's rows for US companies from before 2025 are not shown unless a
+    # filing figure set, added or agreed with them (the reader misreads older releases; Newmont "Q4 2024" = 6.8 Moz).
+    if not os.path.exists(SHOW_OLD):
+        keep = []
+        for r in rows:
+            if (r.get("ticker") or "").endswith(".US") and id(r) not in touched and (
+                    (r.get("period_end") or "9999") < HIDE_US_BEFORE or (r.get("published_at") or "9999") < HIDE_US_BEFORE):
+                st["hidden_old"] += 1
+                continue
+            keep.append(r)
+        rows[:] = keep
     if left:
         st["left_out"] = left[:60]
     return rows, st
