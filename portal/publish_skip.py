@@ -460,9 +460,13 @@ def _narrow4(c, label, ins, outs, prev):
         return bool(tag) and ("|" + (cat or "") + "|").find("|" + tag + "|") >= 0
 
     evrows = _ev_rows(c)
-    cats = {eid: cat for eid, _ca, cat, _d in evrows}
+
+    def _cat_now(eid):   # SSKIP_V4.1 (2026-11-13): the scan above is cached for the whole sync run; a tag added
+        r = c.execute("SELECT categories FROM events WHERE event_id=?", (eid,)).fetchone()   # during the run is not in it
+        return (r[0] if r else None) or ""
+
     for eid in new_events:
-        if _tagged(cats.get(eid)):
+        if _tagged(_cat_now(eid)):
             return False, "new release %s carries the %s tag" % (eid[:12], tag), base
     if _ev_digest(evrows, p4["cut"]) != p4["old_fp"]:
         return False, "a release classified before %s UTC changed" % p4["cut"], base
@@ -480,7 +484,7 @@ def _narrow4(c, label, ins, outs, prev):
         n_new += 1
         if eid in new_events:
             continue
-        if _tagged(cat):
+        if _tagged(cat) or _tagged(_cat_now(eid)):   # SSKIP_V4.1
             return False, "new release %s not read yet and carries the %s tag" % (eid[:12], tag), base
     gone = set(p4["recent"]) - seen
     if gone:
