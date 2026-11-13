@@ -126,7 +126,7 @@ _DOC_ADDRESS = re.compile(
 
 _DOC_CONTACT = re.compile(
     r"[A-Z]\d[A-Z]\s?\d[A-Z]\d|\bfloor\b|\btel\b|\bphone\b|\bfax\b|\bemail\b"
-    r"|@|www\.|https?://|\b(?:ARBN|ACN|ABN)\b\s*:?\s*\d"
+    r"|[\w.+\-]+@[\w\-]+\.[\w.\-]+|www\.|https?://|\b(?:ARBN|ACN|ABN)\b\s*:?\s*\d"
     r"|^\s*(?:\+\d|\(\d{3}\)\s*\d{3}|\d{3}[\s.\-]\d{3}[\s.\-]\d{4})", re.I)
 
 # Letterhead only where it sits BEFORE the headline. Inside one, the same
@@ -436,10 +436,64 @@ def _trim_glued(h: str) -> str:
     return trim_glued(h, doc_headline_is_hollow)
 
 
+# AUDIT1110_LHTOP (2026-11-13): some letterheads put a slogan, a building name or a person above the address and phone
+# lines, and that line won as the headline (Casa Minerals, Canada Carbon, Southern Cross Gold, Golden Goliath ...).
+# A run of short lines at the very top that is at least 40% contact lines (3 or more) is skipped as a whole. Dry run:
+# right on 30 of 47 hand-corrected releases (was 11), none made worse; 13 of 706 recent exchange releases change.
+# AUDIT1110_LHTOP2 (2026-11-13): also drops a '/'- or quote-led US-distribution disclaimer (and one continuation line)
+# and a masthead line among the first three ('Source: <company>', 'Page 1 of 18'), and counts more contact shapes.
+# Dry run: right on 44 of 47 hand-corrected releases (30 with LHTOP alone), none made worse; 3 of 707 recent change.
+_LHTOP_DISC = re.compile(r"(?i)^\s*(?:/+|[\"“])\s*(?:this\s+news\s+release\s+is\s+)?not\s+(?:for|intended\s+for)\s+(?:release|publication|distribution|dissemination)\b")
+_LHTOP_DISC_TAIL = re.compile(r"(?i)(?:united\s+states|services|dissemination|distribution|publication|wire)\W*$")
+_LHTOP_MAST = re.compile(r"(?i)^\s*source\s*:\s*\S|\bpage\s+\d+\s+of\s+\d+\b|^\s*\d+\s*\|\s*page\s*$")
+_LHTOP_LOOSE = re.compile(r"(?:^|\s)(?:[WTPFEO]|Tel|Ph|Web)\s*:\s*(?:[+\d(]|[\w.\-]+\.(?:com|ca|net|org|io|au|co)\b)"
+                          r"|\b[A-Z]\d[A-Z0-9]\s?\d[A-Z]\d\b|\bbox\s+\d+\b|\b\d+(?:st|nd|rd|th)\s+(?:street|avenue|ave)\b", re.I)
+
+
+def _cut_letterhead_top(body: str) -> str:
+    norm = lambda x: re.sub(r"\s+", " ", _prep_line(x.strip())).strip()
+    raw = body.split("\n")
+    seen, drop, tail = 0, set(), 0
+    for i, l in enumerate(raw):
+        s = norm(l)
+        if not s:
+            continue
+        seen += 1
+        if seen > 20 or _has_dateline(s):
+            break
+        if _LHTOP_DISC.match(s):
+            drop.add(i); tail = 1
+            continue
+        if tail and len(s) <= 70 and _LHTOP_DISC_TAIL.search(s):
+            drop.add(i); tail = 0
+            continue
+        tail = 0
+        if seen <= 3 and len(s) <= 90 and _LHTOP_MAST.search(s):
+            drop.add(i)
+    raw = [l for i, l in enumerate(raw) if i not in drop]
+    run = []
+    for i, l in enumerate(raw):
+        s = norm(l)
+        if not s:
+            continue
+        if len(run) >= 16 or _has_dateline(s) or len(s) > 100 or (len(s) > 60 and reads_as_prose(s)):
+            break
+        run.append((i, bool(_DOC_CONTACT.search(s) or _DOC_ADDRESS.search(s) or _LHTOP_LOOSE.search(s))))
+    idx = [k for k, (_, c) in enumerate(run) if c]
+    if len(idx) >= 3:
+        region = run[:idx[-1] + 1]
+        if sum(c for _, c in region) >= 0.4 * len(region):
+            last = region[-1][0]
+            if len([l for l in raw[last + 1:] if l.strip()]) >= 3:
+                return "\n".join(raw[last + 1:])
+    return "\n".join(raw)
+
+
 def headline_from_body(body: str, fallback: str = "") -> str:
     """The headline of a news-release PDF, including its wrapped continuation."""
     if not body:
         return fallback
+    body = _cut_letterhead_top(body)                            # AUDIT1110_LHTOP
     lines = [_prep_line(l) for l in body.split("\n")]          # TITLES_SPACED_V1
     lines = [l for l in lines if l][:MAX_SCAN_LINES]
 

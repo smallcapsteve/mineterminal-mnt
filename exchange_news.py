@@ -1528,7 +1528,51 @@ def fetch_release(rel: dict) -> tuple[str, str, str]:
                 log(f"   OCR FALLBACK {rel.get('bare', ''):<7} text layer gave [{why}] {h[:40]!r}; OCR gave {h3[:90]!r}")
                 return ocr, h3, ""
             log(f"   OCR REJECTED {rel.get('bare', ''):<7} [{why2 or 'no issuer name'}] {h2[:70]!r}")
+    if rel.get("source") == "tmx":
+        h2 = _hl_fontcut(h, data)                        # AUDIT1110_FONTCUT
+        if h2 != h:
+            log(f"   FONTCUT {rel.get('bare', ''):<7} {h[:60]!r} -> {h2[:90]!r}")
+        h = h2
     return body, h, ""
+
+
+# AUDIT1110_FONTCUT (2026-11-13): a headline read from a PDF sometimes runs on into the sub-heading or the first
+# sentence (Lithium Americas 2026-11-11, Noram 2026-11-06, Central Asia Metals 2026-11-12). On page 1 the headline is
+# the line it starts on plus the lines right after it set in the same font size (within 8%) that continue it. Cut the
+# headline there when it is more than 10 characters longer. Not when what is left ends in a full stop: that is a
+# sentence, not a headline (Tiger Gold 2026-11-12). Dry run, 172 TSX releases over 14 days: 11 cuts, all right.
+# Off with MNT_EXCH_FONTCUT=0.
+def _hl_fontcut(h: str, data: bytes) -> str:
+    hn = re.sub(r"\s+", " ", h or "").strip()
+    if len(hn) < 30 or os.environ.get("MNT_EXCH_FONTCUT", "1") == "0":
+        return h
+    lines = []
+    try:
+        import pymupdf
+        for b in pymupdf.open(stream=data, filetype="pdf")[0].get_text("dict")["blocks"]:
+            for ln in b.get("lines", []):
+                sp = [s for s in ln["spans"] if s["text"].strip()]
+                if sp:
+                    lines.append((re.sub(r"\s+", " ", "".join(s["text"] for s in sp)).strip(), max(s["size"] for s in sp)))
+            if len(lines) > 40:
+                break
+    except Exception:                                    # noqa: BLE001  pypdf read it but PyMuPDF can't: keep it
+        return h
+    low = hn.lower()
+    for i, (t, sz) in enumerate(lines[:30]):
+        if len(t) < 8 or not low.startswith(t.lower()):
+            continue
+        keep = t
+        for t2, sz2 in lines[i + 1:]:
+            cand = keep + " " + t2
+            if not (0.92 * sz <= sz2 <= 1.08 * sz) or not low.startswith(cand.lower()):
+                break
+            keep = cand
+        keep = keep.rstrip(" -\u2013\u2014:;,")
+        if len(keep) >= 25 and len(hn) > len(keep) + 10 and not keep.endswith("."):
+            return keep
+        return h
+    return h
 
 
 def _ocrfb_on() -> bool:

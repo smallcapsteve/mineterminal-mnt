@@ -169,6 +169,13 @@ def _event_id(url: str, pub: str) -> str:
     return h.hexdigest()
 
 
+# AUDIT1110_PRN_INTAKE (2026-11-13): the search also returns listing pages (category pages, company newsrooms) and
+# sponsored market articles; both were being stored as company releases. Only release pages are read, and a text that
+# opens as a sponsored article is skipped. Checked against the 173 stored rows (49 listings, 15 sponsored, 108 releases).
+_PRN_RELEASE_URL = re.compile(r"^https?://(?:www\.)?prnewswire\.com/(?:[a-z]{2,5}/)?news-releases/[^/?#]+-\d{6,}\.html(?:[?#].*)?$", re.I)
+_PRN_SPONSORED = re.compile(r"News Commentary|Market News Updates|Issued on behalf of", re.I)
+
+
 def list_mining_events(days: int = 7) -> Iterator[dict]:
     try:
         from googlenewsdecoder import gnewsdecoder
@@ -195,9 +202,13 @@ def list_mining_events(days: int = 7) -> Iterator[dict]:
                         real_url = d["decoded_url"]
                 except Exception:
                     pass
+            if not _PRN_RELEASE_URL.match(real_url or ""):
+                continue                                # AUDIT1110_PRN_INTAKE: a listing page, not a release
             body_text, body_html = _extract_body_html(real_url, client)
             if not body_text:
                 continue
+            if _PRN_SPONSORED.search(title + " " + body_text[:900]):
+                continue                                # AUDIT1110_PRN_INTAKE: sponsored article, not a company release
             ticker, exch = extract_ticker(body_text)
             if ticker and _wt_bares and not _WT.company_matches(ticker, _wt_bares):
                 continue                                # WIRETICK_V1: headline names another company
