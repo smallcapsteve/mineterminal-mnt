@@ -91,6 +91,9 @@ def register(app, templates):
     @app.get("/aireader-review", response_class=HTMLResponse)
     def aireader_review(request: Request, section: str = "", show: str = "open", ticker: str = "", page: int = 1,
                         saved: str = ""):
+        if not auth.is_logged_in(request):   # NOLABEL2_V1 (2026-11-03): internal page, admin only
+            from fastapi.responses import RedirectResponse
+            return RedirectResponse("/admin/login", status_code=302)
         section = section if section in SECTIONS else ""
         show = show if show in SHOW else "open"
         page = max(1, page)

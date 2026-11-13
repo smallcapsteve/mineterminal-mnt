@@ -5652,9 +5652,20 @@ def v21_fix(cats, headline, body, why=None):
     return [c for c in CATEGORIES if CAT_TO_CODE[c] in new]
 
 
+# SWEEP1112_PROMO (Justin, 2026-11-12: "Keep, tag Marketing"): a paid promotional article (its own footer says
+# "This is a paid advertisement") is not the company's release: Marketing Announcement only.
+_RE_PAID_AD = re.compile(r"(?i)\bpaid\s+advertisement\b")
+
+
+def is_paid_promo(body: str | None) -> bool:
+    return bool(body and _RE_PAID_AD.search(body))
+
+
 def categorize(headline: str | None, body: str | None, ticker: str | None = None) -> list[str]:
     """Return the categories this release belongs to, in CATEGORIES order
     (v8 = v7 + five tags; CU_RESCUE_V1 re-reads what is still Corporate Updates alone)."""
+    if is_paid_promo(body):   # SWEEP1112_PROMO
+        return ["Marketing Announcement"]
     cats, _recovered = categorize_v7(headline, body)
     return v13_memory(v21_fix(v20_fix(v19_fix(v18_fix(v17_fix(v16_fix(v15_fix(v14_fix(v12_fix(v11_fix(add_v10_tags(add_v9r_tags(add_v8_tags(cats, headline, _recovered), headline, _recovered),
                                                           headline, _recovered),

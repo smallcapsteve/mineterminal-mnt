@@ -328,3 +328,115 @@ def _selftest():
 
 if __name__ == "__main__":
     raise SystemExit(1 if _selftest() else 0)
+
+# ---- SWEEP1109_TITLE_FROM_BODY (2026-11-09, Justin round 4 item 3) ----
+# An exchange PDF whose first line is boilerplate ("Not for distribution to United States newswire services...",
+# "News release", a letterhead address, "Toronto Stock Exchange Venture:CSG") gets its title from the PDF text:
+# skip page marks, notices, letterheads, addresses, exchange tags and datelines, then take the first title-like lines.
+BAD_HEADLINE = re.compile(
+    r"(?i)^\W*(?:not for (?:distribution|dissemination|release)|distribution or dissemination|or disseminated|"
+    r"or for dissemination|this news release (?:is|does|,)|the shelf prospectus|issue price up to|us office|"
+    r"toronto stock exchange venture|(?:news|press|media) release\W*$|for immediate release\W*$|pr\W*$|nr\W*$|"
+    r"\d{2,6} [\w.' -]+ (?:street|st|avenue|ave|road|rd)\b|.*\b[A-Z]\d[A-Z][ -]?\d[A-Z]\d\b)")
+_MON = r"(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?"
+_JUNK = re.compile(
+    r"(?i)^\W*(?:page \d+(?: of \d+)?\W*$|\d+ ?\| ?page|\d{1,3}\W*$|not for (?:distribution|dissemination|release)|"
+    r"distribution or dissemination|or for (?:dissemination|release)|or disseminated|publication,? distribution|"
+    r"(?:in|into) the united states|the united states|united states\W*$|the shelf prospectus|and any amendment|"
+    r"amendment to the documents|accessible through sedar|sedar\+ within|this news release|"
+    r"(?:news|press|media) release|for immediate release|asx (?:announcement|release)|tsx-?v? release|"
+    r"source:|date:|nr \d|#\d+-\d{4}|trading symbol|us office|canadian office|corporate office|head office|"
+    r"(?:tsx(?:-?v| venture)?|tsxv|cse|otc\w*|us otc|nyse(?: american)?|nasdaq|asx|frankfurt|fse|toronto stock exchange(?: venture)?)"
+    r"\s*[:.-]|suite \d|\d{1,6}\s*[-–]\s*\d{1,6} \w|\d{2,6} [\w.' -]+ (?:street|st|avenue|ave|road|rd|drive|dr|"
+    r"blvd|place|way|crescent)\b|p\.? ?o\.? box|level \d|arbn|bc\d{6})")
+_ANYJUNK = re.compile(r"(?i)\b(?:tel|tf|fax|phone|toll free)\s*[:.]|\(?\d{3}\)?[ .-]\d{3}[ .-]\d{4}\b|\S@\S|www\.|https?://|"
+                      r"\b[\w-]+\.(?:com|ca|net|org)\b|\b[A-Z]\d[A-Z] ?\d[A-Z]\d\b|12g3-2|\bsuite \d")
+_DATEONLY = re.compile(r"(?i)^\W*(?:\d{1,2}(?:st|nd|rd|th)? )?" + _MON + r"(?: \d{1,2}(?:st|nd|rd|th)?)?,? \d{4}\b")
+_DATELINE = re.compile(r"(?i)^[^.]{0,45}?\b" + _MON + r" \d{1,2}(?:st|nd|rd|th)?\s*,? \d{4}\s*(?:[–—-]|\(|$)|"
+                       r"\((?:\s*(?:tsx|cse|asx|nyse|nasdaq))|is pleased to|^\s*[•▪●]|--\(|\(globe newswire\)|"
+                       r"^[A-Z][A-Za-z.]+,\s+(?:British Columbia|Alberta|Ontario|Qu[eé]bec|BC|B\.C\.|ON|AB|QC|Nevada|Yukon)\b")
+_PLACE = re.compile(r"^[A-Z][\w.' ]{1,30},\s*[A-Z][\w.' ]{1,30}(?:,\s*[A-Z][\w ]{1,20})?\W*$")
+_CORP_END = re.compile(r"(?i)\b(?:corp(?:oration)?|inc|ltd|ltda|limited|plc|llc|s\.a|n\.l)\W*$")
+_NAMEW = re.compile(r"(?i)\b(?:corp(?:oration)?|inc|ltd|ltda|limited|plc|the|and|&)\b\.?")
+_PROV = (r"(?:British Columbia|Alberta|Ontario|Qu[eé]bec|Saskatchewan|Manitoba|Yukon|Nunavut|Nova Scotia|New Brunswick|"
+         r"Newfoundland|Nevada|Arizona|Colorado|BC|B\.C\.|ON|AB|QC)")
+
+
+def _words_of(s):
+    return re.findall(r"[A-Za-z][A-Za-z'’]+", s or "")
+
+
+def _is_letterhead(t, company):
+    ws = [w.lower() for w in _words_of(t)]
+    if not ws:
+        return True
+    if _CORP_END.search(t) and len(ws) <= 7:
+        return True
+    names = {w.lower() for w in _words_of(_NAMEW.sub(" ", company or ""))} | {"gold", "mines", "mining", "resources", "corp", "limited"}
+    return len(ws) <= 6 and sum(w in names for w in ws) >= 0.8 * len(ws)
+
+
+def _hard_junk(t):
+    return bool(_JUNK.match(t) or _ANYJUNK.search(t) or not re.search(r"[A-Za-z]{2}", t))
+
+
+def title_from_body(body, company=""):
+    """The release title from the PDF text, or '' when none can be found."""
+    lines = [re.sub(r"\s+", " ", l).strip() for l in (body or "").replace("\r", "").split("\n")]
+    filled = [l for l in lines if l]
+    if not filled or re.search(r"(/i\d+){3}", " ".join(filled[:6])):
+        return ""                                            # unreadable PDF text
+    head = filled[:30]
+    if sum(len(l.split()) == 1 for l in head) > 0.6 * len(head):   # one word per line: read it as one stream
+        t = " ".join(filled[:150])
+        t = re.sub(r"(?i)^(?:\W*(?:(?:news|press) release|not for distribution[^.]*\.|nr \d+-\d+|"
+                   r"(?:www\.|https?://)\S+|" + _MON + r" \d{1,2},? \d{4}))+\s*", "", t)
+        caps = re.match(r"((?:[^a-z\s]+\s+){4,})", t + " ")
+        if caps and len(_words_of(caps.group(1))) >= 3:
+            out = caps.group(1)
+            out = re.sub(r"\s+\S*$", "", out.strip()) if re.search(r"[a-z]", t[len(caps.group(1)):len(caps.group(1)) + 1] or "") else out
+        else:
+            out = re.split(r"\s(?=[A-Z][\w.'-]+, " + _PROV + r"\b)|\s\(\s*(?:tsx|cse)", t, maxsplit=1, flags=re.I)[0]
+    else:
+        out, i = "", 0
+        while i < len(lines) and not out:
+            t = lines[i]
+            i += 1
+            if (not t or _hard_junk(t) or _DATEONLY.match(t) or _PLACE.match(t) or _DATELINE.search(t)
+                    or t[:1].islower() or _is_letterhead(t, company)):
+                continue
+            toks = t.split()
+            if len(toks) < 3 or (len(toks) < 4 and t.upper() != t):
+                continue
+            parts = [t]
+            while i < len(lines) and len(" ".join(parts)) < 200 and not parts[-1].endswith("."):
+                nx = lines[i]
+                if not nx or _hard_junk(nx) or _DATEONLY.match(nx) or _DATELINE.search(nx):
+                    break
+                parts.append(nx)
+                i += 1
+            cand = " ".join(parts)
+            if any(_CORP_END.search(p) for p in parts) or _is_letterhead(cand, company):
+                continue                                     # a letterhead block after all
+            out = cand
+    out = re.sub(r"\s+", " ", out).strip(" -–—:|,;")
+    if len(out) > 220:
+        out = out[:out.rfind(" ", 0, 220)].rstrip(" ,;:-–—") + "…"
+    if len(out) < 15 or len(_words_of(out)) < 2 or BAD_HEADLINE.match(out) or _JUNK.match(out):
+        return ""
+    return out
+# ---- end SWEEP1109_TITLE_FROM_BODY ----
+
+
+_NAMES = None
+
+
+def company_name(ticker):
+    """Our name for a ticker (tickers.json), for telling a letterhead from a title."""
+    global _NAMES
+    if _NAMES is None:
+        import json, os
+        p = "/opt/mnt/app/tickers.json"
+        _NAMES = {x["ticker"]: x.get("name") or "" for x in (json.load(open(p)) if os.path.exists(p) else [])
+                  if isinstance(x, dict) and x.get("ticker")}
+    return _NAMES.get(ticker or "", "")

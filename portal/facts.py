@@ -549,7 +549,7 @@ def build_view(conn, kind, fields):
         raise
 
 
-def stats(conn, extractor, version):
+def stats(conn, extractor, version, with_facts=True):
     """The standing numbers for one version: coverage inside the tag and firing outside it."""
     r = conn.execute(
         "SELECT COUNT(*) AS runs, SUM(tag_confirmed) AS tagged, "
@@ -558,7 +558,10 @@ def stats(conn, extractor, version):
         "SUM(CASE WHEN status='error' THEN 1 ELSE 0 END) AS errors, SUM(n_records) AS records "
         "FROM fx_runs WHERE extractor=? AND version=?", (extractor, version)).fetchone()
     out = {k: (r[k] or 0) for k in r.keys()}
-    out["facts"] = conn.execute("SELECT COUNT(*) FROM fx_facts f JOIN fx_records r ON r.record_id=f.record_id "
+    # FACTSTAT_V1 (2026-11-05): with_facts=False (the timer's totals line, which never shows it) skips this count of
+    # every stored fact of the version, a join over all its records on every run for every reader
+    out["facts"] = None if not with_facts else conn.execute(
+        "SELECT COUNT(*) FROM fx_facts f JOIN fx_records r ON r.record_id=f.record_id "
                                 "WHERE r.extractor=? AND r.version=?", (extractor, version)).fetchone()[0]
     out["coverage_in_tag"] = round(out["fired_tagged"] / out["tagged"], 4) if out["tagged"] else None
     return out

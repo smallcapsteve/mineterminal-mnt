@@ -1,0 +1,146 @@
+{
+ "2ee08c53fceebe790eb61f6f171a0177053adfca": [
+  {
+   "person": "Diablillos John Naisbitt",
+   "set": {
+    "person": "John Naisbitt",
+    "role": "Project Director, Diablillos",
+    "role_canon": "Project Director",
+    "scope": "management"
+   },
+   "why": "AbraSilver: Naisbitt is Project Director, not a board director; the project name ran into his name"
+  },
+  {
+   "person": "Latin America",
+   "drop": true,
+   "why": "AbraSilver: a place, not a person"
+  }
+ ],
+ "8216a6050b65ccca3aa470f3185beff74e37193e76bd417cee3a93a638b3850e": [
+  {
+   "person": "Rick Mazur",
+   "drop": true,
+   "why": "Midnight Sun: Mazur is a current director named in the slate; Al Fabbro is President and CEO"
+  },
+  {
+   "person": "Brett A. Richards",
+   "role": "President and CEO",
+   "drop": true,
+   "why": "Midnight Sun: Richards is the new independent Chairman only"
+  },
+  {
+   "person": "Wayne Moorhouse",
+   "drop": true,
+   "why": "Midnight Sun: a current director named in the slate"
+  }
+ ],
+ "a45e1de7f1e0b452c3db9d9c89e5ec27f9f385d5": [
+  {
+   "person": "Reagan Glazier",
+   "set": {
+    "action": "resigned"
+   },
+   "why": "Starr Peak: Glazier is stepping down from the board"
+  }
+ ],
+ "2a641efe55cf97c5a608f3a48a32f9826f148979": [
+  {
+   "person": "Koji Watanabe",
+   "drop": true,
+   "why": "Tintina: Watanabe joins the reconstituted board; Claude Dufresne is the CEO"
+  },
+  {
+   "person": "Mathieu Gignac",
+   "set": {
+    "role": "Director",
+    "role_canon": "Director",
+    "scope": "board"
+   },
+   "why": "Tintina: joins the reconstituted board; Claude Dufresne is the CEO"
+  },
+  {
+   "person": "Juan Enrique Rassmuss",
+   "set": {
+    "role": "Director",
+    "role_canon": "Director",
+    "scope": "board"
+   },
+   "why": "Tintina: joins the reconstituted board; Claude Dufresne is the CEO"
+  },
+  {
+   "person": "Stefan Jochum",
+   "set": {
+    "role": "Director",
+    "role_canon": "Director",
+    "scope": "board"
+   },
+   "why": "Tintina: joins the reconstituted board; Claude Dufresne is the CEO"
+  },
+  {
+   "person": "Vicente Irarrazaval",
+   "set": {
+    "role": "Director",
+    "role_canon": "Director",
+    "scope": "board"
+   },
+   "why": "Tintina: joins the reconstituted board; Claude Dufresne is the CEO"
+  }
+ ],
+ "cd66df7d4efab8386b5bbb272cb0750737ec0141": [
+  {
+   "person": "Dan Myerson",
+   "set": {
+    "role": "Deputy Chair (after the Foran deal closes)",
+    "role_canon": "Director",
+    "scope": "board"
+   },
+   "why": "Eldorado: Myerson (Foran's CEO) joins Eldorado's board as Deputy Chair"
+  }
+ ],
+ "31eb0abee3743b25788096cb2dce963902d8a5b1": [
+  {
+   "person": "Gerasimos (Gerry) Sklavounos",
+   "set": {
+    "role": "Co-President (Corporate & External Affairs)",
+    "role_canon": "President",
+    "scope": "management"
+   },
+   "why": "Mongoose: an existing director appointed Co-President"
+  }
+ ],
+ "607eebd08e7b8fe98ad5cc1182ac22df95fa3233c3784ab10c6b348c0551a1e6": [
+  {
+   "person": "Liberty Ridge",
+   "set": {
+    "person": "Kevin Ma"
+   },
+   "why": "Tungsten Eagle: Liberty Ridge is the project; Kevin Ma joined the board with Brett Halvorson"
+  }
+ ],
+ "cdbd793895925a49b3776fc0406ef4d8120e6454": [
+  {
+   "person": "Felipe Paolucci",
+   "set": {
+    "action": "appointed"
+   },
+   "why": "Verde AgriTech: the CFO Paolucci takes over as CEO; Machado steps down"
+  }
+ ],
+ "cd93d16f1a59e9e33ae84b1434f96bb5a29c9fe09238002fbf2ae9d77d30292a": [
+  {
+   "person": "Skott Mealer",
+   "drop": true,
+   "why": "Blue Moon: Mealer is the current President and COO, to be an observer on the buyer's board; no change at Blue Moon"
+  }
+ ],
+ "99934a37b224656f07b015d12b054d944805273d": [
+  {
+   "person": "Jade Walle",
+   "set": {
+    "role": "Chief Financial Officer",
+    "role_canon": "Chief Financial Officer"
+   },
+   "why": "Ur-Energy: the VP Finance succeeds Roger Smith as CFO"
+  }
+ ]
+}

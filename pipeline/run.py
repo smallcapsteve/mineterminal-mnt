@@ -73,9 +73,9 @@ AUTO_THRESHOLD = {
     "production_update": 0.85,
     "financing":         0.90,
     # Always-review types:
-    "drill_result":      1.01,
-    "resource_estimate": 1.01,
-    "econ_study":        1.01,
+    "drill_result":      0.85,   # THRESH_V1 2026-11-08: was 1.01 (always review, a queue nobody works)
+    "resource_estimate": 0.85,   # THRESH_V1
+    "econ_study":        0.85,   # THRESH_V1
     "paid_promotion":    1.01,
 }
 
@@ -147,7 +147,7 @@ def plan(tickers: list[dict], cursor: dict) -> tuple[list[dict], dict]:
     workable, deferred = [], {}
     for cfg in tickers:
         name = cfg.get("source", DEFAULT_SOURCE)
-        if name in known:
+        if name in known and name not in SKIP_SOURCES:   # SRVAUDIT_SCRAPERFIX_20261028
             workable.append(cfg)
         else:
             deferred[name] = deferred.get(name, 0) + 1
@@ -224,6 +224,16 @@ def archive_envelope(envelope: dict):
 FAST_EVERY_S = int(os.environ.get("MNT_PIPELINE_FAST_EVERY_S", "3600"))
 SLOW_SOURCES = {x.strip() for x in os.environ.get("MNT_PIPELINE_SLOW_SOURCES", "accesswire").split(",") if x.strip()}
 
+# SRVAUDIT_SCRAPERFIX_20261028 (Justin): globenewswire_gnews re-ran the same Google News discovery for every company
+# and GlobeNewswire answers this server with 403, so each lookup took ~135 s and 1,080 of 1,081 items were
+# quality-skipped (10-28: 123 lookups, 277 min, 1 post). Runs hit the 600 s systemd limit 12 times that day.
+# Those companies are now left to the GlobeNewswire wire collector (sync_globenewswire.py). Set
+# MNT_PIPELINE_SKIP_SOURCES="" to bring them back. LOOKUP_CAP_S stops taking items from one lookup after that many
+# seconds (checked between items); SLOW_RESERVE_S keeps a slow lookup from starting near the end of the budget.
+SKIP_SOURCES = {x.strip() for x in os.environ.get("MNT_PIPELINE_SKIP_SOURCES", "globenewswire_gnews").split(",") if x.strip()}
+LOOKUP_CAP_S = int(os.environ.get("MNT_PIPELINE_LOOKUP_CAP_S", "30"))
+SLOW_RESERVE_S = int(os.environ.get("MNT_PIPELINE_SLOW_RESERVE_S", "120"))
+
 
 def _is_slow(cfg: dict) -> bool:
     name = cfg.get("source", DEFAULT_SOURCE) or ""
@@ -243,6 +253,49 @@ def _fast_first(workable: list, cursor: dict, now=None) -> tuple:
     fast = [c for c in workable if not _is_slow(c) and due(c)]
     ids = {id(c) for c in fast}
     return fast + [c for c in workable if id(c) not in ids], len(fast)
+
+
+# POSTRETRY_V1 (2026-11-08): a post that failed for a passing reason (timeout, 5xx, 429, ...) is not marked seen,
+# so the next run posts it again; after POST_MAX_TRIES failed runs it is given up on. Undo: patch_postretry.py --undo
+POST_RETRY_FILE = APP_ROOT / "data" / "pipeline_post_retry.json"
+POST_MAX_TRIES = int(os.environ.get("MNT_PIPELINE_POST_TRIES", "5"))
+POST_FINAL_CODES = {400, 404, 409, 413, 422}       # answers that will not change on a retry
+
+
+def _post_retry_load() -> dict:
+    try:
+        d = json.loads(POST_RETRY_FILE.read_text())
+        return d if isinstance(d, dict) else {}
+    except Exception:
+        return {}
+
+
+def _post_retry_save(d: dict) -> None:
+    cutoff = (dt.datetime.utcnow() - dt.timedelta(days=30)).isoformat()
+    d = {k: v for k, v in d.items() if str(v.get("at", "")) >= cutoff}
+    tmp = POST_RETRY_FILE.with_suffix(".tmp")
+    tmp.write_text(json.dumps(d, indent=1, sort_keys=True))
+    os.replace(tmp, POST_RETRY_FILE)
+
+
+def _post_settled(eid: str, code: int) -> bool:
+    """True when the release should be marked seen (posted, refused for good, or out of tries)."""
+    d = _post_retry_load()
+    if 200 <= code < 300 or code in POST_FINAL_CODES:
+        if d.pop(eid, None) is not None:
+            _post_retry_save(d)
+        return True
+    tries = int((d.get(eid) or {}).get("tries", 0)) + 1
+    if tries >= POST_MAX_TRIES:
+        d.pop(eid, None)
+        _post_retry_save(d)
+        log(f"post failed {tries} times (last status {code}); giving up on {eid[:12]}..")
+        return True
+    d[eid] = {"tries": tries, "last_code": code, "at": dt.datetime.utcnow().isoformat()}
+    _post_retry_save(d)
+    log(f"post failed (status {code}); {eid[:12]}.. stays unseen and is tried again next run "
+        f"(try {tries} of {POST_MAX_TRIES})")
+    return False
 
 
 # ---- main -----------------------------------------------------------------
@@ -274,6 +327,10 @@ def main():
             log(f"time budget reached after {done} companies; "
                 f"{len(workable) - done} wait for the next run")
             break
+        if _is_slow(cfg) and time.monotonic() - started > TIME_BUDGET_S - SLOW_RESERVE_S:   # SRVAUDIT_SCRAPERFIX_20261028
+            log(f"less than {SLOW_RESERVE_S}s of budget left; no new slow lookup this run "
+                f"({len(workable) - done} wait for the next run)")
+            break
 
         ticker = cfg.get("ticker", "?")
         source_name = cfg.get("source", DEFAULT_SOURCE)
@@ -291,7 +348,13 @@ def main():
 
         log(f"--- {ticker} via {source_name} ---")
         try:
-            candidates = list(src.list_recent(cfg, limit=50))
+            candidates = []   # SRVAUDIT_SCRAPERFIX_20261028: soft cap per lookup
+            _t0 = time.monotonic()
+            for _c in src.list_recent(cfg, limit=50):
+                candidates.append(_c)
+                if time.monotonic() - _t0 > LOOKUP_CAP_S:
+                    log(f"{ticker}: lookup cap {LOOKUP_CAP_S}s reached; using the {len(candidates)} found so far")
+                    break
         except Exception as e:
             log(f"list_recent failed for {ticker}: {e}")
             continue
@@ -332,9 +395,10 @@ def main():
                 f"status={code} conf={cls.get('classifier_confidence'):.2f} "
                 f"review={env['review_status']} {text[:120]}"
             )
-            seen.add(eid)
             new_count += 1
-            save_seen(seen)
+            if _post_settled(eid, code):   # POSTRETRY_V1: a failed post stays unseen and is tried again next run
+                seen.add(eid)
+                save_seen(seen)
 
     save_cursor(cursor)
     never = sum(1 for c in workable if c.get("ticker") not in cursor)

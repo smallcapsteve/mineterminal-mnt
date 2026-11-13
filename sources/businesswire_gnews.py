@@ -15,6 +15,10 @@ from typing import Iterator
 from xml.etree import ElementTree as ET
 
 import httpx
+try:
+    import wireticker as _WT                           # WIRETICK_V1
+except Exception:
+    _WT = None
 
 UA = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_2) AppleWebKit/605.1.15 "
@@ -67,7 +71,10 @@ def extract_ticker(text: str) -> tuple[str | None, str | None]:
             t = m.group(1).upper()
             ex = {"CN": "CSE", "V": "TSXV", "TO": "TSX"}[suffix]
             return f"{t}.{suffix}", ex
-    return None, None
+    try:                                                # WIRETICK_V1: dual-listed datelines
+        return _WT.extract_ticker_relaxed(text) if _WT else (None, None)
+    except Exception:
+        return None, None
 
 
 def gnews_query_url(days: int = 7) -> str:
@@ -169,8 +176,14 @@ def list_mining_events(days: int = 7) -> Iterator[dict]:
     with httpx.Client(headers={"User-Agent": UA}, timeout=25) as client:
         for raw in items:
             title = raw["title"]
+            _wt_bares = set()                           # WIRETICK_V1
             if not is_mining_headline(title):
-                continue
+                try:
+                    _wt_bares = _WT.names_company(title) if _WT else set()
+                except Exception:
+                    _wt_bares = set()
+                if not _wt_bares:
+                    continue
             real_url = raw["gnews_url"]
             if gnewsdecoder and "news.google.com" in real_url:
                 try:
@@ -183,6 +196,8 @@ def list_mining_events(days: int = 7) -> Iterator[dict]:
             if not body_text:
                 continue
             ticker, exch = extract_ticker(body_text)
+            if ticker and _wt_bares and not _WT.company_matches(ticker, _wt_bares):
+                continue                                # WIRETICK_V1: headline names another company
             if not ticker:
                 continue
             pub_iso = _parse_pubdate(raw["pub"]) or ""

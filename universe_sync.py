@@ -94,6 +94,27 @@ def build(universe_rows: list[dict]) -> list[dict]:
     return out
 
 
+# SRVAUDIT_FLIPQUIET_20261028: the wire scrapers re-append the same few unapproved tickers between runs and this job
+# drops them again every 30 minutes (by design). That used to leave a ~300 KB backup every run (2,157 files / 608 MB by
+# 10-28). Backups are now taken only when MinePortal's list itself changed, and kept for BACKUP_KEEP_DAYS.
+BACKUP_KEEP_DAYS = 7
+BACKUP_KEEP_MIN = 20
+
+
+def _prune_backups() -> None:
+    import glob, time
+    try:
+        files = sorted(glob.glob(os.path.join(BACKUP_DIR, "tickers-*.json")), key=os.path.getmtime)
+        cutoff = time.time() - BACKUP_KEEP_DAYS * 86400
+        old = [f for f in files[:-BACKUP_KEEP_MIN] if os.path.getmtime(f) < cutoff]
+        for f in old:
+            os.remove(f)
+        if old:
+            print(f"  pruned:    {len(old)} backups older than {BACKUP_KEEP_DAYS} days")
+    except OSError as e:
+        print(f"  prune:     skipped ({e})")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--apply", action="store_true")
@@ -166,12 +187,22 @@ def main() -> int:
         print("  done (nothing written).")
         return 0
 
+    # SRVAUDIT_FLIPQUIET_20261028
+    _cur_by = {(e.get("ticker") or "").upper(): e for e in current if isinstance(e, dict)}
+    _universe_changed = bool(added) or any(_cur_by.get(e["ticker"].upper()) != e for e in new)
+    if not _universe_changed and not dropped:
+        print("  unchanged: nothing written.")
+        _prune_backups()
+        return 0
     os.makedirs(BACKUP_DIR, exist_ok=True)
-    stamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
-    backup = os.path.join(BACKUP_DIR, f"tickers-{stamp}.json")
-    if os.path.exists(TICKERS_PATH):
+    if _universe_changed and os.path.exists(TICKERS_PATH):
+        stamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
+        backup = os.path.join(BACKUP_DIR, f"tickers-{stamp}.json")
         shutil.copy2(TICKERS_PATH, backup)
         print(f"  backup:    {backup}")
+    else:
+        print("  backup:    skipped (MinePortal's list unchanged; only scraper-added entries dropped)")
+    _prune_backups()
 
     d = os.path.dirname(TICKERS_PATH)
     fd, tmp = tempfile.mkstemp(dir=d, prefix=".tickers.", suffix=".tmp")

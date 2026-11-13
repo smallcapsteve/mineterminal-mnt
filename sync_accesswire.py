@@ -66,6 +66,50 @@ def find_fuzzy_dupe(conn: sqlite3.Connection, ticker: str, headline: str,
     return None
 
 
+def _words250(s: str) -> set:
+    return set(re.sub(r"[^a-z0-9]+", " ", (s or "").lower()).split()[:250])
+
+
+def _aw_id(url: str) -> int:
+    """AW_OLDCOPY_V2: Access Newswire's article number, the digits that end its address (0 when there is none)."""
+    m = re.search(r"accessnewswire\.com/.*-(\d{5,8})/?$", url or "")
+    return int(m.group(1)) if m else 0
+
+
+def old_copy(conn: sqlite3.Connection, ticker: str, headline: str, body: str, published_at: str,
+             min_days: int = 60, url: str = "", max_id: int = 0) -> str | None:
+    """AW_OLDCOPY_V1 (2026-11-10): Access Newswire re-stamps some old releases with a new date (Sierra Madre's July 2023
+    drill results arrived as Sep 30, 2026 news). Returns the original's date when MNT already shows a release of the
+    same company with the same full headline from min_days or more before and the same text (94% of the first 250
+    words; with no usable text, a headline of 50+ characters carrying a figure); otherwise None."""
+    try:
+        d0 = datetime.fromisoformat((published_at or "").replace("Z", "+00:00")).replace(tzinfo=None)
+    except (ValueError, AttributeError):
+        return None
+    hn = re.sub(r"[^a-z0-9]+", " ", (headline or "").lower()).strip()
+    if not ticker or len(hn) < 30:
+        return None
+    cut = (d0 - timedelta(days=min_days)).strftime("%Y-%m-%dT%H:%M:%S")
+    we = _words250(body)
+    for eid, pub, rhl in conn.execute(
+            "SELECT event_id, published_at, raw_headline FROM events WHERE ticker = ? AND published_at < ? "
+            "AND review_status IN ('auto_approved', 'approved')", (ticker, cut)).fetchall():
+        if re.sub(r"[^a-z0-9]+", " ", (rhl or "").lower()).strip() != hn:
+            continue
+        row = conn.execute("SELECT raw_body FROM events WHERE event_id = ?", (eid,)).fetchone()
+        wo = _words250(row[0] if row else "")
+        aid = _aw_id(url)                                       # AW_OLDCOPY_V2
+        old_id = bool(aid and max_id and aid < 0.85 * max_id)   # an article number from years ago
+        if aid and not old_id:
+            continue                                            # a current number is a new release, even if it repeats old wording
+        if len(we) >= 40 and len(wo) >= 40:
+            if len(we & wo) / float(min(len(we), len(wo))) >= (0.8 if old_id else 0.94):
+                return str(pub)[:10]
+        elif len(hn) >= 50 and re.search(r"\d", headline or ""):
+            return str(pub)[:10]
+    return None
+
+
 # AW_BODYTICK_V1: fallback ticker from the exchange tag in the release body.
 _EX_TAG = re.compile(r"\b(TSX[\s\-]?V(?:enture)?(?:\s+Exchange)?|TSXV|TSX|CSE|CNSX)\s*[:\-]\s*([A-Z][A-Z0-9]{0,5}(?:\.[A-Z])?)\b")
 _SUF = {"TSXV": ".V", "TSX": ".TO", "CSE": ".CN", "CNSX": ".CN"}
@@ -144,8 +188,10 @@ def run_rendered(days: int, dry_run: bool, limit: int, pages: int) -> int:
 
     conn = pdb.get_conn()
     seen_urls = _known_urls(conn)
+    _max_aw_id = max([_aw_id(u) for u in seen_urls] or [0])   # AW_OLDCOPY_V2
     notick = _notick_load()                              # AW_NOTICK_MEMO_V1
     n_memo = 0
+    n_old = 0                                            # AW_OLDCOPY_V1
 
     # Every stage counts what it dropped. The old collector counted only what it
     # ingested, which is why an 87% loss went unnoticed for months.
@@ -194,6 +240,12 @@ def run_rendered(days: int, dry_run: bool, limit: int, pages: int) -> int:
         if _dupe:
             n_dupe += 1
             continue
+        _old = old_copy(conn, ticker, headline, ev.get("raw_body", ""), published, url=url, max_id=_max_aw_id)   # AW_OLDCOPY_V1/V2
+        if _old:
+            n_old += 1
+            print(f"  = old release from {_old}, not stored again: {headline[:70]}")
+            notick[url] = time.time()                    # not fetched again for 3 days
+            continue
 
         record = {
             "event_id":      aw.event_id_for(url, published),
@@ -223,6 +275,7 @@ def run_rendered(days: int, dry_run: bool, limit: int, pages: int) -> int:
     if not dry_run:                                      # AW_NOTICK_MEMO_V1
         _notick_save(notick)
     print(f"[accesswire] no-ticker memo: {len(notick)} remembered, {n_memo} skipped this run")
+    print(f"[accesswire] old releases not stored again: {n_old}")   # AW_OLDCOPY_V1
     print(f"[accesswire] RENDERED DONE  ingested={n_ingested} already_held={n_known} "
           f"no_ticker={n_no_ticker} no_body={n_body_fail} dupe={n_dupe} errors={n_err} "
           f"elapsed={time.time() - started:.0f}s")
@@ -240,6 +293,9 @@ def run_gnews_fallback(days: int, dry_run: bool) -> int:
     ingested = dup_skip = 0
     for ev in items:
         if find_fuzzy_dupe(conn, ev["ticker"], ev["raw_headline"], ev["published_at"]):
+            dup_skip += 1
+            continue
+        if old_copy(conn, ev["ticker"], ev["raw_headline"], ev.get("raw_body") or "", ev["published_at"]):   # AW_OLDCOPY_V1
             dup_skip += 1
             continue
         # INGEST_FIX3_V1 (2026-10-12): this path stores a placeholder body when the plain fetch is refused

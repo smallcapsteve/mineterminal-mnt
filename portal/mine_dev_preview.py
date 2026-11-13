@@ -48,6 +48,9 @@ def register(app, templates):
     @app.get("/mine-development-preview", response_class=HTMLResponse)
     def mine_development_preview(request: Request, ticker: str | None = None, days: int = 0, page: int = 1,
                                  group: str = "", type: str = "", status: str = "", label: str = ""):
+        if not auth.is_logged_in(request):   # NOLABEL2_V1 (2026-11-03): internal page, admin only
+            from fastapi.responses import RedirectResponse
+            return RedirectResponse("/admin/login", status_code=302)
         group = group if group in GROUP_LABELS else ""
         etype = type if type in TYPE_LABELS else ""
         status = status if status in _STATUSES else ""

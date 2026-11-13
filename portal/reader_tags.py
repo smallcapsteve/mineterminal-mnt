@@ -157,11 +157,9 @@ def base_of(key):
     return key.split("+", 1)[0]
 
 
-def decide(conn, A, extractor, version, rule_sha, tag, mod, log):
-    """Step 1: decisions for releases with a substantive find, no tag, and no decision for (version, rule_sha).
-    extractor is the rule key; records are read from its base extractor."""
-    key, extractor = extractor, base_of(extractor)
-    spec = A.SPECS[extractor]
+def candidates(conn, key, extractor, version, rule_sha, tag, since=None):
+    """TAGINCR_V1 (2026-11-05): decide()'s candidate query, unchanged; since=N looks only at records with
+    record_id > N (portal/tag_incr.py decides when that is enough)."""
     q = ("SELECT DISTINCT r.event_id FROM fx_records r JOIN events e ON e.event_id=r.event_id "
          "WHERE r.extractor=? AND r.version=? AND e.review_status='auto_approved' "
          "AND (('|' || COALESCE(e.categories,'') || '|') NOT LIKE ? OR EXISTS (SELECT 1 FROM reader_tags g "
@@ -170,8 +168,20 @@ def decide(conn, A, extractor, version, rule_sha, tag, mod, log):
          "AND f.field NOT IN (%s)) "
          "AND NOT EXISTS (SELECT 1 FROM reader_tag_decisions d WHERE d.event_id=r.event_id AND d.extractor=? "
          "AND d.version=? AND d.rule_sha=?)" % ",".join("?" * len(TRIVIAL)))
-    todo = [r[0] for r in conn.execute(q, (extractor, version, "%|" + tag + "|%", tag) + TRIVIAL
-                                       + (key, version, rule_sha)).fetchall()]
+    args = (extractor, version, "%|" + tag + "|%", tag) + TRIVIAL + (key, version, rule_sha)
+    if since is not None:
+        q += " AND r.record_id > ?"
+        args += (since,)
+    return [r[0] for r in conn.execute(q, args).fetchall()]
+
+
+def decide(conn, A, extractor, version, rule_sha, tag, mod, log, todo=None):
+    """Step 1: decisions for releases with a substantive find, no tag, and no decision for (version, rule_sha).
+    extractor is the rule key; records are read from its base extractor."""
+    key, extractor = extractor, base_of(extractor)
+    spec = A.SPECS[extractor]
+    if todo is None:
+        todo = candidates(conn, key, extractor, version, rule_sha, tag)
     n_yes = errs = 0
     for k in range(0, len(todo), BATCH):
         rows = []
@@ -290,7 +300,8 @@ def run(conn=None, log=print):
                     log("[reader_tags] %s: a cross-tag rule must give another tag, skipped" % extractor)
                     continue
                 mod = load_rule(extractor)
-                decide(conn, A, extractor, act[base], rule_sha, tag, mod, log)
+                from portal import tag_incr   # TAGINCR_V1 (2026-11-05): new records only between full passes
+                tag_incr.decide(conn, A, extractor, act[base], rule_sha, tag, mod, log, sys.modules[__name__])
                 settle(conn, extractor, act[base], rule_sha, tag, log)
             except Exception:  # noqa: BLE001
                 conn.rollback()

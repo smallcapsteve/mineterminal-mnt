@@ -48,7 +48,7 @@
 {% block content %}
   <article class="event-detail">
     <p class="event-meta">
-      <strong>{{ event["ticker"] or "—" }}</strong>
+      {% if event["ticker"] %}<a href="/company/{{ event["ticker"] | urlencode }}" title="More news from {{ event["ticker"] }}"><strong>{{ event["ticker"] }}</strong></a>{% else %}<strong>—</strong>{% endif %}{# LBPROJ: ticker links to the company's news #}
       {% if is_admin %}&middot; {{ event["source_name"] | pretty_source or "" }}{% endif %}
       &middot; <time datetime="{{ (event['published_at'] or '') }}">{# DATEDUP_V1.6: TSX/CSE releases carry a date only #}{% if (event["source_name"] or "") in ("tmx", "cse") and (event["published_at"] or "")[10:19] == "T12:00:00" %}{{ event["published_at"][:10] }}{% else %}{{ (event["published_at"] or event["classified_at"] or "") | et_time }}{% endif %}</time>{# AUDIT1110_ETTIME #}
       {% if is_admin %}

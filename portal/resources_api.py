@@ -268,12 +268,24 @@ def _c19_is_hist(r) -> bool:
         return False
 
 
-def to_item(r, names: dict) -> dict:
+def _marks(conn, names) -> dict:
+    """SWEEP1112_RESMARK (2026-11-12): third-party and project-hint marks for every row (portal/resmark.py); {} if it fails."""
+    try:
+        from portal import resmark
+        return resmark.get(conn, names)
+    except Exception:
+        return {}
+
+
+def to_item(r, names: dict, marks=None) -> dict:
     t = (r["ticker"] or "").strip()
+    mk = (marks or {}).get((r["event_id"], r["ordinal"]))   # SWEEP1112_RESMARK
     return {
         "row_id": r["res_id"], "event_id": r["event_id"], "ordinal": r["ordinal"],
         "ticker": t, "bare_ticker": bare(t), "company": company_name(t, names),
         "project": r["project"] or "", "deposit": r["deposit"] or "",
+        "third_party": mk[0] if mk else None, "project_hint": mk[1] if mk else None,   # SWEEP1112_RESMARK
+        "project_hint_source": mk[2] if mk else None,
         "category": r["category"] or "", "basis": r["basis"] or "",
         "tonnes": _num(r["tonnes"]), "grades": _js(r["grades_json"]), "contained": _js(r["contained_json"]),
         "cut_off": r["cut_off"] or "", "context": r["context"] or "", "estimate_type": r["mre_type"] or "",
@@ -343,7 +355,7 @@ def query_rows(conn, p: dict, names: dict, universe: Optional[frozenset]) -> dic
         "filters": {k: p[k] for k in ("ticker", "categories", "basis", "metal", "since") if p.get(k)},
         "historic": p.get("historic", "include"), "latest": bool(p.get("latest")),
         "universe": p["universe"], "universe_applied": bool(universe),
-        "items": [to_item(r, names) for r in sel],
+        "items": (lambda mk: [to_item(r, names, mk) for r in sel])(_marks(conn, names)),   # SWEEP1112_RESMARK
     }
 
 

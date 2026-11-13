@@ -932,7 +932,14 @@ def run(apply: bool, pages: bool = True, items=None, stubs=None) -> int:
     counts["feed_items"] = len(items)
     work_queue(items, apply, pages, seen, state, counts, stubs=stubs)
     try:                                        # V4 step 2a/2b: copies that take over short versions
-        fill_stubs(apply, counts)
+        _fe = int(os.environ.get("NFDIRECT_FILL_EVERY", "1800"))   # NFPACE_V1 (2026-11-11): at most every 30 min
+        _lf = _parse_iso(state.get("last_fill")) if state.get("last_fill") else None
+        if apply and _fe and _lf and (_now() - _lf).total_seconds() < _fe:
+            counts["fill_skipped"] = 1
+        else:
+            fill_stubs(apply, counts)
+            if apply:
+                state["last_fill"] = _iso(_now())
     except Exception as e:  # noqa: BLE001 - never let the take-over stop collection
         print(f"[newsfile_direct] fill_stubs failed: {type(e).__name__}: {e}", flush=True)
     state["last_run"] = _iso(_now())

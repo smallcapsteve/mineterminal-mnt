@@ -46,5 +46,13 @@
  "bbc40676464f5ea74409bc78ea9966f319f49036": {
   "not_financing": true,
   "why": "Southern Copper's US$1.25B notes issue (debt), not a share placement (USX_FINOV_V1, Justin 2026-11-11)"
+ },
+ "9084b4d66e9b90bcb3b81731281d1ea459b62968": {
+  "not_financing": true,
+  "why": "Agnico Eagle's US$600M senior notes offering is debt, not an equity financing"
+ },
+ "94fc03117acd59f2d5d0a4608bfb3bdea55a6079": {
+  "not_financing": true,
+  "why": "Agnico Eagle's US$600M senior notes offering is debt, not an equity financing"
  }
 }

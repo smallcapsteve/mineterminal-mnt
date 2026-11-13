@@ -539,7 +539,8 @@ def main(argv=None):
         print("[resources_publish] no active resources version; running the legacy resource_backfill.py")
         return subprocess.call([sys.executable, LEGACY])
     try:
-        publish(conn, version)
+        from portal import pub_incr   # PUB_INCR_V1 (2026-11-05): per-company publishing, portal/pub_incr_modes
+        pub_incr.run('resources', conn, version, publish)
         return 0
     except Exception as exc:  # noqa: BLE001
         print(f"[resources_publish] FAILED publishing {version}: {type(exc).__name__}: {exc}")

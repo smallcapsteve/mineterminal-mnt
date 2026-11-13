@@ -66,6 +66,14 @@ def get_conn() -> sqlite3.Connection:
         conn.execute("PRAGMA journal_mode=WAL")
         conn.execute("PRAGMA busy_timeout=30000")
         conn.execute("PRAGMA foreign_keys=ON")
+        # MNTLEAK_V1 (2026-10-28): close the connections of threads that have ended (portal/conn_reaper.py). Without
+        # this every retired pool thread left its connection open until a rare full GC: 74-80 per worker, growing
+        # workers to 1.1 GB. Undo: delete this block.
+        try:
+            from portal.conn_reaper import adopt as _mntleak_adopt
+            _mntleak_adopt(conn, "portal.db")
+        except Exception:  # noqa: BLE001 - never stop a page over bookkeeping
+            pass
         _LOCAL.conn = conn
     return conn
 
@@ -141,7 +149,10 @@ def upsert_event(row: dict) -> None:
     ]
     vals = [row.get(k) for k in cols]
     placeholders = ",".join(["?"] * len(cols))
-    assignments = ",".join(f"{k}=excluded.{k}" for k in cols if k != "event_id")
+    # STATUSKEEP_V1 (2026-11-08): on an update the stored review_status wins (a re-collected release keeps
+    # rejected / duplicate / held). Undo: python3 /root/statuskeep/patch_statuskeep.py --undo
+    assignments = ",".join((f"{k}=COALESCE(events.{k}, excluded.{k})" if k == "review_status" else f"{k}=excluded.{k}")
+                           for k in cols if k != "event_id")
     c.execute(
         f"INSERT INTO events ({','.join(cols)}) VALUES ({placeholders}) "
         f"ON CONFLICT(event_id) DO UPDATE SET {assignments}",
@@ -408,6 +419,13 @@ def upsert_event(row):  # noqa: F811
         if row.get("raw_headline"):
             if (row.get("source_name") or "").lower() in ("tmx", "cse"):
                 row["raw_headline"] = _hl_clean(row["raw_headline"])
+                # SWEEP1109_TITLE_FROM_BODY (2026-11-09): a boilerplate first line ("Not for distribution...", "News
+                # release", a letterhead) is replaced by the title read from the PDF text, once, here
+                from portal import headline_fix as _hlx
+                if _hlx.BAD_HEADLINE.match(row["raw_headline"]):
+                    _t = _hlx.title_from_body(row.get("raw_body") or row.get("raw_excerpt"), _hlx.company_name(row.get("ticker")))
+                    if _t:
+                        row["raw_headline"] = _t
             else:
                 row["raw_headline"] = _hl_repair(row.get("source_name"), row["raw_headline"])[0]
     except Exception:
@@ -526,3 +544,35 @@ def upsert_event(row):  # noqa: F811
             pass
         return _datedup_prev_upsert(row)
 # ====== end DATEDUP_V1 ======
+
+
+# ====== SWEEP1109_TICKER_SNAP (2026-11-09, Justin round 4 item 2): a wire's guessed exchange snaps to our listing ======
+# A wire tags a release with the exchange it guesses ("TSX: SAM" -> SAM.V, "(NYSE: HBM)" -> HBM). When that ticker is
+# not one of ours but exactly one company of ours has the same symbol and that company's name is in the headline or
+# the opening text, the release is stored under our ticker. Checked once here, before the duplicate rules see it.
+# Rollback: /var/backups/mnt/sweep1109-intake-*/db.py
+_snap_prev_upsert = upsert_event
+_snap_by_symbol = None
+_SNAP_GENERIC = {"gold", "silver", "copper", "mining", "mines", "minerals", "metals", "resources", "resource", "corp",
+                 "corporation", "limited", "exploration", "royalty", "royalties", "energy", "uranium", "lithium", "nickel",
+                 "capital", "ventures", "international", "group", "holdings", "company", "critical", "battery"}
+
+
+def upsert_event(row):  # noqa: F811
+    global _snap_by_symbol
+    import json as _sj, os as _so, re as _sr
+    if _snap_by_symbol is None:
+        p = "/opt/mnt/app/tickers.json"
+        _snap_by_symbol = {}
+        for x in (_sj.load(open(p)) if _so.path.exists(p) else []):
+            if isinstance(x, dict) and x.get("ticker"):
+                _snap_by_symbol.setdefault(x["ticker"].split(".")[0].upper(), []).append(x)
+    tk = (row.get("ticker") or "").upper()
+    ours = _snap_by_symbol.get(tk.split(".")[0], []) if tk else []
+    if len(ours) == 1 and tk != ours[0]["ticker"].upper():
+        words = [w for w in _sr.findall(r"[a-z]{4,}", (ours[0].get("name") or "").lower()) if w not in _SNAP_GENERIC]
+        text = ((row.get("raw_headline") or "") + " " + (row.get("raw_body") or row.get("raw_excerpt") or "")[:1500]).lower()
+        if words and words[0] in text:
+            row["ticker"] = ours[0]["ticker"]
+    return _snap_prev_upsert(row)
+# ====== end SWEEP1109_TICKER_SNAP ======

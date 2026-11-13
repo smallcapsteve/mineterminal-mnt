@@ -59,6 +59,9 @@ def register(app, templates):
     @app.get("/warrant-expiries-preview", response_class=HTMLResponse)
     def warrant_expiries_preview(request: Request, ticker: str | None = None, show: str = "changed", outcome: str = "",
                                  label: str = "", page: int = 1):
+        if not auth.is_logged_in(request):   # NOLABEL2_V1 (2026-11-03): internal page, admin only
+            from fastapi.responses import RedirectResponse
+            return RedirectResponse("/admin/login", status_code=302)
         show = show if show in _SHOW else "changed"
         outcome = outcome if outcome in OUTCOMES else ""
         label = label if label in _LABELS else ""

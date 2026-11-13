@@ -289,3 +289,5 @@ try:
 except Exception:  # pragma: no cover
     import logging
     logging.getLogger(__name__).exception("aitag_scrub register failed")
+from portal import notfound as _notfound  # UXFIX6_V1
+_notfound.register(app, templates, site="MiningNewsTerminal")  # UXFIX6_V1

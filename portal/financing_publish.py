@@ -38,6 +38,7 @@ Self-tests: python3 -m portal.financing_publish --selftest   (in-memory; touches
 from __future__ import annotations
 
 import json
+import os
 import re
 import sqlite3
 import subprocess
@@ -49,6 +50,7 @@ EXTRACTOR = "financings"
 TAG = "Financings"
 DB = "/opt/mnt/app/portal/portal.db"
 LEGACY = "/opt/mnt/app/financing_backfill.py"
+OVERRIDES = "/opt/mnt/app/portal/financing_overrides.json"   # SWEEP1109_FIN_OVERRIDES
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS financings (
@@ -302,6 +304,8 @@ def compute(items):
         changed_terms = None
         reopen = set()
         for d in mine:
+            if a.get("own_deal"):
+                break                                         # SWEEP1109_FIN_OVERRIDES
             gap = _days(d["last_date"], dt)
             if gap is None or gap < -3 or gap > 400:
                 continue
@@ -653,7 +657,23 @@ def load_items(conn, version):
             (EXTRACTOR, version)):
         if eid in evs:
             facts.setdefault(eid, []).append((field, seq, num, text))
-    return [(evs[e], X.parse_facts(facts.get(e, []))) for e in evs]
+    # SWEEP1109_FIN_OVERRIDES (2026-11-09): hand corrections for releases the reader files under the wrong company
+    # or joins to the wrong deal, applied here once so every publish and the nightly rebuild keep them.
+    #   {"<event_id>": {"ticker": "CAM.V"}}  file that release's financing under another company
+    #   {"<event_id>": {"own_deal": true}}   that release never joins an existing deal
+    ov = json.load(open(OVERRIDES)) if os.path.exists(OVERRIDES) else {}
+    out = []
+    for e in evs:
+        a = X.parse_facts(facts.get(e, []))
+        o = ov.get(e) or {}
+        if o.get("ticker"):
+            evs[e]["ticker"] = o["ticker"]
+        if o.get("own_deal"):
+            a["own_deal"] = True
+        if o.get("not_financing"):                # the filer investing in another company, not its own raise
+            a["is_financing"] = False
+        out.append((evs[e], a))
+    return out
 
 
 def ensure_schema(conn):
@@ -804,7 +824,8 @@ def main(argv=None):
         print("[financing_publish] no active financings version; running the legacy financing_backfill.py")
         return subprocess.call([sys.executable, LEGACY])
     try:
-        publish(conn, version)
+        from portal import pub_incr   # PUB_INCR_V1 (2026-11-05): per-company publishing, portal/pub_incr_modes
+        pub_incr.run('financings', conn, version, publish)
         return 0
     except Exception as exc:  # noqa: BLE001
         # never fall back to the legacy reader after the switch: the last published tables stay

@@ -44,6 +44,7 @@ TAG = "Management Changes"
 DB = "/opt/mnt/app/portal/portal.db"
 LEGACY = "/opt/mnt/app/management_backfill.py"
 COPY_DAYS = 7
+OVERRIDES = "/opt/mnt/app/portal/management_overrides.json"   # SWEEP1109_MGMT_OVERRIDES
 
 TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS management_changes (
@@ -171,7 +172,18 @@ def load_items(conn, version):
             "WHERE r.extractor=? AND r.version=?", (EXTRACTOR, version)):
         if eid in evs:
             facts.setdefault(eid, {}).setdefault(ordinal, []).append((field_, seq, num, text))
-    return [(evs[e], X.parse_records(facts.get(e, {}))) for e in evs]
+    out = [(evs[e], X.parse_records(facts.get(e, {}))) for e in evs]
+    # SWEEP1109_MGMT_OVERRIDES (2026-11-09): hand corrections for rows the reader got wrong, applied here once so every
+    # publish and the nightly rebuild keep them. portal/management_overrides.json:
+    #   {"<event_id>": [{"person": "<name as read>", "set": {"action": ..., "role": ...}} | {"person": ..., "drop": true}]}
+    from os.path import exists
+    ov = json.load(open(OVERRIDES)) if exists(OVERRIDES) else {}
+    for ev, p in out:
+        for o in ov.get(ev["event_id"], []):
+            hit = lambda c: c.get("person") == o["person"] and o.get("role", c.get("role")) == c.get("role")
+            p["changes"] = [dict(c, **o.get("set", {})) if hit(c) else c
+                            for c in (p.get("changes") or []) if not (o.get("drop") and hit(c))]
+    return out
 
 
 def current_event_ids(conn):
@@ -269,7 +281,8 @@ def main(argv=None):
         print("[management_publish] no active management version; running the legacy management_backfill.py")
         return subprocess.call([sys.executable, LEGACY])
     try:
-        publish(conn, version)
+        from portal import pub_incr   # PUB_INCR_V1 (2026-11-05): per-company publishing, portal/pub_incr_modes
+        pub_incr.run('management', conn, version, publish)
         return 0
     except Exception as exc:  # noqa: BLE001
         print(f"[management_publish] FAILED publishing {version}: {type(exc).__name__}: {exc}")

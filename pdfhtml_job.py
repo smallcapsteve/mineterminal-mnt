@@ -52,6 +52,8 @@ PORTAL_DB = "/opt/mnt/app/portal/portal.db"
 STORE = "/opt/mnt/app/data/release_html.db"
 UA = "Mozilla/5.0 (compatible; MiningNewsTerminal/1.0; +https://miningnewsterminal.com)"
 PAUSE_S = 1.0
+FIG_OFF = "/opt/mnt/app/portal/relimg_OFF"      # RELIMG_V1: touch this file to stop taking pictures
+LAST_FIGS: list = []                            # pictures of the release convert() handled last
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS release_html (
@@ -146,6 +148,9 @@ def catchup_ids(pcon, st):
 
 def convert(row) -> tuple[str, str, str, float, int]:
     eid, headline, body, url, src, pub = row
+    global LAST_FIGS
+    LAST_FIGS = []
+    figs = None if __import__("os").path.exists(FIG_OFF) or not hasattr(pdf_html, "save_figures") else []
     try:
         data = fetch(url)
     except Exception as e:  # noqa: BLE001
@@ -153,13 +158,22 @@ def convert(row) -> tuple[str, str, str, float, int]:
     if not data[:5].startswith(b"%PDF"):
         return "failed", "", f"not a pdf ({data[:6]!r})", 0.0, 0
     try:
-        h = pdf_html.pdf_to_html(data, headline or "")
+        if figs is None:
+            h = pdf_html.pdf_to_html(data, headline or "")
+        else:
+            h = pdf_html.pdf_to_html(data, headline or "", figures=figs, fig_url=pdf_html.FIG_URL % (eid[:2], eid))
     except Exception as e:  # noqa: BLE001
         return "failed", "", f"convert {type(e).__name__}: {str(e)[:80]}", 0.0, 0
     h = sanitize_release_html(h)
+    if hasattr(pdf_html, "fix_unmapped"):
+        h, _nfix = pdf_html.fix_unmapped(h, body or "")          # UNMAPPED_V1
     txt = re.sub(r"<[^>]+>", " ", h)
-    ratio = letters(txt) / max(1, letters(body) - letters(headline or ""))
+    labels = " ".join(f.get("labels", "") for f in (figs or []))   # words printed inside a picture are in the picture
+    ratio = (letters(txt) + letters(labels)) / max(1, letters(body) - letters(headline or ""))
     ntab = h.count("<table")
+    if hasattr(pdf_html, "unreadable") and pdf_html.unreadable(txt):
+        return "rejected", h, "unreadable text layer", ratio, ntab
+    LAST_FIGS = figs or []
     if letters(txt) < 150:
         return "rejected", h, "too little text", ratio, ntab
     if ratio < 0.90:
@@ -242,6 +256,13 @@ def main() -> int:
                        (row[0], status, h if status != "failed" else None, pdf_html.VERSION, reason,
                         round(ratio, 4), ntab, dt.datetime.utcnow().isoformat(timespec="seconds") + "Z"))
             st.commit()
+            if hasattr(pdf_html, "save_figures"):
+                try:
+                    nb = pdf_html.save_figures(row[0], LAST_FIGS if status == "ok" else [])
+                    if nb:
+                        print(f"       pictures={len(LAST_FIGS)} bytes={nb}", flush=True)
+                except Exception as e:  # noqa: BLE001 - the page is stored; a picture that could not be written shows as a broken image
+                    print("       PICTURES NOT SAVED", type(e).__name__, str(e)[:80], flush=True)
         time.sleep(PAUSE_S)
     if a.apply and advance_to is not None:
         st.execute("INSERT OR REPLACE INTO job_meta VALUES ('catchup_hwm', ?)", (str(advance_to),))

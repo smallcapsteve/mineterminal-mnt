@@ -18,9 +18,6 @@
   {# MNT_ROWS_AI_LIVE_V1 (2026-10-26): badge and note while the AI reader is switched on #}
 
   <h2 class="page-title">Permits &amp; Approvals</h2>
-  {% if ai_live %}<p class="ai-note">Each release is read by two readers side by side: the rules reader and an AI
-    reader. Rows both found carry no badge; rows only the AI reader found are marked <span class="ai-badge">AI-read</span>.
-    Where the two disagree on what was found, the row is held back for review. Every row links to its release.</p>{% endif %}
 
   <section class="filters fin-filters">
     <form method="get" action="/permits-approvals">
@@ -117,7 +114,7 @@
             {% if r["status"] %}
               <td>
                 {{ r["permit_type"] | pm_type }}
-                {%- if r["ai_label"] == "AI-read" %}<span class="ai-badge" title="Only the AI reader found this row; the rules reader did not">AI-read</span>{% endif -%}
+                {%- if false %}{% endif -%}
                 {%- if r["permit_name"] %}<span class="pm-name">{{ r["permit_name"] | truncate(70) }}</span>{% endif -%}
               </td>
               <td>

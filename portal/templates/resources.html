@@ -94,7 +94,7 @@
             <td class="res-deposit">{{ r["deposit"] or r["project"] or "—" }}</td>
             <td class="res-cat">
               {{ r["category"] or "—" }}
-              {%- if r["context"] == "background" %}<span class="res-bg-tag" title="A previously reported estimate restated in this release, not what it announces">prior</span>{% endif -%}
+              {%- if r["context"] == "background" %}{% if r["historical_estimate"] %}<span class="res-bg-tag res-hist-tag" style="background:#fdf0dc;color:#a35a00;border:1px solid #a35a00" title="The release calls this a historical estimate. It is not a current NI 43-101 mineral resource and should not be relied on.">historical estimate</span>{% else %}<span class="res-bg-tag" title="Quoted in this release, not what it announces. Usually the company's own current estimate; sometimes another company's.">previously reported</span>{% endif %}{% endif -%}{%- if r["estimate_date"] %} <span class="res-asof c19-dates" style="font-size:.78em;margin-left:4px;{% if r["estimate_old"] %}color:#a35a00;font-weight:600{% else %}opacity:.75{% endif %}" title="Date of the estimate itself, from the release: {{ r["estimate_date_why"] }}">estimate from {{ r["estimate_date"][:4] }}</span>{% endif -%}{%- if r["prepared_by"] %} <span class="res-asof c19-qp" style="font-size:.78em;margin-left:4px;opacity:.8" title="Who prepared this estimate, from the release. {{ r["prepared_by_hover"] }}">prepared by {{ r["prepared_by"] }}</span>{% endif -%}
               {%- if r["basis"] and r["basis"] != "resource" %}<span class="res-bg-tag">{{ r["basis"] }}</span>{% endif -%}
             </td>
             <td class="res-num">{{ r["tonnes"] | res_t }}</td>

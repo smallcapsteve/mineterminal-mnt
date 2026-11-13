@@ -307,7 +307,7 @@ def _run_spec(conn, spec, args, readers=None):
             remaining -= len(events)
         if args.backfill:
             print(f"[facts_sync] {spec.name} {spec.version}: {total['events']} events so far", flush=True)
-    st = facts.stats(conn, spec.name, spec.version)
+    st = facts.stats(conn, spec.name, spec.version, with_facts=False)   # FACTSTAT_V1 (2026-11-05)
     status = facts.version_status(conn, spec.name, spec.version)
     print(f"[facts_sync] {spec.name} {spec.version} ({status}): +{total['events']} events, "
           f"+{total['records']} records, {total['errors']} errors, longest write {total['max_txn_ms']} ms, "

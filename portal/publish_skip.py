@@ -68,6 +68,7 @@ STATE = os.environ.get("MNT_PUBLISH_SKIP_STATE", "/var/lib/mnt-publish-skip/stat
 OFF_FILE = os.path.join(CODE_ROOT, "portal", "publish_skip_OFF")
 ONLY_FILE = os.path.join(CODE_ROOT, "portal", "publish_skip_ONLY")
 NARROW_ON_FILE = os.path.join(CODE_ROOT, "portal", "publish_skip_narrow_ON")
+NARROW4_ON_FILE = os.path.join(CODE_ROOT, "portal", "publish_skip_narrow4_ON")   # SRVAUDIT_SSKIP_V4
 SHADOW_LOG = os.environ.get("MNT_PUBLISH_SKIP_SHADOW", os.path.join(os.path.dirname(STATE), "narrow_shadow.log"))
 FULL_EVERY_H = float(os.environ.get("MNT_PUBLISH_FULL_EVERY_H", "8"))
 
@@ -367,6 +368,126 @@ def _shadow(rec):
         pass
 
 
+# ------------------------------------------------------------------ SRVAUDIT_SSKIP_V4 (2026-10-28)
+# Justin (SRVAUDIT): "Switch on + fix bug in watch mode". The v3 events test compares the digest of ALL events,
+# minus the releases this reader has new records for, with the digest of ALL events taken at the last run. A release
+# that arrived just BEFORE the last run but was read just AFTER it is in the old digest and excluded from the new one,
+# so the test fails although nothing was edited ("an existing release changed (or one arrived unread)": 419 of 1,334
+# checks 10-21..28; two snapshots 18:51 -> 19:25 UTC on 10-28 showed 0 edited releases). v4 splits the events by
+# classified_at at a cutoff two hours before each run:
+#   - releases classified at or before the previous cutoff: one digest, must equal the one stored then (any edit,
+#     deletion or back-dated insert among them -> run);
+#   - releases classified after it: compared one by one with the per-release hashes stored then. Unchanged -> fine.
+#     Edited or removed -> run. New since then -> fine when this reader has a new nothing-found record for it (the
+#     v3 record tests below) or when it is still unread and does not carry this reader's tag (a publisher loads only
+#     releases its reader found something in, plus tagged ones); otherwise run.
+# Everything else is v3 unchanged. Watch mode first: the verdict goes to the shadow log as narrow4_*; it decides only
+# while portal/publish_skip_narrow4_ON exists.
+NARROW4_RECENT_H = 2.0
+
+
+def _ev_rows(c):
+    """One index-only scan per sync run: [(event_id, classified_at, categories, row digest)] in index order."""
+    if "ev4" not in _CODE:
+        cols = [x.strip() for x in EVENT_COLS.split(",")]
+        i_ca, i_cat = cols.index("classified_at"), cols.index("categories")
+        out = []
+        for r in c.execute("SELECT %s FROM events INDEXED BY %s" % (EVENT_COLS, EVENT_INDEX)):
+            out.append((r[0], str(r[i_ca] or "").replace(" ", "T"), r[i_cat] or "",
+                        hashlib.blake2b(repr(tuple(r)).encode("utf-8", "surrogatepass"), digest_size=8).digest()))
+        _CODE["ev4"] = out
+    return _CODE["ev4"]
+
+
+def _ev_digest(rows, cut):
+    h = _h()
+    n = 0
+    for eid, ca, _cat, d in rows:
+        if ca <= cut:
+            h.update(d)
+            n += 1
+    return "%d:%s" % (n, h.hexdigest())
+
+
+def _narrow4_baseline(c, snap):
+    cut = (dt.datetime.now(dt.timezone.utc) - dt.timedelta(hours=NARROW4_RECENT_H)).strftime("%Y-%m-%dT%H:%M:%S")
+    rows = _ev_rows(c)
+    return dict(snap, cut=cut, old_fp=_ev_digest(rows, cut),
+                recent={eid: d.hex() for eid, ca, _cat, d in rows if ca > cut})
+
+
+def _narrow4(c, label, ins, outs, prev):
+    """(nothing_relevant, why, snapshot) - v3's tests with the events test replaced as described above."""
+    snap = _narrow_snapshot(c, label)
+    base = _narrow4_baseline(c, snap)
+    p4 = prev.get("narrow4") if prev else None
+    if not p4 or "old_fp" not in p4:
+        return False, "no narrow4 baseline yet", base
+    for k in _NARROW_EXACT:
+        if ins.get(k) != prev["in"].get(k):
+            return False, k + " changed", base
+    for k in set(ins) | set(prev["in"]):
+        if k.startswith(("read:", "file:", "names:")) and ins.get(k) != prev["in"].get(k):
+            return False, k + " changed", base
+    if outs != prev["out"]:
+        return False, "output table changed by someone else", base
+    if set(snap["cnt"]) != set(p4["cnt"]):
+        return False, "live versions changed", base
+    if snap["err"] != p4["err"]:
+        return False, "reader errors changed", base
+    ex, _t = MAP[label]
+    tag = _tag_of(c, ex)
+    tag_only = ex in TAG_ONLY
+    if tag_only and not tag:
+        return False, "%s reads tagged releases only but has no tag" % ex, base
+    flag = NOTHING_FLAG.get(ex)
+    new_events = set()
+    for v in snap["cnt"]:
+        rows = c.execute("SELECT record_id, event_id FROM fx_records WHERE record_id > ? AND extractor=? AND version=?",
+                         (p4["max_rid"], ex, v)).fetchall()
+        if snap["cnt"][v] - p4["cnt"][v] != len(rows):
+            return False, "records removed or re-read (%s: %+d count, %d new)" % (v, snap["cnt"][v] - p4["cnt"][v], len(rows)), base
+        if rows and not tag_only and not flag:
+            return False, "%s has no found-nothing flag; any new record counts" % ex, base
+        for rid, eid in rows:
+            if not tag_only:
+                fl = [x for (x,) in c.execute("SELECT value_num FROM fx_facts WHERE record_id=? AND field=?", (rid, flag))]
+                if fl != [0]:
+                    return False, "new release %s: %s found something (%s=%s)" % (eid[:12], ex, flag, fl or "missing"), base
+            new_events.add(eid)
+
+    def _tagged(cat):
+        return bool(tag) and ("|" + (cat or "") + "|").find("|" + tag + "|") >= 0
+
+    evrows = _ev_rows(c)
+    cats = {eid: cat for eid, _ca, cat, _d in evrows}
+    for eid in new_events:
+        if _tagged(cats.get(eid)):
+            return False, "new release %s carries the %s tag" % (eid[:12], tag), base
+    if _ev_digest(evrows, p4["cut"]) != p4["old_fp"]:
+        return False, "a release classified before %s UTC changed" % p4["cut"], base
+    seen = set()
+    n_new = 0
+    for eid, ca, cat, d in evrows:
+        if ca <= p4["cut"]:
+            continue
+        seen.add(eid)
+        old = p4["recent"].get(eid)
+        if old is not None:
+            if old != d.hex():
+                return False, "recent release %s was edited" % eid[:12], base
+            continue
+        n_new += 1
+        if eid in new_events:
+            continue
+        if _tagged(cat):
+            return False, "new release %s not read yet and carries the %s tag" % (eid[:12], tag), base
+    gone = set(p4["recent"]) - seen
+    if gone:
+        return False, "%d recent release(s) removed or re-dated" % len(gone), base
+    return True, "%d new release(s), none relevant (v4)" % n_new, base
+
+
 def before(label):
     """None = not handled here (run it). Otherwise {'skip': bool, 'why': str, ...}; pass it to after()."""
     if label not in MAP:
@@ -384,10 +505,15 @@ def before(label):
                 n_ok, n_why, n_snap = _narrow(c, label, ins, outs, prev)
             except Exception as exc:  # noqa: BLE001 - narrow check failing means "relevant"
                 n_ok, n_why, n_snap = False, "narrow check failed (%s)" % type(exc).__name__, None
+            try:   # SRVAUDIT_SSKIP_V4 (watch mode unless publish_skip_narrow4_ON exists)
+                n4_ok, n4_why, n4_snap = _narrow4(c, label, ins, outs, prev)
+            except Exception as exc:  # noqa: BLE001
+                n4_ok, n4_why, n4_snap = False, "narrow4 check failed (%s: %s)" % (type(exc).__name__, str(exc)[:80]), None
         finally:
             c.close()
         info = {"skip": False, "in": ins, "out_before": outs, "secs": round(time.time() - t0, 1),
-                "narrow": {"ok": n_ok, "why": n_why, "snap": n_snap}}
+                "narrow": {"ok": n_ok, "why": n_why, "snap": n_snap},
+                "narrow4": {"ok": n4_ok, "why": n4_why, "snap": n4_snap}}   # SRVAUDIT_SSKIP_V4
         if os.path.exists(OFF_FILE):
             info["why"] = "publish_skip_OFF"
         elif os.path.exists(ONLY_FILE) and label not in open(ONLY_FILE).read().split():
@@ -407,9 +533,13 @@ def before(label):
             elif n_ok and os.path.exists(NARROW_ON_FILE):
                 info["skip"] = True
                 info["why"] = "narrow: %s (last full run %.1f h ago)" % (n_why, age_h)
+            elif n4_ok and os.path.exists(NARROW4_ON_FILE):   # SRVAUDIT_SSKIP_V4
+                info["skip"] = True
+                info["why"] = "narrow4: %s (last full run %.1f h ago)" % (n4_why, age_h)
             else:
                 info["why"] = "changed: " + ", ".join(changed + ["table " + x for x in out_changed])[:300]
                 info["why"] += " | narrow: %s" % (("would skip - " if n_ok else "") + n_why)
+                info["why"] += " | narrow4: %s" % (("would skip - " if n4_ok else "") + n4_why)   # SRVAUDIT_SSKIP_V4
         info["why"] += " [checked in %.1fs]" % (time.time() - t0)
         return info
     except Exception as exc:  # noqa: BLE001 - any doubt means run it
@@ -425,11 +555,15 @@ def after(label, info, rc):
         # a narrow skip moves the narrow baseline forward (the new releases are now known to be irrelevant); the
         # broad fingerprint is left as it was, so the 8-hour full rebuild still comes due on time
         n = info.get("narrow") or {}
-        if n.get("ok") and n.get("snap"):
+        n4 = info.get("narrow4") or {}   # SRVAUDIT_SSKIP_V4
+        if (n.get("ok") and n.get("snap")) or (n4.get("ok") and n4.get("snap")):
             try:
                 st = _load_state()
                 if label in st:
-                    st[label]["narrow"] = dict(n["snap"], events_fp=_CODE.get("events"))
+                    if n.get("ok") and n.get("snap"):
+                        st[label]["narrow"] = dict(n["snap"], events_fp=_CODE.get("events"))
+                    if n4.get("ok") and n4.get("snap"):
+                        st[label]["narrow4"] = n4["snap"]
                     _save_state(st)
             except Exception as exc:  # noqa: BLE001
                 _log("%s: could not move the narrow baseline (%s) - it will run next time" % (label, exc))
@@ -454,11 +588,20 @@ def after(label, info, rc):
                 if n.get("ok") and out_changed:
                     rec["MISS"] = True
                     _log("%s: NARROW MISS - the narrow check said nothing relevant, but the table changed" % label)
+                n4 = info.get("narrow4") or {}   # SRVAUDIT_SSKIP_V4
+                rec["narrow4_says_skip"] = bool(n4.get("ok"))
+                rec["narrow4_why"] = n4.get("why")
+                if n4.get("ok") and out_changed:
+                    rec["MISS4"] = True
+                    _log("%s: NARROW4 MISS - v4 said nothing relevant, but the table changed" % label)
                 _shadow(rec)
             ent = {"in": info["in"], "out": outs, "full_at": time.time(),
                    "full_at_utc": time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())}
             if n.get("snap"):
                 ent["narrow"] = dict(n["snap"], events_fp=info["in"].get("events"))
+            n4 = info.get("narrow4") or {}   # SRVAUDIT_SSKIP_V4
+            if n4.get("snap"):
+                ent["narrow4"] = n4["snap"]
             st[label] = ent
         else:
             st.pop(label, None)

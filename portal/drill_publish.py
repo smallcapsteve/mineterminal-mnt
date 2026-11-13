@@ -440,7 +440,8 @@ def main(argv=None):
         print("[drill_publish] no active drill_results version; running the legacy drill_backfill.py")
         return subprocess.call([sys.executable, LEGACY])
     try:
-        publish(conn, version)
+        from portal import drill_incr   # SYNCMEM_INCR_V1 (2026-11-05): per-ticker publishing, mode file portal/drill_incr_mode
+        drill_incr.run(conn, version, publish)
         return 0
     except Exception as exc:  # noqa: BLE001
         print(f"[drill_publish] FAILED publishing {version}: {type(exc).__name__}: {exc}")
