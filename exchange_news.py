@@ -1565,9 +1565,13 @@ def _hl_fontcut(h: str, data: bytes) -> str:
         keep = t
         for t2, sz2 in lines[i + 1:]:
             cand = keep + " " + t2
+            if keep.endswith("-") and low.startswith((keep + t2).lower()):
+                cand = keep + t2                         # AUDIT1110_FONTCUT2: line wrapped at a hyphen
             if not (0.92 * sz <= sz2 <= 1.08 * sz) or not low.startswith(cand.lower()):
                 break
             keep = cand
+        if re.search(r"\w-$", keep):
+            return h                                     # AUDIT1110_FONTCUT2: never cut inside a hyphenated word
         keep = keep.rstrip(" -\u2013\u2014:;,")
         if len(keep) >= 25 and len(hn) > len(keep) + 10 and not keep.endswith("."):
             return keep
