@@ -96,7 +96,7 @@ from portal import fingerprint as FP
 from portal import project_names as PN
 
 NAME = "economics"
-VERSION = "1.0.17"  # 2026-11-05 ECONFIX: a figure whose own sentence names the headline's issuer (Westhaven's) is the issuer's, whatever company the sentence before names; 1.0.16: 2026-10-18 PNSRC: helper 1.0.7 (no change to this reader's own code); 2026-10-13 PNJUNK: helper 1.0.6 (no change of its own); 2026-10-06 FIX8: throughput, annual production and unit costs that cannot be right (econ_core; b: without losing the real ones written as 207koz, 149,000 ozs, more than, per year, $US892/oz1, per ton); 2026-09-30: ACC150 quick fix (sweep points, rate read as IRR, duplicate rows, context, whose study, study type); 2026-10-02: FIX4 (named cases the core misses, another company's study, other metrics read as the NPV, one price written twice, rate sweeps, PDF-split words and bullets, metres); 2026-10-04 FIX5: mine life in words or hyphenated, payback (after-tax, of initial capital, not a sweep), figures under the wrong tax basis, rounded figures stated exactly in the table, currency the release states, more PDF-split words, split or component capital, each restated study's own mine life and capital
+VERSION = "1.0.18"  # 2026-11-13 ECON18: pre-tax NPV no longer filed as after-tax; scenario tables and price lists give one row each; NVP read as NPV; 1.0.17: 2026-11-05 ECONFIX: a figure whose own sentence names the headline's issuer (Westhaven's) is the issuer's, whatever company the sentence before names; 1.0.16: 2026-10-18 PNSRC: helper 1.0.7 (no change to this reader's own code); 2026-10-13 PNJUNK: helper 1.0.6 (no change of its own); 2026-10-06 FIX8: throughput, annual production and unit costs that cannot be right (econ_core; b: without losing the real ones written as 207koz, 149,000 ozs, more than, per year, $US892/oz1, per ton); 2026-09-30: ACC150 quick fix (sweep points, rate read as IRR, duplicate rows, context, whose study, study type); 2026-10-02: FIX4 (named cases the core misses, another company's study, other metrics read as the NPV, one price written twice, rate sweeps, PDF-split words and bullets, metres); 2026-10-04 FIX5: mine life in words or hyphenated, payback (after-tax, of initial capital, not a sweep), figures under the wrong tax basis, rounded figures stated exactly in the table, currency the release states, more PDF-split words, split or component capital, each restated study's own mine life and capital
 KIND = "economic_study"
 TAG = "Economic Studies"
 TEXT_CAP = 20000
@@ -1128,6 +1128,218 @@ def _drop_rate_points(rows):
             or _RE_ROW_NAMED.search(_RE_BASE_CASE.sub(" ", r.get("scenario") or ""))]
 
 
+# ---------------------------------------------------------------------------------------------------------- 1.0.18
+# ECON18 (Justin, 2026-11-13: "Size it and fix it", "Include all three"). Found on the fresh set blind_economics_2026_09.
+_RE18_TAXED = re.compile(r"(?i)\b(?P<tax>pre|after|post)[\s-]*tax(?:es)?\s+(?:net\s+present\s+value|NPV)")
+_RE18_MONEY = re.compile(r"(?i)(?:CAD\s?\$?|CA\$|C\$|US\$|USD\s?\$?|A\$|\$)\s?(?P<n>\d[\d,]*(?:\.\d+)?)\s*(?P<m>billion|million|bn|mm|[BM])?(?![\w])")
+_RE18_PRICE = re.compile(r"(?i)(?:US\$|C\$|CA\$|A\$|\$)\s?\d[\d,]*(?:\.\d+)?\s*/\s*(?:t|oz|lb|tonne|kg)\b")
+_RE18_PCT = re.compile(r"(?<![\w.])(-?\d+(?:\.\d+)?)\s*%")
+_RE18_NUM = re.compile(r"(?<![\w.$/])(\d+(?:\.\d+)?)(?![\w.%/$])")
+_MULT18 = {"billion": 1e9, "bn": 1e9, "b": 1e9, "million": 1e6, "mm": 1e6, "m": 1e6}
+
+
+def _close18(a, b):
+    return a is not None and b is not None and abs(a - b) <= 0.01 * max(abs(a), abs(b))
+
+
+def _labelled_npvs(flat):
+    """{'pre': [...], 'after': [...]}: the money stated right after each 'pre-tax NPV' / 'after-tax NPV' label, cut at
+    the next NPV label ('Pre-tax NPV (8%) of approximately CAD $1.8 Billion Post-tax NPV (8%) of ... $1.0 Billion')."""
+    out = {"pre": [], "after": []}
+    for m in _RE18_TAXED.finditer(flat):
+        tail = flat[m.end():m.end() + 80]
+        nxt = _RE_NPV_WORD.search(tail)
+        if nxt:
+            tail = tail[:nxt.start()]
+        v, _cur = C.money(tail)
+        if v and abs(v) >= 1e6:
+            out["pre" if m.group("tax").lower() == "pre" else "after"].append(v)
+    return out
+
+
+def _fix18_tax(flat, rows):
+    """TAX: a single-row release's after-tax NPV that is really its pre-tax figure takes the figure the release labels
+    after-tax; with none, it moves to pre-tax. Only labels the release writes count; several rows are left alone."""
+    if len(rows) != 1:
+        return rows
+    r = rows[0]
+    a, p = r.get("npv_after_tax"), r.get("npv_pre_tax")
+    if a is None:
+        return rows
+    lab = _labelled_npvs(flat)
+    if any(_close18(a, v) for v in lab["after"]):
+        return rows                                   # the release states this figure as after-tax
+    pre_like = _close18(a, p) or any(_close18(a, v) for v in lab["pre"])
+    if not pre_like:
+        return rows
+    cands = [v for v in lab["after"] if not any(_close18(v, q) for q in lab["pre"] + [p])]
+    if cands:
+        r["npv_after_tax"] = cands[0]                 # the first after-tax figure the release states
+    elif any(_close18(a, v) for v in lab["pre"]):
+        if p is None:
+            r["npv_pre_tax"] = a
+        r["npv_after_tax"] = None
+    return rows
+
+
+def _money_cells(line):
+    """The money figures in one table line, scaled; None when a cell has no scale and the line names none."""
+    unit = 1e9 if re.search(r"(?i)\bbillions?\b|\(\s*(?:US\$|C\$|\$)?\s*B\s*\)", line) else \
+        1e6 if re.search(r"(?i)\bmillions?\b|\bMM\b|\$\s*M\b|\(\s*(?:US\$|C\$|\$)?\s*M\s*\)", line) else None
+    vals = []
+    for m in _RE18_MONEY.finditer(line):
+        mult = _MULT18.get((m.group("m") or "").lower()) or unit
+        if not mult:
+            return None
+        vals.append(float(m.group("n").replace(",", "")) * mult)
+    return vals
+
+
+def _scenario_table(body):
+    """TABLE (columns): a price row with N prices under a header naming 'Scenario 1' .. 'Scenario N', and the rows
+    after it. [(name, {field: value})] or []."""
+    lines = (body or "").split("\n")
+    for i, ln in enumerate(lines):
+        prices = _RE18_PRICE.findall(ln)
+        if len(prices) < 2 or not re.search(r"(?i)\bprice\b", ln[:ln.find(prices[0])] if prices[0] in ln else ln):
+            continue
+        n = len(prices)
+        hdr = " ".join(lines[max(0, i - 8):i])
+        heads = list(re.finditer(r"(?i)\bScenario\s+(\d+)(\s*\(\s*Base\s+Case\s*\))?", hdr))
+        if len(heads) != n:
+            continue
+        cols = [{} for _ in range(n)]
+        got = False
+        for ln2 in lines[i + 1:i + 12]:
+            low = ln2.lower()
+            if _RE18_PRICE.findall(ln2):
+                break
+            if re.match(r"(?i)\s*(?:after|post|pre)[\s-]*tax\s+(?:NPV|net\s+present\s+value)", ln2):
+                k = "npv_pre_tax" if low.strip().startswith("pre") else "npv_after_tax"
+                if any(k in c for c in cols):
+                    continue                          # the first discount rate stated is the row's
+                vals = _money_cells(ln2)
+                if not vals or len(vals) != n:
+                    continue
+                d = C.discount_of(ln2)
+                for c, v in zip(cols, vals):
+                    c[k] = v
+                    if d:
+                        c.setdefault("discount_pct", d)
+                got = True
+            elif re.match(r"(?i)\s*(?:after|post|pre)[\s-]*tax\s+IRR\b", ln2):
+                k = "irr_pre_tax_pct" if low.strip().startswith("pre") else "irr_after_tax_pct"
+                vals = [float(x) for x in _RE18_PCT.findall(ln2)]
+                if len(vals) == n and not any(k in c for c in cols):
+                    for c, v in zip(cols, vals):
+                        c[k] = v
+            elif re.match(r"(?i)\s*(?:after[\s-]*tax\s+)?pay[\s-]?back\b", ln2):
+                vals = [float(x) for x in _RE18_NUM.findall(re.sub(r"(?i)^\s*(?:after[\s-]*tax\s+)?pay[\s-]?back(?:\s+period)?\s*(?:\(\s*years?\s*\))?", "", ln2))]
+                if len(vals) == n and all(0 < v < 40 for v in vals) and not any("payback_years" in c for c in cols):
+                    for c, v in zip(cols, vals):
+                        c["payback_years"] = v
+        if not got:
+            continue
+        out = []
+        for hd, pr, c in zip(heads, prices, cols):
+            name = "scenario %s %s" % (hd.group(1), " ".join(pr.split()))
+            if hd.group(2):
+                name += " base case"
+            out.append((name, c))
+        return out
+    return []
+
+
+_RE18_PAIR = re.compile(r"(?i)(?P<m>(?:C\$|CA\$|US\$|A\$|\$)\s?\d[\d,]*(?:\.\d+)?\s*(?:billion|million|bn|[BM])\b)\s+at\s+"
+                        r"(?P<p>(?:US\$|C\$|CA\$|A\$|\$)\s?\d[\d,]*(?:\.\d+)?\s*/\s*(?:oz|lb|t|tonne)\b)(?:\s+(?:gold|silver|copper|Au|Ag|Cu))?")
+_RE18_LIST = re.compile(r"(?i)\b(?P<tax>pre|after|post)[\s-]*tax\s+NPV\s*(?:\(\s*\d+(?:\.\d+)?\s*%\s*\)|\d+(?:\.\d+)?\s*%)?\s*"
+                        r"(?:increases\s+to|of|is|rises\s+to)?\s*:?\s*")
+_RE18_SCEN_NAME = re.compile(r"(?i)(?P<n>[A-Za-z(\"“][\w\"“”()-]*(?:\s+[A-Za-z(\"“][\w\"“”()-]*){0,2}?)\s+(?:development\s+)?scenario\b")
+
+
+def _price_lists(flat):
+    """TABLE (lists): 'After-tax NPV(5%): $215.8M at US$2,600/oz gold $668.3M at US$4,200/oz gold' under a named
+    '... scenario' within the 220 characters before it. [(name, tax, discount, [(value, price)])]."""
+    out = []
+    for m in _RE18_LIST.finditer(flat):
+        pairs, pos = [], m.end()
+        while True:
+            pm = _RE18_PAIR.match(flat, pos)
+            if not pm:
+                break
+            v, _c = C.money(pm.group("m"))
+            pairs.append((v, " ".join(pm.group("p").split())))
+            pos = pm.end()
+            while pos < len(flat) and flat[pos].isspace():
+                pos += 1
+        if len(pairs) < 2 or any(not v or v < 1e6 for v, _p in pairs):
+            continue
+        lead = flat[max(0, m.start() - 220):m.start()]
+        names = list(_RE18_SCEN_NAME.finditer(lead))
+        if not names:
+            continue
+        words = re.findall(r"[A-Za-z][\w-]*", names[-1].group("n"))
+        quoted = re.findall(r"[\"“]([A-Za-z][\w-]{1,12})[\"”]", names[-1].group("n"))
+        name = (quoted[-1] if quoted else " ".join(w for w in words if w.lower() not in ("robust", "optional", "the", "a", "an", "with", "strong", "gold", "silver", "copper", "au", "ag", "cu", "oz"))[-24:]).strip()
+        if not name:
+            continue
+        out.append((name, "pre" if m.group("tax").lower() == "pre" else "after", C.discount_of(flat[m.start():m.end()]), pairs))
+    return out
+
+
+def _fix18_tables(body, flat, rows):
+    """TABLE: the rows a scenario table or a named price list states, merged into the rows already read: a row with
+    the same NPV takes the table's missing figures; the others are added with the release's shared figures."""
+    if not rows:
+        return rows
+    found = []
+    for name, c in _scenario_table(body):
+        found.append(dict(c, scenario=name))
+    for name, tax, d, pairs in _price_lists(flat):
+        for v, pr in pairs:
+            f = {"scenario": "%s %s" % (name, pr), ("npv_pre_tax" if tax == "pre" else "npv_after_tax"): v}
+            if d:
+                f["discount_pct"] = d
+            found.append(f)
+    if not found:
+        return rows
+    base = rows[0]
+    out = list(rows)
+    for f in found:
+        k = "npv_after_tax" if f.get("npv_after_tax") is not None else "npv_pre_tax"
+        same = [r for r in out if _close18(r.get(k), f.get(k))]
+        if same:
+            for r in same:
+                for fk, fv in f.items():
+                    if fk != "scenario" and fv is not None and r.get(fk) is None:
+                        r[fk] = fv
+            continue
+        if len(out) >= 12:
+            break
+        row = {kk: base.get(kk) for kk in base}
+        for kk in ("npv_pre_tax", "npv_after_tax", "irr_pre_tax_pct", "irr_after_tax_pct", "payback_years", "capex_sensitivity"):
+            row[kk] = None
+        row.update(f)
+        out.append(row)
+    # a bare 'base case' row and another row with the same after-tax NPV are one scenario; the named row is kept
+    def bare(r):
+        return (r.get("scenario") or "").strip().lower() == "base case"
+    keep = []
+    for r in out:
+        twin = next((u for u in keep if (bare(u) or bare(r)) and not (bare(u) and bare(r)) and
+                     _close18(u.get("npv_after_tax"), r.get("npv_after_tax")) and u.get("basis") == r.get("basis")), None)
+        if twin is None:
+            keep.append(r)
+            continue
+        named, plain = (r, twin) if bare(twin) else (twin, r)
+        for kk, vv in plain.items():
+            if vv is not None and named.get(kk) is None and kk != "scenario":
+                named[kk] = vv
+        if bare(twin):
+            keep[keep.index(twin)] = named
+    return keep
+
+
 def analyse(headline: str, body: str) -> dict:
     """Every scenario the release states, with the study's context and whose study it is."""
     if not _RE_ANY_ECON.search(headline or "") and not _RE_ANY_ECON.search(body or ""):
@@ -1143,6 +1355,7 @@ def analyse(headline: str, body: str) -> dict:
         body = (body or "")[:oth.start()]      # 1.0.10: what follows is other companies' news
     body = _RE_URL.sub(" ", body or "")            # 1.0.11: a link's slug is not a statement
     body = _clean_body(body)                       # 1.0.12: words a PDF split, metres written 'm'
+    body = re.sub(r"\bNVP\b", "NPV", body)          # 1.0.18: 'After-tax NVP@5% = $46.1 million' (Bravada)
     text = C.economics_text(head, body)
     # a blank line, so the headline is never joined to the first line of the body: Freeman's
     # headline ends '...at US$4,350/oz Gold - PR Newswire Canada' and its body opens with the base case
@@ -1244,6 +1457,8 @@ def analyse(headline: str, body: str) -> dict:
     out = _fix5_precise(full, out)                 # 1.0.13: a rounded figure the results table states exactly
     out = _fix5_own(flat_full, out)                # 1.0.13: each restated study's own mine life and capital
     out = _fix5_payback(flat_full, out)            # 1.0.13: the study's payback
+    out = _fix18_tax(flat_full, out)               # 1.0.18: a pre-tax NPV filed as the after-tax one
+    out = _fix18_tables(body, flat_full, out)      # 1.0.18: scenario tables and price lists, one row each
 
     res["is_economic_study"] = True
     res["reason"] = "scenarios"
