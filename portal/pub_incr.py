@@ -42,7 +42,7 @@ FULL_MAX_H = 24.0
 MAX_EVENTS = 30000
 _PD = os.path.dirname(os.path.abspath(__file__))   # PUB_INCR_V1.2 (2026-11-12): the headline is in the signature;
 #   corrections lists and the filing figures are in the global fingerprint, by content
-V = "PUB_INCR_V1.2"   # 2026-11-06: economics fingerprints the company-name map, not the file; shadow counts late arrivals
+V = "PUB_INCR_V1.3"   # 2026-11-06: economics fingerprints the company-name map, not the file; shadow counts late arrivals
 
 MGMT_COLS = ("event_id", "ordinal", "ticker", "action", "person", "role", "role_canon", "scope", "effective_date",
              "interim", "n_changes", "raw_headline", "published_at")
@@ -87,6 +87,19 @@ def _financings(M, conn, version, tickers):
                  cols=tuple(ev_rows[0].keys()) if ev_rows else None, const={}, rows=ev_rows)]
 
 
+def _production(M, conn, version, tickers):   # PUB_INCR_V1.3 (2026-11-13): same filing overlay + US hide rule as publish()
+    rows, st = M.compute(M.load_items(conn, version))
+    try:
+        from portal import production_filings as _pf
+        rows, _fst = _pf.apply([dict(r) for r in rows], conn, cols=list(M._COLS))
+    except Exception:  # noqa: BLE001 - publish() keeps the reader's rows on an overlay error; so does this
+        pass
+    if tickers is not None:
+        rows = [r for r in rows if (r.get("ticker") or "") in tickers]
+    return [dict(table="production_results", kind="rows", id="pr_id", cols=tuple(M._COLS),
+                 const={"extractor_version": version}, rows=rows)]
+
+
 def _bulletin_sig(M, conn, version):
     per = {}
     for ev, p in M.bulletin_items(conn):
@@ -112,7 +125,7 @@ ADAPTERS = {
                        tables=["management_changes"], cfiles=[_PD + "/management_overrides.json"]),
     "resources": dict(mod="portal.resources_publish", build=_std("resource_estimates", "res_id"),
                       tables=["resource_estimates"]),
-    "production": dict(mod="portal.production_publish", build=_std("production_results", "pr_id"),
+    "production": dict(mod="portal.production_publish", build=_production,
                        tables=["production_results"],
                        cfiles=[_PD + "/production_overrides.json", _PD + "/production_filings.json",
                                _PD + "/production_filings.py"],

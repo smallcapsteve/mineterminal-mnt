@@ -132,7 +132,9 @@ def apply(rows, conn, path=None, cols=None):
             for e in evs:
                 d = (_day(e["published_at"]) - fd).days
                 if -35 <= d <= 7:
-                    k = (0 if e["event_id"] in evrows else 1, abs(d))
+                    k = (0 if e["event_id"] in evrows else 1, abs(d),   # PRODFILE_TIE_V1 (2026-11-14): same-day ties go to the
+                         0 if (_RESULTS.search(e["raw_headline"] or "") and not _NOT.search(e["raw_headline"] or "")) else 1,
+                         e["event_id"])   # results release, then the lower id, whatever the row order
                     if best is None or k < best[0]:
                         best = (k, e)
             if not best:
